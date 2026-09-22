@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { colors, spacing, typography } from '@/theme/tokens';
 
 type Props = { title: string; children?: ReactNode };
 
-/** Tela provisória das rotas até cada seção ser implementada. Estilos definitivos virão dos tokens (2.1). */
+/** Tela provisória das rotas até cada seção ser implementada. */
 export function PlaceholderScreen({ title, children }: Props) {
   return (
     <View style={styles.container}>
@@ -20,8 +21,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
-    backgroundColor: '#EDEAE0',
+    gap: spacing.base,
+    backgroundColor: colors.background,
   },
-  title: { color: '#10160F', fontSize: 24, fontWeight: '600' },
+  title: { color: colors.textPrimary, ...typography.heading2 },
 });

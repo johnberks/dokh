@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-21 · Claude Code · branch integrada em `main` via PR #1.
+Última atualização: 2026-09-21 · Codex · tarefa 2.1 na branch `codex/2.1-tokens`.
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A próxima tarefa é a **1.9 (EAS)**, que depende de conta Expo, ou a **Fase 2 (design system)**, que não depende de nada externo. Recomendação: seguir para a **2.1**.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** está concluída nesta branch; a próxima tarefa de design system é **2.2 (fontes e assets)**. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -23,6 +23,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 1.7 Qualidade local | ✅ Concluída | — |
 | 1.8 CI | 🟡 Implementada | Ver o workflow rodar num PR e tornar o check obrigatório na `main` |
 | 1.9 EAS | ⏳ Não iniciada | Precisa de conta Expo (`npx eas-cli login`) |
+| 2.1 Tokens do Brand Kit | ✅ Concluída nesta branch | —; integrar PR |
 
 ## Como rodar o projeto
 
@@ -56,6 +57,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **Estado** (`src/data/query-client.ts`, `src/features/app-shell/AppProviders.tsx`): TanStack Query só em memória, revalida ao voltar ao app e ao reconectar.
 - **Regras de camada**: o Biome impede, por exemplo, `src/domain` de importar React Native (`biome.json` > `overrides`).
 - **Billing**: nada implementado de propósito. `docs/billing-readiness.md` lista o que não pode mudar (bundle `com.dokh.app`, `app_user_id` = UUID do Supabase, entitlement `premium`).
+- **Tokens** (`src/theme/tokens.ts`, `docs/theme-tokens.md`): paleta e papéis semânticos, tipografia com fallback temporário, spacing, radius, shadow, motion e z-index. `PlaceholderScreen` usa tokens. O carregamento das fontes reais permanece na 2.2.
 
 ## Armadilhas já encontradas
 
@@ -66,6 +68,16 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - QueryClient de teste precisa de `gcTime: Infinity` em queries e mutations, senão o Jest não encerra.
 - Não usar `new URL().hostname` no app: a implementação de URL do React Native é incompleta.
 - `lucide-react-native` é mapeado para o build CJS só no Jest (`package.json` > `jest.moduleNameMapper`).
+- `npx expo-doctor` pode falhar se o cache global npm não for gravável. Neste ambiente, `npm_config_cache=/private/tmp/dokh-npm-cache npx expo-doctor` executou 21/21 checks.
+
+## Evidência da tarefa 2.1
+
+- `npm run typecheck`: passou.
+- `npm run check`: passou.
+- `npm test -- --runInBand`: 8 suítes, 29 testes passaram. Na primeira execução fria, um teste de rota preexistente excedeu 5 s; a repetição completa passou.
+- `npm run check:agents`: passou.
+- `npm_config_cache=/private/tmp/dokh-npm-cache npx expo-doctor`: 21/21 checks passaram.
+- `src/theme/tokens.test.ts` valida o mapeamento de marca e impede hex/família inline no componente de demonstração.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
@@ -76,8 +88,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 
 ## Próximas tarefas sugeridas (em ordem)
 
-1. **2.1** Tokens do Brand Kit (`design/brand-kit.dc.html`, `design/componentes.dc.html`).
-2. **2.2** Fontes (Archivo, IBM Plex Mono, Unbounded) e símbolo.
-3. **2.3** Primitives acessíveis → **2.6** estados técnicos → **2.4** navegação visual.
-4. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
-5. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.
+1. **2.2** Fontes (Archivo, IBM Plex Mono, Unbounded) e símbolo; substituir fallback de `typography` após carregamento.
+2. **2.3** Primitives acessíveis → **2.6** estados técnicos → **2.4** navegação visual.
+3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
+4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.

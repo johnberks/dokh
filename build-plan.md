@@ -115,7 +115,7 @@
 
 ## Fase 2 — Design system e infraestrutura visual
 
-- [ ] **2.1 — Extrair tokens do Brand Kit**
+- [x] **2.1 — Extrair tokens do Brand Kit**
   - Dependências: 1.2.
   - Cores, tipografia, spacing, radius, shadow, motion e z-index.
   - Tokens semânticos além dos valores brutos.
