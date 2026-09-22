@@ -166,7 +166,7 @@
   - `profiles`, `work_preferences`, `notification_preferences`, enums e trigger `updated_at`.
   - **DoD:** constraints do `domain-model.md` passam; migration sobe e desce em banco descartável.
 
-- [ ] **3.3 — Migration do núcleo profissional**
+- [x] **3.3 — Migration do núcleo profissional**
   - Dependências: 3.1.
   - `work_locations`, `work_series`, `work_entries`, `residencies`, `receivables` e índices.
   - **DoD:** XOR de origem do Recebível, unicidades, checks de Plantão e índices por usuário/data validados em testes SQL.

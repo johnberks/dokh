@@ -81,6 +81,219 @@ export type Database = {
         };
         Relationships: [];
       };
+      receivables: {
+        Row: {
+          amount_cents: number;
+          competence_month: string;
+          created_at: string;
+          currency: string;
+          expected_on: string | null;
+          id: string;
+          invalidated_at: string | null;
+          received_at: string | null;
+          residency_id: string | null;
+          updated_at: string;
+          user_id: string;
+          work_entry_id: string | null;
+        };
+        Insert: {
+          amount_cents: number;
+          competence_month: string;
+          created_at?: string;
+          currency?: string;
+          expected_on?: string | null;
+          id?: string;
+          invalidated_at?: string | null;
+          received_at?: string | null;
+          residency_id?: string | null;
+          updated_at?: string;
+          user_id: string;
+          work_entry_id?: string | null;
+        };
+        Update: {
+          amount_cents?: number;
+          competence_month?: string;
+          created_at?: string;
+          currency?: string;
+          expected_on?: string | null;
+          id?: string;
+          invalidated_at?: string | null;
+          received_at?: string | null;
+          residency_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+          work_entry_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'receivables_residency_id_user_id_fkey';
+            columns: ['residency_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'residencies';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'receivables_work_entry_id_user_id_fkey';
+            columns: ['work_entry_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_entries';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
+      residencies: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          expected_ends_on: string | null;
+          id: string;
+          institution: string | null;
+          level_label: string | null;
+          monthly_amount_cents: number;
+          payment_day: number;
+          specialty: string;
+          starts_on: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          expected_ends_on?: string | null;
+          id?: string;
+          institution?: string | null;
+          level_label?: string | null;
+          monthly_amount_cents: number;
+          payment_day: number;
+          specialty: string;
+          starts_on: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          expected_ends_on?: string | null;
+          id?: string;
+          institution?: string | null;
+          level_label?: string | null;
+          monthly_amount_cents?: number;
+          payment_day?: number;
+          specialty?: string;
+          starts_on?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      work_entries: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          description: string | null;
+          duration_minutes: number | null;
+          id: string;
+          import_id: string | null;
+          location_id: string;
+          occurrence_key: string | null;
+          series_id: string | null;
+          source: Database['public']['Enums']['work_entry_source'];
+          start_time: string | null;
+          timezone: string;
+          type: Database['public']['Enums']['work_entry_type'];
+          updated_at: string;
+          user_id: string;
+          work_date: string;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          duration_minutes?: number | null;
+          id?: string;
+          import_id?: string | null;
+          location_id: string;
+          occurrence_key?: string | null;
+          series_id?: string | null;
+          source?: Database['public']['Enums']['work_entry_source'];
+          start_time?: string | null;
+          timezone: string;
+          type: Database['public']['Enums']['work_entry_type'];
+          updated_at?: string;
+          user_id: string;
+          work_date: string;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          description?: string | null;
+          duration_minutes?: number | null;
+          id?: string;
+          import_id?: string | null;
+          location_id?: string;
+          occurrence_key?: string | null;
+          series_id?: string | null;
+          source?: Database['public']['Enums']['work_entry_source'];
+          start_time?: string | null;
+          timezone?: string;
+          type?: Database['public']['Enums']['work_entry_type'];
+          updated_at?: string;
+          user_id?: string;
+          work_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'work_entries_location_id_user_id_fkey';
+            columns: ['location_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_locations';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'work_entries_series_id_user_id_fkey';
+            columns: ['series_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_series';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
+      work_locations: {
+        Row: {
+          archived_at: string | null;
+          city: string | null;
+          color_source: Database['public']['Enums']['work_location_color_source'];
+          color_token: string;
+          created_at: string;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          archived_at?: string | null;
+          city?: string | null;
+          color_source?: Database['public']['Enums']['work_location_color_source'];
+          color_token: string;
+          created_at?: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          city?: string | null;
+          color_source?: Database['public']['Enums']['work_location_color_source'];
+          color_token?: string;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       work_preferences: {
         Row: {
           default_duration_minutes: number | null;
@@ -105,6 +318,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      work_series: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          ends_on: string | null;
+          frequency: Database['public']['Enums']['work_series_frequency'];
+          id: string;
+          materialized_until: string | null;
+          rrule: string;
+          starts_on: string;
+          timezone: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          ends_on?: string | null;
+          frequency: Database['public']['Enums']['work_series_frequency'];
+          id?: string;
+          materialized_until?: string | null;
+          rrule: string;
+          starts_on: string;
+          timezone: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          ends_on?: string | null;
+          frequency?: Database['public']['Enums']['work_series_frequency'];
+          id?: string;
+          materialized_until?: string | null;
+          rrule?: string;
+          starts_on?: string;
+          timezone?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -114,6 +369,10 @@ export type Database = {
     };
     Enums: {
       professional_status: 'general_practitioner' | 'resident';
+      work_entry_source: 'manual' | 'import' | 'recurrence';
+      work_entry_type: 'shift' | 'procedure' | 'appointment';
+      work_location_color_source: 'automatic' | 'free_palette' | 'premium_palette';
+      work_series_frequency: 'weekly' | 'biweekly' | 'monthly' | 'custom';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -240,6 +499,10 @@ export const Constants = {
   public: {
     Enums: {
       professional_status: ['general_practitioner', 'resident'],
+      work_entry_source: ['manual', 'import', 'recurrence'],
+      work_entry_type: ['shift', 'procedure', 'appointment'],
+      work_location_color_source: ['automatic', 'free_palette', 'premium_palette'],
+      work_series_frequency: ['weekly', 'biweekly', 'monthly', 'custom'],
     },
   },
 } as const;

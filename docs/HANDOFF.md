@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.2 concluída no PR draft [#18](https://github.com/johnberks/dokh/pull/18), empilhado sobre o [#17](https://github.com/johnberks/dokh/pull/17). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-22 · Codex · 3.3 concluída na branch `codex/3.3-professional-core`, empilhada sobre o PR draft [#18](https://github.com/johnberks/dokh/pull/18). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -31,6 +31,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 | 3.1 Supabase local/remoto | 🟡 Start/reset local passaram; `dokh-preview` e `dokh-production` ativos em `johnberks's Org` Free; chaves públicas isoladas | Configurar EAS/cliente e comprovar conexão real do app preview somente ao projeto preview |
 | 3.2 Perfis e preferências | ✅ Migration, constraints, RLS, rollback descartável e tipos testados | — |
+| 3.3 Núcleo profissional | ✅ Cinco tabelas, constraints, FKs por dono, índices, RLS, rollback e tipos testados | — |
 
 ## Como rodar o projeto
 
@@ -54,19 +55,21 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#18](https://github.com/johnberks/dokh/pull/18), branch `codex/3.2-profiles-preferences`, empilhado sobre o [#17](https://github.com/johnberks/dokh/pull/17). A 3.2 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.3-professional-core`, empilhada sobre o PR draft [#18](https://github.com/johnberks/dokh/pull/18). A 3.3 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de schema: **3.3**, núcleo profissional (`work_locations`, `work_series`, `work_entries`, `residencies`, `receivables`), seguido de 3.4 e 3.5. Mantenha migration, RLS, testes SQL e tipos no mesmo PR. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo de schema: **3.4**, suporte operacional (`subscription_entitlements`, `device_push_tokens`, `imports`, `import_issues`), seguido de 3.5 (RLS completa). Mantenha migration, RLS, testes SQL e tipos no mesmo PR. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Na 3.3, as cinco tabelas do núcleo profissional foram criadas com enums, checks de Plantão, XOR/unicidades de Recebível, FKs compostas por dono e índices de Agenda/caixa/competência. `npm run test:db` valida 3.2 e 3.3 em bancos descartáveis, incluindo rollback, acesso do dono/outro usuário/anônimo e bloqueio de escrita direta. `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. A migration foi aplicada somente no Supabase local, sem reset; preview/production não foram alterados. Escritas do app continuam fechadas até as RPCs atômicas e gates Premium posteriores. Detalhes em [`supabase-local.md`](supabase-local.md).
 
 Na 3.2, `supabase/migrations/20260922000000_profiles_preferences.sql` criou as três tabelas, enum, validação de zona IANA, trigger de `updated_at` e policies por `auth.uid()`. `profiles.user_id` é gerado a partir de `id = auth.users.id`; não deve ser enviado pelo cliente, embora o gerador da CLI ainda o liste como campo opcional em `Insert`/`Update`. Quatro toggles de notificação começam em `false` até a pessoa optar por ativá-los. `npm run test:db` comprovou up/down em banco temporário, constraints e isolamento dono/outro usuário/anônimo; `npm run check:db-types` bateu com o schema local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Nada foi aplicado em preview/production. O CI agora repete testes SQL e paridade de tipos.
 
 Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. Os refs públicos remotos estão versionados no schema, que recusa preview→production e URL local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. Os projetos remotos `dokh-preview` (`lakpndtdkcjtazoybgnv`) e `dokh-production` (`irdsieciowovsaakikbf`) foram criados na organização pessoal Free, região `sa-east-1`, sem upgrade. Cada chave publishable acessou o próprio endpoint REST e foi rejeitada (`401`) no projeto oposto. O checkbox 3.1 permanece desmarcado apenas pela prova de conexão do app preview.
 
 ```bash
-git fetch origin codex/3.2-profiles-preferences
-git switch -c codex/3.2-profiles-preferences origin/codex/3.2-profiles-preferences
+git fetch origin codex/3.3-professional-core
+git switch -c codex/3.3-professional-core origin/codex/3.3-professional-core
 fnm exec --using=22 npm ci
 fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fnm exec --using=22 npm test -- --runInBand
 ```
@@ -230,5 +233,5 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **3.3–3.5** Migrations e RLS sobre Supabase local; projetos remotos disponíveis. Não aplicar migration remota sem testes de propriedade/RLS.
+2. **3.4–3.5** Migrations e RLS sobre Supabase local; projetos remotos disponíveis. Não aplicar migration remota sem testes de propriedade/RLS.
 3. **1.9 + 4.1** EAS e cliente/sessão; comprovar app preview em `dokh-preview` para fechar a 3.1. Depois **4.2/4.5** e telas. **2.7** motion pode entrar independentemente.

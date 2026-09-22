@@ -2,9 +2,9 @@
 
 O Supabase CLI usa `supabase/config.toml` versionado. O projeto local tem ID `dokh`,
 portas padrão 54321–54324, migrations habilitadas e seed de domínio desabilitado até
-a tarefa 3.12. Realtime está desligado conforme D28. A migration 3.2 cria
-`profiles`, `work_preferences` e `notification_preferences` com RLS. O cliente
-Supabase no app ainda depende da 4.1.
+a tarefa 3.12. Realtime está desligado conforme D28. As migrations 3.2 e 3.3
+criam perfis, preferências e o núcleo profissional com RLS. O cliente Supabase
+no app ainda depende da 4.1.
 
 ## Ambiente local
 
@@ -23,7 +23,7 @@ a URL e a publishable/anon key exibidas por `supabase:status`. No iPhone físico
 substitua `127.0.0.1` da URL pelo IP LAN do computador; o iPhone e o computador
 devem estar na mesma rede. Reinicie o Metro após alterar o `.env.local`.
 
-Para aplicar migrations novas sem apagar dados locais e verificar a 3.2:
+Para aplicar migrations novas sem apagar dados locais e verificar 3.2/3.3:
 
 ```bash
 SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase migration up --local
@@ -31,10 +31,11 @@ fnm exec --using=22 npm run test:db
 fnm exec --using=22 npm run check:db-types
 ```
 
-`test:db` cria um banco temporário no contêiner PostgreSQL local, aplica a
-migration, testa constraints, dono/outro usuário/anônimo e executa o SQL de
-rollback versionado; não reseta o banco DOKH em uso. O rollback é **só para
-esse banco descartável**: Supabase migrations de produção são forward-only.
+`test:db` cria bancos temporários no contêiner PostgreSQL local, aplica as
+migrations, testa constraints, índices, dono/outro usuário/anônimo e executa
+os SQLs de rollback versionados; não reseta o banco DOKH em uso. O rollback é
+**só para esses bancos descartáveis**: Supabase migrations de produção são
+forward-only.
 Os tipos versionados em `src/data/database.types.ts` foram gerados do banco
 local. Para regenerá-los após uma migration, execute
 `SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase gen types typescript --local --schema public`
@@ -45,6 +46,25 @@ ele, usada pelas policies; o cliente não deve enviá-la. `timezone` deve vir
 do device e ser reconhecida como zona IANA no Postgres. Os quatro toggles de
 notificação começam em `false` por segurança; a permissão do sistema continua
 separada e será tratada na 12.1.
+
+Na 3.3, `work_locations`, `work_series`, `work_entries`, `residencies` e
+`receivables` foram criadas. A origem do Recebível é exatamente uma (Trabalho
+ou Residência), com unicidade por Trabalho e por mês de Residência. FKs
+compostas com `user_id` impedem referências a dados de outra conta. Plantão
+exige início e duração positiva; Local arquivado permanece nos Trabalhos
+históricos, mas não pode ser selecionado em novos cadastros. Índices por
+usuário/data sustentam Agenda, caixa e competência. Os tokens de cor aceitos
+seguem a paleta vista nos HTMLs da Agenda; nenhum hexadecimal arbitrário é
+armazenado.
+
+As cinco tabelas permitem `SELECT` somente ao dono. Escritas diretas do app
+estão fechadas, inclusive para criação de Local Free: 3.7/3.9 devem fornecer
+RPCs atômicas, e 3.4/3.5 devem validar entitlement para série e paleta
+Premium antes de liberar essas operações. O schema permite uma ocorrência de
+Trabalho sem Recebível enquanto uma transação privilegiada a constrói; a RPC
+da 3.7 deve garantir que a transação termine com exatamente um. O `import_id`
+ganha FK quando a tabela de importação for criada na 3.4. Nenhuma migration
+foi aplicada em preview ou production.
 
 ## Projetos remotos
 

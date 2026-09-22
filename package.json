@@ -21,7 +21,7 @@
     "supabase:start": "SUPABASE_TELEMETRY_DISABLED=1 supabase start",
     "supabase:status": "SUPABASE_TELEMETRY_DISABLED=1 supabase status",
     "supabase:reset": "SUPABASE_TELEMETRY_DISABLED=1 supabase db reset --local",
-    "test:db": "bash scripts/test-migration-3.2.sh",
+    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh",
     "check:db-types": "SUPABASE_TELEMETRY_DISABLED=1 supabase gen types typescript --local --schema public | biome format --stdin-file-path src/data/database.types.ts | diff -u src/data/database.types.ts -"
   },
   "dependencies": {
