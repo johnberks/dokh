@@ -12,7 +12,7 @@ Nenhuma dessas fontes substitui as outras.
 
 ## Estado do projeto
 
-Esta base documental define a construção do MVP. Não presuma que comandos, dependências, ambientes ou infraestrutura já existam até a respectiva tarefa do `build-plan.md` estar concluída.
+O progresso atual e o ponto de retomada estão em `docs/HANDOFF.md`. Esta base documental define a construção do MVP. Não presuma que comandos, dependências, ambientes ou infraestrutura já existam até a respectiva tarefa do `build-plan.md` estar concluída.
 
 ## Leitura obrigatória
 
@@ -216,6 +216,8 @@ Pré-requisitos:
 Depois da Fase 0 do build plan, o fluxo local deve ser:
 
 ```bash
+fnm use            # Node do .nvmrc
+cp .env.example .env.local   # preencher com os valores de `npx supabase status`
 npm install
 npx supabase start
 npm run db:reset

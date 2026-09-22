@@ -59,6 +59,8 @@ O projeto é desenvolvido ao longo do tempo com **Claude Code e Codex**, alterna
 - `ios/` e `android/` não são versionados (Continuous Native Generation). Configuração nativa vai em `app.json`/config plugins.
 - Testes manuais são feitos no **Expo Go** (`npm run start`, QR code ou `i` para o simulador iOS). Enquanto for assim, só usar bibliotecas incluídas no Expo Go. Bibliotecas com código nativo fora do Expo Go (RevenueCat, Sentry nativo, notificações push remotas etc.) exigem development build (D02): adicionar somente na tarefa correspondente e registrar a mudança de fluxo no PR.
 - Antes de concluir qualquer tarefa: `npm run typecheck`, `npm run check` e `npm test` (quando existirem) e `npx expo-doctor`.
+- Testes (Jest + RNTL 14): `render` e `fireEvent` são **assíncronos** — sempre `await`. Use `renderWithProviders` (`src/test/render.tsx`) para telas com Query. `renderRouter` do Expo Router ainda não aguarda o render: siga o helper de `src/test/routes.test.tsx`. Mocks de módulos nativos ficam em `src/test/native-mocks.setup.ts`.
+- `npm run typecheck` gera os tipos de rota (`scripts/generate-route-types.mjs`) antes do `tsc`; não é preciso subir o Metro.
 - Preparação para billing: ver `docs/billing-readiness.md` antes de mexer em identidade do app, sessão, `subscription_entitlements` ou deep links.
 
 ## Regras de produto que nunca podem ser inferidas de outro modo
@@ -252,7 +254,7 @@ Cálculos financeiros devem cobrir:
 
 ## Processo para executar uma tarefa
 
-1. Identificar o ID no `build-plan.md`.
+1. Ler `docs/HANDOFF.md` (estado atual e armadilhas) e identificar o ID no `build-plan.md`.
 2. Ler dependências, decisões, domínio, UX e design aplicáveis.
 3. Confirmar que nenhuma pendência humana bloqueia o trecho.
 4. Inspecionar o estado atual e preservar mudanças existentes.
@@ -262,6 +264,7 @@ Cálculos financeiros devem cobrir:
 8. Atualizar documentação/migration/tipos quando necessário.
 9. Marcar checkbox apenas com evidência da DoD.
 10. Entregar resumo, arquivos alterados, testes executados e lacunas reais.
+11. Atualizar `docs/HANDOFF.md` com o novo estado antes de encerrar a sessão.
 
 ## Definition of Done global
 

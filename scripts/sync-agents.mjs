@@ -2,7 +2,7 @@
 // Mantém AGENTS.md (Codex) idêntico a CLAUDE.md (Claude Code). CLAUDE.md é a fonte canônica.
 // Uso: node scripts/sync-agents.mjs          -> regrava AGENTS.md
 //      node scripts/sync-agents.mjs --check  -> falha se AGENTS.md divergir
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
