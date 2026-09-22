@@ -60,7 +60,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **Regras de camada**: o Biome impede, por exemplo, `src/domain` de importar React Native (`biome.json` > `overrides`).
 - **Billing**: nada implementado de propósito. `docs/billing-readiness.md` lista o que não pode mudar (bundle `com.dokh.app`, `app_user_id` = UUID do Supabase, entitlement `premium`).
 - **Tokens** (`src/theme/tokens.ts`, `docs/theme-tokens.md`): paleta e papéis semânticos, tipografia com fallback temporário, spacing, radius, shadow, motion e z-index. `PlaceholderScreen` usa tokens. O carregamento das fontes reais permanece na 2.2.
-- **Primitives (2.3 parcial)**: `src/components/` contém Text, Button, IconButton, Input, SegmentedControl, Toggle, Chip, Divider, Card, Screen e ScrollScreen. Catálogo interno em `/dev/primitives` apenas em desenvolvimento; detalhes em `docs/primitives.md`.
+- **Primitives (2.3 parcial)**: `src/components/` contém Text, Button, IconButton, Input, SegmentedControl, Toggle, Chip, Divider, Card, Screen e ScrollScreen. Catálogo interno em `/dev/primitives` apenas em desenvolvimento, acessível por botão na Home provisória; detalhes em `docs/primitives.md`.
 
 ## Armadilhas já encontradas
 
@@ -84,7 +84,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 
 ## Evidência parcial da tarefa 2.3
 
-- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (9 suítes, 36 testes), `npm run check:agents` e `expo-doctor` (21/21) passaram.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (9 suítes, 37 testes), `npm run check:agents` e `expo-doctor` (21/21) passaram.
 - Testes cobrem estados de botão/campo, seleção, acessibilidade, alvo 44×44, contraste AA e deep link do catálogo.
 - O simulador iOS abriu, mas `simctl` não conseguiu conectar ao CoreSimulatorService neste ambiente; sem validação visual e VoiceOver/TalkBack, **não marcar `[x]`**.
 

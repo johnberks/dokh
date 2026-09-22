@@ -52,4 +52,10 @@ describe('rotas', () => {
     expect(router.getPathname()).toBe('/dev/primitives');
     expect(screen.getByRole('header', { name: 'Componentes básicos' })).toBeTruthy();
   });
+
+  it('Home provisória abre o catálogo apenas em desenvolvimento', async () => {
+    const router = await openAt('/');
+    await fireEvent.press(screen.getByRole('button', { name: 'Componentes básicos' }));
+    expect(router.getPathname()).toBe('/dev/primitives');
+  });
 });
