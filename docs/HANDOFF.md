@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Claude Code · PremiumGate na branch `codex/2.5-premium-gate` (PR draft sobre o #15). Biblioteca visual da 2.5 completa.
+Última atualização: 2026-09-22 · Claude Code · PremiumGate no PR draft #16 (`codex/2.5-premium-gate`, sobre o #15). Biblioteca visual da 2.5 completa.
 
 ## Onde paramos
 
@@ -50,7 +50,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 
 ## Retomada
 
-O ponto de retomada é a branch `codex/2.5-premium-gate` (PR draft sobre o #15). Com ela, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
+O ponto de retomada é o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate` (sobre o #15). Com ela, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
 
 Ordem de integração em `main`: #3 → #4 → … → #15 → PremiumGate. Nenhum desses PRs foi mesclado ainda.
 
