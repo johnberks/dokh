@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { colors, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { BottomSheetCatalog } from './BottomSheetCatalog';
 import { Button, IconButton } from './Button';
 import { CalendarGridCatalog } from './CalendarGridCatalog';
 import { EmptyStateCatalog } from './EmptyStateCatalog';
@@ -102,6 +103,8 @@ export function PrimitivesCatalog() {
         <WorkTypeSelectorCatalog />
         <Divider />
         <CalendarGridCatalog />
+        <Divider />
+        <BottomSheetCatalog />
       </View>
     </ScrollScreen>
   );

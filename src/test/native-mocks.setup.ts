@@ -13,3 +13,8 @@ jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn(async () => true),
   hideAsync: jest.fn(async () => {}),
 }));
+
+// Reanimated 4 / worklets e gesture handler: mocks oficiais publicados pelas bibliotecas.
+jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
+require('react-native-reanimated').setUpTests();
+require('react-native-gesture-handler/jestSetup');

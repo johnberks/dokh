@@ -1,4 +1,5 @@
 export { AppText as Text } from './AppText';
+export { BottomSheet } from './BottomSheet';
 export { Button, IconButton } from './Button';
 export { CalendarGrid } from './CalendarGrid';
 export { EmptyState } from './EmptyState';

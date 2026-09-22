@@ -39,6 +39,10 @@ export const components = {
     oneWork: '1 trabalho',
     manyWorks: '{{count}} trabalhos',
   },
+  sheet: {
+    close: 'Fechar',
+    closeHint: 'Fecha a folha e volta para a tela anterior.',
+  },
   reviewCard: {
     oneMoreEntry: '+ {{count}} entrada',
     moreEntries: '+ {{count}} entradas',
@@ -54,6 +58,14 @@ export const components = {
   },
   catalog: {
     title: 'Componentes básicos',
+    sheetTitle: 'Bottom sheet',
+    sheetOpenStandard: 'Abrir folha padrão (Agenda 08)',
+    sheetOpenMenu: 'Abrir folha de menu (Agenda 06B)',
+    sheetStandardEyebrow: 'QUANDO SERÁ?',
+    sheetStandardHeading: 'Setembro 2026',
+    sheetStandardNote: 'Os pontos mostram dias em que você já trabalha.',
+    sheetConfirm: 'Confirmar',
+    sheetMenuHeading: 'O que você quer adicionar?',
     calendarTitle: 'Calendário',
     calendarSunday: 'MÊS · INÍCIO NO DOMINGO · AGENDA 01',
     calendarMonday: 'MÊS · INÍCIO NA SEGUNDA · AGENDA 08',

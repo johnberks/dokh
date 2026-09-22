@@ -85,6 +85,11 @@ export const colors = {
   workTypeProcedureTile: 'rgba(169,138,84,0.16)',
   workTypeAppointmentTile: 'rgba(107,127,142,0.16)',
   calendarPastDay: '#8A9184',
+  // A tela de trás aparece esmaecida (opacidade 0,35/0,5 no HTML) = véu creme por cima.
+  sheetScrim: 'rgba(237,234,224,0.65)',
+  sheetMenuScrim: 'rgba(237,234,224,0.5)',
+  sheetHandle: 'rgba(16,22,15,0.2)',
+  sheetMenuHandle: 'rgba(16,22,15,0.18)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -404,6 +409,26 @@ export const calendarMetrics = {
   weekdayTracking: 1.2,
 } as const;
 
+/** Agenda 08–14 and Finanças sheets (standard) and Agenda 06B (menu). */
+export const bottomSheetMetrics = {
+  standardRadius: 32,
+  menuRadius: 28,
+  paddingTop: 14,
+  paddingHorizontal: 24,
+  paddingBottom: 36,
+  menuPaddingBottom: 40,
+  standardGap: 18,
+  menuGap: 20,
+  handleWidth: 40,
+  menuHandleWidth: 36,
+  handleHeight: 4,
+  handleHitTarget: 44,
+  /** Fração da altura arrastada para baixo que fecha o sheet ao soltar. */
+  dismissRatio: 0.25,
+  /** Velocidade (pontos/s) de arraste que fecha mesmo com pouco deslocamento. */
+  dismissVelocity: 900,
+} as const;
+
 export const radius = {
   none: 0,
   small: 4,
@@ -438,6 +463,20 @@ export const shadow = {
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
+  },
+  sheet: {
+    shadowColor: palette.base,
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: -20 },
+    elevation: 16,
+  },
+  sheetMenu: {
+    shadowColor: palette.base,
+    shadowOpacity: 0.35,
+    shadowRadius: 25,
+    shadowOffset: { width: 0, height: -20 },
+    elevation: 16,
   },
   tabCreate: {
     shadowColor: palette.base,
