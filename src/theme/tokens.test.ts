@@ -10,6 +10,7 @@ import {
   navigationMetrics,
   palette,
   radius,
+  reviewCardMetrics,
   shadow,
   spacing,
   typography,
@@ -25,6 +26,9 @@ describe('Brand Kit tokens', () => {
     expect(colors.textPrimary).toBe(palette.base);
     expect(colors.errorTextOnDark).toBe(palette.negativeText);
     expect(colors.pendingText).not.toBe(palette.negative);
+    expect(palette.attention).toBe('#E4D9C2');
+    expect(colors.reviewAttentionBackground).toBe(palette.attention);
+    expect(colors.reviewPreviewSurface).toBe('#FDFCF8');
   });
 
   it('registers each brand role and provides a safe fallback', () => {
@@ -48,6 +52,9 @@ describe('Brand Kit tokens', () => {
     expect(zIndex.overlay).toBeGreaterThan(zIndex.floating);
     expect(navigationMetrics.createDiameter).toBe(56);
     expect(navigationMetrics.navigationControlHitTarget).toBeGreaterThanOrEqual(44);
+    expect(reviewCardMetrics.compactRadius).toBe(18);
+    expect(reviewCardMetrics.regularRadius).toBe(22);
+    expect(reviewCardMetrics.previewBarWidth).toBe(5);
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {
