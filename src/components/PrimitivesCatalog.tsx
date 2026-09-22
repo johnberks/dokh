@@ -7,6 +7,7 @@ import { AppText } from './AppText';
 import { Button, IconButton } from './Button';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
+import { ReviewCardCatalog } from './ReviewCardCatalog';
 import { Chip, SegmentedControl, Toggle } from './Selection';
 import { LoadError, MutationError, OfflineBanner, Skeleton } from './TechnicalStates';
 
@@ -78,6 +79,8 @@ export function PrimitivesCatalog() {
         <LoadError onRetry={() => {}} />
         <MutationError onRetry={() => {}} />
         <OfflineBanner showingCachedData />
+        <Divider />
+        <ReviewCardCatalog />
       </View>
     </ScrollScreen>
   );

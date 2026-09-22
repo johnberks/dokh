@@ -15,6 +15,9 @@ export const palette = {
   deepBackground: '#0A0E09',
   paper: '#F8F6EF',
   mutedCopy: '#4A5744',
+  bronzeDeep: '#8A6E3C',
+  attention: '#E4D9C2',
+  previewPaper: '#FDFCF8',
 } as const;
 
 /** Semantic intent is preferred to raw palette names in components. */
@@ -38,6 +41,18 @@ export const colors = {
   tabBarBorder: 'rgba(16,22,15,0.1)',
   tabActiveBackground: 'rgba(16,22,15,0.08)',
   navigationControlBorder: 'rgba(16,22,15,0.2)',
+  reviewBorder: 'rgba(16,22,15,0.16)',
+  reviewDivider: 'rgba(16,22,15,0.1)',
+  reviewTray: 'rgba(16,22,15,0.045)',
+  reviewPreviewBorder: 'rgba(16,22,15,0.08)',
+  reviewIconBronzeBackground: 'rgba(169,138,84,0.16)',
+  reviewIconSageBackground: 'rgba(111,126,103,0.16)',
+  reviewAttentionBackground: palette.attention,
+  reviewAttentionBorder: 'rgba(169,138,84,0.45)',
+  reviewAttentionDivider: 'rgba(169,138,84,0.4)',
+  reviewAttentionIconBackground: 'rgba(255,255,255,0.5)',
+  reviewPreviewSurface: palette.previewPaper,
+  reviewBronzeText: palette.bronzeDeep,
 } as const;
 
 /** Brand family names (Brand Kit) and concrete expo-font registration names. */
@@ -200,6 +215,29 @@ export const navigationMetrics = {
   modalHorizontal: 24,
   modalHeadingGap: 24,
   modalDescriptionGap: 6,
+} as const;
+
+/** Review Card sizes extracted from design/componentes.dc.html, variants A–D. */
+export const reviewCardMetrics = {
+  compactRadius: 18,
+  regularRadius: 22,
+  compactPaddingTop: 14,
+  compactPaddingHorizontal: 14,
+  compactPaddingLeft: 16,
+  regularPaddingHorizontal: 18,
+  regularPaddingTop: 16,
+  detailedPaddingTop: 18,
+  compactIconTile: 34,
+  regularIconTile: 30,
+  detailedIconTile: 34,
+  compactActionCircle: 32,
+  regularActionCircle: 32,
+  detailedActionCircle: 34,
+  trayRadius: 16,
+  trayPadding: 6,
+  previewRadius: 12,
+  previewBarWidth: 5,
+  previewBarHeight: 28,
 } as const;
 
 export const radius = {

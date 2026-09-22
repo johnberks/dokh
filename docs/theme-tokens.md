@@ -7,5 +7,6 @@ Fonte: `design/brand-kit.dc.html` (paleta C e tipografia escolhida 2C), com dime
 - `spacing` é uma escala prática dos respiros recorrentes de 4–48; `radius` inclui cards 18/22 e tela 28 observados nos componentes. O Brand Kit não especifica escala de spacing ou radius de UI; o raio proporcional de 8% se refere ao símbolo, não a cards.
 - `shadow` aproxima as sombras neutras dos cards na API nativa iOS/Android, sem prometer reproduzir o brilho *inset* do HTML. `motion.feedback` = 200 ms vem da transição da confirmação no catálogo. `enter`/`exit` e `zIndex` são convenções iniciais, não valores normativos do Brand Kit; animação, reduce motion e camadas de navegação serão validados em 2.7/2.4.
 - `navigationMetrics` concentra a geometria da barra inferior e do controle do modal extraída dos quadros 390×844 de Home, Agenda, Finanças e Perfil; veja `docs/navigation.md`.
+- O recorte 2.5 acrescenta a superfície de atenção `#E4D9C2`, o mini card `#FDFCF8`, o bronze escuro de textos/ícones e `reviewCardMetrics` com os raios e medidas A–D de `design/componentes.dc.html`; veja `docs/review-card.md`.
 
 Os HTMLs de referência permanecem intactos. Os placeholders consomem tokens sem carregar fontes antecipadamente; a implementação visual final das telas não faz parte da 2.1.
