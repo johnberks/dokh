@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-21 · Codex · navegação 2.4 parcial em `codex/2.4-navigation`.
+Última atualização: 2026-09-22 · Codex · navegação 2.4 parcial no PR draft #5 (`codex/2.4-navigation`).
 
 ## Onde paramos
 
@@ -26,7 +26,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.1 Tokens do Brand Kit | ✅ Integrada no PR #2 | — |
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
-| 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar nesta branch | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
+| 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
 
 ## Como rodar o projeto
 
@@ -114,6 +114,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - A revisão de boas práticas React levou a imports diretos de ícones Lucide e pesos de fonte usados: o bundle iOS caiu de 5,6 MB/3357 módulos para 3,6 MB/1482 módulos. O mapper do Jest foi ajustado para os subcaminhos CJS; nenhum visual ou família foi alterado.
 - `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (11 suítes, 46 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22.
 - O `simctl` continua sem acesso ao CoreSimulatorService neste ambiente; inspeção visual no iPhone 16 e VoiceOver ainda dependem do usuário. Não marcar a 2.4 como concluída.
+- PR draft #5 usa `codex/2.3-ios-preview` como base temporária para manter o diff da 2.4 isolado; não mesclar em `main` antes dos PRs #3 e #4.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
