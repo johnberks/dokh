@@ -1,13 +1,14 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import ts from 'typescript';
 
 /**
  * D38: nenhum texto de produto hardcoded em componente.
- * Detecta texto literal entre tags JSX (ex.: <Text>Olá</Text>) em rotas, features e componentes.
- * Texto dinâmico ({t('...')}) e chaves de i18n passam.
+ * Usa o parser do TypeScript para achar texto literal entre tags JSX (<Text>Olá</Text>)
+ * em rotas, features e componentes. Texto vindo de {t('...')} passa.
  */
-const ROOTS = ['app', 'src/features', 'src/components'];
-const JSX_TEXT = />\s*([^<>{}\s][^<>{}]*[A-Za-zÀ-ÿ][^<>{}]*)\s*</g;
+const root = join(__dirname, '../..');
+const ROOTS = ['app', 'src/features', 'src/components'].map((dir) => join(root, dir));
 
 function listTsx(dir: string): string[] {
   let entries: string[];
@@ -23,10 +24,27 @@ function listTsx(dir: string): string[] {
   });
 }
 
+function literalJsxText(file: string): string[] {
+  const source = ts.createSourceFile(
+    file,
+    readFileSync(file, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  );
+  const found: string[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isJsxText(node) && /\p{L}/u.test(node.text)) found.push(node.text.trim());
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return found;
+}
+
 describe('texto de interface', () => {
   it('não há texto literal em JSX fora do i18n', () => {
     const offenders = ROOTS.flatMap(listTsx).flatMap((file) =>
-      [...readFileSync(file, 'utf8').matchAll(JSX_TEXT)].map((m) => `${file}: "${m[1].trim()}"`),
+      literalJsxText(file).map((text) => `${file.replace(`${root}/`, '')}: "${text}"`),
     );
     expect(offenders).toEqual([]);
   });
