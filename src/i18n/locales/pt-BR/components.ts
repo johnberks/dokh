@@ -87,5 +87,18 @@ export const components = {
     receivableHospital: 'Hospital São Camilo',
     receivableOrigin: 'Residência',
     receivableExpectedValue: 'R$ 850',
+    emptyTitle: 'Estados vazios',
+    emptyHomeEntries: 'Home · mês sem entradas',
+    emptyHomeWork: 'Home · sem próximo trabalho',
+    emptyAgenda: 'Agenda · dia livre',
+    emptyFinances: 'Finanças · sem trabalhos',
+    emptyEntriesMonth: 'Entradas · mês vazio',
+    emptyNextEntry: 'Finanças · sem próxima entrada',
+    emptyLocations: 'Perfil · sem locais',
+    emptyResidency: 'Perfil · sem residência',
+    emptyImport: 'Perfil · arquivo lido sem dados',
+    emptyMonth: 'DEZEMBRO 2026',
+    emptyNextEntryDescription:
+      'Todas as entradas de setembro já foram recebidas — não há nada previsto para os próximos dias.',
   },
 } as const;

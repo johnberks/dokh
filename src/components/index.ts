@@ -1,5 +1,6 @@
 export { AppText as Text } from './AppText';
 export { Button, IconButton } from './Button';
+export { EmptyState } from './EmptyState';
 export { Input } from './Input';
 export { Card, Divider, Screen, ScrollScreen } from './Layout';
 export { ReceivableRow } from './ReceivableRow';

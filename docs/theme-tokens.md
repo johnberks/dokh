@@ -10,5 +10,6 @@ Fonte: `design/brand-kit.dc.html` (paleta C e tipografia escolhida 2C), com dime
 - O recorte 2.5 acrescenta a superfície de atenção `#E4D9C2`, o mini card `#FDFCF8`, o bronze escuro de textos/ícones e `reviewCardMetrics` com os raios e medidas A–D de `design/componentes.dc.html`; veja `docs/review-card.md`.
 - `workLocationColors` mapeia somente os seis tokens de Local apresentados em `Agenda 13`; `workCardMetrics` contém as medidas dos cards de Agenda e Home, sem aceitar cor hexadecimal livre do cliente. Veja `docs/work-card.md`.
 - `receivableRowMetrics` concentra data, timeline, ponto, painel e ação da linha de Recebível em `Finanças 05–10`; as cores dos três estados ficam em `colors`. Veja `docs/receivable-row.md`.
+- `emptyStateMetrics` registra raios, paddings, alturas e alvo das superfícies vazias previstas nos HTMLs; `colors.empty*` concentra bordas tracejadas e hierarquia esmaecida. Veja `docs/empty-state.md`.
 
 Os HTMLs de referência permanecem intactos. Os placeholders consomem tokens sem carregar fontes antecipadamente; a implementação visual final das telas não faz parte da 2.1.

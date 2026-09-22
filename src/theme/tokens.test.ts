@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import {
   brandTypography,
   colors,
+  emptyStateMetrics,
   fontAliases,
   fontFamilies,
   getTypography,
@@ -64,6 +65,9 @@ describe('Brand Kit tokens', () => {
     expect(workLocationColors.blue).toBe('#6B7F8E');
     expect(receivableRowMetrics.confirmCircle).toBe(34);
     expect(receivableRowMetrics.confirmHitTarget).toBeGreaterThanOrEqual(44);
+    expect(emptyStateMetrics.cardRadius).toBe(22);
+    expect(emptyStateMetrics.profileButtonHeight).toBe(56);
+    expect(colors.emptyOutline).toBe('rgba(16,22,15,0.22)');
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {

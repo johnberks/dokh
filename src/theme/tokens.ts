@@ -66,6 +66,10 @@ export const colors = {
   receivablePendingFill: 'rgba(169,138,84,0.16)',
   receivablePendingBorder: 'rgba(169,138,84,0.45)',
   receivablePendingDivider: 'rgba(169,138,84,0.35)',
+  emptyOutline: 'rgba(16,22,15,0.22)',
+  emptyDashedOutline: 'rgba(16,22,15,0.24)',
+  emptyTeaserOutline: 'rgba(16,22,15,0.25)',
+  emptyFutureDot: 'rgba(127,138,118,0.95)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -299,6 +303,21 @@ export const receivableRowMetrics = {
   pendingBottomGap: 18,
   confirmCircle: 34,
   confirmHitTarget: 44,
+} as const;
+
+/** Empty-state geometries from Home 05–06, Agenda 04, Finanças 11/14 and Perfil. */
+export const emptyStateMetrics = {
+  cardRadius: 22,
+  agendaPaddingVertical: 26,
+  agendaPaddingHorizontal: 22,
+  profileButtonHeight: 56,
+  profileButtonRadius: 16,
+  compactButtonHeight: 40,
+  compactButtonRadius: 12,
+  actionHitTarget: 44,
+  entriesHorizontalInset: 32,
+  profileBottomInset: 80,
+  importBottomInset: 40,
 } as const;
 
 export const radius = {

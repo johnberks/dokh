@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { colors, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { Button, IconButton } from './Button';
+import { EmptyStateCatalog } from './EmptyStateCatalog';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
 import { ReceivableRowCatalog } from './ReceivableRowCatalog';
@@ -87,6 +88,8 @@ export function PrimitivesCatalog() {
         <WorkCardCatalog />
         <Divider />
         <ReceivableRowCatalog />
+        <Divider />
+        <EmptyStateCatalog />
       </View>
     </ScrollScreen>
   );
