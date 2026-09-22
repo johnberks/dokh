@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-21 · Codex · prévia iOS integrada de 2.2 + 2.3 em `codex/2.3-ios-preview`.
+Última atualização: 2026-09-21 · Codex · navegação 2.4 parcial em `codex/2.4-navigation`.
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch local combina o PR draft #3 (fontes da 2.2) e o PR draft #4 (primitives da 2.3) para teste no iPhone 16, sem alterar os PRs ou o checkout do Desktop. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3 ainda depende de validação visual e VoiceOver em device. O usuário adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch parte da prévia local que combina os PRs draft #3 (fontes da 2.2) e #4 (primitives da 2.3), e acrescenta a barra inferior e o controle de navegação da 2.4. As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3 e a 2.4 ainda dependem de validação visual e VoiceOver em device. O usuário adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -26,15 +26,16 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.1 Tokens do Brand Kit | ✅ Integrada no PR #2 | — |
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
+| 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar nesta branch | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
 
 ## Como rodar o projeto
 
 ```bash
-cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-ios-preview
-fnm use                      # Node 22 (.nvmrc)
+cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-2.4
+fnm exec --using=22 node -v   # Node 22 (.nvmrc)
 cp .env.example .env.local   # se ainda não existir
-npm ci
-npm run start                # QR code para o Expo Go; tecla i abre o simulador iOS
+fnm exec --using=22 npm ci
+fnm exec --using=22 npm run start -- --clear  # QR code para o Expo Go
 ```
 
 Até a tarefa 3.1 (Supabase local), o `.env.local` pode usar valores provisórios:
@@ -62,6 +63,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **Tokens** (`src/theme/tokens.ts`, `docs/theme-tokens.md`): paleta e papéis semânticos, tipografia, spacing, radius, shadow, motion e z-index. `PlaceholderScreen` usa tokens.
 - **Fontes (2.2 parcial)**: Archivo 400/500/600/700, IBM Plex Mono 400/500 e Unbounded 600 via `@expo-google-fonts` + `expo-font`. `BrandFontProvider` segura o splash até carregar ou falhar; o placeholder usa Archivo carregada ou `System` no fallback. O splash atual ainda usa a imagem genérica anterior; o Brand Kit diz que o desenho D1 no HTML não é o vetor final de produção.
 - **Primitives (2.3 parcial)**: `src/components/` contém Text, Button, IconButton, Input, SegmentedControl, Toggle, Chip, Divider, Card, Screen e ScrollScreen. Catálogo interno em `/dev/primitives` apenas em desenvolvimento, acessível por botão na Home provisória; detalhes em `docs/primitives.md`. Nesta prévia, `AppText` e `Input` adotam Archivo ao carregar e `System` se a fonte falhar.
+- **Navegação (2.4 parcial)**: `BottomTabs` segue a geometria e tipografia dos quatro HTMLs de tabs; centro abre o modal sem selecionar tab. `NavigationControl` fornece alvo acessível de voltar/fechar; o topo do modal de criação usa a copy de `Agenda 06`. Detalhes e lacunas em `docs/navigation.md`.
 
 ## Armadilhas já encontradas
 
@@ -105,6 +107,14 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - `npx expo export --platform ios` gerou o bundle iOS sem erro. O script `generate-route-types.mjs` passou a criar `.expo/types` antes de chamar a geração do Expo Router; no checkout limpo ele antes imprimia ENOENT sem falhar o processo.
 - O teste no iPhone 16 com VoiceOver ainda precisa da confirmação do usuário; bundle/export não provam aparência ou comportamento no device.
 
+## Evidência parcial da tarefa 2.4
+
+- HTMLs de Home, Agenda, Finanças e Perfil conferidos para extrair a barra de 390×844; `Agenda 06` e `07` para controles de fechar/voltar. Os arquivos de referência não foram alterados.
+- A barra mantém quatro tabs, fonte IBM Plex Mono 9 e ação central de 56 pontos. O modal fecha para a tab anterior e o controle visível de 40 tem alvo de 44 pontos.
+- A revisão de boas práticas React levou a imports diretos de ícones Lucide e pesos de fonte usados: o bundle iOS caiu de 5,6 MB/3357 módulos para 3,6 MB/1482 módulos. O mapper do Jest foi ajustado para os subcaminhos CJS; nenhum visual ou família foi alterado.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (11 suítes, 46 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22.
+- O `simctl` continua sem acesso ao CoreSimulatorService neste ambiente; inspeção visual no iPhone 16 e VoiceOver ainda dependem do usuário. Não marcar a 2.4 como concluída.
+
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
@@ -116,6 +126,6 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **2.3** Revisar o catálogo `/dev/primitives` no iPhone 16 com VoiceOver; Android/TalkBack depois. Em seguida, 2.6 estados técnicos → 2.4 navegação visual.
+2. **2.3/2.4** Revisar o catálogo e a barra inferior no iPhone 16 com VoiceOver; Android/TalkBack depois. Seguir para 2.6 estados técnicos e headers de tela ao implementar Home/Agenda/Finanças/Perfil.
 3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
 4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.

@@ -14,6 +14,7 @@ export const palette = {
   secondaryText: '#9AA391',
   deepBackground: '#0A0E09',
   paper: '#F8F6EF',
+  mutedCopy: '#4A5744',
 } as const;
 
 /** Semantic intent is preferred to raw palette names in components. */
@@ -23,6 +24,7 @@ export const colors = {
   foreground: palette.base,
   textPrimary: palette.base,
   textSecondary: palette.structure,
+  textMuted: palette.mutedCopy,
   border: palette.structure,
   accent: palette.bronze,
   darkBackground: palette.base,
@@ -33,6 +35,9 @@ export const colors = {
   errorTextOnDark: palette.negativeText,
   errorFill: palette.negative,
   pendingText: palette.structure,
+  tabBarBorder: 'rgba(16,22,15,0.1)',
+  tabActiveBackground: 'rgba(16,22,15,0.08)',
+  navigationControlBorder: 'rgba(16,22,15,0.2)',
 } as const;
 
 /** Brand family names (Brand Kit) and concrete expo-font registration names. */
@@ -50,6 +55,7 @@ export const fontAliases = {
   archivoBold: 'Archivo_700Bold',
   plexRegular: 'IBMPlexMono_400Regular',
   plexMedium: 'IBMPlexMono_500Medium',
+  plexSemibold: 'IBMPlexMono_600SemiBold',
   unboundedSemibold: 'Unbounded_600SemiBold',
 } as const;
 
@@ -83,6 +89,19 @@ export const typography = {
     fontWeight: fontWeights.medium,
     letterSpacing: -0.44,
   },
+  modalTitle: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 30,
+    lineHeight: 32,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: -0.9,
+  },
+  modalDescription: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: fontWeights.regular,
+  },
   body: {
     fontFamily: fontFamilies.fallback,
     fontSize: 15,
@@ -102,6 +121,20 @@ export const typography = {
     lineHeight: 18,
     fontWeight: fontWeights.regular,
   },
+  tabLabel: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: fontWeights.regular,
+    letterSpacing: 1.08,
+  },
+  tabLabelActive: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: 1.08,
+  },
   wordmark: {
     fontFamily: fontFamilies.fallback,
     fontSize: 22,
@@ -116,9 +149,13 @@ export const brandTypography = {
   display: { ...typography.display, fontFamily: fontAliases.archivoSemibold },
   heading1: { ...typography.heading1, fontFamily: fontAliases.archivoSemibold },
   heading2: { ...typography.heading2, fontFamily: fontAliases.archivoMedium },
+  modalTitle: { ...typography.modalTitle, fontFamily: fontAliases.archivoSemibold },
+  modalDescription: { ...typography.modalDescription, fontFamily: fontAliases.archivoRegular },
   body: { ...typography.body, fontFamily: fontAliases.archivoRegular },
   label: { ...typography.label, fontFamily: fontAliases.archivoSemibold },
   technical: { ...typography.technical, fontFamily: fontAliases.plexRegular },
+  tabLabel: { ...typography.tabLabel, fontFamily: fontAliases.plexRegular },
+  tabLabelActive: { ...typography.tabLabelActive, fontFamily: fontAliases.plexSemibold },
   wordmark: { ...typography.wordmark, fontFamily: fontAliases.unboundedSemibold },
 } as const;
 
@@ -138,6 +175,31 @@ export const spacing = {
   xxl: 32,
   xxxl: 40,
   section: 48,
+} as const;
+
+/** Exact shared tab/navigation geometry from the 390×844 HTML frames. */
+export const navigationMetrics = {
+  tabBarTop: 10,
+  tabBarHorizontal: 20,
+  tabBarBottom: 28,
+  tabWidth: 64,
+  tabIconSize: 22,
+  tabIconStroke: 1.7,
+  tabIconBoxWidth: 40,
+  tabIconBoxHeight: 30,
+  tabIconRadius: 10,
+  tabLabelGap: 4,
+  createDiameter: 56,
+  createLift: 30,
+  createIconSize: 18,
+  createIconStroke: 2,
+  navigationControlDiameter: 40,
+  navigationControlHitTarget: 44,
+  navigationControlIconSize: 20,
+  modalTop: 20,
+  modalHorizontal: 24,
+  modalHeadingGap: 24,
+  modalDescriptionGap: 6,
 } as const;
 
 export const radius = {
@@ -174,6 +236,13 @@ export const shadow = {
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
+  },
+  tabCreate: {
+    shadowColor: palette.base,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
   },
 } as const;
 

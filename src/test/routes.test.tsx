@@ -40,6 +40,35 @@ describe('rotas', () => {
     });
     expect(router.getPathname()).toBe('/work/new');
     expect(screen.getByRole('header', { name: 'Adicionar trabalho' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Fechar' })).toBeTruthy();
+  });
+
+  it('barra inferior mantém as quatro tabs e o alvo central do HTML', async () => {
+    const router = await openAt('/');
+    expect(screen.getByRole('tab', { name: 'Início' }).props.accessibilityState.selected).toBe(
+      true,
+    );
+    expect(screen.getByRole('tab', { name: 'Agenda' })).toHaveStyle({ width: 64, minHeight: 44 });
+    expect(screen.getByTestId('tab-create')).toHaveStyle({ width: 56, height: 56 });
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('tab', { name: 'Agenda' }));
+    });
+    expect(router.getPathname()).toBe('/agenda');
+    expect(screen.getByRole('tab', { name: 'Agenda' }).props.accessibilityState.selected).toBe(
+      true,
+    );
+  });
+
+  it('fechar criação retorna à tab anterior', async () => {
+    const router = await openAt('/agenda');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('tab-create'));
+    });
+    expect(router.getPathname()).toBe('/work/new');
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Fechar' }));
+    });
+    expect(router.getPathname()).toBe('/agenda');
   });
 
   it('deep link /create redireciona para o fluxo de criação', async () => {

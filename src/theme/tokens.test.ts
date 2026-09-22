@@ -7,6 +7,7 @@ import {
   fontFamilies,
   getTypography,
   motion,
+  navigationMetrics,
   palette,
   radius,
   shadow,
@@ -34,6 +35,8 @@ describe('Brand Kit tokens', () => {
     expect(brandTypography.wordmark.fontFamily).toBe(fontAliases.unboundedSemibold);
     expect(brandTypography.body.fontFamily).toBe(fontAliases.archivoRegular);
     expect(brandTypography.technical.fontFamily).toBe(fontAliases.plexRegular);
+    expect(brandTypography.tabLabelActive.fontFamily).toBe(fontAliases.plexSemibold);
+    expect(brandTypography.tabLabel.fontSize).toBe(9);
     expect(typography.body.fontFamily).toBe(fontFamilies.fallback);
   });
 
@@ -43,6 +46,8 @@ describe('Brand Kit tokens', () => {
     expect(shadow.raised.shadowColor).toBe(palette.base);
     expect(motion.feedback).toBe(200);
     expect(zIndex.overlay).toBeGreaterThan(zIndex.floating);
+    expect(navigationMetrics.createDiameter).toBe(56);
+    expect(navigationMetrics.navigationControlHitTarget).toBeGreaterThanOrEqual(44);
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {
