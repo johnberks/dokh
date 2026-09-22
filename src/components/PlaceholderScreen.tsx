@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '@/theme/tokens';
+import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { colors, spacing } from '@/theme/tokens';
 
 type Props = { title: string; children?: ReactNode };
 
 /** Tela provisória das rotas até cada seção ser implementada. */
 export function PlaceholderScreen({ title, children }: Props) {
+  const typography = useBrandTypography();
   return (
     <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>
+      <Text accessibilityRole="header" style={[styles.title, typography.heading2]}>
         {title}
       </Text>
       {children}
@@ -24,5 +26,5 @@ const styles = StyleSheet.create({
     gap: spacing.base,
     backgroundColor: colors.background,
   },
-  title: { color: colors.textPrimary, ...typography.heading2 },
+  title: { color: colors.textPrimary },
 });
