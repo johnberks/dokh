@@ -7,7 +7,7 @@
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard), #12 (MoneyInput), #13 (WorkTypeSelector), #14 (CalendarGrid), #15 (BottomSheet) e o PremiumGate (branch `codex/2.5-premium-gate`, sobre o #15). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard), #12 (MoneyInput), #13 (WorkTypeSelector), #14 (CalendarGrid), #15 (BottomSheet) e #16 (PremiumGate). Todos estão em rascunho, cada um baseado no anterior, e todos com CI verde. As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -27,13 +27,13 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate em `codex/2.5-premium-gate` — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate no #16 — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
 
 ```bash
-cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-2.5-money-input
+cd <raiz do seu checkout>      # ex.: ~/Desktop/dokh
 fnm exec --using=22 node -v   # Node 22 (.nvmrc)
 cp .env.example .env.local   # se ainda não existir
 fnm exec --using=22 npm ci
@@ -50,9 +50,9 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 
 ## Retomada
 
-O ponto de retomada é o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate` (sobre o #15). Com ela, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
+O ponto de retomada é o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate`. Com ele, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
 
-Ordem de integração em `main`: #3 → #4 → … → #15 → PremiumGate. Nenhum desses PRs foi mesclado ainda.
+Ordem de integração em `main`: #3 → #4 → … → #15 → #16. Nenhum desses PRs foi mesclado ainda; cada um usa o anterior como base.
 
 Próxima tarefa recomendada: **3.1 Supabase local** (Docker e Supabase CLI já instalados), seguida de 3.2–3.5 (migrations e RLS). As telas reais dependem dos dados. Alternativa curta sem dependências: **2.7 motion e reduzir movimento**, que pode partir de `src/theme/useReducedMotion.ts` e do `BottomSheet`.
 
@@ -64,6 +64,28 @@ fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fn
 ```
 
 **Teste manual:** o usuário testa no **Expo Go no iPhone**, não no simulador. Ao final de cada entrega, forneça um bloco bash que faça checkout da branch e rode `npx expo start --clear`, dizendo o que conferir (ex.: catálogo em `/dev/primitives`).
+
+## Como continuar no Codex
+
+1. Abrir o Codex na raiz do repositório: ele lê `AGENTS.md` automaticamente (cópia idêntica de `CLAUDE.md`, gerada por `npm run sync:agents`).
+2. Pedir uma tarefa identificada do `build-plan.md`. Modelo de pedido:
+
+```text
+Leia docs/HANDOFF.md e AGENTS.md. Implemente a tarefa 3.1 do build-plan.md,
+seguindo decisions.md e domain-model.md. Crie a branch codex/3.1-supabase-local
+a partir de origin/codex/2.5-premium-gate. Rode typecheck, check e test,
+atualize docs/HANDOFF.md, marque o checkbox só se a DoD passar e abra o PR
+empilhado sobre o #16.
+```
+
+3. Ao terminar: atualizar este arquivo, enviar a branch e abrir o PR em rascunho sobre o anterior.
+
+### Cuidados nesta máquina
+
+- O Codex trabalha em **worktrees** próprias (`~/Documents/Codex/.../work/dokh-*`). Uma branch já aberta em uma worktree não pode ser usada em outra: crie a nova branch a partir de `origin/<branch>`.
+- O `fnm` não está no perfil do shell. Use `fnm exec --using=22 <comando>` ou `eval "$(fnm env --use-on-cd --shell zsh)"` antes.
+- Instalar biblioteca Expo/nativa com `npx expo install`; bibliotecas puramente JS com `npm install`.
+- Um único Metro por vez: `lsof -ti tcp:8081 | xargs kill` antes de subir outro.
 
 Checks obrigatórios antes de concluir qualquer tarefa:
 
