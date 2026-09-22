@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · estados técnicos 2.6 parciais (`codex/2.6-technical-states`).
+Última atualização: 2026-09-22 · Codex · estados técnicos 2.6 parciais no PR draft #6 (`codex/2.6-technical-states`).
 
 ## Onde paramos
 
@@ -27,7 +27,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.6 Estados técnicos | 🟡 Componentes e catálogo nesta branch | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
+| 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
 
@@ -122,6 +122,8 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 
 - Os HTMLs de Home/Agenda/Finanças/Perfil não desenham skeleton, erro de rede ou offline; nenhum foi editado. Os componentes usam a paleta, fontes e espaçamentos existentes.
 - Skeletons não contêm valores; `LoadError` apresenta retry acessível; `MutationError` não controla o formulário e só expõe retry quando o chamador informa uma operação idempotente; `OfflineBanner` distingue dados em memória potencialmente desatualizados.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (12 suítes, 51 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22.
+- PR draft #6 usa a branch da 2.4 como base temporária para manter o diff isolado; seguir a ordem #3 → #4 → #5 → #6, sem mesclar diretamente em `main`.
 - A integração com queries, o envio sanitizado ao Sentry e a validação em tela real virão com as features correspondentes. Não marcar a 2.6 como concluída sem validação visual/VoiceOver e Android/TalkBack posteriormente.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
