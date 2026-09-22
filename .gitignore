@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native (Continuous Native Generation: nunca versionar)
+/ios
+/android
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# env: somente .env.example é versionado
+.env
+.env.*
+!.env.example
+
+# tests / typescript
+coverage/
+*.tsbuildinfo
+
+# tools locais
+.claude/settings.local.json
+.DS_Store
