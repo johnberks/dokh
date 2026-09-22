@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · ProgressCard no PR draft #11 (`codex/2.5-progress-card`).
+Última atualização: 2026-09-22 · Codex · MoneyInput no PR draft #12 (`codex/2.5-money-input`).
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState) e #11 (ProgressCard). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard) e #12 (MoneyInput). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -27,13 +27,13 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10 e ProgressCard no #11 | Cinco componentes restantes, aplicação em telas e inspeção de aparelho depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11 e MoneyInput no #12 | Quatro componentes restantes, aplicação em telas e inspeção de aparelho depois |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
 
 ```bash
-cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-2.5-progress-card
+cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-2.5-money-input
 fnm exec --using=22 node -v   # Node 22 (.nvmrc)
 cp .env.example .env.local   # se ainda não existir
 fnm exec --using=22 npm ci
@@ -72,6 +72,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **ReceivableRow (2.5 parcial)**: linha de Entradas recebida, prevista e com confirmação pendente a partir de Finanças 05–10. A confirmação é callback separado, sem alteração otimista; `docs/receivable-row.md` detalha medidas e limites.
 - **EmptyState (2.5 parcial)**: nove posições de dados legitimamente vazios em Home, Agenda, Finanças/Entradas e Perfil. Não substitui `LoadError`; `docs/empty-state.md` especifica variações, medidas e limites. O catálogo interno permite inspeção.
 - **ProgressCard (2.5 parcial)**: card inicial da Home com barra proporcional, marcos concluídos e próxima ação; desaparece quando completo. Não presume residência nem conclui marcos sozinho. `docs/progress-card.md` especifica as medidas e o contrato; o catálogo demonstra as três variações HTML.
+- **MoneyInput (2.5 parcial)**: campo compacto da Agenda e números grandes do Onboarding, com rascunho textual controlado; `src/domain/money.ts` converte pt-BR em centavos `bigint` só na validação/envio. `docs/money-input.md` registra o contrato e o catálogo mostra quatro tratamentos dos HTMLs.
 
 ## Armadilhas já encontradas
 
@@ -152,6 +153,9 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - `ProgressCard` cobre Home 01/02/06 com superfície `#DCE0D6`, barra proporcional, lista de marcos e ação de destino acessível. Conclusão e elegibilidade são fornecidas pela feature; o card inteiro some quando completo. O catálogo mostra as três próximas ações do HTML, mas ainda não há integração na Home real.
 - `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (17 suítes, 83 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 segue desmarcada, com cinco componentes restantes.
 - PR draft #11 usa #10 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10 → #11. Este checkout é a prévia mais recente no Expo Go; os estados do catálogo não substituem a integração nas telas reais.
+- `MoneyInput` cobre o campo vazio/preenchido da Agenda 06/09 e as entradas grandes de Residência e primeiro Trabalho do Onboarding. A revisão de boas práticas React manteve o campo controlado e sem efeito para estado derivado. O parser só produz centavos `bigint` positivos e rejeita formatos ambíguos/overflow; nenhuma feature grava esses valores ainda.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (19 suítes, 106 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. `simctl` novamente falhou ao conectar ao CoreSimulatorService; inspeção visual/VoiceOver no iPhone e Android/TalkBack continuam pendentes. A 2.5 segue desmarcada, com quatro componentes restantes.
+- PR draft #12 usa #11 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10 → #11 → #12. Este checkout é a prévia mais recente no Expo Go; o catálogo não substitui a integração nas telas reais.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
@@ -164,6 +168,6 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **2.5** Continuar os cinco componentes restantes da biblioteca visual (começando por MoneyInput) e depois os headers/conteúdos reais de Home/Agenda/Finanças/Perfil conforme HTML+UX. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
+2. **2.5** Continuar os quatro componentes restantes da biblioteca visual (começando por WorkTypeSelector) e depois os headers/conteúdos reais de Home/Agenda/Finanças/Perfil conforme HTML+UX. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
 3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
 4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.
