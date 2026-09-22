@@ -84,9 +84,7 @@ export function MoneyInput({
           <TextInput
             accessibilityLabel={label}
             accessibilityHint={
-              detail
-                ? t('money.currencyHintWithDetail', { detail })
-                : t('money.currencyHint')
+              detail ? t('money.currencyHintWithDetail', { detail }) : t('money.currencyHint')
             }
             accessibilityState={{ disabled }}
             autoCapitalize="none"
