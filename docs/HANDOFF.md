@@ -52,7 +52,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 
 O ponto de retomada é o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate`. Com ele, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
 
-Ordem de integração em `main`: #3 → #4 → … → #15 → #16. Nenhum desses PRs foi mesclado ainda; cada um usa o anterior como base.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
 Próxima tarefa recomendada: **3.1 Supabase local** (Docker e Supabase CLI já instalados), seguida de 3.2–3.5 (migrations e RLS). As telas reais dependem dos dados. Alternativa curta sem dependências: **2.7 motion e reduzir movimento**, que pode partir de `src/theme/useReducedMotion.ts` e do `BottomSheet`.
 
