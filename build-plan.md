@@ -26,13 +26,14 @@
 
 ## Fase 0 — Base documental e repositório
 
-- [ ] **0.1 — Normalizar fontes do produto**
+- [x] **0.1 — Normalizar fontes do produto**
   - Dependências: nenhuma.
   - Criar `docs/screens/` e `design/`.
   - Posicionar os cinco UX docs com nomes normalizados.
   - Posicionar os cinco HTMLs de tela e os HTMLs de Brand Kit/Componentes como somente leitura.
   - Não alterar conteúdo durante a movimentação.
   - **DoD:** todos os caminhos citados no README existem; hashes dos arquivos de origem e destino confirmam cópia íntegra.
+  - Evidência: hashes em docs/SOURCES.md (PR #1).
 
 - [ ] **0.2 — Tornar instruções compatíveis com Codex**
   - Dependências: 0.1.
@@ -56,11 +57,12 @@
   - Habilitar `strict: true`.
   - **DoD:** development build abre uma tela mínima em simulador iOS e emulador Android.
 
-- [ ] **1.2 — Criar estrutura de pastas e aliases**
+- [x] **1.2 — Criar estrutura de pastas e aliases**
   - Dependências: 1.1.
   - Implementar estrutura do README e alias `@/` para `src/`.
   - Adicionar regras de dependência por convenção/documentação.
   - **DoD:** import com alias funciona em app, Jest e TypeScript; não há cálculo de domínio dentro de `app/`.
+  - Evidência: alias em TS, Jest e Metro; regras de camada no Biome (PR #1).
 
 - [ ] **1.3 — Configurar Expo Router e shells de rota**
   - Dependências: 1.1.
@@ -68,31 +70,35 @@
   - Criar placeholders para Home, Agenda, Finanças e Perfil e ação central sem rota-tab.
   - **DoD:** navegação, back do Android e deep link de teste funcionam em iOS/Android.
 
-- [ ] **1.4 — Configurar ambientes e validação de env**
+- [x] **1.4 — Configurar ambientes e validação de env**
   - Dependências: 1.1.
   - Criar `.env.example` sem valores.
   - Validar variáveis públicas com schema no startup.
   - Separar local, preview e production.
   - **DoD:** app falha com mensagem de desenvolvimento clara quando variável obrigatória falta; secrets não entram no bundle.
+  - Evidência: erro claro no Expo Go sem .env.local; testes de schema e de secrets (PR #1).
 
-- [ ] **1.5 — Configurar i18n pt-BR**
+- [x] **1.5 — Configurar i18n pt-BR**
   - Dependências: 1.1.
   - Instalar/configurar i18next.
   - Separar chaves por feature.
   - **DoD:** placeholders usam chaves; teste garante fallback e ausência de texto crítico hardcoded.
+  - Evidência: testes de fallback e guarda de texto hardcoded (PR #1).
 
-- [ ] **1.6 — Configurar estado e formulários**
+- [x] **1.6 — Configurar estado e formulários**
   - Dependências: 1.1.
   - TanStack Query sem persistência.
   - Zustand para UI transitória.
   - React Hook Form + Zod.
   - **DoD:** formulário de prova valida, submete e preserva dados em erro; inspeção confirma ausência de cache persistido.
+  - Evidência: formulário de prova + guardas de persistência (PR #1).
 
-- [ ] **1.7 — Configurar qualidade local**
+- [x] **1.7 — Configurar qualidade local**
   - Dependências: 1.1.
   - Biome, typecheck, Jest/jest-expo e React Native Testing Library.
   - Scripts: `typecheck`, `check`, `test`, `test:watch`.
   - **DoD:** todos os scripts passam em checkout limpo; não há ESLint/Prettier paralelos.
+  - Evidência: scripts verdes em clone limpo (PR #1).
 
 - [ ] **1.8 — Configurar CI**
   - Dependências: 1.7.

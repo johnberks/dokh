@@ -12,7 +12,7 @@ Nenhuma dessas fontes substitui as outras.
 
 ## Estado do projeto
 
-Esta base documental define a construção do MVP. Não presuma que comandos, dependências, ambientes ou infraestrutura já existam até a respectiva tarefa do `build-plan.md` estar concluída.
+O progresso atual e o ponto de retomada estão em `docs/HANDOFF.md`. Esta base documental define a construção do MVP. Não presuma que comandos, dependências, ambientes ou infraestrutura já existam até a respectiva tarefa do `build-plan.md` estar concluída.
 
 ## Leitura obrigatória
 

@@ -254,7 +254,7 @@ Cálculos financeiros devem cobrir:
 
 ## Processo para executar uma tarefa
 
-1. Identificar o ID no `build-plan.md`.
+1. Ler `docs/HANDOFF.md` (estado atual e armadilhas) e identificar o ID no `build-plan.md`.
 2. Ler dependências, decisões, domínio, UX e design aplicáveis.
 3. Confirmar que nenhuma pendência humana bloqueia o trecho.
 4. Inspecionar o estado atual e preservar mudanças existentes.
@@ -264,6 +264,7 @@ Cálculos financeiros devem cobrir:
 8. Atualizar documentação/migration/tipos quando necessário.
 9. Marcar checkbox apenas com evidência da DoD.
 10. Entregar resumo, arquivos alterados, testes executados e lacunas reais.
+11. Atualizar `docs/HANDOFF.md` com o novo estado antes de encerrar a sessão.
 
 ## Definition of Done global
 
