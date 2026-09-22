@@ -2,8 +2,9 @@
 
 O Supabase CLI usa `supabase/config.toml` versionado. O projeto local tem ID `dokh`,
 portas padrão 54321–54324, migrations habilitadas e seed de domínio desabilitado até
-a tarefa 3.12. Realtime está desligado conforme D28. Ainda não há migrations nem
-cliente Supabase no app (tarefas 3.2–3.5 e 4.1).
+a tarefa 3.12. Realtime está desligado conforme D28. A migration 3.2 cria
+`profiles`, `work_preferences` e `notification_preferences` com RLS. O cliente
+Supabase no app ainda depende da 4.1.
 
 ## Ambiente local
 
@@ -21,6 +22,29 @@ fnm exec --using=22 npm run supabase:reset
 a URL e a publishable/anon key exibidas por `supabase:status`. No iPhone físico,
 substitua `127.0.0.1` da URL pelo IP LAN do computador; o iPhone e o computador
 devem estar na mesma rede. Reinicie o Metro após alterar o `.env.local`.
+
+Para aplicar migrations novas sem apagar dados locais e verificar a 3.2:
+
+```bash
+SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase migration up --local
+fnm exec --using=22 npm run test:db
+fnm exec --using=22 npm run check:db-types
+```
+
+`test:db` cria um banco temporário no contêiner PostgreSQL local, aplica a
+migration, testa constraints, dono/outro usuário/anônimo e executa o SQL de
+rollback versionado; não reseta o banco DOKH em uso. O rollback é **só para
+esse banco descartável**: Supabase migrations de produção são forward-only.
+Os tipos versionados em `src/data/database.types.ts` foram gerados do banco
+local. Para regenerá-los após uma migration, execute
+`SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase gen types typescript --local --schema public`
+e formate com Biome. O CI repete os testes SQL e compara os tipos gerados.
+
+Na 3.2, `profiles.id` é o ID de Auth e `user_id` é uma coluna gerada igual a
+ele, usada pelas policies; o cliente não deve enviá-la. `timezone` deve vir
+do device e ser reconhecida como zona IANA no Postgres. Os quatro toggles de
+notificação começam em `false` por segurança; a permissão do sistema continua
+separada e será tratada na 12.1.
 
 ## Projetos remotos
 

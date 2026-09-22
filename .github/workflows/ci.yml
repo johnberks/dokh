@@ -39,3 +39,27 @@ jobs:
 
       - name: Jest
         run: npm test -- --ci
+
+  database:
+    name: migration · RLS · generated types
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install (lockfile)
+        run: npm ci
+
+      - name: Start disposable local Supabase
+        run: npm run supabase:start
+
+      - name: Migration up/down, constraints and RLS
+        run: npm run test:db
+
+      - name: Generated types match schema
+        run: npm run check:db-types

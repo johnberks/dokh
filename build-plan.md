@@ -161,7 +161,7 @@
   - Supabase CLI, config local e projetos separados preview/production.
   - **DoD:** `supabase start` e reset local funcionam; app preview conecta somente ao projeto preview.
 
-- [ ] **3.2 — Migration de perfis e preferências**
+- [x] **3.2 — Migration de perfis e preferências**
   - Dependências: 3.1.
   - `profiles`, `work_preferences`, `notification_preferences`, enums e trigger `updated_at`.
   - **DoD:** constraints do `domain-model.md` passam; migration sobe e desce em banco descartável.
