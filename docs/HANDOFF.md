@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.1 parcialmente preparada em `codex/3.1-supabase-local`, empilhada sobre o PR draft #16. A DoD segue pendente.
+Última atualização: 2026-09-22 · Codex · 3.1 parcialmente preparada no PR draft [#17](https://github.com/johnberks/dokh/pull/17), empilhado sobre o #16. A DoD segue pendente.
 
 ## Onde paramos
 
@@ -53,9 +53,9 @@ Quando o Docker estiver operacional, siga [`docs/supabase-local.md`](supabase-lo
 
 ## Retomada
 
-O ponto de retomada desta trilha é `codex/3.1-supabase-local`, empilhada sobre o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate`. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é o PR draft [#17](https://github.com/johnberks/dokh/pull/17), branch `codex/3.1-supabase-local`, empilhado sobre o [#16](https://github.com/johnberks/dokh/pull/16). A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
 Próximo passo da 3.1: reparar/instalar o Docker Desktop (o app presente nesta máquina não tem executável principal), criar dois projetos Supabase da DOKH na organização correta e registrar seus refs. Depois executar `npm run supabase:start`, `npm run supabase:reset` e comprovar a conexão de preview. Em seguida, 3.2–3.5 (migrations/RLS) e 4.1 (cliente/sessão). Trabalho independente: **2.7 motion e reduzir movimento**.
 
