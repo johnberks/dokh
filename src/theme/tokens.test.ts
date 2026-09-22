@@ -14,6 +14,8 @@ import {
   shadow,
   spacing,
   typography,
+  workCardMetrics,
+  workLocationColors,
   zIndex,
 } from './tokens';
 
@@ -55,6 +57,10 @@ describe('Brand Kit tokens', () => {
     expect(reviewCardMetrics.compactRadius).toBe(18);
     expect(reviewCardMetrics.regularRadius).toBe(22);
     expect(reviewCardMetrics.previewBarWidth).toBe(5);
+    expect(workCardMetrics.agendaBarWidth).toBe(4);
+    expect(workCardMetrics.rowBarHeight).toBe(34);
+    expect(workLocationColors.sage).toBe('#6F7E67');
+    expect(workLocationColors.blue).toBe('#6B7F8E');
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {

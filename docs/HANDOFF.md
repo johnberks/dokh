@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · Review Card da 2.5 parcial no PR draft #7 (`codex/2.5-review-card`).
+Última atualização: 2026-09-22 · Codex · Card de Trabalho da 2.5 parcial (`codex/2.5-work-card`).
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4) e #6 (estados técnicos da 2.6), e acrescenta o primeiro componente de domínio visual da 2.5: Review Card. As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de validação visual e VoiceOver em device. O usuário adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6) e #7 (Review Card), e acrescenta o card de Trabalho da 2.5. As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -27,13 +27,13 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7 | Nove componentes restantes, aplicação em telas, iPhone/VoiceOver e Android/TalkBack depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7 e card de Trabalho nesta branch | Oito componentes restantes, aplicação em telas e inspeção de aparelho depois |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
 
 ```bash
-cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-2.5-review-card
+cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-2.5-work-card
 fnm exec --using=22 node -v   # Node 22 (.nvmrc)
 cp .env.example .env.local   # se ainda não existir
 fnm exec --using=22 npm ci
@@ -68,6 +68,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **Navegação (2.4 parcial)**: `BottomTabs` segue a geometria e tipografia dos quatro HTMLs de tabs; centro abre o modal sem selecionar tab. `NavigationControl` fornece alvo acessível de voltar/fechar; o topo do modal de criação usa a copy de `Agenda 06`. Detalhes e lacunas em `docs/navigation.md`.
 - **Estados técnicos (2.6 parcial)**: `Skeleton`, `LoadError`, `MutationError` e `OfflineBanner` seguem as regras de `AGENTS.md`, sem inventar valores ou confundir erro com vazio. `docs/technical-states.md` descreve uso e lacunas; o catálogo interno demonstra os estados.
 - **Review Card (2.5 parcial)**: variantes compacto/padrão/detalhado/atenção conforme `design/componentes.dc.html`, seleção de no máximo dois por tela e até dois previews, com exemplo no catálogo interno. `docs/review-card.md` detalha contrato, medidas e divergência deliberada da confirmação instantânea do mock.
+- **Card de Trabalho (2.5 parcial)**: layouts Agenda, Home em destaque e linha compacta a partir dos HTMLs e UX. Cor é token validado de Local, horário é opcional para tipos que permitem e “Recebido” só vem de confirmação derivada do Recebível. `docs/work-card.md` documenta a divergência sem badge e os limites; o catálogo interno demonstra os estados.
 
 ## Armadilhas já encontradas
 
@@ -136,6 +137,8 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - PR draft #7 usa a branch da 2.6 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7, sem mesclar diretamente em `main`.
 - O catálogo interno demonstra as quatro variações. Os outros nove componentes, integração nas telas reais e inspeção visual/VoiceOver/TalkBack ainda faltam; **não marcar a 2.5 concluída**.
 - O HTML original usa rótulos pequenos em sálvia/bronze com contraste calculado de cerca de 3,35–3,43:1; foram mantidos literalmente a pedido do usuário. Confirmar a legibilidade no iPhone antes de fechar a validação visual.
+- O card de Trabalho cobre Agenda 02/03/05 e Home 01/03, com barra lateral do Local e estados financeiros explícitos; `Agenda 05` difere do UX ao desenhar uma cápsula para `Recebido`, por isso a UI segue o UX com check e texto sem badge.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (14 suítes, 63 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 ainda tem oito componentes sem implementação e não foi marcada como concluída.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
@@ -148,6 +151,6 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **2.3/2.4/2.5/2.6** Revisar catálogo, barra inferior, Review Card e estados técnicos no iPhone 16 com VoiceOver; Android/TalkBack depois. Continuar os nove componentes da 2.5 e, em seguida, os headers/conteúdos de Home/Agenda/Finanças/Perfil conforme HTML+UX.
+2. **2.5** Continuar os oito componentes restantes da biblioteca visual (começando por ReceivableRow/EmptyState) e depois os headers/conteúdos reais de Home/Agenda/Finanças/Perfil conforme HTML+UX. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
 3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
 4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.

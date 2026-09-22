@@ -18,6 +18,10 @@ export const palette = {
   bronzeDeep: '#8A6E3C',
   attention: '#E4D9C2',
   previewPaper: '#FDFCF8',
+  workSage: '#6F7E67',
+  workBlue: '#6B7F8E',
+  workTerra: '#8C6A5A',
+  workViolet: '#6E6A8A',
 } as const;
 
 /** Semantic intent is preferred to raw palette names in components. */
@@ -53,7 +57,22 @@ export const colors = {
   reviewAttentionIconBackground: 'rgba(255,255,255,0.5)',
   reviewPreviewSurface: palette.previewPaper,
   reviewBronzeText: palette.bronzeDeep,
+  workCardBorder: 'rgba(16,22,15,0.16)',
+  workCardDivider: 'rgba(16,22,15,0.08)',
+  workRowSurface: palette.previewPaper,
 } as const;
+
+/** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
+export const workLocationColors = {
+  sage: palette.workSage,
+  bronze: palette.bronze,
+  blue: palette.workBlue,
+  green: palette.structure,
+  terra: palette.workTerra,
+  violet: palette.workViolet,
+} as const;
+
+export type WorkLocationColorToken = keyof typeof workLocationColors;
 
 /** Brand family names (Brand Kit) and concrete expo-font registration names. */
 export const fontFamilies = {
@@ -238,6 +257,26 @@ export const reviewCardMetrics = {
   previewRadius: 12,
   previewBarWidth: 5,
   previewBarHeight: 28,
+} as const;
+
+/** Card and compact row geometry from Agenda 02/03/05 and Home 01/03. */
+export const workCardMetrics = {
+  radius: 22,
+  agendaPaddingTop: 18,
+  agendaPaddingRight: 20,
+  agendaPaddingBottom: 16,
+  agendaPaddingLeft: 26,
+  agendaBarWidth: 4,
+  agendaBarInset: 20,
+  agendaArrow: 30,
+  featuredPaddingHorizontal: 22,
+  featuredPaddingTop: 22,
+  featuredPaddingBottom: 20,
+  featuredArrow: 32,
+  rowRadius: 12,
+  rowBarWidth: 5,
+  rowBarHeight: 34,
+  rowDateWidth: 34,
 } as const;
 
 export const radius = {

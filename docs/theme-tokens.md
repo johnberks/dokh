@@ -8,5 +8,6 @@ Fonte: `design/brand-kit.dc.html` (paleta C e tipografia escolhida 2C), com dime
 - `shadow` aproxima as sombras neutras dos cards na API nativa iOS/Android, sem prometer reproduzir o brilho *inset* do HTML. `motion.feedback` = 200 ms vem da transição da confirmação no catálogo. `enter`/`exit` e `zIndex` são convenções iniciais, não valores normativos do Brand Kit; animação, reduce motion e camadas de navegação serão validados em 2.7/2.4.
 - `navigationMetrics` concentra a geometria da barra inferior e do controle do modal extraída dos quadros 390×844 de Home, Agenda, Finanças e Perfil; veja `docs/navigation.md`.
 - O recorte 2.5 acrescenta a superfície de atenção `#E4D9C2`, o mini card `#FDFCF8`, o bronze escuro de textos/ícones e `reviewCardMetrics` com os raios e medidas A–D de `design/componentes.dc.html`; veja `docs/review-card.md`.
+- `workLocationColors` mapeia somente os seis tokens de Local apresentados em `Agenda 13`; `workCardMetrics` contém as medidas dos cards de Agenda e Home, sem aceitar cor hexadecimal livre do cliente. Veja `docs/work-card.md`.
 
 Os HTMLs de referência permanecem intactos. Os placeholders consomem tokens sem carregar fontes antecipadamente; a implementação visual final das telas não faz parte da 2.1.
