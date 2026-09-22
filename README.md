@@ -216,6 +216,8 @@ Pré-requisitos:
 Depois da Fase 0 do build plan, o fluxo local deve ser:
 
 ```bash
+fnm use            # Node do .nvmrc
+cp .env.example .env.local   # preencher com os valores de `npx supabase status`
 npm install
 npx supabase start
 npm run db:reset
