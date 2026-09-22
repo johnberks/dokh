@@ -13,4 +13,6 @@ Fonte visual: `design/componentes.dc.html`, anatomia e variantes A–D, aplicaç
 
 O fundo, bordas, bandeja, mini cards, raios, ícones, fontes e tamanhos foram transcritos do HTML. A altura da faixa de ação é 58 no padrão, 60 no tom de atenção e 62 no detalhado. O componente usa os arquivos de fonte carregados pela 2.2 e imports diretos dos ícones. Sombras nativas aproximam o CSS; o brilho inset do HTML não tem equivalente direto em React Native.
 
+Os rótulos pequenos reproduzem o contraste do HTML: sálvia `#7F8A76` sobre papel `#F8F6EF` ≈ 3,35:1; bronze escuro `#8A6E3C` sobre atenção `#E4D9C2` ≈ 3,43:1. Nenhuma cor/tipografia foi alterada, conforme a instrução de fidelidade literal. O card inteiro tem nome e ação acessíveis para VoiceOver, mas a legibilidade visual desses rótulos deve ser observada no iPhone.
+
 Ainda faltam os outros nove componentes da 2.5 (WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet e PremiumGate), a montagem nas telas reais e inspeção visual/VoiceOver no iPhone. Android/TalkBack foi adiado pelo usuário. O checkbox da tarefa permanece desmarcado.
