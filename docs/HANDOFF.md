@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Claude Code · PremiumGate no PR draft #16 (`codex/2.5-premium-gate`, sobre o #15). Biblioteca visual da 2.5 completa.
+Última atualização: 2026-09-22 · Codex · 3.1 parcialmente preparada em `codex/3.1-supabase-local`, empilhada sobre o PR draft #16. A DoD segue pendente.
 
 ## Onde paramos
 
@@ -29,6 +29,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
 | 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate no #16 — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
+| 3.1 Supabase local/remoto | 🟡 CLI/config local e contrato de isolamento preview/production nesta branch | Docker Desktop funcional para `supabase start` e reset; criar projetos DOKH preview/production; integrar cliente na 4.1 e comprovar conexão real do app preview |
 
 ## Como rodar o projeto
 
@@ -40,7 +41,7 @@ fnm exec --using=22 npm ci
 fnm exec --using=22 npm run start -- --clear  # QR code para o Expo Go
 ```
 
-Até a tarefa 3.1 (Supabase local), o `.env.local` pode usar valores provisórios:
+Enquanto o Docker local não estiver funcional, o `.env.local` pode usar valores provisórios apenas para abrir as telas sem backend:
 
 ```text
 EXPO_PUBLIC_APP_ENV=local
@@ -48,17 +49,21 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 ```
 
+Quando o Docker estiver operacional, siga [`docs/supabase-local.md`](supabase-local.md) e substitua pelos valores reais de `npm run supabase:status`. Para preview/production, os dois project refs distintos são obrigatórios e a URL precisa corresponder ao ambiente.
+
 ## Retomada
 
-O ponto de retomada é o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate`. Com ele, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
+O ponto de retomada desta trilha é `codex/3.1-supabase-local`, empilhada sobre o PR draft [#16](https://github.com/johnberks/dokh/pull/16), branch `codex/2.5-premium-gate`. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próxima tarefa recomendada: **3.1 Supabase local** (Docker e Supabase CLI já instalados), seguida de 3.2–3.5 (migrations e RLS). As telas reais dependem dos dados. Alternativa curta sem dependências: **2.7 motion e reduzir movimento**, que pode partir de `src/theme/useReducedMotion.ts` e do `BottomSheet`.
+Próximo passo da 3.1: reparar/instalar o Docker Desktop (o app presente nesta máquina não tem executável principal), criar dois projetos Supabase da DOKH na organização correta e registrar seus refs. Depois executar `npm run supabase:start`, `npm run supabase:reset` e comprovar a conexão de preview. Em seguida, 3.2–3.5 (migrations/RLS) e 4.1 (cliente/sessão). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. O schema público exige refs diferentes e URL exata do projeto do ambiente, com teste de rejeição de preview→production. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 146 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. `npm run supabase:start` e `npm run supabase:reset` foram tentados e falharam apenas por indisponibilidade do daemon Docker. O checkbox 3.1 permanece desmarcado.
 
 ```bash
-git fetch origin codex/2.5-premium-gate
-git switch -c codex/3.1-supabase-local origin/codex/2.5-premium-gate
+git fetch origin codex/3.1-supabase-local
+git switch -c codex/3.1-supabase-local origin/codex/3.1-supabase-local
 fnm exec --using=22 npm ci
 fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fnm exec --using=22 npm test -- --runInBand
 ```
@@ -71,11 +76,11 @@ fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fn
 2. Pedir uma tarefa identificada do `build-plan.md`. Modelo de pedido:
 
 ```text
-Leia docs/HANDOFF.md e AGENTS.md. Implemente a tarefa 3.1 do build-plan.md,
-seguindo decisions.md e domain-model.md. Crie a branch codex/3.1-supabase-local
-a partir de origin/codex/2.5-premium-gate. Rode typecheck, check e test,
-atualize docs/HANDOFF.md, marque o checkbox só se a DoD passar e abra o PR
-empilhado sobre o #16.
+Leia docs/HANDOFF.md e AGENTS.md. Retome a tarefa 3.1 do build-plan.md
+na branch codex/3.1-supabase-local. Com Docker funcional e projetos DOKH
+preview/production disponíveis, verifique supabase start, reset local e a
+conexão real do app preview. Rode typecheck, check e test. Marque o checkbox
+somente se toda a DoD passar e atualize este handoff e o PR da 3.1.
 ```
 
 3. Ao terminar: atualizar este arquivo, enviar a branch e abrir o PR em rascunho sobre o anterior.
@@ -216,12 +221,11 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
 - Validação Android/TalkBack da 2.3 adiada a pedido do usuário; não substitui a DoD original.
 - Proteção da `main` no GitHub (fecha 0.3 e 1.8).
-- Conta Expo/EAS (1.9), projetos Supabase preview/production (3.1).
+- Conta Expo/EAS (1.9), Docker Desktop funcional e projetos Supabase preview/production da DOKH (3.1). Em 2026-09-22, o CLI local era 2.113.0, mas `supabase start` e `supabase db reset --local` falharam porque o daemon Docker não responde; `/Applications/Docker.app` não abre (`kLSNoExecutableErr`). A conta Supabase acessível não tinha projetos DOKH; projetos alheios não foram alterados.
 - P01 preços, P02 arquivos do Plantãozinho, P03 recorrência custom, P04 textos legais, P05 confirmações destrutivas.
 
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **3.1** Supabase local → **3.2–3.5** migrations e RLS (as telas reais dependem dos dados). **2.7** motion pode entrar a qualquer momento. A integração dos componentes da 2.5 nas telas acontece nas fases 7–11. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
-3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
-4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.
+2. **3.1** Concluir prova local/remota após Docker e projetos DOKH disponíveis; manter checkbox desmarcado até a DoD. Então **3.2–3.5** migrations e RLS (as telas reais dependem dos dados).
+3. **4.1/4.2/4.5** Cliente/sessão, e-mail/senha e guards. **2.7** motion pode entrar independentemente. A integração dos componentes da 2.5 nas telas acontece nas fases 7–11.

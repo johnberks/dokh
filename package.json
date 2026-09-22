@@ -17,7 +17,10 @@
     "test:watch": "jest --watch",
     "sync:agents": "node scripts/sync-agents.mjs",
     "check:agents": "node scripts/sync-agents.mjs --check",
-    "generate:routes": "node scripts/generate-route-types.mjs"
+    "generate:routes": "node scripts/generate-route-types.mjs",
+    "supabase:start": "SUPABASE_TELEMETRY_DISABLED=1 supabase start",
+    "supabase:status": "SUPABASE_TELEMETRY_DISABLED=1 supabase status",
+    "supabase:reset": "SUPABASE_TELEMETRY_DISABLED=1 supabase db reset --local"
   },
   "dependencies": {
     "@expo-google-fonts/archivo": "^0.4.2",
@@ -60,6 +63,7 @@
     "@types/react": "~19.2.2",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.5",
+    "supabase": "^2.113.0",
     "typescript": "~6.0.3"
   },
   "jest": {
