@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · Card de Trabalho da 2.5 parcial (`codex/2.5-work-card`).
+Última atualização: 2026-09-22 · Codex · Card de Trabalho no PR draft #8 (`codex/2.5-work-card`).
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6) e #7 (Review Card), e acrescenta o card de Trabalho da 2.5. As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card) e #8 (Card de Trabalho). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7 e card de Trabalho nesta branch | Oito componentes restantes, aplicação em telas e inspeção de aparelho depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7 e card de Trabalho no PR draft #8 | Oito componentes restantes, aplicação em telas e inspeção de aparelho depois |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
@@ -139,6 +139,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - O HTML original usa rótulos pequenos em sálvia/bronze com contraste calculado de cerca de 3,35–3,43:1; foram mantidos literalmente a pedido do usuário. Confirmar a legibilidade no iPhone antes de fechar a validação visual.
 - O card de Trabalho cobre Agenda 02/03/05 e Home 01/03, com barra lateral do Local e estados financeiros explícitos; `Agenda 05` difere do UX ao desenhar uma cápsula para `Recebido`, por isso a UI segue o UX com check e texto sem badge.
 - `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (14 suítes, 63 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 ainda tem oito componentes sem implementação e não foi marcada como concluída.
+- PR draft #8 usa #7 como base temporária; ordem de integração #3 → #4 → #5 → #6 → #7 → #8. O checkout desta branch é a prévia mais recente; não mesclar diretamente em `main`.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
