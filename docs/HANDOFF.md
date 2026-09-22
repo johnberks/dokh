@@ -48,6 +48,23 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 ```
 
+## Retomada no Claude
+
+O ponto de retomada está no PR draft [#12](https://github.com/johnberks/dokh/pull/12), branch `codex/2.5-money-input`, commit `2a27836`. O PR é empilhado sobre o ProgressCard (#11); preserve a ordem de integração dos PRs anteriores antes de mesclar em `main`.
+
+Para continuar em um checkout limpo:
+
+```bash
+git fetch origin codex/2.5-money-input
+git switch --track origin/codex/2.5-money-input
+fnm exec --using=22 npm ci
+fnm exec --using=22 npm run typecheck
+fnm exec --using=22 npm run check
+fnm exec --using=22 npm test -- --runInBand
+```
+
+Próximo componente recomendado: `WorkTypeSelector`. Leia `docs/screens/agenda.md` e `docs/screens/onboarding.md`, além de `design/agenda.html` e `design/onboarding.html`, antes de editar. As três opções são Plantão, Procedimento e Atendimento; toda a opção é clicável, a seleção precisa ser anunciada sem depender só de cor, e Residência não é um tipo de Trabalho. O catálogo interno continua em `/dev/primitives`. Não marque a tarefa 2.5 como concluída: ainda faltam `WorkTypeSelector`, `CalendarGrid`, `BottomSheet` e `PremiumGate`, além da integração nas telas reais e da validação em aparelho.
+
 Checks obrigatórios antes de concluir qualquer tarefa:
 
 ```bash
@@ -156,6 +173,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - `MoneyInput` cobre o campo vazio/preenchido da Agenda 06/09 e as entradas grandes de Residência e primeiro Trabalho do Onboarding. A revisão de boas práticas React manteve o campo controlado e sem efeito para estado derivado. O parser só produz centavos `bigint` positivos e rejeita formatos ambíguos/overflow; nenhuma feature grava esses valores ainda.
 - `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (19 suítes, 106 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. `simctl` novamente falhou ao conectar ao CoreSimulatorService; inspeção visual/VoiceOver no iPhone e Android/TalkBack continuam pendentes. A 2.5 segue desmarcada, com quatro componentes restantes.
 - PR draft #12 usa #11 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10 → #11 → #12. Este checkout é a prévia mais recente no Expo Go; o catálogo não substitui a integração nas telas reais.
+- Após o ajuste final de formatação no commit `2a27836`, a CI do PR #12 passou (typecheck, Biome e Jest). O CoreSimulatorService segue indisponível neste ambiente, portanto o catálogo precisa ser conferido no iPhone 16 pelo Expo Go quando possível.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
