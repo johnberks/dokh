@@ -1,5 +1,14 @@
 /** Copy for the internal primitive catalog (not a product route). */
 export const components = {
+  technical: {
+    loading: 'Carregando conteúdo',
+    loadErrorTitle: 'Não foi possível carregar',
+    loadErrorMessage: 'Confira sua conexão e tente novamente.',
+    mutationErrorMessage: 'Não foi possível salvar. Seus dados foram mantidos.',
+    retry: 'Tentar novamente',
+    offline: 'Sem conexão. Não é possível atualizar agora.',
+    offlineStale: 'Sem conexão. Os dados exibidos podem estar desatualizados.',
+  },
   catalog: {
     title: 'Componentes básicos',
     normal: 'Normal',
@@ -16,5 +25,6 @@ export const components = {
     iconButton: 'Adicionar',
     card: 'Superfície de card',
     screen: 'Área segura',
+    technicalStates: 'Estados técnicos',
   },
 } as const;

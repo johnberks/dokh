@@ -8,6 +8,7 @@ import { Button, IconButton } from './Button';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
 import { Chip, SegmentedControl, Toggle } from './Selection';
+import { LoadError, MutationError, OfflineBanner, Skeleton } from './TechnicalStates';
 
 /** Internal, non-routed catalog: visual states and accessibility contract for 2.3. */
 export function PrimitivesCatalog() {
@@ -68,6 +69,15 @@ export function PrimitivesCatalog() {
             <AppText>{t('catalog.screen')}</AppText>
           </Screen>
         </View>
+        <Divider />
+        <AppText accessibilityRole="header" variant="heading2">
+          {t('catalog.technicalStates')}
+        </AppText>
+        <Skeleton />
+        <Skeleton layout="list" />
+        <LoadError onRetry={() => {}} />
+        <MutationError onRetry={() => {}} />
+        <OfflineBanner showingCachedData />
       </View>
     </ScrollScreen>
   );
