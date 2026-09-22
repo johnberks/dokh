@@ -1,18 +1,19 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { EnvValidationError, parsePublicEnv, publicEnvSchema } from './env.schema';
+import {
+  EnvValidationError,
+  parsePublicEnv,
+  publicEnvSchema,
+  SUPABASE_PROJECT_REFS,
+} from './env.schema';
 
 const valid = {
   EXPO_PUBLIC_APP_ENV: 'local',
   EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
   EXPO_PUBLIC_SUPABASE_ANON_KEY: 'public-anon-key',
 };
-const previewRef = 'abcdefghijklmnopqrst';
-const productionRef = 'uvwxyzabcdefghijklmn';
-const remoteRefs = {
-  EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF: previewRef,
-  EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF: productionRef,
-};
+const previewRef = 'lakpndtdkcjtazoybgnv';
+const productionRef = 'irdsieciowovsaakikbf';
 
 describe('env público', () => {
   it('aceita o mínimo obrigatório e trata opcionais vazios como ausentes', () => {
@@ -46,16 +47,19 @@ describe('env público', () => {
 
   it('impede preview/production de apontar para Supabase local', () => {
     for (const appEnv of ['preview', 'production']) {
-      expect(() =>
-        parsePublicEnv({ ...valid, ...remoteRefs, EXPO_PUBLIC_APP_ENV: appEnv }),
-      ).toThrow(/não pode apontar para um Supabase local/);
+      expect(() => parsePublicEnv({ ...valid, EXPO_PUBLIC_APP_ENV: appEnv })).toThrow(
+        /não pode apontar para um Supabase local/,
+      );
     }
   });
 
-  it('exige refs separados e a URL exata do ambiente remoto', () => {
+  it('fixa refs distintos dos projetos remotos DOKH no código', () => {
+    expect(SUPABASE_PROJECT_REFS).toEqual({ preview: previewRef, production: productionRef });
+  });
+
+  it('exige a URL exata do ambiente remoto, independentemente das variáveis de build', () => {
     const preview = {
       ...valid,
-      ...remoteRefs,
       EXPO_PUBLIC_APP_ENV: 'preview',
       EXPO_PUBLIC_SUPABASE_URL: `https://${previewRef}.supabase.co`,
     };
@@ -64,14 +68,12 @@ describe('env público', () => {
       parsePublicEnv({
         ...preview,
         EXPO_PUBLIC_SUPABASE_URL: `https://${productionRef}.supabase.co`,
+        EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF: productionRef,
       }),
     ).toThrow(/deve apontar exclusivamente para o projeto preview/);
     expect(() =>
-      parsePublicEnv({ ...preview, EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF: previewRef }),
-    ).toThrow(/deve ser diferente do projeto preview/);
-    expect(() =>
-      parsePublicEnv({ ...preview, EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF: '' }),
-    ).toThrow(/EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF: obrigatória e ausente/);
+      parsePublicEnv({ ...preview, EXPO_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' }),
+    ).toThrow(/deve apontar exclusivamente para o projeto preview/);
     expect(() =>
       parsePublicEnv({ ...preview, EXPO_PUBLIC_SUPABASE_URL: `http://${previewRef}.supabase.co` }),
     ).toThrow(/deve apontar exclusivamente para o projeto preview/);

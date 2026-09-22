@@ -24,19 +24,35 @@ devem estar na mesma rede. Reinicie o Metro após alterar o `.env.local`.
 
 ## Projetos remotos
 
-Preview e production exigem **dois projetos Supabase distintos**, criados na
-organização correta por quem administra a conta. Não reutilize projetos de outros
-produtos. Registre os dois *project refs* públicos nas variáveis
-`EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF` e
-`EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF`. Para preview, configure
-`EXPO_PUBLIC_APP_ENV=preview` e a URL `https://<preview-ref>.supabase.co`; para
-production, use `production` e `https://<production-ref>.supabase.co`. A chave
-publishable/anon deve vir do **mesmo projeto** da URL. O app recusa refs iguais,
-URL local e URL do projeto errado no ambiente remoto. Refs e chaves públicas vão
-para o bundle; service role e senhas ficam fora de `EXPO_PUBLIC_*` e do Git.
+Os projetos remotos foram criados em `johnberks's Org` (plano Free, região São
+Paulo / `sa-east-1`):
 
-Até a tarefa 1.9 (EAS) e a 4.1 (cliente e sessão), essa configuração é um contrato
-validado por testes, **não uma prova de conexão real**. Para fechar a DoD da 3.1,
-suba e resete o banco local com Docker funcional e verifique uma build preview
-apontando apenas ao projeto preview, com refs reais e teste de rede. Nunca rode
-`supabase db reset --linked` para tentar essa verificação.
+| Ambiente | Projeto | Project ref público | URL |
+| --- | --- | --- | --- |
+| Preview | `dokh-preview` | `lakpndtdkcjtazoybgnv` | `https://lakpndtdkcjtazoybgnv.supabase.co` |
+| Production | `dokh-production` | `irdsieciowovsaakikbf` | `https://irdsieciowovsaakikbf.supabase.co` |
+
+Os refs estão fixos em `src/config/env.schema.ts`. Para preview, configure
+`EXPO_PUBLIC_APP_ENV=preview`, a URL acima e a chave **publishable** do projeto
+preview em `EXPO_PUBLIC_SUPABASE_ANON_KEY` (nome legado da variável). Para
+production, use `production`, a URL e a chave publishable de production. O app
+recusa URL local ou URL do projeto errado no ambiente remoto; uma variável de
+build não consegue alterar os refs aceitos. A chave precisa vir do **mesmo
+projeto** da URL. Não reutilize projetos de outros produtos. Refs e chaves
+publishable são públicos; service role, secret key e senhas ficam fora de
+`EXPO_PUBLIC_*` e do Git.
+
+Na máquina onde os projetos foram criados, `supabase/.env.local` (ignorado pelo
+Git, permissões `0600`) guarda as senhas de banco e as chaves publishable para
+retomada. Se esse arquivo não estiver disponível, recupere as chaves públicas
+em *Project Settings → API Keys* e redefina a senha de banco no Dashboard.
+Nenhum secret foi enviado ao PR.
+
+Em 2026-09-22, `supabase start`, `supabase db reset --local` e o health local
+passaram. As chaves publishable de ambos os projetos remotos foram aceitas nos
+respectivos endpoints REST e rejeitadas (`401`) no projeto oposto. Isso valida
+o isolamento de infraestrutura, mas não uma **conexão real do app preview**:
+EAS (1.9) e cliente/sessão (4.1) ainda não existem. Mantenha a 3.1 desmarcada
+até essa prova em build preview. Nunca rode `supabase db reset --linked` para
+tentar essa verificação. Projetos Free podem pausar por inatividade; antes de
+testar uma build antiga, confira o estado dos dois no Dashboard.

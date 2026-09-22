@@ -15,20 +15,18 @@ const optionalText = z
   .optional();
 
 const LOCAL_HOSTS = /^(localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d+\.\d+)$/;
-const projectRef = z
-  .string()
-  .trim()
-  .regex(/^[a-z0-9]{20}$/, 'deve ser o project ref Supabase de 20 caracteres')
-  .optional()
-  .or(z.literal('').transform(() => undefined));
+
+// Identificadores públicos, versionados para que variáveis de build não possam trocar os ambientes.
+export const SUPABASE_PROJECT_REFS = {
+  preview: 'lakpndtdkcjtazoybgnv',
+  production: 'irdsieciowovsaakikbf',
+} as const;
 
 export const publicEnvSchema = z
   .object({
     EXPO_PUBLIC_APP_ENV: z.enum(APP_ENVS),
     EXPO_PUBLIC_SUPABASE_URL: z.url(),
     EXPO_PUBLIC_SUPABASE_ANON_KEY: z.string().trim().min(1),
-    EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF: projectRef,
-    EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF: projectRef,
     // Opcionais até as fases de observabilidade (13) e billing (5).
     EXPO_PUBLIC_POSTHOG_KEY: optionalText,
     EXPO_PUBLIC_POSTHOG_HOST: z
@@ -51,25 +49,8 @@ export const publicEnvSchema = z
     }
     if (env.EXPO_PUBLIC_APP_ENV === 'local') return;
 
-    const previewRef = env.EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF;
-    const productionRef = env.EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF;
-    for (const [key, ref] of [
-      ['EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF', previewRef],
-      ['EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF', productionRef],
-    ] as const) {
-      if (!ref) {
-        ctx.addIssue({ code: 'custom', path: [key], message: 'obrigatória em preview/production' });
-      }
-    }
-    if (previewRef && productionRef && previewRef === productionRef) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['EXPO_PUBLIC_SUPABASE_PRODUCTION_PROJECT_REF'],
-        message: 'deve ser diferente do projeto preview',
-      });
-    }
-    const expectedRef = env.EXPO_PUBLIC_APP_ENV === 'preview' ? previewRef : productionRef;
-    if (expectedRef && env.EXPO_PUBLIC_SUPABASE_URL !== `https://${expectedRef}.supabase.co`) {
+    const expectedRef = SUPABASE_PROJECT_REFS[env.EXPO_PUBLIC_APP_ENV];
+    if (env.EXPO_PUBLIC_SUPABASE_URL !== `https://${expectedRef}.supabase.co`) {
       ctx.addIssue({
         code: 'custom',
         path: ['EXPO_PUBLIC_SUPABASE_URL'],

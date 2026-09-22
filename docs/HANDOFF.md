@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.1 parcialmente preparada no PR draft [#17](https://github.com/johnberks/dokh/pull/17), empilhado sobre o #16. A DoD segue pendente.
+Última atualização: 2026-09-22 · Codex · projetos DOKH preview/production criados no plano Free; PR draft [#17](https://github.com/johnberks/dokh/pull/17) empilhado sobre o #16. A DoD segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -29,7 +29,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
 | 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate no #16 — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
-| 3.1 Supabase local/remoto | 🟡 `supabase start`, reset local e health da API passaram; contrato de isolamento preview/production testado | Criar projetos DOKH preview/production; integrar cliente na 4.1 e comprovar conexão real do app preview |
+| 3.1 Supabase local/remoto | 🟡 Start/reset local passaram; `dokh-preview` e `dokh-production` ativos em `johnberks's Org` Free; chaves públicas isoladas | Configurar EAS/cliente e comprovar conexão real do app preview somente ao projeto preview |
 
 ## Como rodar o projeto
 
@@ -49,7 +49,7 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 ```
 
-O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.md) e substitua pelos valores reais de `npm run supabase:status`. Para preview/production, os dois project refs distintos são obrigatórios e a URL precisa corresponder ao ambiente.
+O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.md) e substitua pelos valores reais de `npm run supabase:status`. Para preview/production, os refs públicos foram fixados no código; configure a URL e a chave publishable do projeto correto. O arquivo local ignorado `supabase/.env.local` guarda as credenciais remotas nesta worktree, sem enviá-las ao Git.
 
 ## Retomada
 
@@ -57,9 +57,9 @@ O ponto de retomada desta trilha é o PR draft [#17](https://github.com/johnberk
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo da 3.1: criar dois projetos Supabase da DOKH na organização correta e registrar seus refs, depois comprovar a conexão de preview. O Docker local já foi validado. Em seguida, 3.2–3.5 (migrations/RLS) e 4.1 (cliente/sessão). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo da 3.1: comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). O Docker local e os dois projetos remotos já foram validados. Em paralelo, 3.2–3.5 (migrations/RLS) podem avançar sobre essa infraestrutura. Trabalho independente: **2.7 motion e reduzir movimento**.
 
-Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. O schema público exige refs diferentes e URL exata do projeto do ambiente, com teste de rejeição de preview→production. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 146 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. O checkbox 3.1 permanece desmarcado apenas pela verificação remota de preview/production.
+Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. Os refs públicos remotos estão versionados no schema, que recusa preview→production e URL local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. Os projetos remotos `dokh-preview` (`lakpndtdkcjtazoybgnv`) e `dokh-production` (`irdsieciowovsaakikbf`) foram criados na organização pessoal Free, região `sa-east-1`, sem upgrade. Cada chave publishable acessou o próprio endpoint REST e foi rejeitada (`401`) no projeto oposto. O checkbox 3.1 permanece desmarcado apenas pela prova de conexão do app preview.
 
 ```bash
 git fetch origin codex/3.1-supabase-local
@@ -77,10 +77,10 @@ fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fn
 
 ```text
 Leia docs/HANDOFF.md e AGENTS.md. Retome a tarefa 3.1 do build-plan.md
-na branch codex/3.1-supabase-local. Com Docker funcional e projetos DOKH
-preview/production disponíveis, verifique supabase start, reset local e a
-conexão real do app preview. Rode typecheck, check e test. Marque o checkbox
-somente se toda a DoD passar e atualize este handoff e o PR da 3.1.
+na branch codex/3.1-supabase-local. Docker e os projetos Supabase remotos
+já foram validados; falta comprovar que o app preview conecta somente a
+`dokh-preview`, após 1.9/4.1. Rode typecheck, check e test. Marque o
+checkbox somente se toda a DoD passar e atualize este handoff e o PR #17.
 ```
 
 3. Ao terminar: atualizar este arquivo, enviar a branch e abrir o PR em rascunho sobre o anterior.
@@ -221,11 +221,11 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
 - Validação Android/TalkBack da 2.3 adiada a pedido do usuário; não substitui a DoD original.
 - Proteção da `main` no GitHub (fecha 0.3 e 1.8).
-- Conta Expo/EAS (1.9) e projetos Supabase preview/production da DOKH (3.1). Docker local foi reparado pelo usuário e start/reset validados em 2026-09-22. A conta Supabase acessível ainda não tinha projetos DOKH; projetos alheios não foram alterados.
+- Conta Expo/EAS (1.9) e integração cliente/sessão (4.1) para provar app preview em `dokh-preview` (3.1). Docker local foi reparado pelo usuário e start/reset validados em 2026-09-22. Os dois projetos DOKH foram criados no Free, sem alterar projetos alheios.
 - P01 preços, P02 arquivos do Plantãozinho, P03 recorrência custom, P04 textos legais, P05 confirmações destrutivas.
 
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **3.1** Concluir prova remota após projetos DOKH preview/production disponíveis; manter checkbox desmarcado até a DoD. Então **3.2–3.5** migrations e RLS (as telas reais dependem dos dados).
-3. **4.1/4.2/4.5** Cliente/sessão, e-mail/senha e guards. **2.7** motion pode entrar independentemente. A integração dos componentes da 2.5 nas telas acontece nas fases 7–11.
+2. **3.2–3.5** Migrations e RLS sobre Supabase local; projetos remotos disponíveis. Não aplicar migration remota sem testes de propriedade/RLS.
+3. **1.9 + 4.1** EAS e cliente/sessão; comprovar app preview em `dokh-preview` para fechar a 3.1. Depois **4.2/4.5** e telas. **2.7** motion pode entrar independentemente.
