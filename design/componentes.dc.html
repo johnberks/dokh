@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Unbounded:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #0A0E09; }
+  a { color: #A98A54; text-decoration: none; }
+  a:hover { color: #EDEAE0; }
+</style>
+</helmet>
+
+<div style="background:#0A0E09;color:#EDEAE0;font-family:Archivo,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;padding:72px 64px 96px;display:flex;flex-direction:column;gap:56px;width:2640px">
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:40px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#7F8A76">DOKH · Design System · Biblioteca de componentes</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#7F8A76">v1 · SET 2026</div>
+    </div>
+    <div style="height:1px;background:#2B3A24"></div>
+    <h1 style="margin:0;font-size:44px;font-weight:600;line-height:1.05;letter-spacing:-0.03em;max-width:30ch;text-wrap:pretty">Os componentes que a DOKH já tem.</h1>
+    <p style="margin:0;max-width:74ch;font-size:16px;line-height:1.65;color:#9AA391;text-wrap:pretty">Tudo o que pode ser reaproveitado dentro do produto mora aqui: anatomia, variações, aplicação real em tela e contrato de propriedades. Antes de desenhar algo novo, procure nesta página — se existir, use; se for parecido, estenda; se for realmente novo, documente aqui depois. Identidade, paleta e tipografia continuam em <a href="DOKH Brand Kit Final.dc.html">Brand Kit</a>.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px">
+      <div style="border:1px solid #2B3A24;background:#161F14;border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:10px"><div style="width:6px;height:6px;background:#A98A54"></div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:#EDEAE0">01 · REVIEW CARD</div><div style="font-size:13px;color:#9AA391">momentos de ação</div></div>
+      <div style="border:1px dashed #2B3A24;border-radius:999px;padding:8px 16px;display:flex;align-items:center;gap:10px"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.14em;color:#7F8A76">A DOCUMENTAR</div><div style="font-size:13px;color:#7F8A76">card de trabalho · seletor de tipo · bottom sheet · input monetário · paywall Premium · estado vazio</div></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:40px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#A98A54">01 · Review Card</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#7F8A76">EM PRODUÇÃO · HOME · FINANÇAS</div>
+    </div>
+    <div style="height:1px;background:#2B3A24"></div>
+    <h2 style="margin:0;font-size:34px;font-weight:600;line-height:1.06;letter-spacing:-0.03em;max-width:30ch;text-wrap:pretty">Momentos de ação viram objetos do produto.</h2>
+    <p style="margin:0;max-width:74ch;font-size:16px;line-height:1.65;color:#9AA391;text-wrap:pretty">Substitui o aviso textual de "entradas sem previsão" por um objeto funcional: contexto curto, dado principal com peso, preview real dos itens envolvidos e ação incorporada à estrutura do card. Mesma família para revisar, completar, confirmar e resolver — em qualquer área da DOKH.</p>
+  </div>
+
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start">
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;gap:14px;height:16px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#A98A54">01</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#7F8A76">ANATOMIA · VERSÃO DETALHADA</div>
+      </div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:390px;background:#EDEAE0;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:14px">
+          <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08),0 10px 24px -8px rgba(16,22,15,0.16);padding:18px 18px 0;display:flex;flex-direction:column;gap:14px;color:#10160F">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:34px;height:34px;border-radius:11px;background:rgba(169,138,84,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 9.5h17M8 3v4M16 3v4"></path><path d="M12 13.2c0-.9.8-1.5 1.7-1.3.7.2 1.1.8 1 1.5-.1.7-.8 1-1.2 1.4-.3.3-.4.6-.4 1"></path><circle cx="13.1" cy="17.6" r=".7" fill="#8A6E3C" stroke="none"></circle></svg></div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">REVISÃO NECESSÁRIA · 2 ENTRADAS</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font-size:36px;font-weight:600;letter-spacing:-0.035em;line-height:1;font-variant-numeric:tabular-nums">R$ 2.400</div>
+                <div style="font-size:14px;color:#4A5744">sem data prevista</div>
+              </div>
+              <div style="font-size:13px;line-height:1.45;color:#4A5744;text-wrap:pretty">Defina quando esses valores devem entrar.</div>
+            </div>
+            <div style="background:rgba(16,22,15,0.045);border-radius:16px;padding:6px;display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ previews }}" as="p" hint-placeholder-count="2">
+                <div style="background:#FDFCF8;border:1px solid rgba(16,22,15,0.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px">
+                  <div style="width:5px;height:28px;border-radius:3px;flex-shrink:0;background:{{ p.dot }}"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">{{ p.chip }}</div>
+                    <div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.title }}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+                    <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ p.value }}</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;color:#8A6E3C">SEM DATA</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(16,22,15,0.1);margin:0 -18px;padding:14px 18px">
+              <div style="font-size:15px;font-weight:600;color:#10160F">Adicionar datas</div>
+              <div style="width:34px;height:34px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1">→</div>
+            </div>
+          </div>
+        </div>
+        <div style="width:300px;display:flex;flex-direction:column;gap:18px;padding-top:26px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">1 · CONTEXTO</div>
+            <div style="font-size:14px;line-height:1.55;color:#9AA391;text-wrap:pretty">Ícone em superfície aninhada + label mono. Diz o que é e quantos itens. Nunca domina o card.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">2 · INFORMAÇÃO PRINCIPAL</div>
+            <div style="font-size:14px;line-height:1.55;color:#9AA391;text-wrap:pretty">Valor em 36px tabular, qualificador ao lado na linha de base. Frase auxiliar de uma linha, nunca parágrafo.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">3 · PREVIEW DA PENDÊNCIA</div>
+            <div style="font-size:14px;line-height:1.55;color:#9AA391;text-wrap:pretty">Bandeja rebaixada com 1–2 mini cards: barra na cor do tipo, chip, item e valor + estado. Acima de 2, resume em "+ N entradas".</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">4 · AÇÃO</div>
+            <div style="font-size:14px;line-height:1.55;color:#9AA391;text-wrap:pretty">Faixa inferior sangrada de borda a borda, com rótulo e botão circular escuro. O card inteiro é clicável; a faixa deixa a ação explícita.</div>
+          </div>
+          <div style="height:1px;background:#2B3A24"></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.9;letter-spacing:0.06em;color:#7F8A76">SUPERFÍCIES · card #F8F6EF · bandeja rgba(16,22,15,0.045) · mini card #FDFCF8<br>RAIO · 22 / 16 / 12 · nunca sombra dura<br>SEM COR DE ERRO · pendência não é falha</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;gap:14px;height:16px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#A98A54">02</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#7F8A76">FAMÍLIA · MESMO COMPONENTE, QUATRO PESOS</div>
+      </div>
+      <div style="width:390px;background:#EDEAE0;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:22px;color:#10160F">
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">A · COMPACTO · UMA LINHA</div>
+          <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08);padding:14px 14px 14px 16px;display:flex;align-items:center;gap:12px">
+            <div style="width:34px;height:34px;border-radius:11px;background:rgba(111,126,103,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2B3A24" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"></path></svg></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:1px;min-width:0">
+              <div style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Complete seu primeiro trabalho</div>
+              <div style="font-size:13px;color:#4A5744">Falta informar o valor</div>
+            </div>
+            <div style="width:32px;height:32px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0">→</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">B · PADRÃO · SEM PREVIEW</div>
+          <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08),0 10px 24px -8px rgba(16,22,15,0.16);padding:16px 18px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:30px;height:30px;border-radius:10px;background:rgba(169,138,84,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 8v4.5l3 1.8"></path></svg></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">AGUARDANDO CONFIRMAÇÃO · 1 ENTRADA</div>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <div style="font-size:30px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums">R$ 850</div>
+              <div style="font-size:14px;color:#4A5744">Clínica Central</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(16,22,15,0.1);margin:0 -18px;padding:13px 18px">
+              <div style="font-size:15px;font-weight:600">Revisar entrada</div>
+              <div style="width:32px;height:32px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1">→</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">C · DETALHADO COM RESUMO · 5 ITENS</div>
+          <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08),0 10px 24px -8px rgba(16,22,15,0.16);padding:18px 18px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:11px;background:rgba(169,138,84,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 9.5h17M8 3v4M16 3v4"></path></svg></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">REVISÃO NECESSÁRIA · 5 ENTRADAS</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font-size:36px;font-weight:600;letter-spacing:-0.035em;line-height:1;font-variant-numeric:tabular-nums">R$ 5.850</div>
+                <div style="font-size:14px;color:#4A5744">sem data prevista</div>
+              </div>
+              <div style="font-size:13px;line-height:1.45;color:#4A5744">Comece pelas duas maiores.</div>
+            </div>
+            <div style="background:rgba(16,22,15,0.045);border-radius:16px;padding:6px;display:flex;flex-direction:column;gap:6px">
+              <div style="background:#FDFCF8;border:1px solid rgba(16,22,15,0.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px">
+                <div style="width:5px;height:28px;border-radius:3px;background:#8A6E3C;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">PROCEDIMENTO</div>
+                  <div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Cirurgia · Hospital São Lucas</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+                  <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">R$ 2.500</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;color:#8A6E3C">SEM DATA</div>
+                </div>
+              </div>
+              <div style="background:#FDFCF8;border:1px solid rgba(16,22,15,0.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px">
+                <div style="width:5px;height:28px;border-radius:3px;background:#2B3A24;flex-shrink:0"></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">PLANTÃO</div>
+                  <div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Hospital São Camilo</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+                  <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">R$ 1.400</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;color:#8A6E3C">SEM DATA</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px">
+                <div style="font-size:13px;font-weight:600;color:#4A5744">+ 3 entradas</div>
+                <div style="font-size:14px;color:#7F8A76">›</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(16,22,15,0.1);margin:0 -18px;padding:14px 18px">
+              <div style="font-size:15px;font-weight:600">Adicionar datas</div>
+              <div style="width:34px;height:34px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1">→</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">D · TOM DE ATENÇÃO · AÇÃO DE HOJE</div>
+          <div style="background:#E4D9C2;border:1px solid rgba(169,138,84,0.45);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.45),0 1px 2px rgba(16,22,15,0.05);padding:16px 18px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#8A6E3C">ENTRADA PREVISTA PARA HOJE</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Hospital São Lucas</div>
+                <div style="font-size:13px;color:#4A5744">Plantão de 12 SET</div>
+              </div>
+              <div style="font-size:26px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap">R$ 1.200</div>
+            </div>
+            <div onClick="{{ toggleConfirm }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(169,138,84,0.4);margin:0 -18px;padding:13px 18px;cursor:pointer">
+              <div style="font-size:15px;font-weight:600;color:#10160F">{{ chkLabel }}</div>
+              <div style="width:34px;height:34px;border-radius:50%;border:1.5px solid {{ chkBorder }};background:{{ chkBg }};display:flex;align-items:center;justify-content:center;transition:all .2s"><svg width="13" height="11" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1.5" stroke="{{ chkStroke }}" stroke-width="2"></polyline></svg></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.8;letter-spacing:0.06em;color:#7F8A76;max-width:390px">O peso acompanha a complexidade: compacto para uma pendência trivial, detalhado quando o médico precisa ver o que está envolvido · D é interativo, toque para confirmar</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;gap:14px;height:16px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#A98A54">03</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#7F8A76">APLICADO EM FINANÇAS</div>
+      </div>
+      <div style="width:414px;padding:12px;background:#000;border-radius:60px;box-shadow:0 40px 80px rgba(0,0,0,0.55)">
+        <div data-screen-label="Review Card em Finanças" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:#EDEAE0;color:#10160F;display:flex;flex-direction:column">
+          <sc-if value="{{ showStatusBar }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 32px 0;font-size:15px;font-weight:600;color:#10160F">
+            <div>9:41</div>
+            <div style="display:flex;align-items:flex-end;gap:6px">
+              <div style="display:flex;align-items:flex-end;gap:2px"><div style="width:3px;height:5px;background:#10160F;border-radius:1px"></div><div style="width:3px;height:8px;background:#10160F;border-radius:1px"></div><div style="width:3px;height:11px;background:#10160F;border-radius:1px"></div><div style="width:3px;height:14px;background:#10160F;border-radius:1px"></div></div>
+              <div style="width:24px;height:12px;border:1.5px solid #10160F;border-radius:3px;padding:2px"><div style="width:100%;height:100%;background:#10160F;border-radius:1px"></div></div>
+            </div>
+          </div>
+          </sc-if>
+          <div style="padding:18px 24px 0;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">SUAS FINANÇAS</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">SETEMBRO 2026</div>
+          </div>
+          <div style="padding:16px 24px 0;display:flex;flex-direction:column;gap:6px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">ENTRADAS DO MÊS</div>
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <div style="font-size:40px;font-weight:600;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums">R$ 12.450</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;color:#A98A54">67% RECEBIDO</div>
+            </div>
+            <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:rgba(169,138,84,0.28);margin-top:8px"><div style="width:67%;background:#2B3A24;border-radius:4px"></div></div>
+          </div>
+          <div style="padding:22px 24px 0">
+            <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08),0 10px 24px -8px rgba(16,22,15,0.16);padding:18px 18px 0;display:flex;flex-direction:column;gap:14px;cursor:pointer" style-hover="border-color:rgba(16,22,15,0.32)" style-active="transform:translateY(1px);background:#F3F0E7">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:34px;height:34px;border-radius:11px;background:rgba(169,138,84,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 9.5h17M8 3v4M16 3v4"></path><path d="M12 13.2c0-.9.8-1.5 1.7-1.3.7.2 1.1.8 1 1.5-.1.7-.8 1-1.2 1.4-.3.3-.4.6-.4 1"></path><circle cx="13.1" cy="17.6" r=".7" fill="#8A6E3C" stroke="none"></circle></svg></div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">REVISÃO NECESSÁRIA · 2 ENTRADAS</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:baseline;gap:10px">
+                  <div style="font-size:36px;font-weight:600;letter-spacing:-0.035em;line-height:1;font-variant-numeric:tabular-nums">R$ 2.400</div>
+                  <div style="font-size:14px;color:#4A5744">sem data prevista</div>
+                </div>
+                <div style="font-size:13px;line-height:1.45;color:#4A5744;text-wrap:pretty">Estes valores não entram no total do mês.</div>
+              </div>
+              <div style="background:rgba(16,22,15,0.045);border-radius:16px;padding:6px;display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ previews }}" as="p" hint-placeholder-count="2">
+                  <div style="background:#FDFCF8;border:1px solid rgba(16,22,15,0.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px">
+                    <div style="width:5px;height:28px;border-radius:3px;flex-shrink:0;background:{{ p.dot }}"></div>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.16em;color:#7F8A76">{{ p.chip }}</div>
+                      <div style="font-size:13px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.title }}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+                      <div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ p.value }}</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.12em;color:#8A6E3C">SEM DATA</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(16,22,15,0.1);margin:0 -18px;padding:14px 18px">
+                <div style="font-size:15px;font-weight:600">Adicionar datas</div>
+                <div style="width:34px;height:34px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1">→</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:26px 24px 0;display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">DE ONDE VÊM SUAS ENTRADAS</div>
+            <div style="font-size:12px;color:#4A5744;font-variant-numeric:tabular-nums">de R$ 12.450</div>
+          </div>
+          <div style="padding:14px 24px 0;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:14px"><div style="font-weight:600">Plantões</div><div style="font-variant-numeric:tabular-nums;color:#4A5744">R$ 4.200 · 34%</div></div>
+              <div style="height:6px;border-radius:3px;background:rgba(16,22,15,0.08);overflow:hidden"><div style="width:34%;height:100%;background:#2B3A24;border-radius:3px"></div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:14px"><div style="font-weight:600">Procedimentos</div><div style="font-variant-numeric:tabular-nums;color:#4A5744">R$ 3.500 · 28%</div></div>
+              <div style="height:6px;border-radius:3px;background:rgba(16,22,15,0.08);overflow:hidden"><div style="width:28%;height:100%;background:#A98A54;border-radius:3px"></div></div>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="border-top:1px solid rgba(16,22,15,0.1);background:rgba(237,234,224,0.92);padding:12px 24px 30px;display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#7F8A76">INÍCIO</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#7F8A76">AGENDA</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#10160F;font-weight:500">FINANÇAS</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#7F8A76">PERFIL</div>
+          </div>
+          <div style="position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:140px;height:5px;border-radius:3px;background:#10160F;opacity:0.35"></div>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.8;letter-spacing:0.06em;color:#7F8A76;max-width:414px">Entra no lugar do aviso textual atual, abaixo do total do mês · o card inteiro abre a lista de entradas sem data</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;gap:14px;height:16px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#A98A54">04</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#7F8A76">APLICADO NA HOME</div>
+      </div>
+      <div style="width:414px;padding:12px;background:#000;border-radius:60px;box-shadow:0 40px 80px rgba(0,0,0,0.55)">
+        <div data-screen-label="Review Card na Home" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:#EDEAE0;color:#10160F;display:flex;flex-direction:column">
+          <div style="position:relative;background:#10160F;color:#EDEAE0;overflow:hidden;padding-bottom:34px;flex-shrink:0">
+            <div style="position:absolute;right:-130px;top:-70px;width:320px;height:320px;border-radius:60px;background:#2B3A24;opacity:0.7;filter:blur(44px)"></div>
+            <sc-if value="{{ showStatusBar }}" hint-placeholder-val="{{ true }}">
+            <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:18px 32px 0;font-size:15px;font-weight:600;color:#EDEAE0">
+              <div>9:41</div>
+              <div style="display:flex;align-items:flex-end;gap:6px">
+                <div style="display:flex;align-items:flex-end;gap:2px"><div style="width:3px;height:5px;background:#EDEAE0;border-radius:1px"></div><div style="width:3px;height:8px;background:#EDEAE0;border-radius:1px"></div><div style="width:3px;height:11px;background:#EDEAE0;border-radius:1px"></div><div style="width:3px;height:14px;background:#EDEAE0;border-radius:1px"></div></div>
+                <div style="width:24px;height:12px;border:1.5px solid #EDEAE0;border-radius:3px;padding:2px"><div style="width:100%;height:100%;background:#EDEAE0;border-radius:1px"></div></div>
+              </div>
+            </div>
+            </sc-if>
+            <div style="position:relative;padding:22px 24px 0;display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">SEXTA, 12 DE SETEMBRO</div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-0.03em;line-height:1.1">Bom dia, Anna.</div>
+              <div style="font-size:14px;color:#9AA391;text-wrap:pretty">Você tem 1 trabalho hoje e uma entrada para confirmar.</div>
+            </div>
+          </div>
+          <div style="padding:18px 24px 0;display:flex;flex-direction:column;gap:14px">
+            <div style="background:#E4D9C2;border:1px solid rgba(169,138,84,0.45);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.45),0 1px 2px rgba(16,22,15,0.05);padding:16px 18px 0;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg></div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#8A6E3C">ENTRADA PREVISTA PARA HOJE</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Hospital São Lucas</div>
+                  <div style="font-size:13px;color:#4A5744">Plantão de 12 SET</div>
+                </div>
+                <div style="font-size:26px;font-weight:600;letter-spacing:-0.03em;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap">R$ 1.200</div>
+              </div>
+              <div onClick="{{ toggleConfirm }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid rgba(169,138,84,0.4);margin:0 -18px;padding:13px 18px;cursor:pointer">
+                <div style="font-size:15px;font-weight:600;color:#10160F">{{ chkLabel }}</div>
+                <div style="width:34px;height:34px;border-radius:50%;border:1.5px solid {{ chkBorder }};background:{{ chkBg }};display:flex;align-items:center;justify-content:center;transition:all .2s"><svg width="13" height="11" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1.5" stroke="{{ chkStroke }}" stroke-width="2"></polyline></svg></div>
+              </div>
+            </div>
+            <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08);padding:14px 14px 14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer" style-hover="border-color:rgba(16,22,15,0.32)">
+              <div style="width:34px;height:34px;border-radius:11px;background:rgba(169,138,84,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A6E3C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 9.5h17M8 3v4M16 3v4"></path></svg></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:1px;min-width:0">
+                <div style="font-size:15px;font-weight:600;letter-spacing:-0.01em">R$ 2.400 sem data prevista</div>
+                <div style="font-size:13px;color:#4A5744">2 entradas precisam de revisão</div>
+              </div>
+              <div style="width:32px;height:32px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0">→</div>
+            </div>
+            <div style="background:#F8F6EF;border:1px solid rgba(16,22,15,0.16);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7),0 1px 2px rgba(16,22,15,0.08),0 10px 24px -8px rgba(16,22,15,0.16);padding:18px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.18em;color:#7F8A76">PRÓXIMO TRABALHO</div>
+                <div style="width:30px;height:30px;border-radius:50%;background:#10160F;color:#A98A54;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;margin:-4px -4px 0 0">→</div>
+              </div>
+              <div style="display:flex;align-items:flex-end;gap:14px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;color:#A98A54;padding-bottom:6px;white-space:nowrap">AMANHÃ</div>
+                <div style="font-size:36px;font-weight:600;letter-spacing:-0.04em;line-height:1;font-variant-numeric:tabular-nums">08:00</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:18px;font-weight:600;letter-spacing:-0.01em">Clínica Central</div>
+                <div style="font-size:14px;color:#4A5744">Atendimento · 6h</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <div style="border-top:1px solid rgba(16,22,15,0.1);background:rgba(237,234,224,0.92);padding:12px 24px 30px;display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#10160F;font-weight:500">INÍCIO</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#7F8A76">AGENDA</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#7F8A76">FINANÇAS</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.14em;color:#7F8A76">PERFIL</div>
+          </div>
+          <div style="position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:140px;height:5px;border-radius:3px;background:#10160F;opacity:0.35"></div>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;line-height:1.8;letter-spacing:0.06em;color:#7F8A76;max-width:414px">Dois Review Cards convivem sem competir: atenção (confirmar hoje) acima, revisão compacta abaixo · nunca mais de um card em tom de atenção por tela</div>
+    </div>
+
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:40px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#7F8A76">Contrato do componente</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#7F8A76">ReviewCard</div>
+    </div>
+    <div style="height:1px;background:#2B3A24"></div>
+    <div style="display:flex;gap:48px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:380px;max-width:520px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">PROPRIEDADES</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:2.1;color:#9AA391">tone · neutral | attention<br>size · compact | standard | detailed<br>eyebrow · string curta, mono, com contagem<br>icon · line icon 17px em tile de 30–34px<br>value · string monetária ou título<br>qualifier · "sem data prevista", local, período<br>hint · uma linha, nunca parágrafo<br>previews[] · máx. 2 · { type, title, value, state }<br>overflowLabel · "+ N entradas"<br>action · { label, kind: arrow | check }<br>onPress · card inteiro clicável</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:380px;max-width:560px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">REGRAS</div>
+        <div style="font-size:15px;line-height:1.7;color:#9AA391;text-wrap:pretty">Pendência não é erro: nada de vermelho, nada de ícone de alerta. · Um único card em tom de atenção por tela. · Máximo de dois Review Cards visíveis por tela; o resto vira lista dentro da feature. · Previews só existem quando ajudam a decidir — se os itens são idênticos, use a versão padrão. · O valor sempre vem antes da explicação. · A faixa de ação sangra até a borda do card e repete o destino do toque no card inteiro. · Sem preview, sem bandeja: a versão compacta não carrega superfície aninhada. · Quando a pendência é resolvida, o card sai da tela com transição curta — nunca fica em estado "✓ concluído" ocupando espaço.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:300px;max-width:420px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">USOS PREVISTOS</div>
+        <div style="font-size:15px;line-height:1.7;color:#9AA391;text-wrap:pretty">Finanças · entradas sem data · entrada aguardando confirmação · mês fechando com valor pendente.<br>Home · confirmar entrada de hoje · completar cadastro de trabalho · revisar valores sem data.<br>Agenda · trabalho passado sem confirmação.<br>Perfil · importação incompleta · dados da residência faltando.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:40px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#7F8A76">Como esta biblioteca cresce</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#7F8A76">PRÓXIMO ITEM · 02</div>
+    </div>
+    <div style="height:1px;background:#2B3A24"></div>
+    <div style="display:flex;gap:48px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:380px;max-width:560px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">REGRA DE ENTRADA</div>
+        <div style="font-size:15px;line-height:1.7;color:#9AA391;text-wrap:pretty">Um componente entra aqui quando aparece em duas telas ou mais, ou quando resolve um padrão que vai repetir. Cada item ganha numeração, anatomia anotada, a família de variações, pelo menos uma aplicação em tela real de 390×844 e o contrato de propriedades. Sem aplicação em tela, é só um desenho — não entra.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:340px;max-width:520px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">FILA DE DOCUMENTAÇÃO</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:2.1;color:#9AA391">02 · CARD DE TRABALHO · Agenda 02 / Home<br>03 · SELETOR DE TIPO · Agenda 06B / Onboarding 06<br>04 · BOTTOM SHEET · Agenda 08–13<br>05 · INPUT MONETÁRIO · Onboarding 04 e 09 · Agenda 07<br>06 · PAYWALL PREMIUM · Agenda 12 e 14<br>07 · ESTADO VAZIO · Agenda 04 · Home 05 e 06</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:300px;max-width:420px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#A98A54">ONDE O 01 JÁ ESTÁ APLICADO</div>
+        <div style="font-size:15px;line-height:1.7;color:#9AA391;text-wrap:pretty"><a href="HOME.dc.html">Home</a> · 5 telas, versão compacta de revisão.<br><a href="FINANCAS.dc.html">Finanças</a> · 3 telas, versão detalhada com previews.<br>Agenda e Perfil · previstos, ainda não aplicados.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showStatusBar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Telas&quot;},&quot;previewCount&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:1,&quot;max&quot;:2,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Review Card&quot;}}">
+class Component extends DCLogic {
+  state = { ok: false };
+  renderVals() {
+    const ok = this.state.ok;
+    const all = [
+      { chip: 'PROCEDIMENTO', title: 'Cirurgia · Hospital São Lucas', value: 'R$ 1.200', dot: '#8A6E3C' },
+      { chip: 'PLANTÃO', title: 'Hospital São Camilo', value: 'R$ 1.200', dot: '#2B3A24' }
+    ];
+    const n = Math.max(1, Math.min(2, this.props.previewCount ?? 2));
+    return {
+      showStatusBar: this.props.showStatusBar ?? true,
+      previews: all.slice(0, n),
+      chkLabel: ok ? 'Entrada confirmada' : 'Confirmar entrada',
+      chkBorder: ok ? '#2B3A24' : '#10160F',
+      chkBg: ok ? '#2B3A24' : '#10160F',
+      chkStroke: ok ? '#EDEAE0' : '#A98A54',
+      toggleConfirm: () => this.setState({ ok: !ok })
+    };
+  }
+}
+
+</script>
+</body>
+</html>
