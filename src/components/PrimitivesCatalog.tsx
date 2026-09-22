@@ -11,6 +11,7 @@ import { EmptyStateCatalog } from './EmptyStateCatalog';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
 import { MoneyInputCatalog } from './MoneyInputCatalog';
+import { PremiumGateCatalog } from './PremiumGateCatalog';
 import { ProgressCardCatalog } from './ProgressCardCatalog';
 import { ReceivableRowCatalog } from './ReceivableRowCatalog';
 import { ReviewCardCatalog } from './ReviewCardCatalog';
@@ -105,6 +106,8 @@ export function PrimitivesCatalog() {
         <CalendarGridCatalog />
         <Divider />
         <BottomSheetCatalog />
+        <Divider />
+        <PremiumGateCatalog />
       </View>
     </ScrollScreen>
   );

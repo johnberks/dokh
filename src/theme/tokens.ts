@@ -90,6 +90,9 @@ export const colors = {
   sheetMenuScrim: 'rgba(237,234,224,0.5)',
   sheetHandle: 'rgba(16,22,15,0.2)',
   sheetMenuHandle: 'rgba(16,22,15,0.18)',
+  premiumBadgeBorder: 'rgba(169,138,84,0.55)',
+  premiumPreviewSurface: '#F6F4EC',
+  premiumPreviewBorder: 'rgba(16,22,15,0.14)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -427,6 +430,34 @@ export const bottomSheetMetrics = {
   dismissRatio: 0.25,
   /** Velocidade (pontos/s) de arraste que fecha mesmo com pouco deslocamento. */
   dismissVelocity: 900,
+} as const;
+
+/** Agenda 12 (recorrência Free) and 14 (cor Free) gate geometry. */
+export const premiumGateMetrics = {
+  badgeRadius: 6,
+  badgePaddingVertical: 3,
+  badgePaddingHorizontal: 7,
+  badgeGap: 5,
+  badgeFontSize: 9,
+  badgeTracking: 1.26,
+  headerGap: 8,
+  headerPaddingTop: 6,
+  titleSize: 26,
+  titleLineHeight: 29,
+  titleTracking: -0.78,
+  descriptionSize: 14,
+  descriptionLineHeight: 21,
+  /** Degradê sobre a prévia: transparente até 20% da altura e 90% creme na base. */
+  previewFadeStart: 0.2,
+  previewFadeOpacity: 0.9,
+  pillPaddingVertical: 8,
+  pillPaddingHorizontal: 14,
+  pillFontSize: 12,
+  pillOverlap: -6,
+  ctaHeight: 56,
+  ctaRadius: 16,
+  exitHeight: 48,
+  actionsGap: 10,
 } as const;
 
 export const radius = {

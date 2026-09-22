@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Claude Code · BottomSheet no PR draft #15 (`codex/2.5-bottom-sheet`, sobre o #14).
+Última atualização: 2026-09-22 · Claude Code · PremiumGate na branch `codex/2.5-premium-gate` (PR draft sobre o #15). Biblioteca visual da 2.5 completa.
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard), #12 (MoneyInput), #13 (WorkTypeSelector), #14 (CalendarGrid) e o BottomSheet (branch `codex/2.5-bottom-sheet`, sobre o #14). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard), #12 (MoneyInput), #13 (WorkTypeSelector), #14 (CalendarGrid), #15 (BottomSheet) e o PremiumGate (branch `codex/2.5-premium-gate`, sobre o #15). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14 e BottomSheet em `codex/2.5-bottom-sheet` | Um componente restante (PremiumGate), aplicação em telas e inspeção de aparelho depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate em `codex/2.5-premium-gate` — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
@@ -50,20 +50,18 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 
 ## Retomada
 
-O ponto de retomada é o PR draft [#15](https://github.com/johnberks/dokh/pull/15), branch `codex/2.5-bottom-sheet` (sobre o #14). Preserve a ordem de integração (#3 → … → #14 → BottomSheet) antes de mesclar em `main`.
+O ponto de retomada é a branch `codex/2.5-premium-gate` (PR draft sobre o #15). Com ela, **todos os componentes da 2.5 existem** (Review Card, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet, PremiumGate). A 2.5 continua desmarcada até a aplicação nas telas reais e a validação em aparelho, que acontecem nas fases de tela (7–11).
 
-Para continuar em um checkout limpo (no Codex, se a branch já estiver aberta em outra worktree, crie a nova branch a partir de `origin/codex/2.5-bottom-sheet`):
+Ordem de integração em `main`: #3 → #4 → … → #15 → PremiumGate. Nenhum desses PRs foi mesclado ainda.
+
+Próxima tarefa recomendada: **3.1 Supabase local** (Docker e Supabase CLI já instalados), seguida de 3.2–3.5 (migrations e RLS). As telas reais dependem dos dados. Alternativa curta sem dependências: **2.7 motion e reduzir movimento**, que pode partir de `src/theme/useReducedMotion.ts` e do `BottomSheet`.
 
 ```bash
-git fetch origin codex/2.5-bottom-sheet
-git switch -c codex/2.5-premium-gate origin/codex/2.5-bottom-sheet
+git fetch origin codex/2.5-premium-gate
+git switch -c codex/3.1-supabase-local origin/codex/2.5-premium-gate
 fnm exec --using=22 npm ci
-fnm exec --using=22 npm run typecheck
-fnm exec --using=22 npm run check
-fnm exec --using=22 npm test -- --runInBand
+fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fnm exec --using=22 npm test -- --runInBand
 ```
-
-Próximo componente: `PremiumGate`. Referências: Agenda 12 (recorrência Free) e 14 (cor Free) em `design/agenda.html`, teasers de Finanças (01-B, 03-B, folha de valor/hora) em `design/financas.html`; regras em `docs/screens/agenda.md` e `docs/screens/financas.md` (Free e Premium), D49/D50 e `docs/billing-readiness.md`. Prévia real esmaecida, explicação do benefício, CTA `Conhecer DOKH Premium` que leva ao fluxo de benefícios (nunca direto à compra), saída Free explícita, `•••` sem números falsos, nunca bloquear o salvamento base. Estado Premium vem de um provider abstrato (stub até o RevenueCat na Fase 5). Depois, a 2.5 fica só com integração nas telas reais e validação em aparelho.
 
 **Teste manual:** o usuário testa no **Expo Go no iPhone**, não no simulador. Ao final de cada entrega, forneça um bloco bash que faça checkout da branch e rode `npx expo start --clear`, dizendo o que conferir (ex.: catálogo em `/dev/primitives`).
 
@@ -91,6 +89,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **ReceivableRow (2.5 parcial)**: linha de Entradas recebida, prevista e com confirmação pendente a partir de Finanças 05–10. A confirmação é callback separado, sem alteração otimista; `docs/receivable-row.md` detalha medidas e limites.
 - **EmptyState (2.5 parcial)**: nove posições de dados legitimamente vazios em Home, Agenda, Finanças/Entradas e Perfil. Não substitui `LoadError`; `docs/empty-state.md` especifica variações, medidas e limites. O catálogo interno permite inspeção.
 - **ProgressCard (2.5 parcial)**: card inicial da Home com barra proporcional, marcos concluídos e próxima ação; desaparece quando completo. Não presume residência nem conclui marcos sozinho. `docs/progress-card.md` especifica as medidas e o contrato; o catálogo demonstra as três variações HTML.
+- **PremiumGate e PremiumBadge (2.5 parcial)**: folha Free de Agenda 12/14 na ordem valor → explicação → oferta, com prévia real esmaecida, CTA para o fluxo de benefícios (nunca direto à compra) e saída Free obrigatória; o gate não consulta plano. Selo reutilizável nos cartões de Finanças. Detalhes em `docs/premium-gate.md`.
 - **BottomSheet (2.5 parcial)**: variações `standard` (Agenda 08–14, Finanças) e `menu` (Agenda 06B), controlado pela tela, fecha por fundo/alça/arraste/voltar do Android/escape do VoiceOver, respeita reduzir movimento (`src/theme/useReducedMotion.ts`). Detalhes em `docs/bottom-sheet.md`.
 - **CalendarGrid (2.5 parcial)**: grade de Agenda 01–05 e do sheet de data 08 com hoje (contorno bronze), selecionado (círculo verde escuro), passado (cinza-verde) e pontos por Trabalho na cor do Local; início Domingo/Segunda (D39). Lógica pura em `src/domain/calendar.ts` com `date-fns`. Detalhes em `docs/calendar-grid.md`.
 - **WorkTypeSelector (2.5 parcial)**: `choice` (Onboarding 06, rádio com check bronze) e `menu` (Agenda 06B, ação com chevron) para Plantão, Procedimento e Atendimento; área inteira clicável, seleção anunciada e marcada por borda/check. `src/domain/work-type.ts` define os tipos e `requiresSchedule`. Detalhes em `docs/work-type-selector.md`.
@@ -188,6 +187,8 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 
 - `BottomSheet` cobre Agenda 06B/08–14 e as folhas de Finanças. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (25 suítes, 138 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Arraste e voltar do Android não são exercitados no Jest; conferir no aparelho. A 2.5 segue desmarcada, com o PremiumGate restante.
 
+- `PremiumGate` cobre Agenda 12 e 14; `PremiumBadge` serve também a Finanças. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 145 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Com ele, os dez componentes da 2.5 existem; a tarefa segue desmarcada até integração em telas e validação em aparelho.
+
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
@@ -199,6 +200,6 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **2.5** Criar o PremiumGate, último componente da biblioteca visual, e depois os headers/conteúdos reais de Home/Agenda/Finanças/Perfil conforme HTML+UX. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
+2. **3.1** Supabase local → **3.2–3.5** migrations e RLS (as telas reais dependem dos dados). **2.7** motion pode entrar a qualquer momento. A integração dos componentes da 2.5 nas telas acontece nas fases 7–11. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
 3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
 4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.
