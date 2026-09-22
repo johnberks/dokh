@@ -7,6 +7,7 @@ import {
   fontAliases,
   fontFamilies,
   getTypography,
+  moneyInputMetrics,
   motion,
   navigationMetrics,
   palette,
@@ -73,6 +74,10 @@ describe('Brand Kit tokens', () => {
     expect(colors.progressTrack).toBe('rgba(16,22,15,0.14)');
     expect(progressCardMetrics.progressHeight).toBe(4);
     expect(progressCardMetrics.actionMinHeight).toBeGreaterThanOrEqual(44);
+    expect(moneyInputMetrics.formHeight).toBe(60);
+    expect(moneyInputMetrics.residencyValueSize).toBe(44);
+    expect(moneyInputMetrics.workValueSize).toBe(48);
+    expect(colors.moneyFieldBorder).toBe('rgba(16,22,15,0.2)');
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {

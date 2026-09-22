@@ -1,5 +1,11 @@
 /** Copy for the internal primitive catalog (not a product route). */
 export const components = {
+  money: {
+    currency: 'R$',
+    currencyHint: 'Valor em reais',
+    currencyHintWithDetail: 'Valor em reais. {{detail}}',
+    placeholder: '0,00',
+  },
   reviewCard: {
     oneMoreEntry: '+ {{count}} entrada',
     moreEntries: '+ {{count}} entradas',
@@ -106,5 +112,14 @@ export const components = {
     progressAddWork: 'Adicionar seu próximo trabalho',
     progressResidence: 'Residência organizada',
     progressFirstWork: 'Primeiro trabalho organizado',
+    moneyTitle: 'Entrada de valor',
+    moneyFormEmpty: 'Agenda · formulário vazio',
+    moneyFormFilled: 'Agenda · valor preenchido',
+    moneyResidency: 'Onboarding · bolsa de residência',
+    moneyWork: 'Onboarding · primeiro trabalho',
+    moneyFormLabel: 'QUANTO VOCÊ VAI RECEBER?',
+    moneyResidencyLabel: 'Quanto você recebe por mês?',
+    moneyResidencyHint: 'Valor líquido padrão da bolsa · toque para ajustar.',
+    moneyWorkLabel: 'Quanto você recebe por esse trabalho?',
   },
 } as const;

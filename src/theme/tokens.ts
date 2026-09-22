@@ -77,6 +77,7 @@ export const colors = {
   progressActionBorder: 'rgba(16,22,15,0.08)',
   progressPendingCircleBorder: 'rgba(16,22,15,0.3)',
   progressFooterBorder: 'rgba(16,22,15,0.12)',
+  moneyFieldBorder: 'rgba(16,22,15,0.2)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -341,6 +342,20 @@ export const progressCardMetrics = {
   actionCircle: 28,
   actionRadius: 12,
   actionMinHeight: 44,
+} as const;
+
+/** Money entry geometry from Agenda 06/09 and Onboarding 05/09. */
+export const moneyInputMetrics = {
+  formHeight: 60,
+  formRadius: 16,
+  formPaddingHorizontal: 18,
+  formLabelSize: 9,
+  formValueSize: 16,
+  residencyCurrencySize: 20,
+  residencyValueSize: 44,
+  workCurrencySize: 22,
+  workValueSize: 48,
+  heroUnderlineWidth: 1.5,
 } as const;
 
 export const radius = {

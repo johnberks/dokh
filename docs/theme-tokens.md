@@ -12,5 +12,6 @@ Fonte: `design/brand-kit.dc.html` (paleta C e tipografia escolhida 2C), com dime
 - `receivableRowMetrics` concentra data, timeline, ponto, painel e ação da linha de Recebível em `Finanças 05–10`; as cores dos três estados ficam em `colors`. Veja `docs/receivable-row.md`.
 - `emptyStateMetrics` registra raios, paddings, alturas e alvo das superfícies vazias previstas nos HTMLs; `colors.empty*` concentra bordas tracejadas e hierarquia esmaecida. Veja `docs/empty-state.md`.
 - `progressCardMetrics` registra a geometria do progresso inicial dos estados Home 01/02/06; `colors.progress*` preserva a superfície verde-clara, barra e bandeja do HTML. Veja `docs/progress-card.md`.
+- `moneyInputMetrics` registra as medidas do valor compacto na Agenda e das duas entradas grandes do Onboarding; `colors.moneyFieldBorder` corresponde à borda vazia da Agenda. Veja `docs/money-input.md`.
 
 Os HTMLs de referência permanecem intactos. Os placeholders consomem tokens sem carregar fontes antecipadamente; a implementação visual final das telas não faz parte da 2.1.

@@ -8,6 +8,7 @@ import { Button, IconButton } from './Button';
 import { EmptyStateCatalog } from './EmptyStateCatalog';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
+import { MoneyInputCatalog } from './MoneyInputCatalog';
 import { ProgressCardCatalog } from './ProgressCardCatalog';
 import { ReceivableRowCatalog } from './ReceivableRowCatalog';
 import { ReviewCardCatalog } from './ReviewCardCatalog';
@@ -93,6 +94,8 @@ export function PrimitivesCatalog() {
         <EmptyStateCatalog />
         <Divider />
         <ProgressCardCatalog />
+        <Divider />
+        <MoneyInputCatalog />
       </View>
     </ScrollScreen>
   );
