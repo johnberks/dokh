@@ -1,5 +1,6 @@
 import { Text as NativeText, type TextProps, type TextStyle } from 'react-native';
-import { colors, typography } from '@/theme/tokens';
+import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { colors, type typography } from '@/theme/tokens';
 
 export type TextVariant = keyof typeof typography;
 export type TextTone = 'primary' | 'secondary' | 'error';
@@ -16,6 +17,7 @@ export type AppTextProps = TextProps & {
 };
 
 export function AppText({ variant = 'body', tone = 'primary', style, ...props }: AppTextProps) {
-  const textStyle: TextStyle = { ...typography[variant], color: toneColor[tone] };
+  const brandTypography = useBrandTypography();
+  const textStyle: TextStyle = { ...brandTypography[variant], color: toneColor[tone] };
   return <NativeText {...props} style={[textStyle, style]} />;
 }

@@ -1,5 +1,6 @@
 import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
+import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { colors, radius, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 
 export type InputProps = Omit<TextInputProps, 'editable' | 'accessibilityLabel'> & {
@@ -10,6 +11,7 @@ export type InputProps = Omit<TextInputProps, 'editable' | 'accessibilityLabel'>
 };
 
 export function Input({ label, hint, error, disabled = false, style, ...props }: InputProps) {
+  const typography = useBrandTypography();
   return (
     <View style={styles.field}>
       <AppText variant="label">{label}</AppText>
@@ -20,7 +22,13 @@ export function Input({ label, hint, error, disabled = false, style, ...props }:
         accessibilityState={{ disabled }}
         editable={!disabled}
         placeholderTextColor={colors.textSecondary}
-        style={[styles.input, error && styles.inputError, disabled && styles.disabled, style]}
+        style={[
+          styles.input,
+          typography.body,
+          error && styles.inputError,
+          disabled && styles.disabled,
+          style,
+        ]}
       />
       {error ? (
         <AppText accessibilityLiveRegion="polite" tone="error">
@@ -43,7 +51,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.input,
     paddingHorizontal: spacing.md,
     color: colors.textPrimary,
-    ...typography.body,
   },
   inputError: { borderColor: colors.errorFill, borderWidth: 2 },
   disabled: { opacity: 0.48 },

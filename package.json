@@ -20,6 +20,9 @@
     "generate:routes": "node scripts/generate-route-types.mjs"
   },
   "dependencies": {
+    "@expo-google-fonts/archivo": "^0.4.2",
+    "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
+    "@expo-google-fonts/unbounded": "^0.4.1",
     "@hookform/resolvers": "^5.9.1",
     "@react-native-community/netinfo": "12.0.1",
     "@tanstack/react-query": "^5.103.2",

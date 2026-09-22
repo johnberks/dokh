@@ -1,8 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  brandTypography,
   colors,
+  fontAliases,
   fontFamilies,
+  getTypography,
   motion,
   palette,
   radius,
@@ -23,10 +26,14 @@ describe('Brand Kit tokens', () => {
     expect(colors.pendingText).not.toBe(palette.negative);
   });
 
-  it('reserves wordmark type and keeps runtime fonts on fallback until 2.2', () => {
+  it('registers each brand role and provides a safe fallback', () => {
     expect(fontFamilies.wordmark).toBe('Unbounded');
     expect(fontFamilies.technical).toBe('IBM Plex Mono');
-    expect(typography.wordmark.fontFamily).toBe(fontFamilies.fallback);
+    expect(getTypography(true)).toBe(brandTypography);
+    expect(getTypography(false)).toBe(typography);
+    expect(brandTypography.wordmark.fontFamily).toBe(fontAliases.unboundedSemibold);
+    expect(brandTypography.body.fontFamily).toBe(fontAliases.archivoRegular);
+    expect(brandTypography.technical.fontFamily).toBe(fontAliases.plexRegular);
     expect(typography.body.fontFamily).toBe(fontFamilies.fallback);
   });
 

@@ -35,12 +35,22 @@ export const colors = {
   pendingText: palette.structure,
 } as const;
 
-/** Font assets are intentionally not loaded until task 2.2. */
+/** Brand family names (Brand Kit) and concrete expo-font registration names. */
 export const fontFamilies = {
   interface: 'Archivo',
   technical: 'IBM Plex Mono',
   wordmark: 'Unbounded',
   fallback: 'System',
+} as const;
+
+export const fontAliases = {
+  archivoRegular: 'Archivo_400Regular',
+  archivoMedium: 'Archivo_500Medium',
+  archivoSemibold: 'Archivo_600SemiBold',
+  archivoBold: 'Archivo_700Bold',
+  plexRegular: 'IBMPlexMono_400Regular',
+  plexMedium: 'IBMPlexMono_500Medium',
+  unboundedSemibold: 'Unbounded_600SemiBold',
 } as const;
 
 export const fontWeights = {
@@ -50,7 +60,7 @@ export const fontWeights = {
   bold: '700',
 } as const;
 
-/** Use fallback in live placeholders until expo-font loads the brand families (2.2). */
+/** Safe fallback styles while font assets are loading or if they fail. */
 export const typography = {
   display: {
     fontFamily: fontFamilies.fallback,
@@ -100,6 +110,21 @@ export const typography = {
     letterSpacing: 0.44,
   },
 } as const;
+
+/** Each registered alias is a font file with the specified weight; avoid synthetic bold. */
+export const brandTypography = {
+  display: { ...typography.display, fontFamily: fontAliases.archivoSemibold },
+  heading1: { ...typography.heading1, fontFamily: fontAliases.archivoSemibold },
+  heading2: { ...typography.heading2, fontFamily: fontAliases.archivoMedium },
+  body: { ...typography.body, fontFamily: fontAliases.archivoRegular },
+  label: { ...typography.label, fontFamily: fontAliases.archivoSemibold },
+  technical: { ...typography.technical, fontFamily: fontAliases.plexRegular },
+  wordmark: { ...typography.wordmark, fontFamily: fontAliases.unboundedSemibold },
+} as const;
+
+export function getTypography(fontsLoaded: boolean) {
+  return fontsLoaded ? brandTypography : typography;
+}
 
 export const spacing = {
   none: 0,
