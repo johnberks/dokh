@@ -60,6 +60,12 @@ export const colors = {
   workCardBorder: 'rgba(16,22,15,0.16)',
   workCardDivider: 'rgba(16,22,15,0.08)',
   workRowSurface: palette.previewPaper,
+  receivableLine: 'rgba(16,22,15,0.12)',
+  receivableReceivedDay: '#8A9184',
+  receivableReceivedFill: 'rgba(43,58,36,0.10)',
+  receivablePendingFill: 'rgba(169,138,84,0.16)',
+  receivablePendingBorder: 'rgba(169,138,84,0.45)',
+  receivablePendingDivider: 'rgba(169,138,84,0.35)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -277,6 +283,22 @@ export const workCardMetrics = {
   rowBarWidth: 5,
   rowBarHeight: 34,
   rowDateWidth: 34,
+} as const;
+
+/** Finanças 05–10: timeline row, status and confirmation geometry. */
+export const receivableRowMetrics = {
+  dateWidth: 44,
+  timelineWidth: 1,
+  dotDiameter: 10,
+  dotTop: 8,
+  gap: 16,
+  bodyRadius: 18,
+  pendingPaddingVertical: 14,
+  pendingPaddingHorizontal: 16,
+  regularBottomGap: 22,
+  pendingBottomGap: 18,
+  confirmCircle: 34,
+  confirmHitTarget: 44,
 } as const;
 
 export const radius = {

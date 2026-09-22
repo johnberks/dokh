@@ -10,6 +10,7 @@ import {
   navigationMetrics,
   palette,
   radius,
+  receivableRowMetrics,
   reviewCardMetrics,
   shadow,
   spacing,
@@ -61,6 +62,8 @@ describe('Brand Kit tokens', () => {
     expect(workCardMetrics.rowBarHeight).toBe(34);
     expect(workLocationColors.sage).toBe('#6F7E67');
     expect(workLocationColors.blue).toBe('#6B7F8E');
+    expect(receivableRowMetrics.confirmCircle).toBe(34);
+    expect(receivableRowMetrics.confirmHitTarget).toBeGreaterThanOrEqual(44);
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {

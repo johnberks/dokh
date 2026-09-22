@@ -7,6 +7,7 @@ import { AppText } from './AppText';
 import { Button, IconButton } from './Button';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
+import { ReceivableRowCatalog } from './ReceivableRowCatalog';
 import { ReviewCardCatalog } from './ReviewCardCatalog';
 import { Chip, SegmentedControl, Toggle } from './Selection';
 import { LoadError, MutationError, OfflineBanner, Skeleton } from './TechnicalStates';
@@ -84,6 +85,8 @@ export function PrimitivesCatalog() {
         <ReviewCardCatalog />
         <Divider />
         <WorkCardCatalog />
+        <Divider />
+        <ReceivableRowCatalog />
       </View>
     </ScrollScreen>
   );
