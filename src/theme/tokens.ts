@@ -70,6 +70,13 @@ export const colors = {
   emptyDashedOutline: 'rgba(16,22,15,0.24)',
   emptyTeaserOutline: 'rgba(16,22,15,0.25)',
   emptyFutureDot: 'rgba(127,138,118,0.95)',
+  progressSurface: '#DCE0D6',
+  progressBorder: 'rgba(16,22,15,0.1)',
+  progressTrack: 'rgba(16,22,15,0.14)',
+  progressTray: 'rgba(255,255,255,0.42)',
+  progressActionBorder: 'rgba(16,22,15,0.08)',
+  progressPendingCircleBorder: 'rgba(16,22,15,0.3)',
+  progressFooterBorder: 'rgba(16,22,15,0.12)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -318,6 +325,22 @@ export const emptyStateMetrics = {
   entriesHorizontalInset: 32,
   profileBottomInset: 80,
   importBottomInset: 40,
+} as const;
+
+/** Home 01/02/06 setup progress card geometry. */
+export const progressCardMetrics = {
+  radius: 22,
+  paddingHorizontal: 16,
+  paddingTop: 16,
+  gap: 12,
+  progressHeight: 4,
+  trayRadius: 16,
+  trayPadding: 6,
+  rowGap: 4,
+  completedCircle: 20,
+  actionCircle: 28,
+  actionRadius: 12,
+  actionMinHeight: 44,
 } as const;
 
 export const radius = {

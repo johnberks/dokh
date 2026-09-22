@@ -3,6 +3,7 @@ export { Button, IconButton } from './Button';
 export { EmptyState } from './EmptyState';
 export { Input } from './Input';
 export { Card, Divider, Screen, ScrollScreen } from './Layout';
+export { ProgressCard } from './ProgressCard';
 export { ReceivableRow } from './ReceivableRow';
 export { ReviewCard, ReviewCardStack, selectVisibleReviewCards } from './ReviewCard';
 export { Chip, SegmentedControl, Toggle } from './Selection';

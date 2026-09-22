@@ -100,5 +100,11 @@ export const components = {
     emptyMonth: 'DEZEMBRO 2026',
     emptyNextEntryDescription:
       'Todas as entradas de setembro já foram recebidas — não há nada previsto para os próximos dias.',
+    progressTitle: 'Progresso inicial',
+    progressAddDates: 'Adicionar datas a 2 entradas',
+    progressAddLocation: 'Adicionar outro local de trabalho',
+    progressAddWork: 'Adicionar seu próximo trabalho',
+    progressResidence: 'Residência organizada',
+    progressFirstWork: 'Primeiro trabalho organizado',
   },
 } as const;

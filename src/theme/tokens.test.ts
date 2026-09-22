@@ -10,6 +10,7 @@ import {
   motion,
   navigationMetrics,
   palette,
+  progressCardMetrics,
   radius,
   receivableRowMetrics,
   reviewCardMetrics,
@@ -68,6 +69,10 @@ describe('Brand Kit tokens', () => {
     expect(emptyStateMetrics.cardRadius).toBe(22);
     expect(emptyStateMetrics.profileButtonHeight).toBe(56);
     expect(colors.emptyOutline).toBe('rgba(16,22,15,0.22)');
+    expect(colors.progressSurface).toBe('#DCE0D6');
+    expect(colors.progressTrack).toBe('rgba(16,22,15,0.14)');
+    expect(progressCardMetrics.progressHeight).toBe(4);
+    expect(progressCardMetrics.actionMinHeight).toBeGreaterThanOrEqual(44);
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {
