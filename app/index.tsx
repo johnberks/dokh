@@ -1,10 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
-import { APP_NAME } from '@/config/app';
 
 export default function Index() {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{APP_NAME}</Text>
+      <Text style={styles.title}>{t('appName')}</Text>
     </View>
   );
 }
