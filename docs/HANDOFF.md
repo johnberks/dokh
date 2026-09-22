@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.3 concluída no PR draft [#19](https://github.com/johnberks/dokh/pull/19), empilhado sobre o [#18](https://github.com/johnberks/dokh/pull/18). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-22 · Codex · 3.4 concluída em `codex/3.4-operational-support`, a ser empilhada sobre o PR draft [#19](https://github.com/johnberks/dokh/pull/19). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -32,6 +32,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.1 Supabase local/remoto | 🟡 Start/reset local passaram; `dokh-preview` e `dokh-production` ativos em `johnberks's Org` Free; chaves públicas isoladas | Configurar EAS/cliente e comprovar conexão real do app preview somente ao projeto preview |
 | 3.2 Perfis e preferências | ✅ Migration, constraints, RLS, rollback descartável e tipos testados | — |
 | 3.3 Núcleo profissional | ✅ Cinco tabelas, constraints, FKs por dono, índices, RLS, rollback e tipos testados | — |
+| 3.4 Suporte operacional | ✅ Quatro tabelas, idempotência por evento/arquivo/linha, FKs, RLS, rollback e tipos testados | — |
 
 ## Como rodar o projeto
 
@@ -55,11 +56,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#19](https://github.com/johnberks/dokh/pull/19), branch `codex/3.3-professional-core`, empilhado sobre o [#18](https://github.com/johnberks/dokh/pull/18). A 3.3 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.4-operational-support`, empilhada sobre o PR draft [#19](https://github.com/johnberks/dokh/pull/19). A 3.4 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de schema: **3.4**, suporte operacional (`subscription_entitlements`, `device_push_tokens`, `imports`, `import_issues`), seguido de 3.5 (RLS completa). Mantenha migration, RLS, testes SQL e tipos no mesmo PR. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo de schema: **3.5**, auditoria de RLS completa sobre 3.2–3.4, inclusive acesso cruzado e views. A 3.4 não implementa parser, webhook nem confirmação de importação; essas ações permanecem nas tarefas futuras. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Na 3.4, `subscription_entitlements`, `device_push_tokens`, `imports` e `import_issues` receberam enums, constraints, índices e RLS. O espelho Premium e o preview de importação são leitura do dono e escrita exclusiva do servidor; tokens push permitem CRUD apenas do dono. `imports` deduplica por `(user_id, file_sha256)` e `work_entries` por `(import_id, import_row_key)`, com FK composta por dono. O preview e as pendências não criam Trabalhos. `npm run test:db` passou para 3.2–3.4 em bancos descartáveis, incluindo rollback; `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. A migration foi aplicada **somente no Supabase local**, sem reset nem alteração em preview/production. Os HTMLs/UX de Perfil foram consultados, sem mudança visual nesta tarefa.
 
 Na 3.3, as cinco tabelas do núcleo profissional foram criadas com enums, checks de Plantão, XOR/unicidades de Recebível, FKs compostas por dono e índices de Agenda/caixa/competência. `npm run test:db` valida 3.2 e 3.3 em bancos descartáveis, incluindo rollback, acesso do dono/outro usuário/anônimo e bloqueio de escrita direta. `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. A migration foi aplicada somente no Supabase local, sem reset; preview/production não foram alterados. Escritas do app continuam fechadas até as RPCs atômicas e gates Premium posteriores. Detalhes em [`supabase-local.md`](supabase-local.md).
 

@@ -171,7 +171,7 @@
   - `work_locations`, `work_series`, `work_entries`, `residencies`, `receivables` e índices.
   - **DoD:** XOR de origem do Recebível, unicidades, checks de Plantão e índices por usuário/data validados em testes SQL.
 
-- [ ] **3.4 — Migration de suporte operacional**
+- [x] **3.4 — Migration de suporte operacional**
   - Dependências: 3.1.
   - `subscription_entitlements`, `device_push_tokens`, `imports`, `import_issues`.
   - **DoD:** idempotência/uniqueness definida; nenhum payload vira fonte de verdade de Trabalho.

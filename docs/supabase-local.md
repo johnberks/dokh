@@ -2,9 +2,9 @@
 
 O Supabase CLI usa `supabase/config.toml` versionado. O projeto local tem ID `dokh`,
 portas padrão 54321–54324, migrations habilitadas e seed de domínio desabilitado até
-a tarefa 3.12. Realtime está desligado conforme D28. As migrations 3.2 e 3.3
-criam perfis, preferências e o núcleo profissional com RLS. O cliente Supabase
-no app ainda depende da 4.1.
+a tarefa 3.12. Realtime está desligado conforme D28. As migrations 3.2–3.4
+criam perfis, preferências, o núcleo profissional e o suporte operacional com
+RLS. O cliente Supabase no app ainda depende da 4.1.
 
 ## Ambiente local
 
@@ -23,7 +23,7 @@ a URL e a publishable/anon key exibidas por `supabase:status`. No iPhone físico
 substitua `127.0.0.1` da URL pelo IP LAN do computador; o iPhone e o computador
 devem estar na mesma rede. Reinicie o Metro após alterar o `.env.local`.
 
-Para aplicar migrations novas sem apagar dados locais e verificar 3.2/3.3:
+Para aplicar migrations novas sem apagar dados locais e verificar 3.2–3.4:
 
 ```bash
 SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase migration up --local
@@ -59,12 +59,23 @@ armazenado.
 
 As cinco tabelas permitem `SELECT` somente ao dono. Escritas diretas do app
 estão fechadas, inclusive para criação de Local Free: 3.7/3.9 devem fornecer
-RPCs atômicas, e 3.4/3.5 devem validar entitlement para série e paleta
-Premium antes de liberar essas operações. O schema permite uma ocorrência de
+RPCs atômicas, que devem validar o espelho de entitlement antes de liberar série
+e paleta Premium. O schema permite uma ocorrência de
 Trabalho sem Recebível enquanto uma transação privilegiada a constrói; a RPC
-da 3.7 deve garantir que a transação termine com exatamente um. O `import_id`
-ganha FK quando a tabela de importação for criada na 3.4. Nenhuma migration
-foi aplicada em preview ou production.
+da 3.7 deve garantir que a transação termine com exatamente um.
+
+Na 3.4, `subscription_entitlements` é o espelho de leitura do RevenueCat: apenas
+o webhook futuro pode escrevê-lo, com um `last_event_id` único por ambiente.
+`device_push_tokens` aceita escrita do próprio dono, com token único e hash de
+identificação não reversível. `imports` e `import_issues` são visíveis só ao
+dono, mas a escrita fica reservada às Edge Functions. O hash SHA-256 do arquivo
+é único por usuário; `work_entries` agora exige `import_id` e chave de linha
+normalizada quando a origem é importação, ambos protegidos por FK/índice. O
+`summary`/`payload` é metadado para preview e correção, não fonte de Trabalho:
+a futura confirmação transacional precisa reler o arquivo validado. A política
+de retenção de arquivos/importações segue pendente em D74; não exclua o registro
+de importação de um Trabalho já confirmado. Nenhuma migration foi aplicada em
+preview ou production.
 
 ## Projetos remotos
 

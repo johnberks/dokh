@@ -3,6 +3,138 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      device_push_tokens: {
+        Row: {
+          device_id_hash: string;
+          expo_push_token: string;
+          id: string;
+          last_seen_at: string;
+          platform: Database['public']['Enums']['device_platform'];
+          revoked_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          device_id_hash: string;
+          expo_push_token: string;
+          id?: string;
+          last_seen_at?: string;
+          platform: Database['public']['Enums']['device_platform'];
+          revoked_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          device_id_hash?: string;
+          expo_push_token?: string;
+          id?: string;
+          last_seen_at?: string;
+          platform?: Database['public']['Enums']['device_platform'];
+          revoked_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      import_issues: {
+        Row: {
+          created_at: string;
+          created_work_entry_id: string | null;
+          id: string;
+          import_id: string;
+          issue_code: string;
+          payload: Json;
+          resolved_at: string | null;
+          row_number: number;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_work_entry_id?: string | null;
+          id?: string;
+          import_id: string;
+          issue_code: string;
+          payload?: Json;
+          resolved_at?: string | null;
+          row_number: number;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_work_entry_id?: string | null;
+          id?: string;
+          import_id?: string;
+          issue_code?: string;
+          payload?: Json;
+          resolved_at?: string | null;
+          row_number?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'import_issues_created_work_entry_id_user_id_fkey';
+            columns: ['created_work_entry_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_entries';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'import_issues_import_id_user_id_fkey';
+            columns: ['import_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'imports';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
+      imports: {
+        Row: {
+          confirmed_at: string | null;
+          created_at: string;
+          file_sha256: string;
+          id: string;
+          issue_count: number;
+          original_filename: string;
+          row_count: number;
+          source: Database['public']['Enums']['import_source'];
+          status: Database['public']['Enums']['import_status'];
+          storage_path: string;
+          summary: Json;
+          updated_at: string;
+          user_id: string;
+          valid_count: number;
+        };
+        Insert: {
+          confirmed_at?: string | null;
+          created_at?: string;
+          file_sha256: string;
+          id?: string;
+          issue_count?: number;
+          original_filename: string;
+          row_count?: number;
+          source: Database['public']['Enums']['import_source'];
+          status?: Database['public']['Enums']['import_status'];
+          storage_path: string;
+          summary?: Json;
+          updated_at?: string;
+          user_id: string;
+          valid_count?: number;
+        };
+        Update: {
+          confirmed_at?: string | null;
+          created_at?: string;
+          file_sha256?: string;
+          id?: string;
+          issue_count?: number;
+          original_filename?: string;
+          row_count?: number;
+          source?: Database['public']['Enums']['import_source'];
+          status?: Database['public']['Enums']['import_status'];
+          storage_path?: string;
+          summary?: Json;
+          updated_at?: string;
+          user_id?: string;
+          valid_count?: number;
+        };
+        Relationships: [];
+      };
       notification_preferences: {
         Row: {
           important_work_changes: boolean;
@@ -186,6 +318,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      subscription_entitlements: {
+        Row: {
+          entitlement: string;
+          environment: Database['public']['Enums']['subscription_environment'];
+          expires_at: string | null;
+          is_active: boolean;
+          last_event_id: string;
+          product_id: string;
+          store: Database['public']['Enums']['subscription_store'];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          entitlement?: string;
+          environment: Database['public']['Enums']['subscription_environment'];
+          expires_at?: string | null;
+          is_active?: boolean;
+          last_event_id: string;
+          product_id: string;
+          store: Database['public']['Enums']['subscription_store'];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          entitlement?: string;
+          environment?: Database['public']['Enums']['subscription_environment'];
+          expires_at?: string | null;
+          is_active?: boolean;
+          last_event_id?: string;
+          product_id?: string;
+          store?: Database['public']['Enums']['subscription_store'];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       work_entries: {
         Row: {
           created_at: string;
@@ -194,6 +362,7 @@ export type Database = {
           duration_minutes: number | null;
           id: string;
           import_id: string | null;
+          import_row_key: string | null;
           location_id: string;
           occurrence_key: string | null;
           series_id: string | null;
@@ -212,6 +381,7 @@ export type Database = {
           duration_minutes?: number | null;
           id?: string;
           import_id?: string | null;
+          import_row_key?: string | null;
           location_id: string;
           occurrence_key?: string | null;
           series_id?: string | null;
@@ -230,6 +400,7 @@ export type Database = {
           duration_minutes?: number | null;
           id?: string;
           import_id?: string | null;
+          import_row_key?: string | null;
           location_id?: string;
           occurrence_key?: string | null;
           series_id?: string | null;
@@ -242,6 +413,13 @@ export type Database = {
           work_date?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'work_entries_import_owner';
+            columns: ['import_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'imports';
+            referencedColumns: ['id', 'user_id'];
+          },
           {
             foreignKeyName: 'work_entries_location_id_user_id_fkey';
             columns: ['location_id', 'user_id'];
@@ -368,7 +546,19 @@ export type Database = {
       [_ in never]: never;
     };
     Enums: {
+      device_platform: 'ios' | 'android';
+      import_source: 'plantaozinho' | 'csv' | 'compatible_file';
+      import_status:
+        | 'uploaded'
+        | 'parsing'
+        | 'ready'
+        | 'confirmed'
+        | 'failed'
+        | 'empty'
+        | 'cancelled';
       professional_status: 'general_practitioner' | 'resident';
+      subscription_environment: 'sandbox' | 'production';
+      subscription_store: 'app_store' | 'play_store';
       work_entry_source: 'manual' | 'import' | 'recurrence';
       work_entry_type: 'shift' | 'procedure' | 'appointment';
       work_location_color_source: 'automatic' | 'free_palette' | 'premium_palette';
@@ -498,7 +688,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      device_platform: ['ios', 'android'],
+      import_source: ['plantaozinho', 'csv', 'compatible_file'],
+      import_status: ['uploaded', 'parsing', 'ready', 'confirmed', 'failed', 'empty', 'cancelled'],
       professional_status: ['general_practitioner', 'resident'],
+      subscription_environment: ['sandbox', 'production'],
+      subscription_store: ['app_store', 'play_store'],
       work_entry_source: ['manual', 'import', 'recurrence'],
       work_entry_type: ['shift', 'procedure', 'appointment'],
       work_location_color_source: ['automatic', 'free_palette', 'premium_palette'],
