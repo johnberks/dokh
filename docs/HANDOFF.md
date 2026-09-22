@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Claude Code · WorkTypeSelector na branch `codex/2.5-work-type-selector` (PR draft empilhado sobre o #12).
+Última atualização: 2026-09-22 · Claude Code · WorkTypeSelector no PR draft #13 (`codex/2.5-work-type-selector`, sobre o #12).
 
 ## Onde paramos
 
@@ -50,7 +50,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 
 ## Retomada
 
-O ponto de retomada é a branch `codex/2.5-work-type-selector` (PR draft empilhado sobre o #12). Preserve a ordem de integração dos PRs anteriores (#3 → … → #12 → WorkTypeSelector) antes de mesclar em `main`.
+O ponto de retomada é o PR draft [#13](https://github.com/johnberks/dokh/pull/13), branch `codex/2.5-work-type-selector` (sobre o #12). Preserve a ordem de integração dos PRs anteriores (#3 → … → #12 → WorkTypeSelector) antes de mesclar em `main`.
 
 Para continuar em um checkout limpo (no Codex, se a branch já estiver aberta em outra worktree, crie a nova branch a partir de `origin/codex/2.5-work-type-selector`):
 
