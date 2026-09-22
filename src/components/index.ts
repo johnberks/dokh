@@ -10,3 +10,5 @@ export { ReviewCard, ReviewCardStack, selectVisibleReviewCards } from './ReviewC
 export { Chip, SegmentedControl, Toggle } from './Selection';
 export { LoadError, MutationError, OfflineBanner, Skeleton } from './TechnicalStates';
 export { WorkCard } from './WorkCard';
+export { WorkTypeIcon } from './WorkTypeIcon';
+export { WorkTypeSelector } from './WorkTypeSelector';

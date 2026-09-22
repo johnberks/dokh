@@ -3,11 +3,11 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · MoneyInput no PR draft #12 (`codex/2.5-money-input`).
+Última atualização: 2026-09-22 · Claude Code · WorkTypeSelector na branch `codex/2.5-work-type-selector` (PR draft empilhado sobre o #12).
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard) e #12 (MoneyInput). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard), #12 (MoneyInput) e o WorkTypeSelector (branch `codex/2.5-work-type-selector`, sobre o #12). As quatro telas ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir e adiou a validação Android para um segundo momento. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11 e MoneyInput no #12 | Quatro componentes restantes, aplicação em telas e inspeção de aparelho depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12 e WorkTypeSelector em `codex/2.5-work-type-selector` | Três componentes restantes (CalendarGrid, BottomSheet, PremiumGate), aplicação em telas e inspeção de aparelho depois |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
@@ -48,22 +48,24 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 ```
 
-## Retomada no Claude
+## Retomada
 
-O ponto de retomada está no PR draft [#12](https://github.com/johnberks/dokh/pull/12), branch `codex/2.5-money-input`, commit `2a27836`. O PR é empilhado sobre o ProgressCard (#11); preserve a ordem de integração dos PRs anteriores antes de mesclar em `main`.
+O ponto de retomada é a branch `codex/2.5-work-type-selector` (PR draft empilhado sobre o #12). Preserve a ordem de integração dos PRs anteriores (#3 → … → #12 → WorkTypeSelector) antes de mesclar em `main`.
 
-Para continuar em um checkout limpo:
+Para continuar em um checkout limpo (no Codex, se a branch já estiver aberta em outra worktree, crie a nova branch a partir de `origin/codex/2.5-work-type-selector`):
 
 ```bash
-git fetch origin codex/2.5-money-input
-git switch --track origin/codex/2.5-money-input
+git fetch origin codex/2.5-work-type-selector
+git switch -c codex/2.5-calendar-grid origin/codex/2.5-work-type-selector
 fnm exec --using=22 npm ci
 fnm exec --using=22 npm run typecheck
 fnm exec --using=22 npm run check
 fnm exec --using=22 npm test -- --runInBand
 ```
 
-Próximo componente recomendado: `WorkTypeSelector`. Leia `docs/screens/agenda.md` e `docs/screens/onboarding.md`, além de `design/agenda.html` e `design/onboarding.html`, antes de editar. As três opções são Plantão, Procedimento e Atendimento; toda a opção é clicável, a seleção precisa ser anunciada sem depender só de cor, e Residência não é um tipo de Trabalho. O catálogo interno continua em `/dev/primitives`. Não marque a tarefa 2.5 como concluída: ainda faltam `WorkTypeSelector`, `CalendarGrid`, `BottomSheet` e `PremiumGate`, além da integração nas telas reais e da validação em aparelho.
+Próximo componente recomendado: `CalendarGrid`. Leia `docs/screens/agenda.md` (Regras do calendário e Seleção de data) e `design/agenda.html` (01–05 e o bottom sheet de data 08) antes de editar. Regras: hoje com contorno bronze, selecionado em círculo verde escuro com texto claro, dias passados em cinza-verde, um ponto por Trabalho na cor do Local, início da semana Domingo/Segunda conforme preferência (D39), `date-fns` para aritmética (D37), sem somas financeiras. Depois: `BottomSheet` e `PremiumGate`. Não marque a 2.5 como concluída antes dos três componentes, da integração nas telas reais e da validação em aparelho.
+
+**Teste manual:** o usuário testa no **Expo Go no iPhone**, não no simulador. Ao final de cada entrega, forneça um bloco bash que faça checkout da branch e rode `npx expo start --clear`, dizendo o que conferir (ex.: catálogo em `/dev/primitives`).
 
 Checks obrigatórios antes de concluir qualquer tarefa:
 
@@ -89,6 +91,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - **ReceivableRow (2.5 parcial)**: linha de Entradas recebida, prevista e com confirmação pendente a partir de Finanças 05–10. A confirmação é callback separado, sem alteração otimista; `docs/receivable-row.md` detalha medidas e limites.
 - **EmptyState (2.5 parcial)**: nove posições de dados legitimamente vazios em Home, Agenda, Finanças/Entradas e Perfil. Não substitui `LoadError`; `docs/empty-state.md` especifica variações, medidas e limites. O catálogo interno permite inspeção.
 - **ProgressCard (2.5 parcial)**: card inicial da Home com barra proporcional, marcos concluídos e próxima ação; desaparece quando completo. Não presume residência nem conclui marcos sozinho. `docs/progress-card.md` especifica as medidas e o contrato; o catálogo demonstra as três variações HTML.
+- **WorkTypeSelector (2.5 parcial)**: `choice` (Onboarding 06, rádio com check bronze) e `menu` (Agenda 06B, ação com chevron) para Plantão, Procedimento e Atendimento; área inteira clicável, seleção anunciada e marcada por borda/check. `src/domain/work-type.ts` define os tipos e `requiresSchedule`. Detalhes em `docs/work-type-selector.md`.
 - **MoneyInput (2.5 parcial)**: campo compacto da Agenda e números grandes do Onboarding, com rascunho textual controlado; `src/domain/money.ts` converte pt-BR em centavos `bigint` só na validação/envio. `docs/money-input.md` registra o contrato e o catálogo mostra quatro tratamentos dos HTMLs.
 
 ## Armadilhas já encontradas
@@ -175,6 +178,8 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - PR draft #12 usa #11 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10 → #11 → #12. Este checkout é a prévia mais recente no Expo Go; o catálogo não substitui a integração nas telas reais.
 - Após o ajuste final de formatação no commit `2a27836`, a CI do PR #12 passou (typecheck, Biome e Jest). O CoreSimulatorService segue indisponível neste ambiente, portanto o catálogo precisa ser conferido no iPhone 16 pelo Expo Go quando possível.
 
+- `WorkTypeSelector` cobre Onboarding 06 (escolha) e Agenda 06B (menu), com ícones pelos paths exatos do HTML e descrições distintas de cada tela. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (21 suítes, 116 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Sem teste em simulador, a pedido do usuário; a conferência visual fica no Expo Go do iPhone. A 2.5 segue desmarcada, com três componentes restantes.
+
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
@@ -186,6 +191,6 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **2.5** Continuar os quatro componentes restantes da biblioteca visual (começando por WorkTypeSelector) e depois os headers/conteúdos reais de Home/Agenda/Finanças/Perfil conforme HTML+UX. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
+2. **2.5** Continuar os três componentes restantes da biblioteca visual (começando por CalendarGrid) e depois os headers/conteúdos reais de Home/Agenda/Finanças/Perfil conforme HTML+UX. Inspeção em iPhone/VoiceOver e Android/TalkBack permanece em aberto, sem exigir intervenção do usuário para avançar.
 3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
 4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.

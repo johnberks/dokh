@@ -15,6 +15,7 @@ import { ReviewCardCatalog } from './ReviewCardCatalog';
 import { Chip, SegmentedControl, Toggle } from './Selection';
 import { LoadError, MutationError, OfflineBanner, Skeleton } from './TechnicalStates';
 import { WorkCardCatalog } from './WorkCardCatalog';
+import { WorkTypeSelectorCatalog } from './WorkTypeSelectorCatalog';
 
 /** Internal, non-routed catalog: visual states and accessibility contract for 2.3. */
 export function PrimitivesCatalog() {
@@ -96,6 +97,8 @@ export function PrimitivesCatalog() {
         <ProgressCardCatalog />
         <Divider />
         <MoneyInputCatalog />
+        <Divider />
+        <WorkTypeSelectorCatalog />
       </View>
     </ScrollScreen>
   );

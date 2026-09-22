@@ -6,6 +6,24 @@ export const components = {
     currencyHintWithDetail: 'Valor em reais. {{detail}}',
     placeholder: '0,00',
   },
+  workType: {
+    // Descrições: `choice` segue Onboarding 06 e `menu` segue Agenda 06B (copy diferente em cada HTML).
+    shift: {
+      title: 'Plantão',
+      choice: 'Turnos e períodos de trabalho em hospitais ou serviços.',
+      menu: 'Registre um turno ou período de trabalho.',
+    },
+    procedure: {
+      title: 'Procedimento',
+      choice: 'Cirurgias, procedimentos estéticos, dermatológicos ou outros.',
+      menu: 'Cirurgia, procedimento estético, dermatológico ou outro.',
+    },
+    appointment: {
+      title: 'Atendimento',
+      choice: 'Períodos de atendimento em consultório ou clínica.',
+      menu: 'Registre um período de atendimentos em consultório ou clínica.',
+    },
+  },
   reviewCard: {
     oneMoreEntry: '+ {{count}} entrada',
     moreEntries: '+ {{count}} entradas',
@@ -21,6 +39,13 @@ export const components = {
   },
   catalog: {
     title: 'Componentes básicos',
+    workTypeTitle: 'Seletor de tipo',
+    workTypeChoice: 'ESCOLHA · ONBOARDING 06',
+    workTypeChoiceQuestion: 'O que você quer registrar?',
+    workTypeMenu: 'MENU · AGENDA 06B',
+    workTypeMenuQuestion: 'O que você quer adicionar?',
+    workTypeMenuResult: 'ÚLTIMO TOQUE: {{type}}',
+    workTypeMenuNone: 'ÚLTIMO TOQUE: NENHUM',
     normal: 'Normal',
     disabled: 'Desabilitado',
     loading: 'Carregando',

@@ -58,6 +58,7 @@ O projeto é desenvolvido ao longo do tempo com **Claude Code e Codex**, alterna
 - Rotas ficam em `app/` **na raiz**, conforme o README. Não criar `src/app/`: o Expo Router daria precedência a ele.
 - `ios/` e `android/` não são versionados (Continuous Native Generation). Configuração nativa vai em `app.json`/config plugins.
 - Testes manuais são feitos no **Expo Go** (`npm run start`, QR code ou `i` para o simulador iOS). Enquanto for assim, só usar bibliotecas incluídas no Expo Go. Bibliotecas com código nativo fora do Expo Go (RevenueCat, Sentry nativo, notificações push remotas etc.) exigem development build (D02): adicionar somente na tarefa correspondente e registrar a mudança de fluxo no PR.
+- **Não dirigir o simulador iOS para verificação.** O usuário testa no próprio iPhone pelo Expo Go. Ao final de cada entrega com UI, fornecer um bloco bash pronto (checkout da branch + `npx expo start --clear`) e dizer o que conferir no app.
 - Antes de concluir qualquer tarefa: `npm run typecheck`, `npm run check` e `npm test` (quando existirem) e `npx expo-doctor`.
 - Testes (Jest + RNTL 14): `render` e `fireEvent` são **assíncronos** — sempre `await`. Use `renderWithProviders` (`src/test/render.tsx`) para telas com Query. `renderRouter` do Expo Router ainda não aguarda o render: siga o helper de `src/test/routes.test.tsx`. Mocks de módulos nativos ficam em `src/test/native-mocks.setup.ts`.
 - `npm run typecheck` gera os tipos de rota (`scripts/generate-route-types.mjs`) antes do `tsc`; não é preciso subir o Metro.

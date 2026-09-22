@@ -22,6 +22,7 @@ export const palette = {
   workBlue: '#6B7F8E',
   workTerra: '#8C6A5A',
   workViolet: '#6E6A8A',
+  workBlueDeep: '#4A5F70',
 } as const;
 
 /** Semantic intent is preferred to raw palette names in components. */
@@ -78,6 +79,11 @@ export const colors = {
   progressPendingCircleBorder: 'rgba(16,22,15,0.3)',
   progressFooterBorder: 'rgba(16,22,15,0.12)',
   moneyFieldBorder: 'rgba(16,22,15,0.2)',
+  workTypeBorder: 'rgba(16,22,15,0.16)',
+  workTypeRadioBorder: 'rgba(16,22,15,0.25)',
+  workTypeShiftTile: 'rgba(111,126,103,0.14)',
+  workTypeProcedureTile: 'rgba(169,138,84,0.16)',
+  workTypeAppointmentTile: 'rgba(107,127,142,0.16)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -356,6 +362,26 @@ export const moneyInputMetrics = {
   workCurrencySize: 22,
   workValueSize: 48,
   heroUnderlineWidth: 1.5,
+} as const;
+
+/** Onboarding 06 (escolha) and Agenda 06B (menu) type selector geometry. */
+export const workTypeSelectorMetrics = {
+  radius: 18,
+  paddingVertical: 16,
+  paddingHorizontal: 18,
+  gap: 14,
+  listGap: 10,
+  iconTile: 42,
+  iconTileRadius: 12,
+  iconSize: 20,
+  iconStroke: 1.7,
+  selectedBorderWidth: 1.5,
+  radio: 22,
+  radioBorderWidth: 1.5,
+  choiceTitleSize: 17,
+  menuTitleSize: 16,
+  descriptionSize: 13,
+  descriptionLineHeight: 18,
 } as const;
 
 export const radius = {
