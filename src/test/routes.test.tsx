@@ -46,4 +46,10 @@ describe('rotas', () => {
     const router = await openAt('/create');
     expect(router.getPathname()).toBe('/work/new');
   });
+
+  it('catálogo interno abre por deep link em desenvolvimento', async () => {
+    const router = await openAt('/dev/primitives');
+    expect(router.getPathname()).toBe('/dev/primitives');
+    expect(screen.getByRole('header', { name: 'Componentes básicos' })).toBeTruthy();
+  });
 });
