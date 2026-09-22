@@ -1,0 +1,145 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!design",
+      "!docs",
+      "!index.html",
+      "!package-lock.json",
+      "!.expo",
+      "!node_modules"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/domain/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "react": "domain não importa React",
+                  "react-native": "domain não importa React Native",
+                  "@supabase/supabase-js": "domain não importa Supabase"
+                },
+                "patterns": [
+                  {
+                    "group": [
+                      "@/components/*",
+                      "@/features/*",
+                      "@/data/*",
+                      "@/theme/*",
+                      "@/i18n/*",
+                      "@/analytics/*",
+                      "@/observability/*"
+                    ],
+                    "message": "domain é puro: não importa UI, dados ou infraestrutura."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/data/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {},
+                "patterns": [
+                  {
+                    "group": ["@/components/*", "@/features/*"],
+                    "message": "data não importa componentes nem features."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@supabase/supabase-js": "componentes compartilhados não acessam Supabase"
+                },
+                "patterns": [
+                  {
+                    "group": ["@/data/*", "@/features/*"],
+                    "message": "componentes compartilhados não acessam dados nem features."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["app/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {},
+                "patterns": [
+                  {
+                    "group": ["@/data/*"],
+                    "message": "app/ compõe features; não contém SQL/queries diretas."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
