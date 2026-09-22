@@ -84,6 +84,7 @@ export const colors = {
   workTypeShiftTile: 'rgba(111,126,103,0.14)',
   workTypeProcedureTile: 'rgba(169,138,84,0.16)',
   workTypeAppointmentTile: 'rgba(107,127,142,0.16)',
+  calendarPastDay: '#8A9184',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
@@ -382,6 +383,25 @@ export const workTypeSelectorMetrics = {
   menuTitleSize: 16,
   descriptionSize: 13,
   descriptionLineHeight: 18,
+} as const;
+
+/** Agenda 01–05 month grid and Agenda 08 date sheet (same calendar). */
+export const calendarMetrics = {
+  horizontalPadding: 4,
+  rowGap: 2,
+  cellHeight: 46,
+  cellPaddingTop: 2,
+  cellGap: 3,
+  dayCircle: 36,
+  dayFontSize: 16,
+  dayLineHeight: 20,
+  markerBorderWidth: 1.5,
+  dotSize: 5,
+  dotGap: 3,
+  maxDots: 4,
+  weekdayFontSize: 10,
+  weekdayLineHeight: 14,
+  weekdayTracking: 1.2,
 } as const;
 
 export const radius = {

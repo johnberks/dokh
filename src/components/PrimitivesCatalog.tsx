@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { colors, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { Button, IconButton } from './Button';
+import { CalendarGridCatalog } from './CalendarGridCatalog';
 import { EmptyStateCatalog } from './EmptyStateCatalog';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
@@ -99,6 +100,8 @@ export function PrimitivesCatalog() {
         <MoneyInputCatalog />
         <Divider />
         <WorkTypeSelectorCatalog />
+        <Divider />
+        <CalendarGridCatalog />
       </View>
     </ScrollScreen>
   );

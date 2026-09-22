@@ -24,6 +24,21 @@ export const components = {
       menu: 'Registre um período de atendimentos em consultório ou clínica.',
     },
   },
+  calendar: {
+    // Cabeçalho de Agenda 01/08: iniciais em pt-BR, ordem definida pelo início da semana.
+    weekdayNarrow: {
+      '0': 'D',
+      '1': 'S',
+      '2': 'T',
+      '3': 'Q',
+      '4': 'Q',
+      '5': 'S',
+      '6': 'S',
+    },
+    today: 'hoje',
+    oneWork: '1 trabalho',
+    manyWorks: '{{count}} trabalhos',
+  },
   reviewCard: {
     oneMoreEntry: '+ {{count}} entrada',
     moreEntries: '+ {{count}} entradas',
@@ -39,6 +54,10 @@ export const components = {
   },
   catalog: {
     title: 'Componentes básicos',
+    calendarTitle: 'Calendário',
+    calendarSunday: 'MÊS · INÍCIO NO DOMINGO · AGENDA 01',
+    calendarMonday: 'MÊS · INÍCIO NA SEGUNDA · AGENDA 08',
+    calendarSelected: 'SELECIONADO: {{date}}',
     workTypeTitle: 'Seletor de tipo',
     workTypeChoice: 'ESCOLHA · ONBOARDING 06',
     workTypeChoiceQuestion: 'O que você quer registrar?',
