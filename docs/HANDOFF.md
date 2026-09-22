@@ -29,7 +29,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
 | 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate no #16 — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
-| 3.1 Supabase local/remoto | 🟡 CLI/config local e contrato de isolamento preview/production nesta branch | Docker Desktop funcional para `supabase start` e reset; criar projetos DOKH preview/production; integrar cliente na 4.1 e comprovar conexão real do app preview |
+| 3.1 Supabase local/remoto | 🟡 `supabase start`, reset local e health da API passaram; contrato de isolamento preview/production testado | Criar projetos DOKH preview/production; integrar cliente na 4.1 e comprovar conexão real do app preview |
 
 ## Como rodar o projeto
 
@@ -41,7 +41,7 @@ fnm exec --using=22 npm ci
 fnm exec --using=22 npm run start -- --clear  # QR code para o Expo Go
 ```
 
-Enquanto o Docker local não estiver funcional, o `.env.local` pode usar valores provisórios apenas para abrir as telas sem backend:
+Até configurar a chave pública local, o `.env.local` pode usar valores provisórios apenas para abrir as telas sem backend:
 
 ```text
 EXPO_PUBLIC_APP_ENV=local
@@ -49,7 +49,7 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 ```
 
-Quando o Docker estiver operacional, siga [`docs/supabase-local.md`](supabase-local.md) e substitua pelos valores reais de `npm run supabase:status`. Para preview/production, os dois project refs distintos são obrigatórios e a URL precisa corresponder ao ambiente.
+O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.md) e substitua pelos valores reais de `npm run supabase:status`. Para preview/production, os dois project refs distintos são obrigatórios e a URL precisa corresponder ao ambiente.
 
 ## Retomada
 
@@ -57,9 +57,9 @@ O ponto de retomada desta trilha é o PR draft [#17](https://github.com/johnberk
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo da 3.1: reparar/instalar o Docker Desktop (o app presente nesta máquina não tem executável principal), criar dois projetos Supabase da DOKH na organização correta e registrar seus refs. Depois executar `npm run supabase:start`, `npm run supabase:reset` e comprovar a conexão de preview. Em seguida, 3.2–3.5 (migrations/RLS) e 4.1 (cliente/sessão). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo da 3.1: criar dois projetos Supabase da DOKH na organização correta e registrar seus refs, depois comprovar a conexão de preview. O Docker local já foi validado. Em seguida, 3.2–3.5 (migrations/RLS) e 4.1 (cliente/sessão). Trabalho independente: **2.7 motion e reduzir movimento**.
 
-Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. O schema público exige refs diferentes e URL exata do projeto do ambiente, com teste de rejeição de preview→production. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 146 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. `npm run supabase:start` e `npm run supabase:reset` foram tentados e falharam apenas por indisponibilidade do daemon Docker. O checkbox 3.1 permanece desmarcado.
+Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. O schema público exige refs diferentes e URL exata do projeto do ambiente, com teste de rejeição de preview→production. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 146 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. O checkbox 3.1 permanece desmarcado apenas pela verificação remota de preview/production.
 
 ```bash
 git fetch origin codex/3.1-supabase-local
@@ -221,11 +221,11 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
 - Validação Android/TalkBack da 2.3 adiada a pedido do usuário; não substitui a DoD original.
 - Proteção da `main` no GitHub (fecha 0.3 e 1.8).
-- Conta Expo/EAS (1.9), Docker Desktop funcional e projetos Supabase preview/production da DOKH (3.1). Em 2026-09-22, o CLI local era 2.113.0, mas `supabase start` e `supabase db reset --local` falharam porque o daemon Docker não responde; `/Applications/Docker.app` não abre (`kLSNoExecutableErr`). A conta Supabase acessível não tinha projetos DOKH; projetos alheios não foram alterados.
+- Conta Expo/EAS (1.9) e projetos Supabase preview/production da DOKH (3.1). Docker local foi reparado pelo usuário e start/reset validados em 2026-09-22. A conta Supabase acessível ainda não tinha projetos DOKH; projetos alheios não foram alterados.
 - P01 preços, P02 arquivos do Plantãozinho, P03 recorrência custom, P04 textos legais, P05 confirmações destrutivas.
 
 ## Próximas tarefas sugeridas (em ordem)
 
 1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **3.1** Concluir prova local/remota após Docker e projetos DOKH disponíveis; manter checkbox desmarcado até a DoD. Então **3.2–3.5** migrations e RLS (as telas reais dependem dos dados).
+2. **3.1** Concluir prova remota após projetos DOKH preview/production disponíveis; manter checkbox desmarcado até a DoD. Então **3.2–3.5** migrations e RLS (as telas reais dependem dos dados).
 3. **4.1/4.2/4.5** Cliente/sessão, e-mail/senha e guards. **2.7** motion pode entrar independentemente. A integração dos componentes da 2.5 nas telas acontece nas fases 7–11.
