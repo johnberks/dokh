@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · Review Card da 2.5 parcial (`codex/2.5-review-card`).
+Última atualização: 2026-09-22 · Codex · Review Card da 2.5 parcial no PR draft #7 (`codex/2.5-review-card`).
 
 ## Onde paramos
 
@@ -27,7 +27,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
-| 2.5 Componentes de domínio visual | 🟡 Review Card nesta branch | Nove componentes restantes, aplicação em telas, iPhone/VoiceOver e Android/TalkBack depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7 | Nove componentes restantes, aplicação em telas, iPhone/VoiceOver e Android/TalkBack depois |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
 
 ## Como rodar o projeto
@@ -133,6 +133,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - O Review Card usa medidas, cores e famílias de fonte de `design/componentes.dc.html`; `docs/screens/home.md` e `docs/screens/financas.md` definem os limites e comportamento.
 - O componente nunca confirma recebimento sozinho: apenas aciona callback, bloqueia toque duplo enquanto ocupado e espera a feature remover o card após sucesso do servidor. Isso respeita a regra de domínio acima do toggle ilustrativo do HTML.
 - `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (13 suítes, 57 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Testes cobrem os quatro estados, limite de previews/cards/atenção, alvo acessível e ausência de confirmação otimista.
+- PR draft #7 usa a branch da 2.6 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7, sem mesclar diretamente em `main`.
 - O catálogo interno demonstra as quatro variações. Os outros nove componentes, integração nas telas reais e inspeção visual/VoiceOver/TalkBack ainda faltam; **não marcar a 2.5 concluída**.
 
 ## Pendências humanas (bloqueiam só o trecho relacionado)
