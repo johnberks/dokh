@@ -182,7 +182,7 @@
   - Views com segurança correta.
   - **DoD:** testes automatizados cobrem anônimo, dono e outro usuário em cada tabela; acesso cruzado falha.
 
-- [ ] **3.6 — Configurar Storage privado**
+- [x] **3.6 — Configurar Storage privado**
   - Dependências: 3.5.
   - Buckets de avatar e imports, paths por usuário, upload/download/delete.
   - **DoD:** outro usuário e anônimo não acessam; URL assinada expira; exclusão remove objeto.
