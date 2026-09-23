@@ -47,6 +47,17 @@ beforeEach(() => {
 });
 
 describe('telas de e-mail', () => {
+  it('mantém o campo de 54 px e dá altura suficiente ao texto editável', async () => {
+    await render(<SignInScreen />);
+    for (const label of ['E-mail', 'Senha']) {
+      const input = screen.getByLabelText(label);
+      expect(input.parent).toHaveStyle({ height: 54 });
+      expect(input).toHaveStyle({ height: 28, paddingVertical: 2, fontSize: 15, lineHeight: 24 });
+    }
+    await fireEvent.changeText(screen.getByLabelText('E-mail'), 'gypq@example.invalid');
+    expect(screen.getByLabelText('E-mail').props.value).toBe('gypq@example.invalid');
+  });
+
   it('valida os campos antes de enviar o login', async () => {
     await render(<SignInScreen />);
     await fireEvent.press(screen.getByRole('button', { name: 'Entrar' }));

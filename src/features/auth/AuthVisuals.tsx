@@ -4,7 +4,6 @@ import { type ReactNode, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   StyleSheet,
   TextInput,
@@ -347,11 +346,13 @@ const styles = StyleSheet.create({
   fieldError: { borderColor: palette.negative },
   fieldLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
   fieldInput: {
-    padding: 0,
+    height: 28,
+    paddingHorizontal: 0,
+    paddingVertical: 2,
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 24,
     color: palette.base,
-    minHeight: Platform.OS === 'ios' ? 20 : 24,
+    textAlignVertical: 'center',
   },
   passwordInput: { paddingRight: 42 },
   passwordToggle: {
