@@ -22,7 +22,11 @@ describe('ReceivableRow — Finanças 05–10', () => {
       width: receivableRowMetrics.dotDiameter,
     });
     expect(screen.getByText('12')).toHaveStyle({ color: colors.receivableReceivedDay });
-    expect(screen.getByText('Recebido')).toHaveStyle({ color: colors.textSecondary });
+    expect(screen.getByText('Recebido')).toHaveStyle({
+      color: colors.textSecondary,
+      fontSize: 12,
+      letterSpacing: 0,
+    });
     expect(screen.queryByRole('button', { name: 'Você recebeu?' })).toBeNull();
     await fireEvent.press(screen.getByTestId('received-details'));
     expect(entry.onPress).toHaveBeenCalledTimes(1);
@@ -34,7 +38,11 @@ describe('ReceivableRow — Finanças 05–10', () => {
       backgroundColor: colors.background,
       borderColor: colors.darkTextSecondary,
     });
-    expect(screen.getByText('Previsto')).toHaveStyle({ color: colors.textMuted });
+    expect(screen.getByText('Previsto')).toHaveStyle({
+      color: colors.textMuted,
+      fontSize: 12,
+      letterSpacing: 0,
+    });
     expect(
       screen.getByRole('button', { name: /12, SET, Hospital São Lucas, R\$ 1.200, Previsto/ }),
     ).toBeTruthy();
@@ -62,6 +70,8 @@ describe('ReceivableRow — Finanças 05–10', () => {
     expect(screen.getByTestId('pending')).toHaveStyle({ gap: receivableRowMetrics.gap });
     expect(screen.getByText('Confirmação pendente')).toHaveStyle({
       color: colors.reviewBronzeText,
+      fontSize: 12,
+      letterSpacing: 0,
     });
     expect(onConfirm).not.toHaveBeenCalled();
     await fireEvent.press(screen.getByTestId('pending-details'));

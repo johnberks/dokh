@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   receivedStatus: { backgroundColor: colors.receivableReceivedFill, borderColor: 'transparent' },
   expectedStatus: { backgroundColor: 'transparent', borderColor: colors.workCardBorder },
   pendingStatus: { backgroundColor: colors.receivablePendingFill, borderColor: 'transparent' },
-  statusText: { fontSize: 12, lineHeight: 16 },
+  statusText: { fontSize: 12, lineHeight: 16, letterSpacing: 0 },
   receivedText: { color: colors.textSecondary },
   expectedText: { color: colors.textMuted },
   pendingText: { color: colors.reviewBronzeText },
