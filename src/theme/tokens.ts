@@ -23,6 +23,7 @@ export const palette = {
   workTerra: '#8C6A5A',
   workViolet: '#6E6A8A',
   workBlueDeep: '#4A5F70',
+  authHeroShade: '#161F14',
 } as const;
 
 /** Semantic intent is preferred to raw palette names in components. */
@@ -93,6 +94,8 @@ export const colors = {
   premiumBadgeBorder: 'rgba(169,138,84,0.55)',
   premiumPreviewSurface: '#F6F4EC',
   premiumPreviewBorder: 'rgba(16,22,15,0.14)',
+  authFieldBorder: 'rgba(16,22,15,0.22)',
+  authDivider: 'rgba(16,22,15,0.14)',
 } as const;
 
 /** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */

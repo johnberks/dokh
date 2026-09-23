@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-23 · Codex · 4.1 parcial no PR draft [#29](https://github.com/johnberks/dokh/pull/29), empilhado sobre o [#28](https://github.com/johnberks/dokh/pull/28). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-23 · Codex · 4.2 parcial na branch `codex/4.2-email-auth`, empilhada sobre o PR draft [#29](https://github.com/johnberks/dokh/pull/29). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -42,6 +42,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.11 Projeções de Agenda e Finanças | ✅ Views `security_invoker`, métricas de caixa/competência, status e ano testados | — |
 | 3.12 Tipos e seed local | ✅ `generate:types`, três contas sintéticas, estados de Home/Agenda/Finanças, Auth e RLS testados | — |
 | 4.1 Cliente Supabase e sessão segura | 🟡 Cliente tipado, SecureStore em partes, refresh e logout/limpeza implementados | Conferir persistência nativa após reinício e saída/redirecionamento numa tela real; 4.2/4.5 ainda pendentes |
+| 4.2 E-mail/senha e recuperação | 🟡 Login 05B, cadastro, recuperação e callback implementados; fluxo real local testado | Configurar URLs/SMTP de preview e validar e-mail, reset e logout em aparelho; Android adiado pelo usuário |
 
 ## Como rodar o projeto
 
@@ -65,11 +66,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#29](https://github.com/johnberks/dokh/pull/29), branch `codex/4.1-client-session`, empilhado sobre o [#28](https://github.com/johnberks/dokh/pull/28). A 2.7 foi confirmada pelo usuário no iPhone 16: card, carrossel, retorno 2 → 1 e espaçamento dos status funcionam. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da conexão do app preview. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/4.2-email-auth`, sobre o PR draft [#29](https://github.com/johnberks/dokh/pull/29), branch `codex/4.1-client-session`, empilhado sobre o [#28](https://github.com/johnberks/dokh/pull/28). A 2.7 foi confirmada pelo usuário no iPhone 16: card, carrossel, retorno 2 → 1 e espaçamento dos status funcionam. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da conexão do app preview. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → #28 → #29. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo após esta branch: **4.2**, login/cadastro por e-mail e recuperação, seguido de 4.5 (guards de sessão/onboarding) e 9.1 (queries financeiras) quando houver fluxo real; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9).
+Próximo passo após esta branch: **4.5**, guards de sessão/onboarding sem flicker, seguido de 7.2 (composição final da entrada de conta conforme HTML) e 9.1 (queries financeiras); a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9).
+
+Na 4.2, `/sign-in` usa o HTML 05B para o topo com blur, campos, botões e tipografia; Apple/Google são visíveis e inacessíveis até 4.3/4.4. Cadastro por e-mail, recuperação e callback usam Supabase Auth e `expo-linking`. O HTML não desenha os formulários secundários: eles usam a paleta e estados técnicos compartilhados; a composição final da tela 04 fica para 7.2. `supabase/config.toml` permite retornos `dokh://` e `exp://**` **apenas localmente**; preview/production não foram alterados. `scripts/test-email-auth-4.2.mjs` comprovou cadastro → login → e-mail de reset no Mailpit → callback nativo → nova senha → novo login, com conta sintética excluída. O Supabase local foi reiniciado com backup dos volumes para aplicar a allowlist, sem reset. O checkbox 4.2 permanece desmarcado até teste real em aparelho, URLs/SMTP de preview e Android (adiado pelo usuário); 4.1 ainda carece de persistência nativa/logout visível. Ver [`email-auth.md`](email-auth.md).
 
 Na 4.1, `@supabase/supabase-js` tipado usa o ambiente da 1.4 e `expo-secure-store` como armazenamento exclusivo de Auth; a sessão é dividida em partes pequenas e gravada com manifesto por último. `AuthSessionProvider` expõe somente estado e `userId`, inicia/para refresh conforme foreground, limpa o cache de domínio ao trocar de conta ou sair e oferece logout local com redirect para `/sign-in`. Não existe tela de login funcional nesta tarefa; os placeholders continuam. Testes unitários cobrem partes grandes, reinício lógico, falha de gravação, logout e ciclo de refresh. `scripts/test-auth-session-4.1.mjs` comprovou login → novo cliente → logout contra Supabase local com conta sintética removida no `finally`, sem reset; preview/production não foram acessados. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (30 suítes/162 testes), `npm run test:db`, `npm run check:db-types`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Nenhum HTML foi modificado. A DoD completa ainda exige testar `SecureStore` nativo/reabertura no aparelho e saída pela UI após 4.2/4.5; o checkbox permanece desmarcado. Contrato em [`auth-session.md`](auth-session.md).
 

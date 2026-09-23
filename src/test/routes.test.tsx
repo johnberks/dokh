@@ -25,7 +25,11 @@ describe('rotas', () => {
     ['/agenda', 'Sua agenda'],
     ['/finances', 'Finanças'],
     ['/profile', 'Perfil'],
-    ['/sign-in', 'Entrar'],
+    ['/sign-in', 'Bem-vindo de volta.'],
+    ['/sign-up', 'Comece a organizar sua vida financeira.'],
+    ['/recover-password', 'Recuperar senha'],
+    ['/reset-password', 'Defina uma nova senha.'],
+    ['/auth-callback', 'Confirmar conta'],
     ['/welcome', 'Vamos organizar sua rotina'],
   ])('resolve deep link %s', async (url, heading) => {
     const router = await openAt(url);
