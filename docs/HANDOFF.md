@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.4 concluída no PR draft [#20](https://github.com/johnberks/dokh/pull/20), empilhado sobre o [#19](https://github.com/johnberks/dokh/pull/19). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-22 · Codex · 3.5 concluída em `codex/3.5-rls-complete`, a ser empilhada sobre o PR draft [#20](https://github.com/johnberks/dokh/pull/20). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -33,6 +33,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.2 Perfis e preferências | ✅ Migration, constraints, RLS, rollback descartável e tipos testados | — |
 | 3.3 Núcleo profissional | ✅ Cinco tabelas, constraints, FKs por dono, índices, RLS, rollback e tipos testados | — |
 | 3.4 Suporte operacional | ✅ Quatro tabelas, idempotência por evento/arquivo/linha, FKs, RLS, rollback e tipos testados | — |
+| 3.5 RLS completa | ✅ Matriz automatizada das 12 tabelas, privilégios mínimos, `service_role` e guard de views | — |
 
 ## Como rodar o projeto
 
@@ -56,11 +57,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#20](https://github.com/johnberks/dokh/pull/20), branch `codex/3.4-operational-support`, empilhado sobre o [#19](https://github.com/johnberks/dokh/pull/19). A 3.4 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.5-rls-complete`, empilhada sobre o PR draft [#20](https://github.com/johnberks/dokh/pull/20). A 3.5 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de schema: **3.5**, auditoria de RLS completa sobre 3.2–3.4, inclusive acesso cruzado e views. A 3.4 não implementa parser, webhook nem confirmação de importação; essas ações permanecem nas tarefas futuras. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo de infraestrutura: **3.6**, Storage privado para avatar e imports; exige testar paths por usuário e URLs assinadas sem expor arquivos. A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Na 3.5, a auditoria encontrou privilégios herdados de `TRUNCATE`, `REFERENCES`, `TRIGGER` e `MAINTAIN` em perfis/preferências; a migration os removeu e padronizou grants mínimos das 12 tabelas. `service_role` agora tem CRUD explícito para Edge Functions, mas segue proibido no app. `supabase/tests/3_5_rls_matrix.sql` comprova anônimo, dono, outra conta e service role em **cada** tabela, além de escrita cruzada negada, grants padrão futuros restritos e guard de views. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Não houve mudança de tipos nem UI; a migration foi aplicada somente no Supabase local, sem reset ou alteração remota. Detalhes em [`rls.md`](rls.md).
 
 Na 3.4, `subscription_entitlements`, `device_push_tokens`, `imports` e `import_issues` receberam enums, constraints, índices e RLS. O espelho Premium e o preview de importação são leitura do dono e escrita exclusiva do servidor; tokens push permitem CRUD apenas do dono. `imports` deduplica por `(user_id, file_sha256)` e `work_entries` por `(import_id, import_row_key)`, com FK composta por dono. O preview e as pendências não criam Trabalhos. `npm run test:db` passou para 3.2–3.4 em bancos descartáveis, incluindo rollback; `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. A migration foi aplicada **somente no Supabase local**, sem reset nem alteração em preview/production. Os HTMLs/UX de Perfil foram consultados, sem mudança visual nesta tarefa.
 

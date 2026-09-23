@@ -176,7 +176,7 @@
   - `subscription_entitlements`, `device_push_tokens`, `imports`, `import_issues`.
   - **DoD:** idempotência/uniqueness definida; nenhum payload vira fonte de verdade de Trabalho.
 
-- [ ] **3.5 — Configurar RLS completa**
+- [x] **3.5 — Configurar RLS completa**
   - Dependências: 3.2, 3.3, 3.4.
   - Policies por ownership e acesso de Edge Functions.
   - Views com segurança correta.

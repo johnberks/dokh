@@ -2,7 +2,7 @@
 
 O Supabase CLI usa `supabase/config.toml` versionado. O projeto local tem ID `dokh`,
 portas padrão 54321–54324, migrations habilitadas e seed de domínio desabilitado até
-a tarefa 3.12. Realtime está desligado conforme D28. As migrations 3.2–3.4
+a tarefa 3.12. Realtime está desligado conforme D28. As migrations 3.2–3.5
 criam perfis, preferências, o núcleo profissional e o suporte operacional com
 RLS. O cliente Supabase no app ainda depende da 4.1.
 
@@ -23,7 +23,7 @@ a URL e a publishable/anon key exibidas por `supabase:status`. No iPhone físico
 substitua `127.0.0.1` da URL pelo IP LAN do computador; o iPhone e o computador
 devem estar na mesma rede. Reinicie o Metro após alterar o `.env.local`.
 
-Para aplicar migrations novas sem apagar dados locais e verificar 3.2–3.4:
+Para aplicar migrations novas sem apagar dados locais e verificar 3.2–3.5:
 
 ```bash
 SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase migration up --local
@@ -76,6 +76,19 @@ a futura confirmação transacional precisa reler o arquivo validado. A polític
 de retenção de arquivos/importações segue pendente em D74; não exclua o registro
 de importação de um Trabalho já confirmado. Nenhuma migration foi aplicada em
 preview ou production.
+
+Na 3.5, a auditoria de RLS cobriu as 12 tabelas públicas de usuário. A migration
+remove privilégios herdados de `TRUNCATE`, `REFERENCES`, `TRIGGER` e `MAINTAIN`
+de `anon`/`authenticated`, preserva CRUD do dono apenas para perfil,
+preferências e token push, e mantém as tabelas de domínio/agregados e billing
+em leitura do dono. `service_role` recebe CRUD explícito para Edge Functions;
+continua proibido no app. Grants padrão de novas tabelas criadas por migrations
+como `postgres` passam a negar acesso do cliente até que a migration o libere
+explicitamente com RLS. Não há views públicas hoje; o teste falha se uma futura
+view pública não usar `security_invoker = true` ou se uma materialized view ficar
+legível pelo cliente. Tipos gerados não mudaram com a revisão de privilégios e
+`npm run check:db-types` confirmou a paridade. A 3.5 também foi aplicada somente
+no banco local, sem reset ou alteração dos projetos remotos.
 
 ## Projetos remotos
 
