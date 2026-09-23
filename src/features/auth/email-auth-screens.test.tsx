@@ -1,6 +1,7 @@
 import '@/i18n';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { StyleSheet } from 'react-native';
 import {
   acceptEmailLink,
   sendRecoveryEmail,
@@ -47,12 +48,15 @@ beforeEach(() => {
 });
 
 describe('telas de e-mail', () => {
-  it('mantém o campo de 54 px e dá altura suficiente ao texto editável', async () => {
+  it('mantém o campo de 54 px sem limitar a linha nativa durante a digitação', async () => {
     await render(<SignInScreen />);
     for (const label of ['E-mail', 'Senha']) {
       const input = screen.getByLabelText(label);
       expect(input.parent).toHaveStyle({ height: 54 });
-      expect(input).toHaveStyle({ height: 28, paddingVertical: 2, fontSize: 15, lineHeight: 24 });
+      expect(input).toHaveStyle({ padding: 0, fontSize: 15 });
+      const inputStyle = StyleSheet.flatten(input.props.style);
+      expect(inputStyle).not.toHaveProperty('height');
+      expect(inputStyle).not.toHaveProperty('lineHeight');
     }
     await fireEvent.changeText(screen.getByLabelText('E-mail'), 'gypq@example.invalid');
     expect(screen.getByLabelText('E-mail').props.value).toBe('gypq@example.invalid');

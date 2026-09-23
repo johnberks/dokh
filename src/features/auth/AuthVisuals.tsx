@@ -167,6 +167,8 @@ export function AuthField({ label, error, style, secureTextEntry, ...props }: Au
   const type = useBrandTypography();
   const { t } = useTranslation('auth');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  // Single-line TextInput on iOS clips focused glyphs when given a lineHeight or fixed height.
+  const inputTypography = { fontFamily: type.body.fontFamily, fontWeight: type.body.fontWeight };
   return (
     <View>
       <View style={[styles.field, error ? styles.fieldError : null]}>
@@ -178,7 +180,12 @@ export function AuthField({ label, error, style, secureTextEntry, ...props }: Au
           accessibilityHint={error}
           autoCapitalize="none"
           placeholderTextColor={palette.sage}
-          style={[type.body, styles.fieldInput, secureTextEntry && styles.passwordInput, style]}
+          style={[
+            inputTypography,
+            styles.fieldInput,
+            secureTextEntry && styles.passwordInput,
+            style,
+          ]}
         />
         {secureTextEntry ? (
           <Pressable
@@ -346,13 +353,9 @@ const styles = StyleSheet.create({
   fieldError: { borderColor: palette.negative },
   fieldLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
   fieldInput: {
-    height: 28,
-    paddingHorizontal: 0,
-    paddingVertical: 2,
+    padding: 0,
     fontSize: 15,
-    lineHeight: 24,
     color: palette.base,
-    textAlignVertical: 'center',
   },
   passwordInput: { paddingRight: 42 },
   passwordToggle: {
