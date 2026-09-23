@@ -198,7 +198,7 @@
   - RPC explícita para confirmar recebido; não aceitar confirmação automática.
   - **DoD:** repetir chamada não duplica/avança estado; outro usuário não confirma; data registrada é auditável.
 
-- [ ] **3.9 — Implementar Residência recorrente Free**
+- [x] **3.9 — Implementar Residência recorrente Free**
   - Dependências: 3.3, 3.5.
   - Criar/editar/desativar Residência e gerar Recebíveis mensais.
   - Não consultar entitlement e não criar `work_series`.

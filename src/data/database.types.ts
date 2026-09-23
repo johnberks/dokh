@@ -550,6 +550,22 @@ export type Database = {
           received_at: string;
         }[];
       };
+      create_or_update_residency: {
+        Args: {
+          p_expected_ends_on: string;
+          p_institution: string;
+          p_level_label: string;
+          p_monthly_amount_cents: number;
+          p_payment_day: number;
+          p_residency_id: string;
+          p_specialty: string;
+          p_starts_on: string;
+        };
+        Returns: {
+          receivables_changed: number;
+          residency_id: string;
+        }[];
+      };
       create_work_with_receivable: {
         Args: {
           p_amount_cents: number;
@@ -568,12 +584,20 @@ export type Database = {
           work_id: string;
         }[];
       };
+      deactivate_residency: {
+        Args: { p_residency_id: string };
+        Returns: string;
+      };
       delete_work_with_receivable: {
         Args: { p_idempotency_key: string; p_work_entry_id: string };
         Returns: {
           receivable_id: string;
           work_id: string;
         }[];
+      };
+      generate_residency_receivables: {
+        Args: { p_residency_id: string };
+        Returns: number;
       };
       update_work_with_receivable: {
         Args: {
