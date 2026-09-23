@@ -1,6 +1,10 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useContext } from 'react';
 import { ScrollView, type ScrollViewProps, StyleSheet, View, type ViewProps } from 'react-native';
-import { SafeAreaView, type SafeAreaViewProps } from 'react-native-safe-area-context';
+import {
+  SafeAreaInsetsContext,
+  SafeAreaView,
+  type SafeAreaViewProps,
+} from 'react-native-safe-area-context';
 import { colors, radius, shadow, spacing } from '@/theme/tokens';
 
 export function Divider() {
@@ -53,6 +57,49 @@ export function ScrollScreen({
   );
 }
 
+export type TwoToneScrollScreenProps = Omit<
+  ScrollViewProps,
+  'children' | 'contentContainerStyle'
+> & {
+  hero: ReactNode;
+  children: ReactNode;
+  heroStyle?: ViewProps['style'];
+  bodyStyle?: ViewProps['style'];
+};
+
+/** Home/Finanças: one vertical scroll owns both the green hero and cream body. */
+export function TwoToneScrollScreen({
+  hero,
+  children,
+  heroStyle,
+  bodyStyle,
+  ...props
+}: TwoToneScrollScreenProps) {
+  const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
+  return (
+    <View style={styles.twoToneScreen}>
+      <ScrollView
+        {...props}
+        contentInsetAdjustmentBehavior="never"
+        automaticallyAdjustContentInsets={false}
+        contentContainerStyle={styles.twoToneContent}
+        keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
+        testID={props.testID ?? 'two-tone-scroll'}
+      >
+        <View
+          testID="two-tone-hero"
+          style={[styles.twoToneHero, { paddingTop: insets.top }, heroStyle]}
+        >
+          {hero}
+        </View>
+        <View testID="two-tone-body" style={[styles.twoToneBody, bodyStyle]}>
+          {children}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.border },
   card: {
@@ -66,4 +113,12 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   screenContent: { flex: 1, paddingHorizontal: spacing.xl },
   scrollContent: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingBottom: spacing.xl },
+  twoToneScreen: { flex: 1, backgroundColor: colors.background },
+  twoToneContent: { flexGrow: 1 },
+  twoToneHero: { backgroundColor: colors.darkBackground },
+  twoToneBody: {
+    flexGrow: 1,
+    backgroundColor: colors.background,
+    paddingBottom: spacing.xl,
+  },
 });

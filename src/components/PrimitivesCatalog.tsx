@@ -11,6 +11,7 @@ import { EmptyStateCatalog } from './EmptyStateCatalog';
 import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
 import { MoneyInputCatalog } from './MoneyInputCatalog';
+import { MotionCatalog } from './MotionCatalog';
 import { PremiumGateCatalog } from './PremiumGateCatalog';
 import { ProgressCardCatalog } from './ProgressCardCatalog';
 import { ReceivableRowCatalog } from './ReceivableRowCatalog';
@@ -90,6 +91,8 @@ export function PrimitivesCatalog() {
         <OfflineBanner showingCachedData />
         <Divider />
         <ReviewCardCatalog />
+        <Divider />
+        <MotionCatalog />
         <Divider />
         <WorkCardCatalog />
         <Divider />

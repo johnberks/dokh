@@ -147,7 +147,7 @@
   - Skeleton, LoadError, MutationError e OfflineBanner.
   - **DoD:** erro nunca renderiza EmptyState; retry é acessível; skeleton não mostra valores falsos.
 
-- [ ] **2.7 — Configurar motion e reduce motion**
+- [x] **2.7 — Configurar motion e reduce motion**
   - Dependências: 2.3.
   - Reanimated e helpers padronizados.
   - **DoD:** carrossel e remoção de card têm demonstração; reduce motion remove/reduz transições sem quebrar navegação.
@@ -412,7 +412,7 @@ Pré-requisito documental: UX e design de Finanças presentes.
 - [ ] **9.2 — Implementar visão mensal base Free**
   - Dependências: 9.1, 2.5.
   - Hero, recebido × a receber, próxima entrada, Review Card e navegação.
-  - **DoD:** mês completo, sem pendências, tudo recebido, mês anterior, sem trabalhos e somente sem data cobertos.
+  - **DoD:** mês completo, sem pendências, tudo recebido, mês anterior, sem trabalhos e somente sem data cobertos; topo verde e corpo bege rolam juntos, sem salto ao trocar período.
 
 - [ ] **9.3 — Implementar extrato de Entradas**
   - Dependências: 9.1, 3.8.
@@ -451,7 +451,7 @@ Pré-requisito documental: UX e design de Home presentes.
 
 - [ ] **10.2 — Implementar hero e carrossel**
   - Dependências: 10.1, 2.7.
-  - **DoD:** histórico aparece só quando válido; altura fixa e motion correspondem ao design; sem histórico usa uma página.
+  - **DoD:** histórico aparece só quando válido; altura fixa e motion correspondem ao design; sem histórico usa uma página; topo verde e corpo bege formam uma rolagem vertical única.
 
 - [ ] **10.3 — Implementar cards e listas**
   - Dependências: 10.1, 2.5.

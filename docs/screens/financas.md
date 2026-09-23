@@ -41,6 +41,8 @@ Exemplo: trabalho realizado em setembro com pagamento em outubro entra em `Traba
 
 ## Estrutura da visão mensal
 
+O topo verde (seletor do período e hero) e as seções seguintes sobre fundo bege compõem **uma única rolagem vertical**. O topo verde sobe junto com o conteúdo; não permanece fixo enquanto as features bege rolam. A barra inferior é a única superfície de navegação fora dessa rolagem. A mesma regra vale ao alternar Mês/Ano e ao navegar entre períodos, sem salto visual.
+
 1. Mês/ano e navegação entre períodos.
 2. Alternância `Mês` / `Ano`.
 3. Total previsto para entrar no mês.

@@ -3,7 +3,9 @@ import Check from 'lucide-react-native/icons/check';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { colors, reviewCardMetrics, shadow, spacing } from '@/theme/tokens';
+import Animated, { FadeOut, LinearTransition, ReduceMotion } from 'react-native-reanimated';
+import { colors, motion, reviewCardMetrics, shadow, spacing } from '@/theme/tokens';
+import { useReducedMotion } from '@/theme/useReducedMotion';
 import { AppText } from './AppText';
 
 export type ReviewPreview = {
@@ -37,6 +39,10 @@ export type ReviewCardProps = {
 
 export type ReviewCardEntry = ReviewCardProps & { id: string };
 const emptyPreviews: readonly ReviewPreview[] = [];
+const reviewExit = FadeOut.duration(motion.reviewRemoval).reduceMotion(ReduceMotion.System);
+const reviewLayout = LinearTransition.duration(motion.reviewRemoval).reduceMotion(
+  ReduceMotion.System,
+);
 
 function ActionGlyph({ kind, busy }: { kind: 'arrow' | 'check'; busy: boolean }) {
   if (busy) return <ActivityIndicator color={colors.accent} size="small" />;
@@ -58,10 +64,18 @@ export function ReviewCardStack({
   cards: readonly ReviewCardEntry[];
   testID?: string;
 }) {
+  const reduced = useReducedMotion();
   return (
     <View testID={testID} style={styles.stack}>
       {selectVisibleReviewCards(cards).map(({ id, ...card }) => (
-        <ReviewCard key={id} {...card} />
+        <Animated.View
+          key={id}
+          layout={reduced ? undefined : reviewLayout}
+          exiting={reduced ? undefined : reviewExit}
+          collapsable={false}
+        >
+          <ReviewCard {...card} />
+        </Animated.View>
       ))}
     </View>
   );

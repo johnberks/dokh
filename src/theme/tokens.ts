@@ -524,6 +524,9 @@ export const motion = {
   feedback: 200,
   enter: 250,
   exit: 200,
+  heroPage: 450,
+  heroBar: 400,
+  reviewRemoval: 200,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

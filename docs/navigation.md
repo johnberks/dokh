@@ -16,6 +16,8 @@ O modal de adicionar Trabalho segue o cabeçalho de `Agenda 06`: controle circul
 
 ## Ainda falta para a DoD
 
+- Home e Finanças devem usar a rolagem vertical única de `TwoToneScrollScreen`: o topo verde não é fixo acima das seções bege. O carrossel horizontal do hero não pode capturar o gesto vertical. Ver [`motion.md`](motion.md).
+
 - Compor os headers específicos de Home, Agenda, Finanças e Perfil junto com as telas reais. Não preencher placeholders com dados fictícios do HTML; valores, identidade e mês dependem do domínio/UX.
 - Inspecionar visualmente em 390×844 e no iPhone com Dynamic Island; verificar VoiceOver, safe areas e ausência de conteúdo cortado. Android/TalkBack foi adiado pelo usuário, não removido da DoD.
 - Confirmar status bar clara sobre os headers escuros quando essas telas substituírem os placeholders. Splash/ícone D1 permanecem bloqueados pelo vetor final aprovado na 2.2.

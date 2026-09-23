@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-23 · Codex · 3.12 concluída no PR draft [#27](https://github.com/johnberks/dokh/pull/27), empilhado sobre o [#26](https://github.com/johnberks/dokh/pull/26). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-23 · Codex · 2.7 concluída na branch `codex/2.7-motion`, empilhada sobre o PR draft [#27](https://github.com/johnberks/dokh/pull/27). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -29,6 +29,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
 | 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate no #16 — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
 | 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
+| 2.7 Motion e reduzir movimento | ✅ Carrossel, barras, saída de Review Card e redução de movimento demonstrados/testados | Inspeção de fluidez nas telas reais continua nas tarefas 9.2/10.2 |
 | 3.1 Supabase local/remoto | 🟡 Start/reset local passaram; `dokh-preview` e `dokh-production` ativos em `johnberks's Org` Free; chaves públicas isoladas | Configurar EAS/cliente e comprovar conexão real do app preview somente ao projeto preview |
 | 3.2 Perfis e preferências | ✅ Migration, constraints, RLS, rollback descartável e tipos testados | — |
 | 3.3 Núcleo profissional | ✅ Cinco tabelas, constraints, FKs por dono, índices, RLS, rollback e tipos testados | — |
@@ -63,11 +64,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#27](https://github.com/johnberks/dokh/pull/27), branch `codex/3.12-types-seed`, empilhado sobre o [#26](https://github.com/johnberks/dokh/pull/26). A 3.12 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/2.7-motion`, empilhada sobre o PR draft [#27](https://github.com/johnberks/dokh/pull/27). A 2.7 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → branch 2.7. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo sem decisão de produto pendente: **2.7**, motion e reduzir movimento, ou **4.1**, cliente Supabase e sessão segura; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1).
+Próximo passo sem decisão de produto pendente: **4.1**, cliente Supabase e sessão segura, seguido de 9.1 (queries financeiras) quando a integração permitir fluxo real; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1).
+
+Na 2.7, o catálogo recebeu `HeroCarousel` horizontal com altura fixa (450 ms), `HeroBar` (400 ms) e remoção/reacomodação de `ReviewCardStack` após o chamador retirar um item (200 ms), todos respeitando `Reduzir movimento`. O novo `TwoToneScrollScreen` põe topo verde e corpo bege **na mesma rolagem** e deixa a tab bar fora, conforme pedido explícito do usuário; o topo verde deve subir junto em Home e Finanças, nunca ficar fixo. Isso foi registrado nos UX docs e na DoD das tarefas 9.2/10.2. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (28 suítes/154 testes), `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram. A revisão de boas práticas React favoreceu imports diretos, builders de animação estáveis e atualização de estado somente na troca de página/card. As telas de produto ainda são placeholders; fluidez visual e status bar ao rolar serão checadas no iPhone quando Home/Finanças forem montadas. Contrato em [`motion.md`](motion.md).
 
 Na 3.12, `npm run generate:types` passou a gerar e formatar atomicamente os tipos públicos versionados. O seed SQL local cria três contas fictícias (`@example.invalid`) para Premium com residência e histórico, Free com entrada sem data e primeiro acesso vazio. As datas relativas ao dia de São Paulo mantêm próximo Trabalho, entrada de hoje, confirmação pendente, sem data e recebido; os dados seguem os estados dos HTMLs e UX sem copiá-los como regras financeiras. `npm run test:db` aplica o seed duas vezes em transação revertida no banco Auth real, verifica hashes/identidades, contas, projeções e isolamento RLS. Nenhum reset foi executado no banco do usuário e nada foi aplicado a preview/production. `npm run generate:types`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run test:db`, `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Veja [`supabase-local.md`](supabase-local.md) antes de optar por reset; a 3.12 não altera a UI nem a versão visual do Expo.
 
@@ -92,8 +95,8 @@ Na 3.2, `supabase/migrations/20260922000000_profiles_preferences.sql` criou as t
 Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. Os refs públicos remotos estão versionados no schema, que recusa preview→production e URL local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. Os projetos remotos `dokh-preview` (`lakpndtdkcjtazoybgnv`) e `dokh-production` (`irdsieciowovsaakikbf`) foram criados na organização pessoal Free, região `sa-east-1`, sem upgrade. Cada chave publishable acessou o próprio endpoint REST e foi rejeitada (`401`) no projeto oposto. O checkbox 3.1 permanece desmarcado apenas pela prova de conexão do app preview.
 
 ```bash
-git fetch origin codex/3.12-types-seed
-git switch -c codex/3.12-types-seed origin/codex/3.12-types-seed
+git fetch origin codex/2.7-motion
+git switch -c codex/2.7-motion origin/codex/2.7-motion
 fnm exec --using=22 npm ci
 fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fnm exec --using=22 npm test -- --runInBand
 ```
