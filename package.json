@@ -21,6 +21,7 @@
     "generate:types": "bash scripts/generate-db-types.sh",
     "supabase:start": "SUPABASE_TELEMETRY_DISABLED=1 supabase start",
     "supabase:status": "SUPABASE_TELEMETRY_DISABLED=1 supabase status",
+    "supabase:lan-proxy": "node --env-file=.env.local scripts/supabase-lan-proxy.mjs",
     "supabase:reset": "SUPABASE_TELEMETRY_DISABLED=1 supabase db reset --local",
     "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh && node scripts/test-auth-session-4.1.mjs && node scripts/test-email-auth-4.2.mjs",
     "check:db-types": "SUPABASE_TELEMETRY_DISABLED=1 supabase gen types typescript --local --schema public | biome format --stdin-file-path src/data/database.types.ts | diff -u src/data/database.types.ts -"

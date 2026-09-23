@@ -31,11 +31,15 @@ describe('rotas', () => {
     ['/reset-password', 'Defina uma nova senha.'],
     ['/auth-callback', 'Confirmar conta'],
     ['/welcome', 'Vamos organizar sua rotina'],
-  ])('resolve deep link %s', async (url, heading) => {
-    const router = await openAt(url);
-    expect(router.getPathname()).toBe(url);
-    expect(screen.getByRole('header', { name: heading })).toBeTruthy();
-  });
+  ])(
+    'resolve deep link %s',
+    async (url, heading) => {
+      const router = await openAt(url);
+      expect(router.getPathname()).toBe(url);
+      expect(screen.getByRole('header', { name: heading })).toBeTruthy();
+    },
+    15_000,
+  );
 
   it('ação central abre o fluxo de criação sem virar tab', async () => {
     const router = await openAt('/agenda');

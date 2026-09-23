@@ -30,10 +30,15 @@ const {
   MAILPIT_URL: mailpitUrl,
 } = localEnv;
 assert.ok(apiUrl && anonKey && serviceKey && mailpitUrl, 'Supabase local must be running');
+const appApiUrl =
+  process.env.EXPO_PUBLIC_APP_ENV === 'local' && process.env.EXPO_PUBLIC_SUPABASE_URL
+    ? process.env.EXPO_PUBLIC_SUPABASE_URL
+    : apiUrl;
+assert.match(appApiUrl, /^http:\/\/(?:127\.0\.0\.1|192\.168\.\d+\.\d+):(?:54321|8082)$/);
 
 function client() {
   const values = new Map();
-  return createClient(apiUrl, anonKey, {
+  return createClient(appApiUrl, anonKey, {
     auth: {
       storage: {
         getItem: async (key) => values.get(key) ?? null,
