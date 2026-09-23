@@ -543,6 +543,13 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      confirm_receivable_received: {
+        Args: { p_receivable_id: string };
+        Returns: {
+          receivable_id: string;
+          received_at: string;
+        }[];
+      };
       create_work_with_receivable: {
         Args: {
           p_amount_cents: number;

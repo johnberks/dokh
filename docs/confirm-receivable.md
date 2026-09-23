@@ -1,0 +1,9 @@
+# Confirmação explícita de Recebível (3.8)
+
+A ação “Você recebeu?” em Finanças deve chamar `confirm_receivable_received(p_receivable_id uuid)` apenas após confirmação da pessoa. Vencimento (`expected_on`) passado **não** confirma recebimento automaticamente. A RPC não aceita data ou usuário informados pelo cliente: deriva o dono de `auth.uid()` e grava `received_at` com o relógio do servidor.
+
+A resposta contém `receivable_id` e `received_at`. Uma nova chamada para o mesmo Recebível devolve o primeiro horário, sem fazer outro `UPDATE`; chamadas concorrentes são serializadas pelo bloqueio da linha. Outro usuário, anônimo, sessão sem sujeito e Recebível invalidado não podem confirmar. A trigger impede que atualizações posteriores mudem ou limpem o horário já confirmado, inclusive por `service_role`; alterações em outros campos continuam possíveis. O registro permanece vinculado ao Recebível e ao seu `user_id` para auditoria.
+
+O app não deve fazer confirmação otimista nem derivá-la da passagem do tempo. Após sucesso, pode recarregar o Recebível e exibir o estado recebido; em erro, mantém o estado anterior. A RPC também aceita um Recebível ativo sem `expected_on` (a escolha de onde mostrar a ação cabe às telas), sem preencher a previsão automaticamente. Não há nesta tarefa reversão de recebimento nem mudança visual; as telas futuras devem seguir `design/financas.html`, `design/agenda.html` e os respectivos arquivos UX.
+
+Verificação: `supabase/tests/3_8_confirm_receivable.sql` cobre segurança, ausência de avanço automático, timestamp do servidor, repetição, imutabilidade e rollback em banco descartável. `scripts/test-confirm-receivable-3.8.mjs` cobre PostgREST local com duas chamadas simultâneas, retry, ownership e leitura do registro persistido. A migration foi aplicada somente ao Supabase local, sem reset ou alteração em preview/production.

@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.7 concluída no PR draft [#23](https://github.com/johnberks/dokh/pull/23), empilhado sobre o [#22](https://github.com/johnberks/dokh/pull/22). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-22 · Codex · 3.8 concluída na branch `codex/3.8-confirm-receivable`, empilhada sobre o PR draft [#23](https://github.com/johnberks/dokh/pull/23). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -36,6 +36,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.5 RLS completa | ✅ Matriz automatizada das 12 tabelas, privilégios mínimos, `service_role` e guard de views | — |
 | 3.6 Storage privado | ✅ Buckets, paths por usuário, policies e testes de upload/download/exclusão/URL assinada | — |
 | 3.7 RPCs Trabalho + Recebível | ✅ Criar, editar e excluir atomicamente com JWT, idempotência e rollback testados | — |
+| 3.8 Confirmação de Recebível | ✅ RPC explícita, horário de servidor imutável, ownership e concorrência testados | — |
 
 ## Como rodar o projeto
 
@@ -59,11 +60,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#23](https://github.com/johnberks/dokh/pull/23), branch `codex/3.7-work-rpcs`, empilhado sobre o [#22](https://github.com/johnberks/dokh/pull/22). A 3.7 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.8-confirm-receivable`, empilhada sobre o PR draft [#23](https://github.com/johnberks/dokh/pull/23). A 3.8 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → branch 3.8. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de infraestrutura: **3.8**, confirmação explícita de Recebível sem avanço automático de estado. A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo de infraestrutura: **3.9**, Residência recorrente Free, com reconciliação apenas de meses futuros não recebidos. A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Na 3.8, `confirm_receivable_received` confirma apenas por ação explícita do dono, sob lock de linha, com `received_at` do relógio do servidor. Chamadas repetidas ou concorrentes devolvem o primeiro horário sem nova gravação. Uma trigger impede reescrever ou limpar um horário já confirmado; Recebível invalidado e outro usuário são negados. O teste SQL em banco descartável cobriu ausência de confirmação automática, ownership, auditoria, repetição, permissões e rollback. O teste PostgREST local cobriu concorrência, leitura persistida e rejeição cruzada/anônima. A migration foi aplicada somente no Supabase local, sem reset nem alteração em preview/production. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Agenda/Finanças foram consultados, sem mudança de UI. Contrato em [`confirm-receivable.md`](confirm-receivable.md).
 
 Na 3.7, três RPCs `SECURITY DEFINER` com `search_path` vazio fazem CRUD lógico do agregado manual Trabalho + Recebível numa transação, derivando o dono de `auth.uid()`. A tabela privada de idempotência tem RLS e chave por usuário; não concede escrita direta de domínio ao app. O teste SQL cobre anônimo, sessão sem sujeito, outro usuário, repetição/colisão de chave, rollback da primeira tabela se a segunda falhar, coerência de competência/valor/previsão e exclusão dos dois lados. Um teste PostgREST local cobriu chamadas concorrentes com a mesma chave, parâmetros nulos e bloqueio cruzado. Migration/rollback passaram em banco descartável; a migration foi aplicada apenas no Supabase local. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Agenda/Finanças foram consultados, sem alteração de UI. Contrato e limites em [`work-aggregate-rpcs.md`](work-aggregate-rpcs.md).
 

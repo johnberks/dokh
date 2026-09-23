@@ -193,7 +193,7 @@
   - Usar usuário do JWT e idempotency key.
   - **DoD:** testes provam atomicidade, ownership, idempotência e atualização coerente das duas entidades.
 
-- [ ] **3.8 — Implementar confirmação de Recebível**
+- [x] **3.8 — Implementar confirmação de Recebível**
   - Dependências: 3.3, 3.5.
   - RPC explícita para confirmar recebido; não aceitar confirmação automática.
   - **DoD:** repetir chamada não duplica/avança estado; outro usuário não confirma; data registrada é auditável.
