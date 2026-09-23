@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-23 · Codex · 2.7 concluída na branch `codex/2.7-motion`, empilhada sobre o PR draft [#27](https://github.com/johnberks/dokh/pull/27). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-23 · Codex · 2.7 concluída no PR draft [#28](https://github.com/johnberks/dokh/pull/28), empilhado sobre o [#27](https://github.com/johnberks/dokh/pull/27). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -64,9 +64,9 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é a branch `codex/2.7-motion`, empilhada sobre o PR draft [#27](https://github.com/johnberks/dokh/pull/27). A 2.7 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é o PR draft [#28](https://github.com/johnberks/dokh/pull/28), branch `codex/2.7-motion`, empilhado sobre o [#27](https://github.com/johnberks/dokh/pull/27). A 2.7 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → branch 2.7. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → #28. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
 Próximo passo sem decisão de produto pendente: **4.1**, cliente Supabase e sessão segura, seguido de 9.1 (queries financeiras) quando a integração permitir fluxo real; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1).
 
