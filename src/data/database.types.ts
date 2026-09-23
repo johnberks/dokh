@@ -543,7 +543,50 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_work_with_receivable: {
+        Args: {
+          p_amount_cents: number;
+          p_description: string;
+          p_duration_minutes: number;
+          p_expected_on: string;
+          p_idempotency_key: string;
+          p_location_id: string;
+          p_start_time: string;
+          p_timezone: string;
+          p_type: Database['public']['Enums']['work_entry_type'];
+          p_work_date: string;
+        };
+        Returns: {
+          receivable_id: string;
+          work_id: string;
+        }[];
+      };
+      delete_work_with_receivable: {
+        Args: { p_idempotency_key: string; p_work_entry_id: string };
+        Returns: {
+          receivable_id: string;
+          work_id: string;
+        }[];
+      };
+      update_work_with_receivable: {
+        Args: {
+          p_amount_cents: number;
+          p_description: string;
+          p_duration_minutes: number;
+          p_expected_on: string;
+          p_idempotency_key: string;
+          p_location_id: string;
+          p_start_time: string;
+          p_timezone: string;
+          p_type: Database['public']['Enums']['work_entry_type'];
+          p_work_date: string;
+          p_work_entry_id: string;
+        };
+        Returns: {
+          receivable_id: string;
+          work_id: string;
+        }[];
+      };
     };
     Enums: {
       device_platform: 'ios' | 'android';

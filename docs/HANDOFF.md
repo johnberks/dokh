@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.6 concluída no PR draft [#22](https://github.com/johnberks/dokh/pull/22), empilhado sobre o [#21](https://github.com/johnberks/dokh/pull/21). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-22 · Codex · 3.7 concluída na branch `codex/3.7-work-rpcs`, empilhada sobre o PR draft [#22](https://github.com/johnberks/dokh/pull/22). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -35,6 +35,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.4 Suporte operacional | ✅ Quatro tabelas, idempotência por evento/arquivo/linha, FKs, RLS, rollback e tipos testados | — |
 | 3.5 RLS completa | ✅ Matriz automatizada das 12 tabelas, privilégios mínimos, `service_role` e guard de views | — |
 | 3.6 Storage privado | ✅ Buckets, paths por usuário, policies e testes de upload/download/exclusão/URL assinada | — |
+| 3.7 RPCs Trabalho + Recebível | ✅ Criar, editar e excluir atomicamente com JWT, idempotência e rollback testados | — |
 
 ## Como rodar o projeto
 
@@ -58,11 +59,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#22](https://github.com/johnberks/dokh/pull/22), branch `codex/3.6-private-storage`, empilhado sobre o [#21](https://github.com/johnberks/dokh/pull/21). A 3.6 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.7-work-rpcs`, empilhada sobre o PR draft [#22](https://github.com/johnberks/dokh/pull/22). A 3.7 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → PR da 3.7. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de infraestrutura: **3.7**, RPCs atômicas do agregado Trabalho + Recebível. A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo de infraestrutura: **3.8**, confirmação explícita de Recebível sem avanço automático de estado. A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Na 3.7, três RPCs `SECURITY DEFINER` com `search_path` vazio fazem CRUD lógico do agregado manual Trabalho + Recebível numa transação, derivando o dono de `auth.uid()`. A tabela privada de idempotência tem RLS e chave por usuário; não concede escrita direta de domínio ao app. O teste SQL cobre anônimo, sessão sem sujeito, outro usuário, repetição/colisão de chave, rollback da primeira tabela se a segunda falhar, coerência de competência/valor/previsão e exclusão dos dois lados. Um teste PostgREST local cobriu chamadas concorrentes com a mesma chave, parâmetros nulos e bloqueio cruzado. Migration/rollback passaram em banco descartável; a migration foi aplicada apenas no Supabase local. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Agenda/Finanças foram consultados, sem alteração de UI. Contrato e limites em [`work-aggregate-rpcs.md`](work-aggregate-rpcs.md).
 
 Na 3.6, `avatars` e `imports` foram criados como buckets privados com limite de 10 MiB, MIME permitido e policies de `storage.objects` por primeira pasta igual a `auth.uid()`. O teste da API Storage local usou duas contas descartáveis e comprovou upload/download/delete do dono, bloqueio de outro usuário e anônimo, ausência de URL pública, MIME negado, recusa de overwrite, expiração da URL assinada e indisponibilidade após excluir o objeto. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. O primeiro Jest em paralelo teve um timeout isolado em rotas; a repetição isolada e a suíte completa sequencial passaram. A migration foi aplicada **somente no Supabase local**, sem reset nem alteração em preview/production. Não houve mudança de UI ou tipos públicos; HTML/UX de Perfil foram consultados. Contrato e pendências em [`private-storage.md`](private-storage.md).
 
@@ -77,8 +80,8 @@ Na 3.2, `supabase/migrations/20260922000000_profiles_preferences.sql` criou as t
 Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. Os refs públicos remotos estão versionados no schema, que recusa preview→production e URL local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. Os projetos remotos `dokh-preview` (`lakpndtdkcjtazoybgnv`) e `dokh-production` (`irdsieciowovsaakikbf`) foram criados na organização pessoal Free, região `sa-east-1`, sem upgrade. Cada chave publishable acessou o próprio endpoint REST e foi rejeitada (`401`) no projeto oposto. O checkbox 3.1 permanece desmarcado apenas pela prova de conexão do app preview.
 
 ```bash
-git fetch origin codex/3.6-private-storage
-git switch -c codex/3.6-private-storage origin/codex/3.6-private-storage
+git fetch origin codex/3.7-work-rpcs
+git switch -c codex/3.7-work-rpcs origin/codex/3.7-work-rpcs
 fnm exec --using=22 npm ci
 fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fnm exec --using=22 npm test -- --runInBand
 ```

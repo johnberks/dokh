@@ -187,7 +187,7 @@
   - Buckets de avatar e imports, paths por usuário, upload/download/delete.
   - **DoD:** outro usuário e anônimo não acessam; URL assinada expira; exclusão remove objeto.
 
-- [ ] **3.7 — Implementar RPCs do agregado Trabalho**
+- [x] **3.7 — Implementar RPCs do agregado Trabalho**
   - Dependências: 3.3, 3.5.
   - Criar, editar e excluir Trabalho + Recebível atomicamente.
   - Usar usuário do JWT e idempotency key.
