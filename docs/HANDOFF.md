@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.6 concluída na branch `codex/3.6-private-storage`, empilhada sobre o PR draft [#21](https://github.com/johnberks/dokh/pull/21). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-22 · Codex · 3.6 concluída no PR draft [#22](https://github.com/johnberks/dokh/pull/22), empilhado sobre o [#21](https://github.com/johnberks/dokh/pull/21). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -58,9 +58,9 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é a branch `codex/3.6-private-storage`, empilhada sobre o PR draft [#21](https://github.com/johnberks/dokh/pull/21). A 3.6 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é o PR draft [#22](https://github.com/johnberks/dokh/pull/22), branch `codex/3.6-private-storage`, empilhado sobre o [#21](https://github.com/johnberks/dokh/pull/21). A 3.6 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → PR da 3.6. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
 Próximo passo de infraestrutura: **3.7**, RPCs atômicas do agregado Trabalho + Recebível. A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
 
