@@ -8,6 +8,7 @@ Fontes: `decisions.md` D03/D18/D40–D42, `domain-model.md`, `docs/screens/onboa
 - `/sign-up` envia `signUp`. Se Auth devolver sessão (configuração local sem confirmação), segue para `/welcome`; se exigir confirmação, pede para conferir o e-mail. `/auth-callback` aceita somente fragmento de confirmação, grava a sessão pelo cliente Supabase e então segue para `/welcome`.
 - `/recover-password` envia `resetPasswordForEmail` com URL de retorno criada por `expo-linking`. A mensagem de sucesso não revela se a conta existe. `/reset-password` aceita apenas `type=recovery` com access/refresh token, chama `setSession`, permite `updateUser({ password })` e segue à Home. Link inválido não exibe formulário.
 - Nenhuma tela, teste ou log imprime token, senha ou e-mail. O adapter SecureStore da 4.1 continua sendo o único armazenamento da sessão. O guard da 4.5 deve permitir a rota de recuperação enquanto a sessão temporária de reset é estabelecida.
+- Enquanto Home ainda é placeholder, um botão **Entrar** somente em `__DEV__` abre o login no Expo Go. Não faz parte do HTML da Home nem aparece em build de produção; retirar na 7.2/9.2.
 
 ## Configuração de links
 

@@ -6,14 +6,22 @@ import { PlaceholderScreen } from '@/components/PlaceholderScreen';
 export default function HomeScreen() {
   const { t } = useTranslation('home');
   const { t: tComponents } = useTranslation('components');
+  const { t: tAuth } = useTranslation('auth');
   return (
     <PlaceholderScreen title={t('title')}>
       {__DEV__ && (
-        <Button
-          label={tComponents('catalog.title')}
-          variant="secondary"
-          onPress={() => router.push('/dev/primitives')}
-        />
+        <>
+          <Button
+            label={tComponents('catalog.title')}
+            variant="secondary"
+            onPress={() => router.push('/dev/primitives')}
+          />
+          <Button
+            label={tAuth('signIn.title')}
+            variant="secondary"
+            onPress={() => router.push('/sign-in')}
+          />
+        </>
       )}
     </PlaceholderScreen>
   );

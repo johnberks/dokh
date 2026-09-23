@@ -97,4 +97,11 @@ describe('rotas', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Voltar' }));
     expect(router.getPathname()).toBe('/');
   });
+
+  it('Home provisória abre o login para teste no Expo Go', async () => {
+    const router = await openAt('/');
+    await fireEvent.press(screen.getByRole('button', { name: 'Entrar' }));
+    expect(router.getPathname()).toBe('/sign-in');
+    expect(screen.getByRole('header', { name: 'Bem-vindo de volta.' })).toBeTruthy();
+  });
 });
