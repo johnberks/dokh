@@ -22,7 +22,7 @@
     "supabase:start": "SUPABASE_TELEMETRY_DISABLED=1 supabase start",
     "supabase:status": "SUPABASE_TELEMETRY_DISABLED=1 supabase status",
     "supabase:reset": "SUPABASE_TELEMETRY_DISABLED=1 supabase db reset --local",
-    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh",
+    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh && node scripts/test-auth-session-4.1.mjs",
     "check:db-types": "SUPABASE_TELEMETRY_DISABLED=1 supabase gen types typescript --local --schema public | biome format --stdin-file-path src/data/database.types.ts | diff -u src/data/database.types.ts -"
   },
   "dependencies": {
@@ -31,6 +31,7 @@
     "@expo-google-fonts/unbounded": "^0.4.1",
     "@hookform/resolvers": "^5.9.1",
     "@react-native-community/netinfo": "12.0.1",
+    "@supabase/supabase-js": "^2.117.1",
     "@tanstack/react-query": "^5.103.2",
     "date-fns": "^4.4.0",
     "expo": "~57.0.24",
@@ -39,6 +40,7 @@
     "expo-linking": "~57.0.10",
     "expo-localization": "~57.0.2",
     "expo-router": "~57.0.22",
+    "expo-secure-store": "~57.0.4",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
@@ -54,6 +56,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
+    "react-native-url-polyfill": "^4.0.0",
     "react-native-worklets": "0.10.1",
     "zod": "^4.6.5",
     "zustand": "^5.0.15"

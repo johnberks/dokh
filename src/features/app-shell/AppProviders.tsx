@@ -1,6 +1,7 @@
 import { type QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactNode, useEffect, useState } from 'react';
 import { createQueryClient, setupQueryLifecycle } from '@/data/query-client';
+import { AuthSessionProvider } from '@/features/auth/AuthSessionProvider';
 
 type Props = { children: ReactNode; queryClient?: QueryClient };
 
@@ -10,5 +11,9 @@ export function AppProviders({ children, queryClient }: Props) {
 
   useEffect(() => setupQueryLifecycle(), []);
 
-  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={client}>
+      <AuthSessionProvider queryClient={client}>{children}</AuthSessionProvider>
+    </QueryClientProvider>
+  );
 }

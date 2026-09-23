@@ -4,7 +4,7 @@ O Supabase CLI usa `supabase/config.toml` versionado. O projeto local tem ID `do
 portas padrão 54321–54324, migrations habilitadas e seed sintético de desenvolvimento.
 Realtime está desligado conforme D28. As migrations 3.2–3.5
 criam perfis, preferências, o núcleo profissional e o suporte operacional com
-RLS. O cliente Supabase no app ainda depende da 4.1.
+RLS. O cliente Supabase tipado e o adapter de sessão segura foram adicionados na 4.1; ver [`auth-session.md`](auth-session.md). A tela real de login e os guards ainda pertencem à 4.2/4.5.
 
 ## Ambiente local
 
