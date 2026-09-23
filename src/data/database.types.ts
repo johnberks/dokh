@@ -72,6 +72,13 @@ export type Database = {
             foreignKeyName: 'import_issues_created_work_entry_id_user_id_fkey';
             columns: ['created_work_entry_id', 'user_id'];
             isOneToOne: false;
+            referencedRelation: 'agenda_work_projection';
+            referencedColumns: ['work_entry_id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'import_issues_created_work_entry_id_user_id_fkey';
+            columns: ['created_work_entry_id', 'user_id'];
+            isOneToOne: false;
             referencedRelation: 'work_entries';
             referencedColumns: ['id', 'user_id'];
           },
@@ -263,6 +270,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: 'residencies';
             referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'receivables_work_entry_id_user_id_fkey';
+            columns: ['work_entry_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'agenda_work_projection';
+            referencedColumns: ['work_entry_id', 'user_id'];
           },
           {
             foreignKeyName: 'receivables_work_entry_id_user_id_fkey';
@@ -540,7 +554,69 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      agenda_work_projection: {
+        Row: {
+          amount_cents: number | null;
+          color_token: string | null;
+          created_at: string | null;
+          description: string | null;
+          duration_minutes: number | null;
+          expected_on: string | null;
+          location_id: string | null;
+          location_name: string | null;
+          receipt_status: string | null;
+          receivable_id: string | null;
+          start_time: string | null;
+          timezone: string | null;
+          type: Database['public']['Enums']['work_entry_type'] | null;
+          user_id: string | null;
+          work_date: string | null;
+          work_entry_id: string | null;
+        };
+        Relationships: [];
+      };
+      receivable_projection: {
+        Row: {
+          amount_cents: number | null;
+          competence_month: string | null;
+          duration_minutes: number | null;
+          expected_on: string | null;
+          invalidated_at: string | null;
+          origin: string | null;
+          receipt_status: string | null;
+          receivable_id: string | null;
+          received_at: string | null;
+          received_local_date: string | null;
+          residency_id: string | null;
+          user_id: string | null;
+          work_date: string | null;
+          work_deleted_at: string | null;
+          work_entry_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'receivables_residency_id_user_id_fkey';
+            columns: ['residency_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'residencies';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'receivables_work_entry_id_user_id_fkey';
+            columns: ['work_entry_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'agenda_work_projection';
+            referencedColumns: ['work_entry_id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'receivables_work_entry_id_user_id_fkey';
+            columns: ['work_entry_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_entries';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
     };
     Functions: {
       confirm_receivable_received: {
@@ -593,6 +669,41 @@ export type Database = {
         Returns: {
           receivable_id: string;
           work_id: string;
+        }[];
+      };
+      finance_month_origins: {
+        Args: { p_month: string };
+        Returns: {
+          amount_cents: number;
+          origin: string;
+        }[];
+      };
+      finance_month_projection: {
+        Args: { p_month: string };
+        Returns: {
+          awaiting_of_expected_cents: number;
+          expected_total_cents: number;
+          has_expected_entries: boolean;
+          hourly_value_cents: number;
+          month_start: string;
+          received_in_month_cents: number;
+          received_of_expected_cents: number;
+          undated_count: number;
+          undated_total_cents: number;
+          work_count: number;
+          work_duration_minutes: number;
+          work_generated_cents: number;
+        }[];
+      };
+      finance_year_projection: {
+        Args: { p_year: number };
+        Returns: {
+          expected_total_cents: number;
+          historical_average_cents: number;
+          historical_month_count: number;
+          month_start: string;
+          received_in_month_cents: number;
+          received_of_expected_cents: number;
         }[];
       };
       generate_residency_receivables: {

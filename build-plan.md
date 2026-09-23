@@ -211,7 +211,7 @@
   - Validar entitlement no servidor.
   - **DoD:** Free é negado sem estado parcial; Premium gera Trabalho + Recebível sem duplicação; weekly/biweekly/monthly testados.
 
-- [ ] **3.11 — Criar views/funções de projeção**
+- [x] **3.11 — Criar views/funções de projeção**
   - Dependências: 3.3, 3.8, 3.9.
   - Agenda por dia, status derivado, mês financeiro, origem, competência, valor/hora e ano.
   - **DoD:** fixtures cobrem caixa versus competência, sem data, confirmação pendente, residência, primeiro mês e virada do ano.

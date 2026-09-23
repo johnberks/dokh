@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-22 · Codex · 3.9 concluída no PR draft [#25](https://github.com/johnberks/dokh/pull/25), empilhado sobre o [#24](https://github.com/johnberks/dokh/pull/24). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-23 · Codex · 3.11 concluída na branch `codex/3.11-projections`, empilhada sobre o PR draft [#25](https://github.com/johnberks/dokh/pull/25). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -38,6 +38,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.7 RPCs Trabalho + Recebível | ✅ Criar, editar e excluir atomicamente com JWT, idempotência e rollback testados | — |
 | 3.8 Confirmação de Recebível | ✅ RPC explícita, horário de servidor imutável, ownership e concorrência testados | — |
 | 3.9 Residência recorrente Free | ✅ RPCs de criação/edição/desativação, geração mensal e job de extensão; histórico e limites testados | — |
+| 3.11 Projeções de Agenda e Finanças | ✅ Views `security_invoker`, métricas de caixa/competência, status e ano testados | — |
 
 ## Como rodar o projeto
 
@@ -61,11 +62,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#25](https://github.com/johnberks/dokh/pull/25), branch `codex/3.9-residency-free`, empilhado sobre o [#24](https://github.com/johnberks/dokh/pull/24). A 3.9 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.11-projections`, empilhada sobre o PR draft [#25](https://github.com/johnberks/dokh/pull/25). A 3.11 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → branch 3.11. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de infraestrutura com dependências satisfeitas: **3.11**, views/funções de projeção de Agenda, Home e Finanças. A 3.10 depende antes da 5.4 (espelho de entitlement Premium). A 3.5 não cria views, mas impede por teste que views públicas futuras sejam definer ou que materialized views sejam legíveis pelo cliente. Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo de infraestrutura com dependências satisfeitas: **3.12**, tipos e seed de desenvolvimento sem dados pessoais. A 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+
+Na 3.11, `receivable_projection` e `agenda_work_projection` são views `security_invoker` com RLS das tabelas de origem. As funções de mês, origem e ano separam previsão de caixa, recebimento confirmado no mês e competência de Trabalho. O valor/hora e quantias detalhadas por origem só são retornados com entitlement ativo no servidor; Free mantém os totais organizacionais. As fixtures cobrem sem data, confirmação pendente, Residência, primeiro mês, virada de ano e fuso local. Migration/rollback passaram em banco descartável e PostgREST local confirmou owner/anon. A migration foi aplicada somente no Supabase local, sem reset nem alteração em preview/production. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. O teste HTTP da 3.8 deixou de depender de relógios cliente/servidor sincronizados ao milissegundo; o teste SQL continua comprovando o horário do servidor. HTMLs e UX de Agenda, Home e Finanças foram consultados, sem mudança de UI. Contrato em [`financial-projections.md`](financial-projections.md).
 
 Na 3.9, `create_or_update_residency`, `generate_residency_receivables` e `deactivate_residency` fazem o agregado Free sem `work_series` ou consulta a entitlement. O primeiro cadastro gera do mês inicial ao término ou à janela atual + 12 meses; o dia 31 é limitado ao último dia válido. Edição/desativação afetam apenas Recebíveis futuros não recebidos; históricos confirmados permanecem. Um job privado diário do Supabase Cron estende a janela sem depender do app aberto. Testes SQL em banco descartável e PostgREST local cobriram fevereiro bissexto/comum, concorrência, idempotência, ownership, rollback, worker e zero linhas em `work_series`. O job foi verificado no banco local principal; nenhuma migration foi aplicada em preview/production e não houve reset local. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Onboarding, Perfil, Home e Finanças foram consultados; não houve mudança de UI. Contrato em [`residency-recurrence.md`](residency-recurrence.md).
 
