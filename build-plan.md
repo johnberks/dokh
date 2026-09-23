@@ -216,7 +216,7 @@
   - Agenda por dia, status derivado, mês financeiro, origem, competência, valor/hora e ano.
   - **DoD:** fixtures cobrem caixa versus competência, sem data, confirmação pendente, residência, primeiro mês e virada do ano.
 
-- [ ] **3.12 — Gerar tipos e seed de desenvolvimento**
+- [x] **3.12 — Gerar tipos e seed de desenvolvimento**
   - Dependências: 3.11.
   - Script `generate:types`, fixtures sem PII e usuários de teste.
   - **DoD:** tipos versionados compilam; seed reproduz estados principais dos designs.

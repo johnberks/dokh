@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-23 · Codex · 3.11 concluída no PR draft [#26](https://github.com/johnberks/dokh/pull/26), empilhado sobre o [#25](https://github.com/johnberks/dokh/pull/25). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-23 · Codex · 3.12 concluída na branch `codex/3.12-types-seed`, empilhada sobre o PR draft [#26](https://github.com/johnberks/dokh/pull/26). A 3.1 segue pendente da conexão real do app preview.
 
 ## Onde paramos
 
@@ -39,6 +39,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.8 Confirmação de Recebível | ✅ RPC explícita, horário de servidor imutável, ownership e concorrência testados | — |
 | 3.9 Residência recorrente Free | ✅ RPCs de criação/edição/desativação, geração mensal e job de extensão; histórico e limites testados | — |
 | 3.11 Projeções de Agenda e Finanças | ✅ Views `security_invoker`, métricas de caixa/competência, status e ano testados | — |
+| 3.12 Tipos e seed local | ✅ `generate:types`, três contas sintéticas, estados de Home/Agenda/Finanças, Auth e RLS testados | — |
 
 ## Como rodar o projeto
 
@@ -62,11 +63,13 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é o PR draft [#26](https://github.com/johnberks/dokh/pull/26), branch `codex/3.11-projections`, empilhado sobre o [#25](https://github.com/johnberks/dokh/pull/25). A 3.11 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é a branch `codex/3.12-types-seed`, empilhada sobre o PR draft [#26](https://github.com/johnberks/dokh/pull/26). A 3.12 está concluída. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da DoD. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → branch 3.12. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo de infraestrutura com dependências satisfeitas: **3.12**, tipos e seed de desenvolvimento sem dados pessoais. A 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1). Trabalho independente: **2.7 motion e reduzir movimento**.
+Próximo passo sem decisão de produto pendente: **2.7**, motion e reduzir movimento, ou **4.1**, cliente Supabase e sessão segura; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9) e cliente/sessão (4.1).
+
+Na 3.12, `npm run generate:types` passou a gerar e formatar atomicamente os tipos públicos versionados. O seed SQL local cria três contas fictícias (`@example.invalid`) para Premium com residência e histórico, Free com entrada sem data e primeiro acesso vazio. As datas relativas ao dia de São Paulo mantêm próximo Trabalho, entrada de hoje, confirmação pendente, sem data e recebido; os dados seguem os estados dos HTMLs e UX sem copiá-los como regras financeiras. `npm run test:db` aplica o seed duas vezes em transação revertida no banco Auth real, verifica hashes/identidades, contas, projeções e isolamento RLS. Nenhum reset foi executado no banco do usuário e nada foi aplicado a preview/production. `npm run generate:types`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run test:db`, `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Veja [`supabase-local.md`](supabase-local.md) antes de optar por reset; a 3.12 não altera a UI nem a versão visual do Expo.
 
 Na 3.11, `receivable_projection` e `agenda_work_projection` são views `security_invoker` com RLS das tabelas de origem. As funções de mês, origem e ano separam previsão de caixa, recebimento confirmado no mês e competência de Trabalho. O valor/hora e quantias detalhadas por origem só são retornados com entitlement ativo no servidor; Free mantém os totais organizacionais. As fixtures cobrem sem data, confirmação pendente, Residência, primeiro mês, virada de ano e fuso local. Migration/rollback passaram em banco descartável e PostgREST local confirmou owner/anon. A migration foi aplicada somente no Supabase local, sem reset nem alteração em preview/production. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. O teste HTTP da 3.8 deixou de depender de relógios cliente/servidor sincronizados ao milissegundo; o teste SQL continua comprovando o horário do servidor. HTMLs e UX de Agenda, Home e Finanças foram consultados, sem mudança de UI. Contrato em [`financial-projections.md`](financial-projections.md).
 

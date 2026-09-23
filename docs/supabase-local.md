@@ -1,8 +1,8 @@
 # Supabase: local, preview e production
 
 O Supabase CLI usa `supabase/config.toml` versionado. O projeto local tem ID `dokh`,
-portas padrão 54321–54324, migrations habilitadas e seed de domínio desabilitado até
-a tarefa 3.12. Realtime está desligado conforme D28. As migrations 3.2–3.5
+portas padrão 54321–54324, migrations habilitadas e seed sintético de desenvolvimento.
+Realtime está desligado conforme D28. As migrations 3.2–3.5
 criam perfis, preferências, o núcleo profissional e o suporte operacional com
 RLS. O cliente Supabase no app ainda depende da 4.1.
 
@@ -14,10 +14,13 @@ Requer Docker Desktop funcional e Node 22. Execute **na raiz deste repositório*
 fnm exec --using=22 npm ci
 fnm exec --using=22 npm run supabase:start
 fnm exec --using=22 npm run supabase:status
-fnm exec --using=22 npm run supabase:reset
 ```
 
-`supabase:reset` apaga **somente o banco local** e reaplica as migrations. Não use
+**Opcional, apenas quando quiser descartar todos os dados locais e carregar os
+perfis de demonstração:** `fnm exec --using=22 npm run supabase:reset`.
+Esse comando apaga **somente o banco local**, reaplica as migrations e agora
+carrega `supabase/seed.sql`. Faça backup ou confirme que os dados existentes
+podem ser descartados antes de executar. Não use
 `--linked` ou `--db-url` neste fluxo. Copie `.env.example` para `.env.local` e use
 a URL e a publishable/anon key exibidas por `supabase:status`. No iPhone físico,
 substitua `127.0.0.1` da URL pelo IP LAN do computador; o iPhone e o computador
@@ -38,8 +41,30 @@ os SQLs de rollback versionados; não reseta o banco DOKH em uso. O rollback é
 forward-only.
 Os tipos versionados em `src/data/database.types.ts` foram gerados do banco
 local. Para regenerá-los após uma migration, execute
-`SUPABASE_TELEMETRY_DISABLED=1 fnm exec --using=22 npx supabase gen types typescript --local --schema public`
-e formate com Biome. O CI repete os testes SQL e compara os tipos gerados.
+`fnm exec --using=22 npm run generate:types`; o script só substitui o arquivo
+após geração e formatação bem-sucedidas. O CI repete os testes SQL, o seed em
+transação revertida e a comparação dos tipos gerados.
+
+## Seed local da 3.12
+
+O seed usa somente nomes e instituições fictícios, endereços `@example.invalid`
+incapazes de receber mensagens e IDs fixos. Após **um reset local autorizado**,
+entre com um dos usuários abaixo; todos usam a senha pública de teste
+`DokhLocal2026!` (não reutilizar como senha real):
+
+| Conta local | Estado |
+| --- | --- |
+| `premium@example.invalid` | Perfil completo, residência, Premium sandbox, próximo trabalho, entrada de hoje, vencida, sem data e recebida; histórico para Home/Agenda/Finanças |
+| `free@example.invalid` | Perfil completo Free, trabalho futuro e entrada sem data; sem números Premium |
+| `novo@example.invalid` | Perfil não concluído, sem trabalho nem recebível para o primeiro acesso |
+
+Datas de trabalho e pagamento são relativas ao dia local de São Paulo no momento
+do reset, para manter os estados visíveis. Os valores são centavos inteiros.
+O seed não executa em `migration up`; se o banco já contém dados, **não rode
+reset só para ver as fixtures**. `npm run test:db` aplica o seed duas vezes numa
+transação e desfaz tudo, verificando idempotência, Auth, projeções e RLS sem
+alterar o banco em uso. O arquivo de seed é para desenvolvimento local: **nunca**
+usar `supabase db push --include-seed` em preview ou production.
 
 Na 3.2, `profiles.id` é o ID de Auth e `user_id` é uma coluna gerada igual a
 ele, usada pelas policies; o cliente não deve enviá-la. `timezone` deve vir

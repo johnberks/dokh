@@ -64,8 +64,8 @@ enabled = true
 schema_paths = []
 
 [db.seed]
-# Seed de dominio entra na tarefa 3.12; reset local não depende de arquivo inexistente.
-enabled = false
+# Carregado apenas por reset local. Nunca aplicar --include-seed em projeto remoto.
+enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
 sql_paths = ["./seed.sql"]
