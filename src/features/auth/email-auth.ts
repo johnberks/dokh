@@ -5,6 +5,15 @@ export type AuthAction = 'signIn' | 'signUp' | 'recover' | 'reset';
 
 /** Never surface raw Auth errors: they may contain an address or other PII. */
 export function authErrorMessage(error: unknown, action: AuthAction): string {
+  const isNetworkError =
+    error &&
+    typeof error === 'object' &&
+    'name' in error &&
+    error.name === 'AuthRetryableFetchError' &&
+    'status' in error &&
+    error.status === 0;
+  if (isNetworkError)
+    return 'Não foi possível conectar ao servidor. Verifique a rede e tente novamente.';
   const code =
     error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
       ? error.code
@@ -14,6 +23,8 @@ export function authErrorMessage(error: unknown, action: AuthAction): string {
   if (code === 'user_already_exists' || code === 'email_exists')
     return 'Não foi possível criar a conta. Tente entrar ou recuperar sua senha.';
   if (code === 'weak_password') return 'Escolha uma senha mais forte.';
+  if (code === 'signup_disabled' || code === 'email_provider_disabled')
+    return 'O cadastro por e-mail está indisponível no momento.';
   if (code === 'over_email_send_rate_limit' || code === 'over_request_rate_limit')
     return 'Muitas tentativas. Aguarde um pouco e tente novamente.';
   if (code === 'otp_expired' || code === 'otp_disabled')

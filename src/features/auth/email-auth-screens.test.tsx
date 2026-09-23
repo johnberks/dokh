@@ -97,6 +97,32 @@ describe('telas de e-mail', () => {
     expect(router.replace).not.toHaveBeenCalled();
   });
 
+  it('mostra e oculta a senha no cadastro sem alterar o rascunho', async () => {
+    await render(<SignUpScreen />);
+    await fireEvent.changeText(screen.getByLabelText('Senha'), 'test-password');
+    expect(screen.getByLabelText('Senha').props.secureTextEntry).toBe(true);
+    await fireEvent.press(screen.getByRole('button', { name: 'Mostrar senha' }));
+    expect(screen.getByLabelText('Senha').props.secureTextEntry).toBe(false);
+    expect(screen.getByLabelText('Senha').props.value).toBe('test-password');
+    await fireEvent.press(screen.getByRole('button', { name: 'Ocultar senha' }));
+    expect(screen.getByLabelText('Senha').props.secureTextEntry).toBe(true);
+  });
+
+  it('explica falha de conexão no cadastro e preserva os campos', async () => {
+    mockedSignUp.mockRejectedValue({ name: 'AuthRetryableFetchError', status: 0 });
+    await render(<SignUpScreen />);
+    await fireEvent.changeText(screen.getByLabelText('E-mail'), 'valid@example.invalid');
+    await fireEvent.changeText(screen.getByLabelText('Senha'), 'test-password');
+    await fireEvent.press(screen.getByRole('button', { name: 'Criar conta com e-mail' }));
+    expect(
+      await screen.findByText(
+        'Não foi possível conectar ao servidor. Verifique a rede e tente novamente.',
+      ),
+    ).toBeTruthy();
+    expect(screen.getByLabelText('Senha').props.value).toBe('test-password');
+    expect(router.replace).not.toHaveBeenCalled();
+  });
+
   it('recuperação envia link sem revelar se a conta existe', async () => {
     mockedRecover.mockResolvedValue(undefined);
     await render(<RecoverPasswordScreen />);

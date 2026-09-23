@@ -106,5 +106,14 @@ describe('formulários de e-mail', () => {
       'E-mail ou senha incorretos.',
     );
     expect(authErrorMessage({ code: 'over_email_send_rate_limit' }, 'recover')).toMatch(/Aguarde/);
+    expect(
+      authErrorMessage(
+        { name: 'AuthRetryableFetchError', status: 0, message: raw.message },
+        'signUp',
+      ),
+    ).toBe('Não foi possível conectar ao servidor. Verifique a rede e tente novamente.');
+    expect(authErrorMessage({ code: 'signup_disabled' }, 'signUp')).toBe(
+      'O cadastro por e-mail está indisponível no momento.',
+    );
   });
 });

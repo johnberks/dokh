@@ -1,5 +1,6 @@
 import { BlurTargetView, BlurView } from 'expo-blur';
-import { type ReactNode, useContext, useRef } from 'react';
+import { Eye, EyeOff } from 'lucide-react-native';
+import { type ReactNode, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -163,20 +164,37 @@ type AuthFieldProps = TextInputProps & {
   error?: string;
 };
 
-export function AuthField({ label, error, style, ...props }: AuthFieldProps) {
+export function AuthField({ label, error, style, secureTextEntry, ...props }: AuthFieldProps) {
   const type = useBrandTypography();
+  const { t } = useTranslation('auth');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   return (
     <View>
       <View style={[styles.field, error ? styles.fieldError : null]}>
         <AppText style={[type.technical, styles.fieldLabel]}>{label.toUpperCase()}</AppText>
         <TextInput
           {...props}
+          secureTextEntry={Boolean(secureTextEntry && !passwordVisible)}
           accessibilityLabel={label}
           accessibilityHint={error}
           autoCapitalize="none"
           placeholderTextColor={palette.sage}
-          style={[type.body, styles.fieldInput, style]}
+          style={[type.body, styles.fieldInput, secureTextEntry && styles.passwordInput, style]}
         />
+        {secureTextEntry ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t(passwordVisible ? 'common.hidePassword' : 'common.showPassword')}
+            onPress={() => setPasswordVisible((visible) => !visible)}
+            style={styles.passwordToggle}
+          >
+            {passwordVisible ? (
+              <EyeOff size={20} color={palette.sage} />
+            ) : (
+              <Eye size={20} color={palette.sage} />
+            )}
+          </Pressable>
+        ) : null}
       </View>
       {error ? (
         <AppText accessibilityLiveRegion="polite" style={styles.errorText}>
@@ -334,6 +352,16 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: palette.base,
     minHeight: Platform.OS === 'ios' ? 20 : 24,
+  },
+  passwordInput: { paddingRight: 42 },
+  passwordToggle: {
+    position: 'absolute',
+    right: 5,
+    top: 5,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: { marginTop: 4, fontSize: 12, lineHeight: 18, color: palette.negative },
   action: {

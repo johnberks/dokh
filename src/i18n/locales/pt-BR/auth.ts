@@ -45,5 +45,7 @@ export const auth = {
     back: 'Voltar',
     email: 'E-mail',
     password: 'Senha',
+    showPassword: 'Mostrar senha',
+    hidePassword: 'Ocultar senha',
   },
 } as const;
