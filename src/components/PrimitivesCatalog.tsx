@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import Plus from 'lucide-react-native/icons/plus';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ import { Input } from './Input';
 import { Card, Divider, Screen, ScrollScreen } from './Layout';
 import { MoneyInputCatalog } from './MoneyInputCatalog';
 import { MotionCatalog } from './MotionCatalog';
+import { NavigationControl } from './NavigationControl';
 import { PremiumGateCatalog } from './PremiumGateCatalog';
 import { ProgressCardCatalog } from './ProgressCardCatalog';
 import { ReceivableRowCatalog } from './ReceivableRowCatalog';
@@ -31,6 +33,13 @@ export function PrimitivesCatalog() {
   return (
     <ScrollScreen>
       <View style={{ gap: spacing.base, paddingVertical: spacing.xl }}>
+        <NavigationControl
+          kind="back"
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/');
+          }}
+        />
         <AppText accessibilityRole="header" variant="heading1">
           {t('catalog.title')}
         </AppText>

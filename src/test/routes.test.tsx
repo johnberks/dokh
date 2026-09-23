@@ -82,11 +82,15 @@ describe('rotas', () => {
     expect(screen.getByTestId('gesture-handler-root')).toHaveStyle({ flex: 1 });
     expect(screen.getByRole('header', { name: 'Componentes básicos' })).toBeTruthy();
     expect(screen.getByRole('header', { name: 'Movimento e transições' })).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Voltar' }));
+    expect(router.getPathname()).toBe('/');
   });
 
   it('Home provisória abre o catálogo apenas em desenvolvimento', async () => {
     const router = await openAt('/');
     await fireEvent.press(screen.getByRole('button', { name: 'Componentes básicos' }));
     expect(router.getPathname()).toBe('/dev/primitives');
+    await fireEvent.press(screen.getByRole('button', { name: 'Voltar' }));
+    expect(router.getPathname()).toBe('/');
   });
 });
