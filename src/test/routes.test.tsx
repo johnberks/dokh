@@ -79,7 +79,9 @@ describe('rotas', () => {
   it('catálogo interno abre por deep link em desenvolvimento', async () => {
     const router = await openAt('/dev/primitives');
     expect(router.getPathname()).toBe('/dev/primitives');
+    expect(screen.getByTestId('gesture-handler-root')).toHaveStyle({ flex: 1 });
     expect(screen.getByRole('header', { name: 'Componentes básicos' })).toBeTruthy();
+    expect(screen.getByRole('header', { name: 'Movimento e transições' })).toBeTruthy();
   });
 
   it('Home provisória abre o catálogo apenas em desenvolvimento', async () => {
