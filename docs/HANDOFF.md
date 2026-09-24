@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-23 · Codex · ajuste de teclado da 4.2 no PR draft [#32](https://github.com/johnberks/dokh/pull/32), empilhado sobre o [#31](https://github.com/johnberks/dokh/pull/31). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-24 · Codex · passagem para Claude Code no PR draft [#32](https://github.com/johnberks/dokh/pull/32), empilhado sobre o [#31](https://github.com/johnberks/dokh/pull/31). A 3.1 segue pendente da conexão real do app preview.
 
 Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
 
@@ -79,7 +79,7 @@ O ponto de retomada desta trilha é o PR draft [#32](https://github.com/johnberk
 
 Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → #28 → #29 → #30 → #31 → #32. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
-Próximo passo após esta branch: **7.2**, composição final da entrada/onboarding conforme HTML e persistência do perfil, seguido de 9.1 (queries financeiras); a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9).
+Próximo passo após esta branch: validar o ajuste de teclado da **4.2** no iPhone 16; em seguida, avançar a UI de **7.2** conforme HTML e UX sem considerar suas dependências 4.3/4.4 concluídas. A 9.1 (queries financeiras) pode ser planejada em paralelo à UI; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9).
 
 Na 4.5, `AuthNavigationGate` segura o splash até resolver sessão e `profiles.onboarding_completed_at`, consulta o perfil por UUID/RLS e protege os grupos `(auth)`, `(onboarding)` e `(tabs)` com `Stack.Protected` do Expo Router 57. Deep links de confirmação, recuperação e reset ficam acessíveis fora dos grupos. Sem sessão abre `/sign-in`; com perfil ausente/incompleto, `/welcome`; com perfil concluído, Home. Erro de leitura mostra retry sem inventar estado de onboarding. O logout local aparece temporariamente em `__DEV__` no Perfil e no welcome placeholder; o botão Entrar de desenvolvimento saiu da Home. A 7.2 ainda precisa criar as telas do HTML e gravar `onboarding_completed_at` ao final real. `npm run typecheck`, `npm run check`, `npm run check:agents` e `npm test -- --runInBand` (33 suítes/193 testes) passaram; `expo-doctor` passou 21/21 com cache temporário. Docker Desktop não estava rodando nesta sessão (`supabase:status` não conectou ao daemon), então `test:db` não foi executado; não houve mudança de schema. A matriz de rotas e a consulta têm testes automatizados, mas a DoD de abrir/entrar/sair no aparelho ainda exige validação; checkbox permanece aberto. Contrato e fixtures em [`auth-guards.md`](auth-guards.md). Nenhum HTML, schema, seed ou projeto remoto foi alterado.
 
@@ -117,41 +117,54 @@ Na 3.2, `supabase/migrations/20260922000000_profiles_preferences.sql` criou as t
 
 Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. Os refs públicos remotos estão versionados no schema, que recusa preview→production e URL local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. Os projetos remotos `dokh-preview` (`lakpndtdkcjtazoybgnv`) e `dokh-production` (`irdsieciowovsaakikbf`) foram criados na organização pessoal Free, região `sa-east-1`, sem upgrade. Cada chave publishable acessou o próprio endpoint REST e foi rejeitada (`401`) no projeto oposto. O checkbox 3.1 permanece desmarcado apenas pela prova de conexão do app preview.
 
+## Assunção pelo Claude Code
+
+1. Abrir **este checkout** na raiz do repositório, não a pasta antiga `projeto_dokh` sem o script `npm run start`. Ler `CLAUDE.md` (canônico), este handoff, `build-plan.md`, `decisions.md` e `domain-model.md`. Antes de cada tela, ler também o UX em `docs/screens/` e o respectivo `.html` em `design/`; não editar os HTMLs de referência. `AGENTS.md` deve continuar cópia idêntica de `CLAUDE.md`.
+2. Conferir `git status`, `git log` e o diff do PR [#32](https://github.com/johnberks/dokh/pull/32). Em 2026-09-24, a branch de partida `codex/4.2-login-keyboard` estava publicada, sem mudanças locais, com CI verde (`typecheck · biome · jest` e `migration · RLS · generated types`). O PR é **draft**, aberto e baseado em `codex/4.5-auth-guards` (#31). Não fazer merge direto em `main`, rebase destrutivo nem fechar a 4.2 antes da DoD; manter a cadeia de PRs empilhados.
+   - Na verificação deste handoff, `typecheck`, `check`, `check:agents` e Jest (34 suítes/198 testes) passaram. O Expo Doctor passou **20/21**: há somente drift de versões patch (`expo` esperado `~57.0.25`, instalado `57.0.24`; `expo-linking` `~57.0.11`/`57.0.10`; `expo-router` `~57.0.23`/`57.0.22`). O PR #32 tinha passado 21/21 antes dessa recomendação mudar. Atualizar com `npx expo install` em uma tarefa própria, com lockfile, testes e PR; não tratar esta diferença de patch como prova de falha do ajuste de teclado.
+3. Para retomar localmente neste checkout, executar os comandos abaixo. A branch já está ativa nesta worktree; em outra worktree, criar a próxima branch de tarefa a partir de `origin/codex/4.2-login-keyboard` em vez de tentar fazer checkout da mesma branch ativa duas vezes.
+
 ```bash
-git fetch origin codex/2.7-motion
-git switch -c codex/2.7-motion origin/codex/2.7-motion
+cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-4.1-session
+git status --short --branch
+git fetch origin codex/4.2-login-keyboard
+git log -1 --oneline
 fnm exec --using=22 npm ci
-fnm exec --using=22 npm run typecheck && fnm exec --using=22 npm run check && fnm exec --using=22 npm test -- --runInBand
+fnm exec --using=22 npm run typecheck
+fnm exec --using=22 npm run check
+fnm exec --using=22 npm test -- --runInBand
+fnm exec --using=22 npm run check:agents
 ```
 
-**Teste manual:** o usuário testa no **Expo Go no iPhone**, não no simulador. Ao final de cada entrega, forneça um bloco bash que faça checkout da branch e rode `npx expo start --clear`, dizendo o que conferir (ex.: catálogo em `/dev/primitives`).
+4. Para Expo Go no iPhone, manter `.env.local` **ignorado** com URL LAN e chave pública local; nunca copiar segredos para Git. Abrir Docker Desktop, subir Supabase (`fnm exec --using=22 npm run supabase:start`), verificar `/auth/v1/health` em `127.0.0.1:54321`, iniciar `fnm exec --using=22 npm run supabase:lan-proxy` em outro terminal e verificar a porta LAN `:8082` no Safari do iPhone. Depois rodar `fnm exec --using=22 npm run start -- --clear`. Se aparecer 502, conferir Docker/Supabase; **não** resetar o banco. Ajustar o IP da LAN no `.env.local` se necessário. Detalhes em [`email-auth.md`](email-auth.md) e [`supabase-local.md`](supabase-local.md).
+5. Validar no iPhone 16 o PR #32: tela Entrar sem arrasto; e-mail e senha visíveis acima do teclado ao alternar foco; fechar o teclado restaura a posição inicial; verificar também login/cadastro. Essa validação **ainda não foi confirmada** pelo usuário. Android foi adiado, não dispensado da DoD. Apple/Google continuam indisponíveis até 4.3/4.4; recuperação local usa Mailpit, não o e-mail real.
+6. Para trabalho novo, escolher uma unidade do `build-plan.md`, criar `codex/<task-id>-<slug>` a partir do topo do #32, implementar sem mudar cores/tamanhos/tipografia dos HTMLs, rodar os checks de `CLAUDE.md` e atualizar este handoff. Abrir PR draft empilhado sobre `codex/4.2-login-keyboard`; registrar no PR testes, validação em aparelho e lacunas. Marcar checkbox só quando a DoD completa passar. Ao entregar UI, fornecer Bash de checkout/Expo e dizer o que testar.
 
-## Como continuar no Codex
-
-1. Abrir o Codex na raiz do repositório: ele lê `AGENTS.md` automaticamente (cópia idêntica de `CLAUDE.md`, gerada por `npm run sync:agents`).
-2. Pedir uma tarefa identificada do `build-plan.md`. Modelo de pedido:
+Prompt sugerido ao Claude Code:
 
 ```text
-Leia docs/HANDOFF.md e AGENTS.md. Retome a tarefa 3.1 do build-plan.md
-na branch codex/3.1-supabase-local. Docker e os projetos Supabase remotos
-já foram validados; falta comprovar que o app preview conecta somente a
-`dokh-preview`, após 1.9/4.1. Rode typecheck, check e test. Marque o
-checkbox somente se toda a DoD passar e atualize este handoff e o PR #17.
+Leia CLAUDE.md, docs/HANDOFF.md, build-plan.md, decisions.md e domain-model.md.
+Parta do PR draft #32 (branch codex/4.2-login-keyboard, base do próximo PR).
+Antes de implementar uma tela, leia seu UX e HTML de design como fontes de verdade.
+Preserve o trabalho existente, rode typecheck/check/test/expo-doctor, documente
+pendências reais e só marque a DoD quando houver evidência completa.
 ```
-
-3. Ao terminar: atualizar este arquivo, enviar a branch e abrir o PR em rascunho sobre o anterior.
 
 ### Cuidados nesta máquina
 
-- O Codex trabalha em **worktrees** próprias (`~/Documents/Codex/.../work/dokh-*`). Uma branch já aberta em uma worktree não pode ser usada em outra: crie a nova branch a partir de `origin/<branch>`.
+- Codex pode trabalhar em **worktrees** próprias (`~/Documents/Codex/.../work/dokh-*`). Uma branch já aberta em uma worktree não pode ser usada em outra: crie a nova branch a partir de `origin/<branch>`.
 - O `fnm` não está no perfil do shell. Use `fnm exec --using=22 <comando>` ou `eval "$(fnm env --use-on-cd --shell zsh)"` antes.
 - Instalar biblioteca Expo/nativa com `npx expo install`; bibliotecas puramente JS com `npm install`.
-- Um único Metro por vez: `lsof -ti tcp:8081 | xargs kill` antes de subir outro.
+- Um único Metro por vez: inspecione `lsof -iTCP:8081 -sTCP:LISTEN` e pare a sessão anterior com `Ctrl+C` antes de subir outra.
 
 Checks obrigatórios antes de concluir qualquer tarefa:
 
 ```bash
-npm run typecheck && npm run check && npm test && npm run check:agents
+fnm exec --using=22 npm run typecheck
+fnm exec --using=22 npm run check
+fnm exec --using=22 npm test -- --runInBand
+fnm exec --using=22 npm run check:agents
+npm_config_cache=/private/tmp/dokh-npm-cache fnm exec --using=22 npx expo-doctor
 ```
 
 ## O que já existe no código
@@ -282,6 +295,7 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 
 ## Próximas tarefas sugeridas (em ordem)
 
-1. **2.2** Finalizar o símbolo D1 e splash a partir do vetor final aprovado; fontes já estão no PR draft #3.
-2. **3.4–3.5** Migrations e RLS sobre Supabase local; projetos remotos disponíveis. Não aplicar migration remota sem testes de propriedade/RLS.
-3. **1.9 + 4.1** EAS e cliente/sessão; comprovar app preview em `dokh-preview` para fechar a 3.1. Depois **4.2/4.5** e telas. **2.7** motion pode entrar independentemente.
+1. **4.2 / PR #32:** conferir no iPhone o login fixo e a posição dos campos com teclado aberto; registrar resultado. Não marcar `[x]` ainda por causa do reset/callback nativo, preview e Android adiado.
+2. **7.2 (recorte de UI):** compor a entrada/criação conforme `design/onboarding.html` e `docs/screens/onboarding.md`; 4.3/4.4 e 7.1 continuam dependências reais da DoD completa. A coleta de perfil/Residência é 7.3, não presumir que 7.2 a conclui.
+3. **9.1:** integrar queries tipadas das projeções financeiras já criadas e testá-las contra fixtures; depois montar Finanças 9.2 com topo verde e corpo bege numa rolagem única.
+4. **1.9 / 3.1:** configurar EAS com a conta Expo e provar que o app preview usa apenas `dokh-preview`. **2.2** ainda espera o vetor D1 final aprovado para splash/ícones. Não aplicar migrations em projetos remotos sem os testes e aprovação do trecho correspondente.
