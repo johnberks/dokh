@@ -6,7 +6,7 @@ Fontes: `decisions.md` D19–D21/D40–D44, `domain-model.md`, `docs/screens/onb
 
 - `src/data/supabase-client.ts` cria um único cliente tipado com as variáveis públicas já validadas da 1.4. A chave `service_role` nunca entra no app. A chave de armazenamento é separada por ambiente (`dokh.local.auth`, `dokh.preview.auth`, `dokh.production.auth`).
 - `src/data/secure-auth-storage.ts` é o único adapter de persistência de Auth. Ele divide a sessão em partes pequenas no `expo-secure-store` para respeitar limites nativos de payload e escreve o manifesto por último, preservando a sessão anterior se uma escrita de parte falhar. Não há AsyncStorage, arquivo local ou persistência do cache TanStack Query.
-- `AuthSessionProvider` expõe apenas `status` e `userId`, jamais access/refresh token. O Supabase renova a sessão somente em foreground; a inscrição e o listener são removidos ao desmontar.
+- `AuthSessionProvider` expõe apenas `status` e `userId`, jamais access/refresh token. O Supabase renova a sessão somente em foreground; a inscrição e o listener são removidos ao desmontar. O guard de rotas agora está em `docs/auth-guards.md` (4.5 parcial).
 - Trocar de usuário ou receber `SIGNED_OUT` limpa o cache de domínio em memória. `signOut()` usa escopo `local`, remove a sessão via Supabase Auth e só então redireciona para `/sign-in`; os guards gerais continuam para a 4.5.
 
 ## Verificação e limites

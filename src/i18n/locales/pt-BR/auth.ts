@@ -47,5 +47,7 @@ export const auth = {
     password: 'Senha',
     showPassword: 'Mostrar senha',
     hidePassword: 'Ocultar senha',
+    signOut: 'Sair da conta',
+    signOutError: 'Não foi possível sair agora. Tente novamente.',
   },
 } as const;

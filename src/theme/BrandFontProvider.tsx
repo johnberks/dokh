@@ -9,12 +9,18 @@ void SplashScreen.preventAutoHideAsync();
 
 const BrandFontsLoadedContext = createContext(false);
 
-export function BrandFontProvider({ children }: { children: ReactNode }) {
+export function BrandFontProvider({
+  children,
+  hideSplashWhenReady = true,
+}: {
+  children: ReactNode;
+  hideSplashWhenReady?: boolean;
+}) {
   const [loaded, error] = useFonts(brandFontAssets);
 
   useEffect(() => {
-    if (loaded || error) void SplashScreen.hideAsync();
-  }, [loaded, error]);
+    if (hideSplashWhenReady && (loaded || error)) void SplashScreen.hideAsync();
+  }, [loaded, error, hideSplashWhenReady]);
 
   if (!loaded && !error) return null;
 

@@ -41,6 +41,16 @@ describe('brand font loading', () => {
     expect(SplashScreen.hideAsync).toHaveBeenCalled();
   });
 
+  it('lets the route guard keep the splash until session and profile settle', async () => {
+    await render(
+      <BrandFontProvider hideSplashWhenReady={false}>
+        <Probe />
+      </BrandFontProvider>,
+    );
+    expect(screen.getByText('Brand font probe')).toBeTruthy();
+    expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
+  });
+
   it('renders with system fallback when loading fails', async () => {
     jest.mocked(useFonts).mockReturnValue([false, new Error('font unavailable')]);
     const view = await render(

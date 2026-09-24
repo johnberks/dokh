@@ -8,6 +8,7 @@ export const common = {
     cancel: 'Cancelar',
   },
   states: {
+    loading: 'Carregando sua conta',
     loadError: 'Não foi possível carregar agora.',
     offline: 'Sem conexão. Os dados podem estar desatualizados.',
   },
