@@ -1,6 +1,6 @@
 import { BlurTargetView, BlurView } from 'expo-blur';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { type ReactNode, useContext, useRef, useState } from 'react';
+import { type ReactNode, type Ref, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -161,16 +161,24 @@ export function SocialChoices() {
 type AuthFieldProps = TextInputProps & {
   label: string;
   error?: string;
+  containerRef?: Ref<View>;
 };
 
-export function AuthField({ label, error, style, secureTextEntry, ...props }: AuthFieldProps) {
+export function AuthField({
+  label,
+  error,
+  style,
+  secureTextEntry,
+  containerRef,
+  ...props
+}: AuthFieldProps) {
   const type = useBrandTypography();
   const { t } = useTranslation('auth');
   const [passwordVisible, setPasswordVisible] = useState(false);
   // Single-line TextInput on iOS clips focused glyphs when given a lineHeight or fixed height.
   const inputTypography = { fontFamily: type.body.fontFamily, fontWeight: type.body.fontWeight };
   return (
-    <View>
+    <View ref={containerRef} collapsable={containerRef ? false : undefined}>
       <View style={[styles.field, error ? styles.fieldError : null]}>
         <AppText style={[type.technical, styles.fieldLabel]}>{label.toUpperCase()}</AppText>
         <TextInput

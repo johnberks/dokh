@@ -1,7 +1,7 @@
 import '@/i18n';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { Keyboard, type KeyboardEvent, StyleSheet } from 'react-native';
 import {
   acceptEmailLink,
   sendRecoveryEmail,
@@ -48,6 +48,29 @@ beforeEach(() => {
 });
 
 describe('telas de e-mail', () => {
+  it('mantém login sem arrasto com teclado fechado ou aberto', async () => {
+    const listeners = new Map<string, (event: KeyboardEvent) => void>();
+    const addListener = jest.spyOn(Keyboard, 'addListener').mockImplementation((name, callback) => {
+      listeners.set(name, callback);
+      return { remove: jest.fn() } as never;
+    });
+    try {
+      await render(<SignInScreen />);
+      const scroll = screen.getByTestId('sign-in-scroll');
+      expect(scroll.props.scrollEnabled).toBe(false);
+      expect(scroll.props.bounces).toBe(false);
+      expect(scroll.props.showsVerticalScrollIndicator).toBe(false);
+
+      await act(async () => listeners.get('keyboardDidShow')?.({} as KeyboardEvent));
+      expect(scroll.props.scrollEnabled).toBe(false);
+
+      await act(async () => listeners.get('keyboardDidHide')?.({} as KeyboardEvent));
+      expect(scroll.props.scrollEnabled).toBe(false);
+    } finally {
+      addListener.mockRestore();
+    }
+  });
+
   it('mantém o campo de 54 px sem limitar a linha nativa durante a digitação', async () => {
     await render(<SignInScreen />);
     for (const label of ['E-mail', 'Senha']) {
