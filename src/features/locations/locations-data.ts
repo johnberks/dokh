@@ -50,28 +50,22 @@ export type NewWorkLocation = {
 };
 
 /**
- * `user_id` vem da sessão do app e é conferido pela RLS (`auth.uid() = user_id`);
- * o banco recusa qualquer outro dono, então o cliente não consegue escrever por terceiros.
+ * Escritas passam por RPC (3.5 fecha DML de Locais para o cliente): o dono vem de
+ * `auth.uid()` no servidor, que também valida a paleta — a ampliada exige Premium ativo.
  */
 export async function createWorkLocation(
-  userId: string,
   input: NewWorkLocation,
   existing: readonly WorkLocation[],
   client: AuthClient = supabase,
 ): Promise<WorkLocation> {
   const colorToken =
     input.colorToken ?? nextAutomaticColorToken(existing.map((location) => location.colorToken));
-  const { data, error } = await client
-    .from('work_locations')
-    .insert({
-      user_id: userId,
-      name: input.name.trim(),
-      city: input.city?.trim() || null,
-      color_token: colorToken,
-      color_source: input.colorSource ?? (input.colorToken ? 'free_palette' : 'automatic'),
-    })
-    .select('*')
-    .single();
+  const { data, error } = await client.rpc('create_work_location', {
+    p_name: input.name.trim(),
+    p_city: (input.city?.trim() || null) as unknown as string,
+    p_color_token: colorToken,
+    p_color_source: input.colorSource ?? (input.colorToken ? 'free_palette' : 'automatic'),
+  });
   if (error) throw error;
   return toWorkLocation(data);
 }
@@ -83,22 +77,20 @@ export type WorkLocationPatch = {
   colorSource?: ColorSource;
 };
 
+/** A RPC substitui o Local inteiro: o patch é aplicado sobre o estado atual. */
 export async function updateWorkLocation(
-  locationId: string,
+  current: WorkLocation,
   patch: WorkLocationPatch,
   client: AuthClient = supabase,
 ): Promise<WorkLocation> {
-  const { data, error } = await client
-    .from('work_locations')
-    .update({
-      ...(patch.name === undefined ? {} : { name: patch.name.trim() }),
-      ...(patch.city === undefined ? {} : { city: patch.city?.trim() || null }),
-      ...(patch.colorToken === undefined ? {} : { color_token: patch.colorToken }),
-      ...(patch.colorSource === undefined ? {} : { color_source: patch.colorSource }),
-    })
-    .eq('id', locationId)
-    .select('*')
-    .single();
+  const city = patch.city === undefined ? current.city : patch.city;
+  const { data, error } = await client.rpc('update_work_location', {
+    p_location_id: current.id,
+    p_name: (patch.name ?? current.name).trim(),
+    p_city: (city?.trim() || null) as unknown as string,
+    p_color_token: patch.colorToken ?? current.colorToken,
+    p_color_source: patch.colorSource ?? current.colorSource,
+  });
   if (error) throw error;
   return toWorkLocation(data);
 }
@@ -108,10 +100,7 @@ export async function archiveWorkLocation(
   locationId: string,
   client: AuthClient = supabase,
 ): Promise<void> {
-  const { error } = await client
-    .from('work_locations')
-    .update({ archived_at: new Date().toISOString() })
-    .eq('id', locationId);
+  const { error } = await client.rpc('archive_work_location', { p_location_id: locationId });
   if (error) throw error;
 }
 
@@ -134,14 +123,10 @@ function useLocationsInvalidation() {
 }
 
 export function useCreateWorkLocation() {
-  const session = useAuthSession();
   const locations = useWorkLocations();
   const invalidate = useLocationsInvalidation();
   return useMutation({
-    mutationFn: (input: NewWorkLocation) => {
-      if (session.userId === null) throw new Error('missing session');
-      return createWorkLocation(session.userId, input, locations.data ?? []);
-    },
+    mutationFn: (input: NewWorkLocation) => createWorkLocation(input, locations.data ?? []),
     onSuccess: invalidate,
   });
 }
@@ -149,8 +134,8 @@ export function useCreateWorkLocation() {
 export function useUpdateWorkLocation() {
   const invalidate = useLocationsInvalidation();
   return useMutation({
-    mutationFn: ({ locationId, patch }: { locationId: string; patch: WorkLocationPatch }) =>
-      updateWorkLocation(locationId, patch),
+    mutationFn: ({ current, patch }: { current: WorkLocation; patch: WorkLocationPatch }) =>
+      updateWorkLocation(current, patch),
     onSuccess: invalidate,
   });
 }
