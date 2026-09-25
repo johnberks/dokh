@@ -37,6 +37,12 @@ describe('formatCentsToBRL', () => {
     expect(formatCentsToBRL(5n)).toMatch(/^R\$\s?0,05$/);
   });
 
+  it('omite ",00" só quando pedido e o valor é inteiro', () => {
+    expect(formatCentsToBRL(120000n, { omitZeroCents: true })).toMatch(/^R\$\s?1\.200$/);
+    expect(formatCentsToBRL(365442n, { omitZeroCents: true })).toMatch(/^R\$\s?3\.654,42$/);
+    expect(formatCentsToBRL(120000n)).toMatch(/^R\$\s?1\.200,00$/);
+  });
+
   it('mantém precisão acima do limite seguro de number', () => {
     expect(formatCentsToBRL(9007199254740993n)).toMatch(/90\.071\.992\.547\.409,93$/);
     // Acima do limite seguro o agrupamento é manual, mas o formato continua o mesmo.

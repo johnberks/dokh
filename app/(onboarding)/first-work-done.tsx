@@ -1,13 +1,8 @@
-import { useTranslation } from 'react-i18next';
-import { PlaceholderScreen } from '@/components/PlaceholderScreen';
-import { DevelopmentSignOut } from '@/features/auth/DevelopmentSignOut';
+import { useLocalSearchParams } from 'expo-router';
+import { OnboardingDoneScreen } from '@/features/onboarding/screens/OnboardingDoneScreen';
 
-/** Conclusão dinâmica do onboarding: tela real e marcação de concluído são a tarefa 7.5. */
-export default function FirstWorkDoneScreen() {
-  const { t } = useTranslation('onboarding');
-  return (
-    <PlaceholderScreen title={t('firstWork.amount.submit')}>
-      <DevelopmentSignOut />
-    </PlaceholderScreen>
-  );
+/** TELA 10: recebe o Trabalho recém-gravado para mostrar o que de fato foi salvo. */
+export default function FirstWorkDoneRoute() {
+  const { workId } = useLocalSearchParams<{ workId?: string }>();
+  return <OnboardingDoneScreen workId={workId ?? null} />;
 }

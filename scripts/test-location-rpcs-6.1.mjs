@@ -1,0 +1,169 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+
+const status = execFileSync('node_modules/.bin/supabase', ['status', '-o', 'env'], {
+  encoding: 'utf8',
+  env: { ...process.env, SUPABASE_TELEMETRY_DISABLED: '1' },
+});
+const localEnv = Object.fromEntries(
+  status
+    .trim()
+    .split('\n')
+    .map((line) => {
+      const separator = line.indexOf('=');
+      return [
+        line.slice(0, separator),
+        line
+          .slice(separator + 1)
+          .trim()
+          .replace(/^"|"$/g, ''),
+      ];
+    }),
+);
+const { API_URL: apiUrl, ANON_KEY: anonKey, SERVICE_ROLE_KEY: serviceKey } = localEnv;
+assert.ok(apiUrl && anonKey && serviceKey, 'Supabase local API and keys are required');
+
+async function call(path, { method = 'GET', token = anonKey, body, prefer } = {}) {
+  const response = await fetch(new URL(path, apiUrl), {
+    method,
+    headers: {
+      apikey: token === serviceKey ? serviceKey : anonKey,
+      authorization: `Bearer ${token}`,
+      'content-type': 'application/json',
+      ...(prefer ? { prefer } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await response.json().catch(() => null);
+  return { response, data };
+}
+
+function success(result, label) {
+  assert.ok(result.response.ok, `${label}: HTTP ${result.response.status}`);
+  return result.data;
+}
+
+const users = [];
+async function createUser() {
+  const email = `location-rpc-test-${randomUUID()}@example.invalid`;
+  const password = randomUUID();
+  const created = success(
+    await call('/auth/v1/admin/users', {
+      method: 'POST',
+      token: serviceKey,
+      body: { email, password, email_confirm: true },
+    }),
+    'create disposable user',
+  );
+  users.push(created.id);
+  const session = success(
+    await call('/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      body: { email, password },
+    }),
+    'sign in disposable user',
+  );
+  return { id: created.id, token: session.access_token };
+}
+
+try {
+  const owner = await createUser();
+  const stranger = await createUser();
+
+  // Regressão da 7.4: o cliente não escreve direto na tabela (3.5 fecha DML)...
+  const direct = await call('/rest/v1/work_locations', {
+    method: 'POST',
+    token: owner.token,
+    body: { user_id: owner.id, name: 'Direto', color_token: 'sage' },
+  });
+  assert.equal(direct.response.status, 403, 'direct insert must stay closed to clients');
+
+  // ...e o caminho do app — criar Local pela RPC e o Trabalho em seguida — funciona.
+  const location = success(
+    await call('/rest/v1/rpc/create_work_location', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_name: '  Hospital São Lucas ',
+        p_city: null,
+        p_color_token: 'sage',
+        p_color_source: 'automatic',
+      },
+    }),
+    'owner creates location through RPC',
+  );
+  assert.equal(location.user_id, owner.id);
+  assert.equal(location.name, 'Hospital São Lucas');
+
+  const work = success(
+    await call('/rest/v1/rpc/create_work_with_receivable', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_idempotency_key: randomUUID(),
+        p_type: 'shift',
+        p_location_id: location.id,
+        p_description: null,
+        p_work_date: '2026-09-26',
+        p_start_time: '19:00',
+        p_duration_minutes: 720,
+        p_timezone: 'America/Sao_Paulo',
+        p_amount_cents: 120000,
+        p_expected_on: '2026-10-26',
+      },
+    }),
+    'owner creates first work at the new location',
+  )[0];
+  assert.ok(work.work_id);
+
+  const premium = await call('/rest/v1/rpc/create_work_location', {
+    method: 'POST',
+    token: owner.token,
+    body: {
+      p_name: 'Clínica',
+      p_city: null,
+      p_color_token: 'terra',
+      p_color_source: 'premium_palette',
+    },
+  });
+  assert.ok(!premium.response.ok, 'premium palette requires an entitlement');
+
+  const foreign = await call('/rest/v1/rpc/archive_work_location', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_location_id: location.id },
+  });
+  assert.ok(!foreign.response.ok, 'foreign account must not archive location');
+
+  success(
+    await call('/rest/v1/rpc/update_work_location', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_location_id: location.id,
+        p_name: 'HSL',
+        p_city: 'Recife',
+        p_color_token: 'bronze',
+        p_color_source: 'free_palette',
+      },
+    }),
+    'owner updates location',
+  );
+  success(
+    await call('/rest/v1/rpc/archive_work_location', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_location_id: location.id },
+    }),
+    'owner archives location',
+  );
+  console.log('6.1 location RPCs through PostgREST, first work flow, palette and ownership passed');
+} finally {
+  for (const id of users) {
+    success(
+      await call(`/auth/v1/admin/users/${id}`, { method: 'DELETE', token: serviceKey }),
+      'cleanup disposable user',
+    );
+  }
+}

@@ -8,7 +8,7 @@ em banco descartável para anônimo, dono, outra conta e `service_role`.
 | Tabelas | Cliente autenticado | `service_role` |
 | --- | --- | --- |
 | `profiles`, `work_preferences`, `notification_preferences`, `device_push_tokens` | CRUD apenas nas próprias linhas | CRUD |
-| `work_locations`, `work_series`, `work_entries`, `residencies`, `receivables` | Leitura apenas das próprias linhas; escrita via RPC transacional futura | CRUD |
+| `work_locations`, `work_series`, `work_entries`, `residencies`, `receivables` | Leitura apenas das próprias linhas; escrita só por RPC `SECURITY DEFINER` (Trabalho/Recebível na 3.7–3.8, Residência na 3.9, Locais na 6.1) | CRUD |
 | `subscription_entitlements`, `imports`, `import_issues` | Leitura apenas das próprias linhas; escrita via Edge Function/RPC futura | CRUD |
 
 Anônimo não tem acesso às tabelas. Nenhum papel cliente tem `TRUNCATE`,

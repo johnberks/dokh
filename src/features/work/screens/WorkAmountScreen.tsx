@@ -85,7 +85,11 @@ export function WorkAmountScreen() {
     Keyboard.dismiss();
     setTouched(true);
     if (cents === null || expected === null) return;
-    save.mutate(undefined, { onSuccess: () => router.push('/first-work-done') });
+    save.mutate(undefined, {
+      // `replace`: a tela de valor sai da pilha, então não há como voltar e gravar de novo.
+      onSuccess: ({ workId }) =>
+        router.replace({ pathname: '/first-work-done', params: { workId } }),
+    });
   }
 
   return (

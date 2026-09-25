@@ -218,7 +218,11 @@ describe('valor e previsão (tela 22)', () => {
       }),
       'key-1',
     );
-    expect(mockedPush).toHaveBeenCalledWith('/first-work-done');
+    // `replace`: sem voltar para a tela de valor e gravar de novo.
+    expect(router.replace).toHaveBeenCalledWith({
+      pathname: '/first-work-done',
+      params: { workId: 'w1' },
+    });
   });
 
   it('sem previsão grava data nula e explica o que acontece', async () => {

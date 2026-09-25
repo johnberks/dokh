@@ -619,6 +619,10 @@ export type Database = {
       };
     };
     Functions: {
+      archive_work_location: {
+        Args: { p_location_id: string };
+        Returns: undefined;
+      };
       confirm_receivable_received: {
         Args: { p_receivable_id: string };
         Returns: {
@@ -641,6 +645,31 @@ export type Database = {
           receivables_changed: number;
           residency_id: string;
         }[];
+      };
+      create_work_location: {
+        Args: {
+          p_city: string;
+          p_color_source: Database['public']['Enums']['work_location_color_source'];
+          p_color_token: string;
+          p_name: string;
+        };
+        Returns: {
+          archived_at: string | null;
+          city: string | null;
+          color_source: Database['public']['Enums']['work_location_color_source'];
+          color_token: string;
+          created_at: string;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'work_locations';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       create_work_with_receivable: {
         Args: {
@@ -709,6 +738,32 @@ export type Database = {
       generate_residency_receivables: {
         Args: { p_residency_id: string };
         Returns: number;
+      };
+      update_work_location: {
+        Args: {
+          p_city: string;
+          p_color_source: Database['public']['Enums']['work_location_color_source'];
+          p_color_token: string;
+          p_location_id: string;
+          p_name: string;
+        };
+        Returns: {
+          archived_at: string | null;
+          city: string | null;
+          color_source: Database['public']['Enums']['work_location_color_source'];
+          color_token: string;
+          created_at: string;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'work_locations';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       update_work_with_receivable: {
         Args: {

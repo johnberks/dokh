@@ -248,7 +248,7 @@ Quando o UX não desenhar estados técnicos, usar o padrão compartilhado abaixo
 | --- | --- |
 | Função de domínio/cálculo | Unitários com limites e timezone. |
 | Formulário | Schema + componente: válido, inválido e erro servidor. |
-| Query/mutation | Integração com Supabase local ou mock de contrato tipado. |
+| Query/mutation | Mock de contrato tipado **e** pelo menos um caminho real contra o Supabase local (script em `scripts/`, parte de `npm run test:db`) para toda escrita nova: cliente falso não enxerga grants nem RLS. |
 | Migration/RLS | Testes SQL: dono, outro usuário e anônimo. |
 | Componente visual | Estados principais e acessibilidade. |
 | Fluxo crítico | Maestro em iOS e Android antes de fechar a fase. |

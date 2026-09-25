@@ -34,7 +34,7 @@ export function useSaveFirstWork() {
       const existing = locations.find(
         (location) => location.name.localeCompare(name, 'pt-BR', { sensitivity: 'base' }) === 0,
       );
-      const location = existing ?? (await createWorkLocation(session.userId, { name }, locations));
+      const location = existing ?? (await createWorkLocation({ name }, locations));
 
       return createWorkWithReceivable(
         {
