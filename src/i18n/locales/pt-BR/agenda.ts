@@ -1,5 +1,46 @@
 export const agenda = {
   title: 'Sua agenda',
+  /** Agenda 01–05. */
+  eyebrow: 'SUA AGENDA',
+  previousMonth: 'Mês anterior',
+  nextMonth: 'Próximo mês',
+  day: {
+    today: 'HOJE · {{date}}',
+    free: 'Dia livre',
+    one: '1 trabalho',
+    many: '{{count}} trabalhos',
+  },
+  workType: {
+    shift: 'Plantão',
+    procedure: 'Procedimento',
+    appointment: 'Atendimento',
+  },
+  payment: {
+    received: 'Recebido',
+    scheduled: 'Recebe {{date}}',
+    dueToday: 'Recebe hoje',
+    pending: 'Previsto {{date}} · a confirmar',
+    undated: 'Sem previsão',
+  },
+  card: { hint: 'Abre os detalhes do trabalho.' },
+  /** Agenda 15 (leitura). */
+  detail: {
+    eyebrow: 'DETALHES DO TRABALHO',
+    back: 'Voltar',
+    nextDay: 'do dia seguinte',
+    amount: 'Você recebe',
+    expected: 'Previsto para entrar',
+    noExpected: 'Sem previsão',
+    status: 'Status',
+    missing: 'Este trabalho não está mais disponível.',
+    statusLabel: {
+      received: 'Recebido',
+      scheduled: 'A receber',
+      due_today: 'Entra hoje',
+      confirmation_pending: 'A confirmar',
+      undated: 'Sem previsão',
+    },
+  },
   newWork: {
     title: 'Adicionar trabalho',
     description: 'Repita um trabalho que a DOKH já conhece ou crie um novo.',

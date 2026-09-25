@@ -58,6 +58,7 @@ export function AuthNavigationGate() {
       <Stack.Protected guard={complete}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="work/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="work/[id]" />
         <Stack.Screen name="dev/primitives" options={{ gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Screen name="auth-callback" />
