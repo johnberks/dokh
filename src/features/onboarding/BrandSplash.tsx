@@ -5,6 +5,7 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withTiming,
 } from 'react-native-reanimated';
 import { AppText } from '@/components/AppText';
@@ -18,42 +19,62 @@ const OFFSET = 30 * UNIT;
 const INTERSECTION = 32 * UNIT;
 const CORNER = 10 * UNIT;
 
+/** Símbolo (620 ms) + assinatura (420 ms, com atraso) + leitura: ~1,4 s no total. */
+export const SPLASH_DURATION = m.splashWordmarkDelay + m.splashWordmark + m.splashHold;
+
 type Props = {
-  /** Chamado quando a assinatura termina de se formar; a transição para o slide 1 é automática. */
+  /** Chamado quando a assinatura termina; a tela seguinte entra sozinha. */
   onFinish: () => void;
   testID?: string;
 };
 
 /**
- * Splash 00B: as duas superfícies se aproximam até formar a interseção bronze.
- * Com "Reduzir movimento" a assinatura já aparece montada e o tempo de leitura é preservado.
+ * Splash 00B: as duas superfícies se aproximam até formar a interseção bronze e a
+ * assinatura aparece em seguida. Com "Reduzir movimento" tudo aparece montado, mantendo
+ * o mesmo tempo de leitura.
  */
 export function BrandSplash({ onFinish, testID }: Props) {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   const reduced = useReducedMotion();
-  const progress = useSharedValue(reduced ? 1 : 0);
+  const symbol = useSharedValue(reduced ? 1 : 0);
+  const wordmark = useSharedValue(reduced ? 1 : 0);
 
   useEffect(() => {
-    const duration = reduced ? motion.instant : motion.heroPage;
-    progress.value = withTiming(1, { duration, easing: Easing.out(Easing.cubic) });
-    const timer = setTimeout(onFinish, duration + m.splashHold);
+    if (!reduced) {
+      symbol.value = withTiming(1, {
+        duration: m.splashSymbol,
+        easing: Easing.out(Easing.cubic),
+      });
+      wordmark.value = withDelay(
+        m.splashWordmarkDelay,
+        withTiming(1, { duration: m.splashWordmark, easing: Easing.out(Easing.cubic) }),
+      );
+    } else {
+      symbol.value = withTiming(1, { duration: motion.instant });
+      wordmark.value = withTiming(1, { duration: motion.instant });
+    }
+    const timer = setTimeout(onFinish, SPLASH_DURATION);
     return () => clearTimeout(timer);
-  }, [onFinish, progress, reduced]);
+  }, [onFinish, reduced, symbol, wordmark]);
 
   const back = useAnimatedStyle(() => ({
     transform: [
-      { translateX: -(1 - progress.value) * m.splashApproach },
-      { translateY: -(1 - progress.value) * m.splashApproach },
+      { translateX: -(1 - symbol.value) * m.splashApproach },
+      { translateY: -(1 - symbol.value) * m.splashApproach },
     ],
   }));
   const front = useAnimatedStyle(() => ({
     transform: [
-      { translateX: (1 - progress.value) * m.splashApproach },
-      { translateY: (1 - progress.value) * m.splashApproach },
+      { translateX: (1 - symbol.value) * m.splashApproach },
+      { translateY: (1 - symbol.value) * m.splashApproach },
     ],
   }));
-  const intersection = useAnimatedStyle(() => ({ opacity: progress.value }));
+  const intersection = useAnimatedStyle(() => ({ opacity: symbol.value }));
+  const signature = useAnimatedStyle(() => ({
+    opacity: wordmark.value,
+    transform: [{ translateY: (1 - wordmark.value) * m.splashWordmarkRise }],
+  }));
 
   return (
     <View style={styles.screen} testID={testID}>
@@ -64,7 +85,9 @@ export function BrandSplash({ onFinish, testID }: Props) {
           <Animated.View style={[styles.intersection, intersection]} />
         </View>
       </View>
-      <AppText style={[type.wordmark, styles.wordmark]}>{t('welcome.splash.label')}</AppText>
+      <Animated.View style={signature}>
+        <AppText style={[type.wordmark, styles.wordmark]}>{t('welcome.splash.label')}</AppText>
+      </Animated.View>
     </View>
   );
 }

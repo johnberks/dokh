@@ -1,34 +1,50 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, onboardingIntroMetrics as m, palette } from '@/theme/tokens';
 
-const MONTHS = [
-  { label: 'SET', height: 46, color: palette.workSage, amount: 'R$ 3.200' },
-  { label: 'OUT', height: 60, color: palette.bronze, amount: 'R$ 4.050' },
-  { label: 'NOV', height: 18, color: palette.structure, amount: 'R$ 1.200' },
-] as const;
-
-const ENTRIES = [
-  { place: 'Hospital São Lucas', date: '18 OUT', amount: 'R$ 1.200', indented: false },
-  { place: 'Clínica Central', date: '05 OUT', amount: 'R$ 850', indented: true },
+const MONTH_LAYOUT = [
+  { key: 'september', height: 46, color: palette.workSage },
+  { key: 'october', height: 60, color: palette.bronze },
+  { key: 'november', height: 18, color: palette.structure },
 ] as const;
 
 /** Exemplo ilustrativo do slide 02: total a receber, distribuição e próximas entradas. */
 export function EntriesSlideArt() {
+  const { t } = useTranslation('onboarding');
+  const months = MONTH_LAYOUT.map((month) => ({
+    ...month,
+    label: t(`welcome.art.entries.${month.key}` as 'welcome.art.entries.september'),
+    amount: t(`welcome.art.entries.${month.key}Amount` as 'welcome.art.entries.septemberAmount'),
+  }));
+  const entries = [
+    {
+      place: t('welcome.art.entries.firstPlace'),
+      date: t('welcome.art.entries.firstDate'),
+      amount: t('welcome.art.entries.firstAmount'),
+      indented: false,
+    },
+    {
+      place: t('welcome.art.entries.secondPlace'),
+      date: t('welcome.art.entries.secondDate'),
+      amount: t('welcome.art.entries.secondAmount'),
+      indented: true,
+    },
+  ];
   return (
     <View style={styles.art}>
       <View style={styles.card}>
         <View style={styles.total}>
           <AppText variant="technical" style={styles.eyebrow}>
-            {'A RECEBER'}
+            {t('welcome.art.entries.label')}
           </AppText>
           <AppText variant="heading1" style={styles.totalValue}>
-            {'R$ 8.450'}
+            {t('welcome.art.entries.total')}
           </AppText>
         </View>
         <View style={styles.months}>
-          {MONTHS.map((month) => (
-            <View key={month.label} style={styles.month}>
+          {months.map((month) => (
+            <View key={month.key} style={styles.month}>
               <View style={[styles.bar, { height: month.height, backgroundColor: month.color }]} />
               <AppText variant="technical" style={styles.eyebrow}>
                 {month.label}
@@ -41,7 +57,7 @@ export function EntriesSlideArt() {
         </View>
       </View>
       <View style={styles.entries}>
-        {ENTRIES.map((entry) => (
+        {entries.map((entry) => (
           <View key={entry.place} style={[styles.entry, entry.indented && styles.entryIndented]}>
             <View style={styles.entryIdentity}>
               <AppText variant="heading1" style={styles.entryPlace}>

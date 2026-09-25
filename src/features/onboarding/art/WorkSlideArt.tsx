@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, onboardingIntroMetrics as m, palette, workLocationColors } from '@/theme/tokens';
@@ -9,15 +10,16 @@ const SELECTED = 12;
 
 /** Exemplo ilustrativo do slide 01: calendário da semana e card de plantão. */
 export function WorkSlideArt() {
+  const { t } = useTranslation('onboarding');
   return (
     <View style={styles.art}>
       <View style={styles.calendar}>
         <View style={styles.calendarHeader}>
           <AppText variant="technical" style={styles.eyebrow}>
-            {'SETEMBRO'}
+            {t('welcome.art.work.month')}
           </AppText>
           <AppText variant="technical" style={styles.eyebrow}>
-            {'SEM 37'}
+            {t('welcome.art.work.week')}
           </AppText>
         </View>
         <View style={styles.week}>
@@ -49,22 +51,22 @@ export function WorkSlideArt() {
         <View style={styles.cardTop}>
           <View style={styles.cardIdentity}>
             <AppText variant="technical" style={styles.eyebrow}>
-              {'12 SEX · PLANTÃO'}
+              {t('welcome.art.work.badge')}
             </AppText>
             <AppText variant="heading1" style={styles.place}>
-              {'Hospital São Lucas'}
+              {t('welcome.art.work.place')}
             </AppText>
-            <AppText style={styles.hours}>{'19:00 — 07:00'}</AppText>
+            <AppText style={styles.hours}>{t('welcome.art.work.hours')}</AppText>
           </View>
           <AppText variant="heading1" style={styles.amount}>
-            {'R$ 1.200'}
+            {t('welcome.art.work.amount')}
           </AppText>
         </View>
         <View style={styles.divider} />
         <View style={styles.cardFooter}>
-          <AppText style={styles.footerLabel}>{'Entrada'}</AppText>
+          <AppText style={styles.footerLabel}>{t('welcome.art.work.entryLabel')}</AppText>
           <AppText variant="technical" style={styles.footerValue}>
-            {'12 OUT'}
+            {t('welcome.art.work.entryDate')}
           </AppText>
         </View>
       </View>

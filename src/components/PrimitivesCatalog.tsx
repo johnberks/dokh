@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import Plus from 'lucide-react-native/icons/plus';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { colors, spacing } from '@/theme/tokens';
@@ -24,7 +24,8 @@ import { WorkCardCatalog } from './WorkCardCatalog';
 import { WorkTypeSelectorCatalog } from './WorkTypeSelectorCatalog';
 
 /** Internal, non-routed catalog: visual states and accessibility contract for 2.3. */
-export function PrimitivesCatalog() {
+/** `extra` permite à rota de desenvolvimento acrescentar seções vindas de features. */
+export function PrimitivesCatalog({ extra }: { extra?: ReactNode }) {
   const { t } = useTranslation('components');
   const [segment, setSegment] = useState<'monthly' | 'yearly'>('monthly');
   const [enabled, setEnabled] = useState(true);
@@ -120,6 +121,12 @@ export function PrimitivesCatalog() {
         <BottomSheetCatalog />
         <Divider />
         <PremiumGateCatalog />
+        {extra ? (
+          <>
+            <Divider />
+            {extra}
+          </>
+        ) : null}
       </View>
     </ScrollScreen>
   );

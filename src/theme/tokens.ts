@@ -463,6 +463,25 @@ export const premiumGateMetrics = {
   actionsGap: 10,
 } as const;
 
+/** Tela 04 (Criar conta): cartões flutuantes em três camadas de profundidade. */
+export const accountPreviewMetrics = {
+  minHeight: 200,
+  radius: 16,
+  paddingVertical: 14,
+  paddingHorizontal: 16,
+  gap: 6,
+  shiftWidth: 190,
+  receivableWidth: 180,
+  receivableTop: 58,
+  earningsWidth: 214,
+  earningsLeft: 22,
+  earningsTop: 134,
+  barHeight: 14,
+  /** Entrada em cascata: o cartão de trás chega primeiro. */
+  revealStagger: 90,
+  revealRise: 14,
+} as const;
+
 /** Onboarding 00B (splash) and 01–03 (carousel) from design/onboarding.html. */
 export const onboardingIntroMetrics = {
   symbolSize: 96,
@@ -470,7 +489,14 @@ export const onboardingIntroMetrics = {
   splashWordmarkSize: 24,
   /** Deslocamento inicial de cada superfície antes de se aproximarem (00B). */
   splashApproach: 26,
-  splashHold: 420,
+  /** Aproximação das superfícies do símbolo. */
+  splashSymbol: 620,
+  /** Assinatura entra depois do símbolo, com leve subida. */
+  splashWordmarkDelay: 420,
+  splashWordmark: 420,
+  splashWordmarkRise: 10,
+  /** Leitura antes de entregar a tela 04: total entre 1,2 s e 1,6 s. */
+  splashHold: 360,
   headerPaddingTop: 22,
   horizontalPadding: 32,
   headingPaddingTop: 40,

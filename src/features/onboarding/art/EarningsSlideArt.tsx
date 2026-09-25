@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
@@ -6,27 +7,30 @@ import { colors, onboardingIntroMetrics as m, palette } from '@/theme/tokens';
 const HISTORY = '0,70 50,62 100,66 150,50 200,44 250,30 302,14';
 const RECENT = '150,50 200,44 250,30 302,14';
 
-const SOURCES = [
-  { label: 'PLANTÕES', amount: 'R$ 14.800' },
-  { label: 'CONSULTAS', amount: 'R$ 3.620' },
-] as const;
-
 /** Exemplo ilustrativo do slide 03: ganhos do mês, evolução e composição. */
 export function EarningsSlideArt() {
+  const { t } = useTranslation('onboarding');
+  const sources = [
+    { label: t('welcome.art.earnings.shifts'), amount: t('welcome.art.earnings.shiftsAmount') },
+    {
+      label: t('welcome.art.earnings.appointments'),
+      amount: t('welcome.art.earnings.appointmentsAmount'),
+    },
+  ];
   return (
     <View style={styles.art}>
       <View style={styles.card}>
         <View style={styles.header}>
           <View style={styles.total}>
             <AppText variant="technical" style={styles.eyebrow}>
-              {'GANHOS DO MÊS'}
+              {t('welcome.art.earnings.label')}
             </AppText>
             <AppText variant="heading1" style={styles.totalValue}>
-              {'R$ 18.420'}
+              {t('welcome.art.earnings.total')}
             </AppText>
           </View>
           <AppText variant="technical" style={styles.variation}>
-            {'↑ 12,4%'}
+            {t('welcome.art.earnings.variation')}
           </AppText>
         </View>
         <Svg width="100%" height={84} viewBox="0 0 302 84" preserveAspectRatio="none">
@@ -35,14 +39,16 @@ export function EarningsSlideArt() {
           <Circle cx={302} cy={14} r={4} fill={palette.bronze} />
         </Svg>
         <View style={styles.comparison}>
-          <AppText style={styles.comparisonLabel}>{'vs. mês anterior'}</AppText>
+          <AppText style={styles.comparisonLabel}>
+            {t('welcome.art.earnings.comparisonLabel')}
+          </AppText>
           <AppText variant="heading1" style={styles.comparisonValue}>
-            {'+ R$ 2.040'}
+            {t('welcome.art.earnings.comparisonValue')}
           </AppText>
         </View>
       </View>
       <View style={styles.sources}>
-        {SOURCES.map((source) => (
+        {sources.map((source) => (
           <View key={source.label} style={styles.source}>
             <AppText variant="technical" style={styles.sourceLabel}>
               {source.label}
