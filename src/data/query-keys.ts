@@ -6,8 +6,12 @@
 export const queryKeys = {
   workLocations: (userId: string) => ['work-locations', userId] as const,
   agendaMonth: (userId: string, month: string) => ['agenda', userId, month] as const,
+  /** Só os pontos do mês (seletor de data do formulário); mesmo prefixo, invalidado junto. */
+  agendaMonthDots: (userId: string, month: string) => ['agenda', userId, month, 'dots'] as const,
   agendaDay: (userId: string, date: string) => ['agenda-day', userId, date] as const,
   workDetail: (userId: string, workId: string) => ['work', userId, workId] as const,
+  /** "Usar novamente": derivado do histórico; prefixo `work`, invalidado a cada escrita. */
+  workTemplates: (userId: string) => ['work', userId, 'templates'] as const,
   financeMonth: (userId: string, month: string) => ['finance-month', userId, month] as const,
   financeYear: (userId: string, year: number) => ['finance-year', userId, year] as const,
   homeOverview: (userId: string) => ['home-overview', userId] as const,

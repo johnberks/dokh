@@ -71,6 +71,22 @@ try {
   const owner = await createUser();
   const stranger = await createUser();
 
+  // Como no app, o perfil existe antes do primeiro Trabalho: a projeção de Recebíveis
+  // (valor e previsão na Agenda) depende dele para o fuso.
+  success(
+    await call('/rest/v1/profiles', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        id: owner.id,
+        display_name: 'Owner',
+        professional_status: 'general_practitioner',
+        timezone: 'America/Sao_Paulo',
+      },
+    }),
+    'owner creates profile',
+  );
+
   // Regressão da 7.4: o cliente não escreve direto na tabela (3.5 fecha DML)...
   const direct = await call('/rest/v1/work_locations', {
     method: 'POST',
@@ -117,6 +133,44 @@ try {
   )[0];
   assert.ok(work.work_id);
 
+  // Pontos do seletor de data (Agenda 08): mesma consulta do app, pela view com RLS do dono.
+  const dots = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_date,color_token,start_time&work_date=gte.2026-09-01&work_date=lt.2026-10-01&order=work_date.asc,start_time.asc.nullslast',
+      { token: owner.token },
+    ),
+    'owner reads month dots',
+  );
+  assert.deepEqual(dots, [
+    { work_date: '2026-09-26', color_token: 'sage', start_time: '19:00:00' },
+  ]);
+  // "Usar novamente" (6.6): mesma leitura do app — histórico pela view e Locais ativos.
+  const history = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_entry_id,location_id,location_name,color_token,type,work_date,start_time,duration_minutes,amount_cents,expected_on&order=work_date.desc,created_at.desc&limit=200',
+      { token: owner.token },
+    ),
+    'owner reads template history',
+  );
+  assert.equal(history.length, 1);
+  assert.equal(history[0].location_id, location.id);
+  assert.equal(history[0].amount_cents, 120000);
+  assert.equal(history[0].expected_on, '2026-10-26');
+  const activeLocations = success(
+    await call('/rest/v1/work_locations?select=id&archived_at=is.null', { token: owner.token }),
+    'owner reads active locations',
+  );
+  assert.deepEqual(activeLocations, [{ id: location.id }]);
+
+  const strangerDots = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_date&work_date=gte.2026-09-01&work_date=lt.2026-10-01',
+      { token: stranger.token },
+    ),
+    'stranger reads month dots',
+  );
+  assert.equal(strangerDots.length, 0, 'month dots must not leak across accounts');
+
   const premium = await call('/rest/v1/rpc/create_work_location', {
     method: 'POST',
     token: owner.token,
@@ -158,7 +212,9 @@ try {
     }),
     'owner archives location',
   );
-  console.log('6.1 location RPCs through PostgREST, first work flow, palette and ownership passed');
+  console.log(
+    '6.1 location RPCs through PostgREST, first work flow, month dots, template history, palette and ownership passed',
+  );
 } finally {
   for (const id of users) {
     success(

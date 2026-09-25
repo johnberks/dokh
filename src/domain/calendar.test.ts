@@ -1,11 +1,14 @@
 import {
   buildMonthGrid,
   compareLocalDates,
+  differenceInLocalDays,
+  formatDayMonth,
   isLocalDate,
   isLocalMonth,
   monthOf,
   shiftMonth,
   weekdayOrder,
+  weekdayShort,
 } from './calendar';
 
 const days = (weeks: ReturnType<typeof buildMonthGrid>) =>
@@ -67,5 +70,27 @@ describe('calendário (domínio)', () => {
     expect(compareLocalDates('2026-09-09', '2026-09-10')).toBe(-1);
     expect(compareLocalDates('2026-12-31', '2027-01-01')).toBe(-1);
     expect(compareLocalDates('2026-09-10', '2026-09-10')).toBe(0);
+  });
+});
+
+describe('rótulos curtos de data', () => {
+  it('monta dia e mês abreviado, com ano opcional', () => {
+    expect(formatDayMonth('2026-09-14')).toBe('14 SET');
+    expect(formatDayMonth('2027-01-05', { year: true })).toBe('05 JAN 2027');
+  });
+
+  it('dia da semana não depende do fuso do aparelho', () => {
+    expect(weekdayShort('2026-09-14')).toBe('SEG');
+    expect(weekdayShort('2026-09-13')).toBe('DOM');
+    expect(weekdayShort('2026-12-31')).toBe('QUI');
+  });
+});
+
+describe('diferença entre datas locais', () => {
+  it('conta dias atravessando mês, ano e horário de verão', () => {
+    expect(differenceInLocalDays('2026-10-12', '2026-09-12')).toBe(30);
+    expect(differenceInLocalDays('2027-01-10', '2026-12-11')).toBe(30);
+    expect(differenceInLocalDays('2026-09-12', '2026-09-12')).toBe(0);
+    expect(differenceInLocalDays('2026-09-11', '2026-09-12')).toBe(-1);
   });
 });

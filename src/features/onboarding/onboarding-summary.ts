@@ -1,4 +1,5 @@
 import { supabase } from '@/data/supabase-client';
+import { formatDayMonth } from '@/domain/calendar';
 import type { WorkType } from '@/domain/work-type';
 import type { AuthClient } from '@/features/auth/session';
 
@@ -88,13 +89,9 @@ export function summaryTotals(summary: OnboardingSummary): { totalCents: bigint;
   return { totalCents: amounts.reduce((sum, value) => sum + value, 0n), count: amounts.length };
 }
 
-const MONTHS = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-
 /** `12 SET` como no design; o ano só aparece quando difere do ano de referência. */
 export function formatShortDate(date: string, referenceYear: number): string {
-  const [year, month, day] = date.split('-').map(Number);
-  const label = `${String(day).padStart(2, '0')} ${MONTHS[month - 1]}`;
-  return year === referenceYear ? label : `${label} ${year}`;
+  return formatDayMonth(date, { year: Number(date.slice(0, 4)) !== referenceYear });
 }
 
 /** `12h`, ou `7h30` quando a duração não fecha em horas. */

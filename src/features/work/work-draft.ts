@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import type { WorkType } from '@/domain/work-type';
 
 export type ExpectedEntry = { kind: 'date'; date: string } | { kind: 'unknown' };
@@ -16,9 +16,11 @@ export type WorkDraft = {
   expected: ExpectedEntry | null;
   /** Criada uma vez por envio: repetir não grava dois Trabalhos. */
   idempotencyKey: string | null;
+  /** Prazo D30/60/90 trazido de um template; vira data quando a nova data for escolhida. */
+  plannedTermDays: number | null;
 };
 
-type WorkDraftState = WorkDraft & {
+export type WorkDraftState = WorkDraft & {
   update: (patch: Partial<WorkDraft>) => void;
   reset: () => void;
 };
@@ -32,11 +34,21 @@ const EMPTY: WorkDraft = {
   amount: '',
   expected: null,
   idempotencyKey: null,
+  plannedTermDays: null,
 };
 
-/** Rascunho do primeiro Trabalho entre telas (D22). Nada é persistido no device. */
-export const useWorkDraft = create<WorkDraftState>((set) => ({
-  ...EMPTY,
-  update: (patch) => set(patch),
-  reset: () => set(EMPTY),
-}));
+export type WorkDraftStore = UseBoundStore<StoreApi<WorkDraftState>>;
+
+function createWorkDraftStore(): WorkDraftStore {
+  return create<WorkDraftState>((set) => ({
+    ...EMPTY,
+    update: (patch) => set(patch),
+    reset: () => set(EMPTY),
+  }));
+}
+
+/** Rascunho do primeiro Trabalho entre telas do onboarding (D22). Nada é persistido no device. */
+export const useWorkDraft = createWorkDraftStore();
+
+/** Rascunho do fluxo `+` (Agenda 06–10); separado para não misturar com o onboarding. */
+export const useNewWorkDraft = createWorkDraftStore();
