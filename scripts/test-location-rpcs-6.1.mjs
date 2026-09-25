@@ -117,6 +117,26 @@ try {
   )[0];
   assert.ok(work.work_id);
 
+  // Pontos do seletor de data (Agenda 08): mesma consulta do app, pela view com RLS do dono.
+  const dots = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_date,color_token,start_time&work_date=gte.2026-09-01&work_date=lt.2026-10-01&order=work_date.asc,start_time.asc.nullslast',
+      { token: owner.token },
+    ),
+    'owner reads month dots',
+  );
+  assert.deepEqual(dots, [
+    { work_date: '2026-09-26', color_token: 'sage', start_time: '19:00:00' },
+  ]);
+  const strangerDots = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_date&work_date=gte.2026-09-01&work_date=lt.2026-10-01',
+      { token: stranger.token },
+    ),
+    'stranger reads month dots',
+  );
+  assert.equal(strangerDots.length, 0, 'month dots must not leak across accounts');
+
   const premium = await call('/rest/v1/rpc/create_work_location', {
     method: 'POST',
     token: owner.token,
@@ -158,7 +178,9 @@ try {
     }),
     'owner archives location',
   );
-  console.log('6.1 location RPCs through PostgREST, first work flow, palette and ownership passed');
+  console.log(
+    '6.1 location RPCs through PostgREST, first work flow, month dots, palette and ownership passed',
+  );
 } finally {
   for (const id of users) {
     success(

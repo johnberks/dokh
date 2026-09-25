@@ -68,3 +68,35 @@ export function weekdayOrder(weekStartsOn: WeekStart): number[] {
 export function compareLocalDates(a: LocalDate, b: LocalDate): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
+
+const MONTH_ABBREVIATIONS = [
+  'JAN',
+  'FEV',
+  'MAR',
+  'ABR',
+  'MAI',
+  'JUN',
+  'JUL',
+  'AGO',
+  'SET',
+  'OUT',
+  'NOV',
+  'DEZ',
+] as const;
+const WEEKDAY_ABBREVIATIONS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'] as const;
+
+/**
+ * Rótulo curto dos designs (`14 SET`, `14 SET 2026`), montado à mão: o `Intl` em pt-BR
+ * devolve "14 de set." e varia entre motores.
+ */
+export function formatDayMonth(date: LocalDate, options: { year?: boolean } = {}): string {
+  const [year, month, day] = date.split('-').map(Number);
+  const label = `${String(day).padStart(2, '0')} ${MONTH_ABBREVIATIONS[month - 1]}`;
+  return options.year ? `${label} ${year}` : label;
+}
+
+/** Dia da semana abreviado (`SEG`), calculado sem fuso a partir da data local. */
+export function weekdayShort(date: LocalDate): string {
+  const [year, month, day] = date.split('-').map(Number);
+  return WEEKDAY_ABBREVIATIONS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
+}

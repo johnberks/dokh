@@ -13,14 +13,23 @@ describe('horário e prazos do Trabalho', () => {
     expect(workEndDescription('2026-09-12', '19:00', 720)).toEqual({
       time: '07:00',
       nextDay: true,
+      date: '2026-09-13',
+    });
+    // Virada de mês e de ano: a data de término acompanha.
+    expect(workEndDescription('2026-12-31', '19:00', 1440)).toEqual({
+      time: '19:00',
+      nextDay: true,
+      date: '2027-01-01',
     });
     expect(workEndDescription('2026-09-12', '08:00', 360)).toEqual({
       time: '14:00',
       nextDay: false,
+      date: '2026-09-12',
     });
     expect(workEndDescription('2026-09-12', '13:30', 90)).toEqual({
       time: '15:00',
       nextDay: false,
+      date: '2026-09-12',
     });
   });
 

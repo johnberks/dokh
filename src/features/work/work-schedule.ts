@@ -17,7 +17,8 @@ export function todayInTimezone(timezone: string, now: Date = new Date()): Local
   }
 }
 
-export type WorkEnd = { time: string; nextDay: boolean };
+/** `date` é o dia do término: igual ao do trabalho, ou posterior quando cruza a meia-noite. */
+export type WorkEnd = { time: string; nextDay: boolean; date: LocalDate };
 
 /**
  * Término derivado de data, início e duração (o domínio não guarda campo de término).
@@ -34,9 +35,11 @@ export function workEndDescription(
   const total = hours * 60 + minutes + durationMinutes;
   const endHours = Math.floor(total / 60) % 24;
   const endMinutes = total % 60;
+  const daysLater = Math.floor(total / (24 * 60));
   return {
     time: `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`,
-    nextDay: total >= 24 * 60,
+    nextDay: daysLater > 0,
+    date: addDaysToLocalDate(workDate, daysLater),
   };
 }
 
