@@ -1,25 +1,36 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { NavigationControl } from '@/components/NavigationControl';
 import { WorkTypeSelector } from '@/components/WorkTypeSelector';
+import type { WorkType } from '@/domain/work-type';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, navigationMetrics, palette } from '@/theme/tokens';
 import { useNewWorkDraft } from '../work-draft';
-import { WorkForm } from './WorkForm';
+import { templateDraft, useWorkTemplates, type WorkTemplate } from '../work-templates';
+import { WorkForm, type WorkFormSheet } from './WorkForm';
+import { WorkTemplateCard } from './WorkTemplateCard';
+
+type Step = { kind: 'entry' } | { kind: 'form'; initialSheet: WorkFormSheet };
 
 /**
  * Fluxo do `+` (Agenda 06 → 06B → 07). O `+` central e o da Agenda abrem o mesmo fluxo.
- * "Usar novamente" (templates do histórico) entra na 6.6; aqui fica o caminho "Criar novo".
+ * Sem histórico, não há o que reutilizar: o fluxo abre direto na escolha do tipo. Com
+ * histórico, mostra "Usar novamente" (templates) e "Criar novo trabalho" (pedido do usuário,
+ * 2026-09-25).
  */
 export function NewWorkFlow({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
-  const [step, setStep] = useState<'start' | 'form'>('start');
+  const templates = useWorkTemplates();
+  const [step, setStep] = useState<Step>({ kind: 'entry' });
   const [choosingType, setChoosingType] = useState(false);
+  const known = templates.data ?? [];
+  // Falha ao ler o histórico não impede criar: cai na escolha de tipo.
+  const hasHistory = known.length > 0;
 
   // Cada abertura do fluxo começa limpa.
   useEffect(() => {
@@ -29,38 +40,104 @@ export function NewWorkFlow({ onClose }: { onClose: () => void }) {
 
   // No formulário, o voltar do Android retorna ao início do fluxo em vez de fechá-lo.
   useEffect(() => {
-    if (step !== 'form') return;
+    if (step.kind !== 'form') return;
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      setStep('start');
+      setStep({ kind: 'entry' });
       return true;
     });
     return () => subscription.remove();
-  }, [step]);
+  }, [step.kind]);
 
-  if (step === 'form') {
+  function startNew(workType: WorkType) {
+    useNewWorkDraft.getState().reset();
+    useNewWorkDraft.getState().update({ type: workType });
+    setChoosingType(false);
+    setStep({ kind: 'form', initialSheet: null });
+  }
+
+  function reuse(template: WorkTemplate) {
+    useNewWorkDraft.getState().reset();
+    useNewWorkDraft.getState().update(templateDraft(template));
+    setStep({ kind: 'form', initialSheet: 'date' });
+  }
+
+  if (step.kind === 'form') {
     return (
       <WorkForm
+        initialSheet={step.initialSheet}
         onBack={() => {
           useNewWorkDraft.getState().reset();
-          setStep('start');
+          setStep({ kind: 'entry' });
         }}
         onSaved={onClose}
       />
     );
   }
 
+  const header = (title: string, description?: string) => (
+    <View style={styles.header}>
+      <NavigationControl kind="close" onPress={onClose} />
+      <View style={styles.heading}>
+        <AppText accessibilityRole="header" variant="modalTitle">
+          {title}
+        </AppText>
+        {description ? (
+          <AppText variant="modalDescription" style={styles.description}>
+            {description}
+          </AppText>
+        ) : null}
+      </View>
+    </View>
+  );
+
+  if (templates.isPending) {
+    return (
+      <SafeAreaView edges={['top', 'bottom']} style={styles.screen} testID="new-work-loading">
+        {header(t('newWork.title'))}
+        <ActivityIndicator color={palette.sage} style={styles.loading} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!hasHistory) {
+    return (
+      <SafeAreaView edges={['top', 'bottom']} style={styles.screen} testID="new-work-type-step">
+        {header(t('newWork.typeSheetTitle'))}
+        <View style={styles.typeList}>
+          <WorkTypeSelector
+            variant="menu"
+            label={t('newWork.typeSheetTitle')}
+            onSelect={startNew}
+            testID="new-work-type"
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.screen} testID="new-work-start">
-      <View style={styles.header}>
-        <NavigationControl kind="close" onPress={onClose} />
-        <View style={styles.heading}>
-          <AppText accessibilityRole="header" variant="modalTitle">
-            {t('newWork.title')}
-          </AppText>
-          <AppText variant="modalDescription" style={styles.description}>
-            {t('newWork.description')}
-          </AppText>
-        </View>
+      {header(t('newWork.title'), t('newWork.description'))}
+
+      <View style={styles.section}>
+        <AppText variant="technical" style={styles.sectionLabel}>
+          {t('newWork.reuse')}
+        </AppText>
+        {known.map((template) => (
+          <WorkTemplateCard
+            key={template.key}
+            template={template}
+            onPress={() => reuse(template)}
+          />
+        ))}
+      </View>
+
+      <View style={styles.divider}>
+        <View style={styles.rule} />
+        <AppText variant="technical" style={styles.sectionLabel}>
+          {t('newWork.or')}
+        </AppText>
+        <View style={styles.rule} />
       </View>
 
       <View style={styles.create}>
@@ -92,12 +169,7 @@ export function NewWorkFlow({ onClose }: { onClose: () => void }) {
         <WorkTypeSelector
           variant="menu"
           label={t('newWork.typeSheetTitle')}
-          onSelect={(workType) => {
-            useNewWorkDraft.getState().reset();
-            useNewWorkDraft.getState().update({ type: workType });
-            setChoosingType(false);
-            setStep('form');
-          }}
+          onSelect={startNew}
           testID="new-work-type"
         />
       </BottomSheet>
@@ -116,7 +188,19 @@ const styles = StyleSheet.create({
     gap: navigationMetrics.modalDescriptionGap,
   },
   description: { color: colors.textMuted },
-  create: { paddingHorizontal: 24, paddingTop: 32, gap: 12 },
+  loading: { marginTop: 48 },
+  typeList: { paddingHorizontal: 24, paddingTop: 28 },
+  section: { paddingHorizontal: 24, paddingTop: 32, gap: 12 },
+  sectionLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  divider: {
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  rule: { flex: 1, height: 1, backgroundColor: 'rgba(16,22,15,0.12)' },
+  create: { paddingHorizontal: 24, paddingTop: 24, gap: 12 },
   createButton: {
     minHeight: 60,
     borderRadius: 16,

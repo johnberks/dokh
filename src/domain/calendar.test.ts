@@ -1,6 +1,7 @@
 import {
   buildMonthGrid,
   compareLocalDates,
+  differenceInLocalDays,
   formatDayMonth,
   isLocalDate,
   isLocalMonth,
@@ -82,5 +83,14 @@ describe('rótulos curtos de data', () => {
     expect(weekdayShort('2026-09-14')).toBe('SEG');
     expect(weekdayShort('2026-09-13')).toBe('DOM');
     expect(weekdayShort('2026-12-31')).toBe('QUI');
+  });
+});
+
+describe('diferença entre datas locais', () => {
+  it('conta dias atravessando mês, ano e horário de verão', () => {
+    expect(differenceInLocalDays('2026-10-12', '2026-09-12')).toBe(30);
+    expect(differenceInLocalDays('2027-01-10', '2026-12-11')).toBe(30);
+    expect(differenceInLocalDays('2026-09-12', '2026-09-12')).toBe(0);
+    expect(differenceInLocalDays('2026-09-11', '2026-09-12')).toBe(-1);
   });
 });

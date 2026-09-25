@@ -30,7 +30,8 @@ import { expectedChoice, PaymentSheet } from './PaymentSheet';
 import { DurationSheet, QUICK_DURATION_HOURS, StartTimeSheet } from './ScheduleSheets';
 import { WorkDateSheet } from './WorkDateSheet';
 
-type Sheet = 'date' | 'start' | 'duration' | 'payment' | null;
+export type WorkFormSheet = 'date' | 'start' | 'duration' | 'payment' | null;
+type Sheet = WorkFormSheet;
 
 /** Pode salvar? Local, data e valor sempre; início e duração só em Plantão (UX Agenda 07). */
 export function canSaveWork(draft: {
@@ -54,13 +55,22 @@ export function canSaveWork(draft: {
  * folhas (08–10); valor e local são digitados na própria tela, que rola como um todo e mantém
  * campo e botão acima do teclado.
  */
-export function WorkForm({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
+export function WorkForm({
+  onBack,
+  onSaved,
+  initialSheet = null,
+}: {
+  onBack: () => void;
+  onSaved: () => void;
+  /** Vindo de um template, o formulário já abre perguntando "quando será?". */
+  initialSheet?: Sheet;
+}) {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
   const draft = useNewWorkDraft();
   const save = useSaveWork(useNewWorkDraft);
-  const [sheet, setSheet] = useState<Sheet>(null);
+  const [sheet, setSheet] = useState<Sheet>(initialSheet);
   const [today] = useState(() => todayInTimezone(deviceTimezone()));
 
   const workType = draft.type;
@@ -239,15 +249,23 @@ export function WorkForm({ onBack, onSaved }: { onBack: () => void; onSaved: () 
         today={today}
         onClose={() => setSheet(null)}
         onConfirm={(workDate) => {
-          // Prazo D30/60/90 acompanha a nova data; data específica e "não sei" ficam.
+          // Prazo D30/60/90 acompanha a nova data (inclusive o trazido de um template);
+          // data específica e "não sei" ficam como estão.
           const choice =
             draft.workDate === null ? null : expectedChoice(draft.expected, draft.workDate);
+          const termDays =
+            choice?.kind === 'term'
+              ? choice.days
+              : draft.expected === null
+                ? draft.plannedTermDays
+                : null;
           draft.update({
             workDate,
             expected:
-              choice?.kind === 'term'
-                ? { kind: 'date', date: addDaysToLocalDate(workDate, choice.days) }
+              termDays !== null
+                ? { kind: 'date', date: addDaysToLocalDate(workDate, termDays) }
                 : draft.expected,
+            plannedTermDays: null,
           });
           setSheet(null);
         }}

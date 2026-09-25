@@ -1,10 +1,22 @@
-# Formulário de Trabalho — tarefas 6.3 a 6.5
+# Formulário de Trabalho — tarefas 6.3 a 6.6
 
 Agenda 06, 06B, 07, 08, 09 e 10 de `design/agenda.html`; regras de `docs/screens/agenda.md`.
 
 ## Fluxo
 
-`+` central (e, na Fase 8, o `+` da Agenda) → **06 Adicionar trabalho** → `Criar novo trabalho` abre a folha **06B** com Plantão, Procedimento e Atendimento (`WorkTypeSelector` em modo menu; Residência nunca aparece) → **07 Novo trabalho**.
+`+` central (e, na Fase 8, o `+` da Agenda) abre o mesmo fluxo, que depende do histórico (pedido do usuário, 2026-09-25):
+
+- **Sem nenhum Trabalho**: abre direto na escolha do tipo (Plantão, Procedimento, Atendimento) em tela cheia — não há o que reutilizar.
+- **Com histórico**: **06 Adicionar trabalho** com `USAR NOVAMENTE` (até 3 templates) e `Criar novo trabalho`, que abre a folha **06B** de tipo.
+
+Nos dois casos, `WorkTypeSelector` em modo menu (Residência nunca aparece) leva ao **07 Novo trabalho**.
+
+## Usar novamente (6.6) — `src/features/work/work-templates.ts`
+
+- Templates são **derivados do histórico**, sem tabela própria: combinações distintas de Local, tipo, horário, duração e valor, da mais recente para a mais antiga (`agenda_work_projection`, até 200 Trabalhos). Locais arquivados ficam de fora.
+- Card: ponto na cor do Local, nome, `Plantão · 12h · R$ 1.200` e o último horário.
+- Escolher um template preenche tudo menos a data e abre direto a folha de data ("quando será?"). O formulário continua inteiro para revisão antes de salvar.
+- A previsão acompanha: prazo D30/60/90 do último Trabalho é reaplicado sobre a nova data; "sem previsão" continua "sem previsão"; data específica não se repete (a pessoa escolhe de novo).
 
 - Código: `src/features/work/form/` (`NewWorkFlow`, `WorkForm`, folhas e peças). Rota: `app/work/new.tsx` (modal).
 - O rascunho é `useNewWorkDraft`, separado do rascunho do onboarding (`useWorkDraft`). Abrir o fluxo, voltar do formulário ou fechar limpa o rascunho.
@@ -28,7 +40,6 @@ A tela rola como um todo (sem barra visível), com campo e botão acima do tecla
 ## Decisões e lacunas
 
 - **Previsão não escolhida grava "sem previsão"** (`expected_on = null`): o design só exige data e valor para salvar, e "sem previsão" é um estado válido em Finanças.
-- **`Usar novamente`** (templates do histórico) é a 6.6; a tela 06 ainda mostra só `Criar novo trabalho`.
 - **`Repetir` e `Cor do local`** (linhas Premium da 07, folhas 11–14) entram com a recorrência e a cor Premium (8.5/8.6). Não aparecem ainda para não exibir controles sem efeito.
 - O calendário da folha 08 começa no domingo, como no design; o início de semana configurável é da 8.1.
 - O design não desenha escolha de Local em lista; o campo digitado com sugestões segue o padrão já aprovado no onboarding.

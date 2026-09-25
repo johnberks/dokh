@@ -100,3 +100,12 @@ export function weekdayShort(date: LocalDate): string {
   const [year, month, day] = date.split('-').map(Number);
   return WEEKDAY_ABBREVIATIONS[new Date(Date.UTC(year, month - 1, day)).getUTCDay()];
 }
+
+/** Dias de `from` até `to` (datas locais), sem depender de fuso ou horário de verão. */
+export function differenceInLocalDays(to: LocalDate, from: LocalDate): number {
+  const utc = (date: LocalDate) => {
+    const [year, month, day] = date.split('-').map(Number);
+    return Date.UTC(year, month - 1, day);
+  };
+  return Math.round((utc(to) - utc(from)) / 86_400_000);
+}

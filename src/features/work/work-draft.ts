@@ -16,6 +16,8 @@ export type WorkDraft = {
   expected: ExpectedEntry | null;
   /** Criada uma vez por envio: repetir não grava dois Trabalhos. */
   idempotencyKey: string | null;
+  /** Prazo D30/60/90 trazido de um template; vira data quando a nova data for escolhida. */
+  plannedTermDays: number | null;
 };
 
 export type WorkDraftState = WorkDraft & {
@@ -32,6 +34,7 @@ const EMPTY: WorkDraft = {
   amount: '',
   expected: null,
   idempotencyKey: null,
+  plannedTermDays: null,
 };
 
 export type WorkDraftStore = UseBoundStore<StoreApi<WorkDraftState>>;

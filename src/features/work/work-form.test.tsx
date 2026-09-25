@@ -34,6 +34,11 @@ jest.mock('./work-data', () => ({
   createWorkWithReceivable: jest.fn(async () => ({ workId: 'w1', receivableId: 'r1' })),
   newIdempotencyKey: () => 'key-1',
 }));
+let mockTemplates: unknown[] = [];
+jest.mock('./work-templates', () => ({
+  ...jest.requireActual('./work-templates'),
+  useWorkTemplates: () => ({ isPending: false, data: mockTemplates }),
+}));
 jest.mock('./month-work-dots', () => ({
   ...jest.requireActual('./month-work-dots'),
   listMonthWorkDots: jest.fn(async () => ({})),
@@ -60,6 +65,7 @@ const workDate = `${today.slice(0, 7)}-12`;
 beforeEach(() => {
   jest.clearAllMocks();
   mockLocations = [];
+  mockTemplates = [];
   mockedList.mockImplementation(async () => mockLocations as never);
   mockedDots.mockResolvedValue({});
 });
@@ -70,11 +76,12 @@ async function press(testID: string) {
   });
 }
 
+/** Sem histórico, o `+` abre direto na escolha do tipo. */
 async function openForm(type: 'shift' | 'procedure' = 'shift') {
   const onClose = jest.fn();
   await renderWithProviders(<NewWorkFlow onClose={onClose} />);
-  await press('new-work-create');
-  expect(screen.getByText('O que você quer adicionar?')).toBeTruthy();
+  expect(screen.getByTestId('new-work-type-step')).toBeTruthy();
+  expect(screen.getByRole('header', { name: 'O que você quer adicionar?' })).toBeTruthy();
   await act(async () => {
     await fireEvent.press(
       screen.getByRole('button', { name: type === 'shift' ? 'Plantão' : 'Procedimento' }),
@@ -230,9 +237,84 @@ describe('fluxo do + (Agenda 06–10)', () => {
       await fireEvent.changeText(screen.getByTestId('work-location-input'), 'X');
     });
     await press('navigation-back');
-    expect(screen.getByTestId('new-work-start')).toBeTruthy();
+    expect(screen.getByTestId('new-work-type-step')).toBeTruthy();
     expect(useNewWorkDraft.getState().locationName).toBe('');
     await press('navigation-close');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('com histórico mostra "Usar novamente"; o template preenche tudo e pergunta a data', async () => {
+    mockLocations = [hospital];
+    mockTemplates = [
+      {
+        key: 'k1',
+        type: 'shift',
+        locationId: 'loc-hsl',
+        locationName: 'Hospital São Lucas',
+        colorToken: 'bronze',
+        startTime: '19:00',
+        durationMinutes: 720,
+        amountCents: 120000n,
+        payment: { kind: 'term', days: 30 },
+      },
+    ];
+    const onClose = jest.fn();
+    await renderWithProviders(<NewWorkFlow onClose={onClose} />);
+    expect(screen.getByText('USAR NOVAMENTE')).toBeTruthy();
+    expect(screen.getByText(/^Plantão · 12h · R\$\s?1\.200$/)).toBeTruthy();
+    expect(screen.getByTestId('new-work-create')).toBeTruthy();
+
+    await press('work-template-loc-hsl');
+    // Abre direto na data; o resto veio do template.
+    expect(screen.getByTestId('work-date-sheet-panel')).toBeTruthy();
+    expect(useNewWorkDraft.getState()).toMatchObject({
+      type: 'shift',
+      locationName: 'Hospital São Lucas',
+      startTime: '19:00',
+      durationMinutes: 720,
+      amount: '1.200',
+      workDate: null,
+    });
+    await press(`work-date-calendar-${workDate}`);
+    await press('work-date-confirm');
+    // O prazo de 30 dias do último trabalho é reaplicado sobre a nova data.
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(workDate, 30),
+    });
+
+    await press('work-save');
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(mockedCreateLocation).not.toHaveBeenCalled();
+    expect(mockedCreateWork.mock.calls[0][0]).toMatchObject({
+      locationId: 'loc-hsl',
+      workDate,
+      amountCents: 120000n,
+      expectedOn: addDaysToLocalDate(workDate, 30),
+    });
+  });
+
+  it('com histórico, "Criar novo trabalho" abre a folha de tipo', async () => {
+    mockTemplates = [
+      {
+        key: 'k1',
+        type: 'procedure',
+        locationId: 'loc-hsl',
+        locationName: 'Hospital São Lucas',
+        colorToken: 'bronze',
+        startTime: null,
+        durationMinutes: null,
+        amountCents: 80000n,
+        payment: null,
+      },
+    ];
+    await renderWithProviders(<NewWorkFlow onClose={jest.fn()} />);
+    await press('new-work-create');
+    expect(screen.getByTestId('new-work-type-sheet-panel')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Atendimento' }));
+    });
+    expect(useNewWorkDraft.getState().type).toBe('appointment');
+    expect(screen.getByRole('header', { name: 'Novo trabalho' })).toBeTruthy();
   });
 });

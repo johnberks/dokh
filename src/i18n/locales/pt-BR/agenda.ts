@@ -6,6 +6,8 @@ export const agenda = {
     createNew: 'Criar novo trabalho',
     createNewHint: 'Abre o seletor de tipo — Plantão, Procedimento ou Atendimento.',
     typeSheetTitle: 'O que você quer adicionar?',
+    reuse: 'USAR NOVAMENTE',
+    or: 'OU',
   },
   /** Agenda 07–10: formulário de Trabalho e suas folhas. */
   form: {
