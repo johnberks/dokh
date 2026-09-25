@@ -59,6 +59,62 @@ export const onboarding = {
       withoutResidencyCta: 'Registrar meu primeiro trabalho',
     },
   },
+  /** Telas 06, 19, 20 e 22 do primeiro Trabalho em `design/onboarding.html`. */
+  firstWork: {
+    type: {
+      title: 'O que você quer registrar?',
+      description: 'Você pode adicionar outros tipos depois, quando quiser.',
+      residencyNote:
+        'Sua residência já está cadastrada — aqui entram os trabalhos que você faz além dela.',
+      required: 'Escolha um tipo para continuar.',
+    },
+    chip: {
+      shift: 'PLANTÃO',
+      procedure: 'PROCEDIMENTO',
+      appointment: 'ATENDIMENTO',
+    },
+    place: {
+      titleShift: 'Onde acontece esse plantão?',
+      titleProcedure: 'Onde acontece esse procedimento?',
+      titleAppointment: 'Onde acontece esse atendimento?',
+      label: 'LOCAL',
+      hint: 'Só o nome do lugar. O restante organizamos depois.',
+      required: 'Informe onde o trabalho acontece.',
+    },
+    when: {
+      titleShift: 'Quando acontece esse plantão?',
+      titleProcedure: 'Quando acontece esse procedimento?',
+      titleAppointment: 'Quando acontece esse atendimento?',
+      selected: 'SELECIONADO',
+      start: 'INÍCIO',
+      duration: 'DURAÇÃO',
+      durationOther: 'Outro',
+      durationHours: '{{hours}}h',
+      addSchedule: '+ Adicionar horário',
+      removeSchedule: 'Remover horário',
+      endsAt: 'Termina às {{time}}.',
+      endsNextDay: 'Termina às {{time}} do dia seguinte.',
+      dateRequired: 'Escolha a data do trabalho.',
+      scheduleRequired: 'Plantão precisa de horário de início e duração.',
+      pickStart: 'Escolher horário de início',
+      confirmStart: 'Confirmar horário',
+    },
+    amount: {
+      title: 'Quanto você recebe por esse trabalho?',
+      label: 'Valor do trabalho',
+      required: 'Informe quanto você recebe.',
+      expectedTitle: 'Quando esse valor está previsto para entrar?',
+      expectedLabel: 'PREVISTO PARA ENTRAR',
+      change: 'ALTERAR',
+      inDays: 'Em {{days}} dias',
+      unknown: 'Ainda não sei quando entra',
+      unknownNote:
+        'Sem data, o valor entra em Finanças como "sem previsão" — você completa quando souber.',
+      expectedRequired: 'Escolha uma data ou marque que ainda não sabe.',
+      saveError: 'Não foi possível salvar o trabalho agora. Tente novamente.',
+      submit: 'Concluir',
+    },
+  },
   welcome: {
     splash: { label: 'DOKH' },
     /** Tela 04 de `design/onboarding.html`, com o título aprovado pelo usuário. */

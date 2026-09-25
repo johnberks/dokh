@@ -413,6 +413,10 @@ export const calendarMetrics = {
   weekdayFontSize: 10,
   weekdayLineHeight: 14,
   weekdayTracking: 1.2,
+  /** Onboarding 20 desenha a mesma grade em escala menor. */
+  compactCellHeight: 38,
+  compactDayCircle: 32,
+  compactDayFontSize: 15,
 } as const;
 
 /** Agenda 08–14 and Finanças sheets (standard) and Agenda 06B (menu). */

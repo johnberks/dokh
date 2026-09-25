@@ -27,6 +27,8 @@ export type CalendarGridProps = {
   dots?: Partial<Record<LocalDate, readonly WorkLocationColorToken[]>>;
   /** Sem callback, o calendário é só leitura. */
   onSelectDate?: (date: LocalDate) => void;
+  /** `compact` reproduz a grade menor do onboarding (tela 20). */
+  density?: 'comfortable' | 'compact';
   testID?: string;
 };
 
@@ -55,10 +57,15 @@ export function CalendarGrid({
   weekStartsOn,
   dots = {},
   onSelectDate,
+  density = 'comfortable',
   testID,
 }: CalendarGridProps) {
   const { t } = useTranslation('components');
   const weeks = useMemo(() => buildMonthGrid(month, weekStartsOn), [month, weekStartsOn]);
+  const compact = density === 'compact';
+  const cellStyle = compact ? styles.cellCompact : null;
+  const markerStyle = compact ? styles.markerCompact : null;
+  const numberStyle = compact ? styles.dayNumberCompact : null;
 
   return (
     <View testID={testID} style={styles.container}>
@@ -80,7 +87,7 @@ export function CalendarGrid({
               if (!cell) {
                 // Célula vazia é posicional (coluna fixa da semana); a posição é a identidade.
                 // biome-ignore lint/suspicious/noArrayIndexKey: coluna da grade, não item de lista.
-                return <View key={`blank-${index}`} style={styles.cell} />;
+                return <View key={`blank-${index}`} style={[styles.cell, cellStyle]} />;
               }
 
               const isSelected = cell.date === selected;
@@ -102,6 +109,7 @@ export function CalendarGrid({
                     testID={testID ? `${testID}-${cell.date}-marker` : undefined}
                     style={[
                       styles.marker,
+                      markerStyle,
                       isToday && styles.markerToday,
                       isSelected && styles.markerSelected,
                     ]}
@@ -111,6 +119,7 @@ export function CalendarGrid({
                       variant={isSelected || isToday ? 'heading1' : 'heading2'}
                       style={[
                         styles.dayNumber,
+                        numberStyle,
                         isPast && styles.dayPast,
                         isSelected && styles.daySelected,
                       ]}
@@ -134,7 +143,12 @@ export function CalendarGrid({
 
               if (!onSelectDate) {
                 return (
-                  <View key={cell.date} accessible accessibilityLabel={label} style={styles.cell}>
+                  <View
+                    key={cell.date}
+                    accessible
+                    accessibilityLabel={label}
+                    style={[styles.cell, cellStyle]}
+                  >
                     {content}
                   </View>
                 );
@@ -148,7 +162,7 @@ export function CalendarGrid({
                   accessibilityState={{ selected: isSelected }}
                   onPress={() => onSelectDate(cell.date)}
                   testID={testID ? `${testID}-${cell.date}` : undefined}
-                  style={styles.cell}
+                  style={[styles.cell, cellStyle]}
                 >
                   {content}
                 </Pressable>
@@ -189,6 +203,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cellCompact: { height: m.compactCellHeight, gap: 2 },
+  markerCompact: {
+    width: m.compactDayCircle,
+    height: m.compactDayCircle,
+    borderRadius: m.compactDayCircle / 2,
+  },
+  dayNumberCompact: { fontSize: m.compactDayFontSize, lineHeight: 19 },
   markerToday: { borderColor: colors.accent },
   markerSelected: { borderColor: colors.foreground, backgroundColor: colors.foreground },
   dayNumber: {
