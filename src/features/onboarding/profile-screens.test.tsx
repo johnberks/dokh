@@ -31,6 +31,17 @@ beforeEach(() => {
 });
 
 describe('nome (tela 07)', () => {
+  it('não mostra mais a dica de primeiro nome e o botão fica acessível com o teclado', async () => {
+    await renderWithProviders(<NameScreen />);
+    expect(screen.queryByText(/Só o primeiro nome já basta/)).toBeNull();
+    // Um toque só: o botão sobe com o teclado em vez de ficar atrás dele.
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('name-input'), 'Anna');
+      await fireEvent.press(screen.getByTestId('name-cta'));
+    });
+    expect(mockedPush).toHaveBeenCalledWith('/residency');
+  });
+
   it('exige um nome e guarda sem espaços em volta', async () => {
     await renderWithProviders(<NameScreen />);
     await act(async () => {
@@ -62,6 +73,16 @@ describe('residência (tela 09)', () => {
     expect(screen.queryByTestId('residency-generalist')).toBeNull();
   });
 
+  it('rola a tela inteira, sem área interna rolável', async () => {
+    await renderWithProviders(<ResidencyScreen />);
+    const scroll = screen.getByTestId('residency-scroll');
+    // Uma rolagem só, da tela inteira, sem barra lateral e com toque direto nas sugestões.
+    expect(scroll.props.showsVerticalScrollIndicator).toBe(false);
+    expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
+    expect(scroll.props.bounces).toBe(false);
+    expect(screen.getByTestId('residency-header')).toBeTruthy();
+  });
+
   it('sugere as residências oficiais ao começar a escrever e marca a escolhida', async () => {
     await renderWithProviders(<ResidencyScreen />);
     await act(async () => {
@@ -71,6 +92,8 @@ describe('residência (tela 09)', () => {
     expect(screen.getByTestId('residency-option-Cardiologia')).toBeTruthy();
     expect(screen.getByTestId('residency-option-Cardiologia pediátrica')).toBeTruthy();
     expect(screen.getByTestId('residency-option-Cirurgia cardiovascular')).toBeTruthy();
+    // Poucas sugestões cabem acima do teclado; o restante fica fora da lista.
+    expect(screen.getAllByTestId(/^residency-option-/).length).toBeLessThanOrEqual(5);
 
     await act(async () => {
       await fireEvent.press(screen.getByTestId('residency-option-Cardiologia'));
@@ -107,6 +130,18 @@ describe('residência (tela 09)', () => {
       expect.objectContaining({ displayName: 'Anna', isResident: false }),
     );
     expect(mockedPush).toHaveBeenCalledWith('/profile-ready');
+  });
+
+  it('oferece Traumatologia Bucomaxilofacial', async () => {
+    await renderWithProviders(<ResidencyScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('residency-yes'));
+      await fireEvent.changeText(screen.getByTestId('residency-input'), 'bucomaxilo');
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('residency-option-Traumatologia Bucomaxilofacial'));
+    });
+    expect(useProfileDraft.getState().residencyProgram).toBe('Traumatologia Bucomaxilofacial');
   });
 
   it('escolher Outra usa o texto digitado', async () => {

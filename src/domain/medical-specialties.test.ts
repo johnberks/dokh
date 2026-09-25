@@ -10,12 +10,23 @@ describe('residências médicas (CFM 2.221/2018)', () => {
   it('traz as 55 especialidades e as 59 áreas de atuação da portaria', () => {
     expect(MEDICAL_SPECIALTIES).toHaveLength(55);
     expect(MEDICAL_PRACTICE_AREAS).toHaveLength(59);
-    expect(RESIDENCY_PROGRAMS).toHaveLength(114);
+    // 55 + 59 da portaria + os programas adicionais pedidos pelo usuário.
+    expect(RESIDENCY_PROGRAMS).toHaveLength(115);
     expect(MEDICAL_SPECIALTIES[0]).toBe('Acupuntura');
     expect(MEDICAL_SPECIALTIES).toContain('Ginecologia e obstetrícia');
     expect(MEDICAL_SPECIALTIES).toContain('Medicina de família e comunidade');
     expect(MEDICAL_PRACTICE_AREAS).toContain('Cardiologia pediátrica');
     expect(MEDICAL_PRACTICE_AREAS).toContain('Neonatologia');
+  });
+
+  it('inclui Traumatologia Bucomaxilofacial, fora das listas da portaria', () => {
+    expect(MEDICAL_SPECIALTIES).not.toContain('Traumatologia Bucomaxilofacial');
+    expect(MEDICAL_PRACTICE_AREAS).not.toContain('Traumatologia Bucomaxilofacial');
+    expect(RESIDENCY_PROGRAMS).toContainEqual({
+      name: 'Traumatologia Bucomaxilofacial',
+      kind: 'extra',
+    });
+    expect(searchResidencyPrograms('bucomaxilo')[0].name).toBe('Traumatologia Bucomaxilofacial');
   });
 
   it('não tem nome repetido e está em ordem alfabética pt-BR', () => {

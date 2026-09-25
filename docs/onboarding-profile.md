@@ -13,11 +13,19 @@ Quem responde **Não** pula a tela da bolsa e vai direto para a conclusão. O ra
 - **A busca de residência só existe para quem responde Sim.** Responder Não troca o campo pela etiqueta **GENERALISTA**, que reaparece na conclusão do perfil.
 - **A conclusão do perfil não tem `Pular`.** O HTML desenhava `PULAR ›` no topo; o único caminho agora é `Registrar um trabalho`, que leva ao primeiro Trabalho (7.4).
 
+## Teclado e rolagem (ajustes de 2026-09-25)
+
+- A tela do nome perdeu a dica "Só o primeiro nome já basta" e ganhou `KeyboardAvoidingView`: o botão sobe junto com o teclado, então `Continuar` funciona com **um toque só**, sem precisar fechar o teclado antes.
+- A tela de residência **não tem área interna rolável** (nada de barra lateral): quando precisa rolar, rola a tela inteira, sem bounce e sem indicador. Com o teclado aberto, `KeyboardAvoidingView` levanta o conteúdo e `keyboardShouldPersistTaps="handled"` deixa tocar direto numa sugestão.
+- As sugestões ficam limitadas a quatro (mais `Outra`), para caberem acima do teclado.
+
 ## Lista de residências
 
 `src/domain/medical-specialties.ts` traz as **55 especialidades** e as **59 áreas de atuação** da **Resolução CFM nº 2.221/2018 (Portaria CME nº 1/2018)**, com a grafia oficial. As duas listas aparecem juntas (114 opções), porque a pessoa informa o programa que cursa; áreas de atuação exigem especialidade prévia.
 
 `searchResidencyPrograms` sugere **a partir do primeiro caractere**, ignora acentos e caixa, e ordena por início do nome → início de palavra → qualquer trecho. Devolve o intervalo que casou, para o negrito do design. A opção **Outra** grava exatamente o que a pessoa escreveu — o banco aceita texto livre.
+
+Além da portaria, `ADDITIONAL_RESIDENCY_PROGRAMS` guarda programas pedidos pelo usuário que não constam nela — hoje **Traumatologia Bucomaxilofacial**, residência reconhecida na odontologia e também cursada por médicos. As listas oficiais seguem fiéis à resolução.
 
 Atualizar a lista quando a CME publicar nova portaria; não alterar nomes por preferência visual.
 

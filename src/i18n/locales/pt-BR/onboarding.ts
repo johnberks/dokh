@@ -13,7 +13,6 @@ export const onboarding = {
     name: {
       title: 'Como podemos te chamar?',
       label: 'NOME',
-      hint: 'Só o primeiro nome já basta.',
       required: 'Informe como quer ser chamado.',
     },
     residency: {

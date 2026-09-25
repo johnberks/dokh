@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
@@ -23,6 +23,13 @@ export function NameScreen() {
   const trimmed = displayName.trim();
   const showError = touched && trimmed.length === 0;
 
+  function submit() {
+    setTouched(true);
+    if (trimmed.length === 0) return;
+    update({ displayName: trimmed });
+    router.push('/residency');
+  }
+
   return (
     <View
       style={[
@@ -38,41 +45,39 @@ export function NameScreen() {
         {t('profile.name.title')}
       </AppText>
 
-      <View style={styles.body}>
-        <View style={styles.field}>
-          <AppText variant="technical" style={styles.fieldLabel}>
-            {t('profile.name.label')}
-          </AppText>
-          <TextInput
-            accessibilityLabel={t('profile.name.label')}
-            autoCapitalize="words"
-            autoComplete="given-name"
-            autoCorrect={false}
-            autoFocus
-            onChangeText={(value) => update({ displayName: value })}
-            returnKeyType="next"
-            selectionColor={palette.bronze}
-            style={[type.body, styles.input]}
-            testID="name-input"
-            value={displayName}
-          />
+      {/* O botão sobe junto com o teclado: assim um toque só já avança. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.body}
+      >
+        <View style={styles.fieldArea}>
+          <View style={styles.field}>
+            <AppText variant="technical" style={styles.fieldLabel}>
+              {t('profile.name.label')}
+            </AppText>
+            <TextInput
+              accessibilityLabel={t('profile.name.label')}
+              autoCapitalize="words"
+              autoComplete="given-name"
+              autoCorrect={false}
+              autoFocus
+              onChangeText={(value) => update({ displayName: value })}
+              onSubmitEditing={submit}
+              returnKeyType="next"
+              selectionColor={palette.bronze}
+              style={[type.body, styles.input]}
+              submitBehavior="submit"
+              testID="name-input"
+              value={displayName}
+            />
+          </View>
+          {showError && <AppText style={styles.error}>{t('profile.name.required')}</AppText>}
         </View>
-        <AppText style={styles.hint}>
-          {showError ? t('profile.name.required') : t('profile.name.hint')}
-        </AppText>
-      </View>
 
-      <View style={styles.cta}>
-        <OnboardingCta
-          onPress={() => {
-            setTouched(true);
-            if (trimmed.length === 0) return;
-            update({ displayName: trimmed });
-            router.push('/residency');
-          }}
-          testID="name-cta"
-        />
-      </View>
+        <View style={styles.cta}>
+          <OnboardingCta onPress={submit} testID="name-cta" />
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -87,7 +92,8 @@ const styles = StyleSheet.create({
     letterSpacing: m.titleTracking,
     color: colors.textPrimary,
   },
-  body: { flex: 1, marginTop: 36, marginHorizontal: 32, gap: 10 },
+  body: { flex: 1, marginTop: 36 },
+  fieldArea: { flex: 1, marginHorizontal: 32, gap: 10 },
   field: {
     height: m.fieldHeight,
     borderRadius: m.fieldRadius,
@@ -99,6 +105,6 @@ const styles = StyleSheet.create({
   },
   fieldLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
   input: { fontSize: 17, lineHeight: 22, color: colors.textPrimary, padding: 0 },
-  hint: { paddingTop: 6, fontSize: 13, lineHeight: 18, color: palette.sage },
-  cta: { marginHorizontal: 32 },
+  error: { paddingTop: 6, fontSize: 13, lineHeight: 18, color: colors.errorFill },
+  cta: { marginHorizontal: 32, paddingTop: 12 },
 });

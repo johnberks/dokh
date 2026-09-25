@@ -9,7 +9,7 @@
  * Atualizar quando a CME publicar nova portaria; não editar nomes por preferência visual.
  */
 
-export type ResidencyProgramKind = 'specialty' | 'practice_area';
+export type ResidencyProgramKind = 'specialty' | 'practice_area' | 'extra';
 
 export type ResidencyProgram = {
   name: string;
@@ -138,9 +138,17 @@ export const MEDICAL_PRACTICE_AREAS = [
   'Ultrassonografia em ginecologia e obstetrícia',
 ] as const;
 
+/**
+ * Programas pedidos pelo usuário que não constam na portaria da CME.
+ * `Traumatologia Bucomaxilofacial` é residência reconhecida na odontologia e também é cursada
+ * por médicos; mantida fora das listas oficiais para elas seguirem fiéis à resolução.
+ */
+export const ADDITIONAL_RESIDENCY_PROGRAMS = ['Traumatologia Bucomaxilofacial'] as const;
+
 export const RESIDENCY_PROGRAMS: readonly ResidencyProgram[] = [
   ...MEDICAL_SPECIALTIES.map((name) => ({ name, kind: 'specialty' as const })),
   ...MEDICAL_PRACTICE_AREAS.map((name) => ({ name, kind: 'practice_area' as const })),
+  ...ADDITIONAL_RESIDENCY_PROGRAMS.map((name) => ({ name, kind: 'extra' as const })),
 ].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
 export type ResidencyProgramMatch = ResidencyProgram & {
