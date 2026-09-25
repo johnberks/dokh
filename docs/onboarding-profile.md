@@ -17,8 +17,9 @@ Quem responde **Não** pula a tela da bolsa e vai direto para a conclusão. O ra
 
 - A tela do nome perdeu a dica "Só o primeiro nome já basta" e ganhou `KeyboardAvoidingView`: o botão sobe junto com o teclado, então `Continuar` funciona com **um toque só**, sem precisar fechar o teclado antes.
 - A tela de residência **não tem área interna rolável** (nada de barra lateral): quando precisa rolar, rola a tela inteira, sem bounce e sem indicador. Com o teclado aberto, `KeyboardAvoidingView` levanta o conteúdo e `keyboardShouldPersistTaps="handled"` deixa tocar direto numa sugestão.
-- As sugestões ficam limitadas a quatro (mais `Outra`), para caberem acima do teclado. Escolher uma delas **fecha o teclado**, liberando o botão `Continuar`.
-- A tela da bolsa também rola como um todo, sem área interna nem barra lateral.
+- As sugestões ficam limitadas a quatro (mais `Outra`), para caberem acima do teclado. Escolher uma delas **fecha o teclado** e **esconde a lista** — escolhida a residência, não há mais o que decidir. Editar o texto traz a lista de volta.
+- A tela da bolsa **não rola**: os espaçamentos foram ajustados para tudo caber, incluindo o botão.
+- O dia de entrada mostra cinco atalhos mais `Outro`. Um dia escolhido fora dos atalhos **recolhe a grade** e passa a ocupar a primeira posição, já selecionado.
 - A bolsa chega preenchida com **R$ 3.654,42** e o dia **05** (`DEFAULT_RESIDENCY_AMOUNT` e `DEFAULT_RESIDENCY_PAYMENT_DAY`), como sugere o HTML ("valor líquido padrão da bolsa · toque para ajustar"). São padrões editáveis; apagar o valor bloqueia a gravação.
 
 ## Fundo e vidro

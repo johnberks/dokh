@@ -151,7 +151,8 @@ export function ResidencyScreen() {
                   />
                 </View>
 
-                {query.trim().length > 0 && (
+                {/* Escolhida a residência, a lista some: não há mais o que decidir. */}
+                {query.trim().length > 0 && chosen.length === 0 && (
                   <View testID="residency-suggestions">
                     {suggestions.map((program) => {
                       const selected = program.name === chosen;

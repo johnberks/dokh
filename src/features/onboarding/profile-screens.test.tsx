@@ -104,9 +104,11 @@ describe('residência (tela 09)', () => {
       await fireEvent.press(screen.getByTestId('residency-option-Cardiologia'));
     });
     expect(useProfileDraft.getState().residencyProgram).toBe('Cardiologia');
-    expect(screen.getByText('SELECIONADA')).toBeTruthy();
-    // O teclado desce para liberar o botão Continuar.
+    // O teclado desce e a lista some: não há mais o que decidir.
     expect(dismissKeyboard).toHaveBeenCalled();
+    expect(screen.queryByTestId('residency-suggestions')).toBeNull();
+    expect(screen.queryByText('SELECIONADA')).toBeNull();
+    expect(screen.queryByTestId('residency-option-Cardiologia pediátrica')).toBeNull();
   });
 
   it('Sim sem residência escolhida não avança', async () => {
@@ -180,13 +182,12 @@ describe('bolsa da residência (TELA 04)', () => {
     expect(useProfileDraft.getState().monthlyAmount).toBe('4.000,00');
   });
 
-  it('a tela rola como um todo, sem área interna rolável', async () => {
+  it('não tem rolagem: a tela inteira cabe', async () => {
     useProfileDraft.setState({ isResident: true, residencyProgram: 'Cardiologia' });
     await renderWithProviders(<ResidencyIncomeScreen />);
-    const scroll = screen.getByTestId('income-scroll');
-    expect(scroll.props.showsVerticalScrollIndicator).toBe(false);
-    expect(scroll.props.bounces).toBe(false);
+    expect(screen.queryByTestId('income-scroll')).toBeNull();
     expect(screen.getByTestId('income-header')).toBeTruthy();
+    expect(screen.getByTestId('income-cta')).toBeTruthy();
   });
 
   it('valor apagado bloqueia a gravação', async () => {
@@ -219,17 +220,25 @@ describe('bolsa da residência (TELA 04)', () => {
     expect(mockedPush).toHaveBeenCalledWith('/profile-ready');
   });
 
-  it('permite escolher qualquer dia do mês em Outro', async () => {
+  it('dia fora dos atalhos recolhe a grade e vira uma das opções', async () => {
     useProfileDraft.setState({ isResident: true, residencyProgram: 'Pediatria' });
     await renderWithProviders(<ResidencyIncomeScreen />);
     expect(screen.queryByTestId('income-day-all')).toBeNull();
+
     await act(async () => {
       await fireEvent.press(screen.getByTestId('income-day-other'));
     });
+    expect(screen.getByTestId('income-day-all')).toBeTruthy();
+
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('income-day-28'));
+      await fireEvent.press(screen.getByTestId('income-day-all-27'));
     });
-    expect(useProfileDraft.getState().paymentDay).toBe(28);
+    expect(useProfileDraft.getState().paymentDay).toBe(27);
+    // A grade fecha e o dia escolhido aparece entre os atalhos, já selecionado.
+    expect(screen.queryByTestId('income-day-all')).toBeNull();
+    expect(screen.getByTestId('income-day-27').props.accessibilityState).toMatchObject({
+      checked: true,
+    });
   });
 });
 
