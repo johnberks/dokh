@@ -1,5 +1,6 @@
 export { AppText as Text } from './AppText';
 export { BottomSheet } from './BottomSheet';
+export { BrandMark } from './BrandMark';
 export { Button, IconButton } from './Button';
 export { CalendarGrid } from './CalendarGrid';
 export { EmptyState } from './EmptyState';

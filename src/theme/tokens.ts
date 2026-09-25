@@ -463,6 +463,39 @@ export const premiumGateMetrics = {
   actionsGap: 10,
 } as const;
 
+/** Onboarding 00B (splash) and 01–03 (carousel) from design/onboarding.html. */
+export const onboardingIntroMetrics = {
+  symbolSize: 96,
+  symbolWordmarkGap: 28,
+  splashWordmarkSize: 24,
+  /** Deslocamento inicial de cada superfície antes de se aproximarem (00B). */
+  splashApproach: 26,
+  splashHold: 420,
+  headerPaddingTop: 22,
+  horizontalPadding: 32,
+  headingPaddingTop: 40,
+  headingGap: 14,
+  slideTitleSize: 32,
+  /** O slide 1 usa três linhas e um corpo menor no HTML. */
+  workTitleSize: 28,
+  slideTitleLineHeight: 35,
+  workTitleLineHeight: 30,
+  slideTitleTracking: -0.96,
+  slideBodySize: 15,
+  slideBodyLineHeight: 23,
+  artMarginTop: 36,
+  footerPaddingTop: 28,
+  footerPaddingBottom: 44,
+  dotSize: 6,
+  dotActiveWidth: 24,
+  dotGap: 8,
+  ctaHeight: 56,
+  ctaRadius: 16,
+  ctaPaddingHorizontal: 28,
+  cardRadius: 22,
+  cardPadding: 22,
+} as const;
+
 export const radius = {
   none: 0,
   small: 4,

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Button } from '@/components/Button';
 import { PlaceholderScreen } from '@/components/PlaceholderScreen';
+import { useIntroState } from '@/features/onboarding/intro-state';
 import { palette } from '@/theme/tokens';
 import { useAuthSession } from './AuthSessionProvider';
 import { useOnboardingStatus } from './onboarding-status';
@@ -15,6 +16,8 @@ export function AuthNavigationGate() {
   const session = useAuthSession();
   const onboarding = useOnboardingStatus(session.userId);
   const pathname = usePathname();
+  // Apresentação antes de criar conta (7.1). Estado de sessão, sem persistência no device.
+  const introSeen = useIntroState((state) => state.seen);
   const loading =
     session.status === 'loading' || (session.status === 'signedIn' && onboarding.isPending);
   const signedOut = session.status === 'signedOut';
@@ -27,9 +30,9 @@ export function AuthNavigationGate() {
 
   useEffect(() => {
     if (loading || onboarding.isError || pathname !== '/') return;
-    if (signedOut) router.replace('/sign-in');
+    if (signedOut) router.replace(introSeen ? '/sign-in' : '/intro');
     else if (incomplete) router.replace('/welcome');
-  }, [incomplete, loading, onboarding.isError, pathname, signedOut]);
+  }, [incomplete, introSeen, loading, onboarding.isError, pathname, signedOut]);
 
   if (loading) {
     return (

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import * as SplashScreen from 'expo-splash-screen';
+import { useIntroState } from '@/features/onboarding/intro-state';
 
 const APP_DIR = path.resolve(__dirname, '../../app');
 
@@ -38,6 +39,7 @@ async function openAt(initialUrl: string) {
 describe('rotas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useIntroState.setState({ seen: false });
     mockSession = { status: 'signedIn', userId: 'test-user' };
     mockOnboarding = { isPending: false, isError: false, data: true, refetch: jest.fn() };
   });
@@ -126,11 +128,19 @@ describe('rotas', () => {
     expect(router.getPathname()).toBe('/');
   });
 
-  it('sessão ausente abre login e bloqueia as tabs', async () => {
+  it('primeiro acesso sem sessão abre a apresentação e bloqueia as tabs', async () => {
     mockSession = { status: 'signedOut', userId: null };
     const router = await openAt('/');
-    expect(screen.getByRole('header', { name: 'Bem-vindo de volta.' })).toBeTruthy();
+    expect(screen.getByTestId('intro-splash')).toBeTruthy();
+    await waitFor(() => expect(router.getPathname()).toBe('/intro'));
+  });
+
+  it('depois da apresentação, sessão ausente abre o login', async () => {
+    mockSession = { status: 'signedOut', userId: null };
+    useIntroState.setState({ seen: true });
+    const router = await openAt('/');
     await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
+    expect(screen.getByRole('header', { name: 'Bem-vindo de volta.' })).toBeTruthy();
   });
 
   it('sessão ausente permite cadastro', async () => {
@@ -139,8 +149,16 @@ describe('rotas', () => {
     expect(router.getPathname()).toBe('/sign-up');
   });
 
-  it('deep link privado sem sessão retorna ao login', async () => {
+  it('deep link privado sem sessão não abre conteúdo protegido', async () => {
     mockSession = { status: 'signedOut', userId: null };
+    const router = await openAt('/finances');
+    await waitFor(() => expect(router.getPathname()).toBe('/intro'));
+    expect(screen.queryByRole('header', { name: 'Finanças' })).toBeNull();
+  });
+
+  it('deep link privado sem sessão retorna ao login depois da apresentação', async () => {
+    mockSession = { status: 'signedOut', userId: null };
+    useIntroState.setState({ seen: true });
     const router = await openAt('/finances');
     await waitFor(() => expect(router.getPathname()).toBe('/sign-in'));
     expect(screen.getByRole('header', { name: 'Bem-vindo de volta.' })).toBeTruthy();

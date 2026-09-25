@@ -11,27 +11,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
+import { BrandMark } from '@/components/BrandMark';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
-
-function BrandMark({ light = false, size = 40 }: { light?: boolean; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 120 120" accessibilityElementsHidden>
-      <Rect
-        x={14}
-        y={14}
-        width={62}
-        height={62}
-        rx={10}
-        fill={light ? palette.cream : palette.base}
-      />
-      <Rect x={44} y={44} width={62} height={62} rx={10} fill={palette.sage} />
-      <Rect x={44} y={44} width={32} height={32} fill={palette.bronze} />
-    </Svg>
-  );
-}
 
 export function AuthWordmark({
   light = false,
