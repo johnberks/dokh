@@ -121,6 +121,22 @@ export const onboarding = {
       submit: 'Concluir',
     },
   },
+  /** TELA 10: conclusão dinâmica, com o que foi de fato gravado. */
+  done: {
+    totalLabel: 'PREVISTO PARA ENTRAR',
+    countOne: 'de 1 entrada que você acabou de organizar',
+    countMany: 'de {{count}} entradas que você acabou de organizar',
+    residencyBadge: 'RESIDÊNCIA',
+    everyDay: 'todo dia {{day}}',
+    expected: 'Previsto para entrar',
+    noExpected: 'Sem previsão de entrada',
+    title: 'Sua DOKH já começou a te acompanhar.',
+    description: 'A cada trabalho que você registra, essa visão fica mais completa.',
+    cta: 'Ir para o início',
+    loadError: 'Não foi possível carregar o resumo agora.',
+    retry: 'Tentar novamente',
+    completeError: 'Não foi possível concluir agora. Verifique a conexão e tente de novo.',
+  },
   welcome: {
     splash: { label: 'DOKH' },
     /** Tela 04 de `design/onboarding.html`, com o título aprovado pelo usuário. */

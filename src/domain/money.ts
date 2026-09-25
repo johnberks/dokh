@@ -26,7 +26,7 @@ function groupIntegerPtBR(value: bigint): string {
  * O `Intl` do Hermes **não aceita `bigint`** (o do Node aceita), então a parte inteira vira
  * `number` enquanto for exata; acima disso, o agrupamento é feito manualmente.
  */
-export function formatCentsToBRL(cents: bigint): string {
+export function formatCentsToBRL(cents: bigint, options: { omitZeroCents?: boolean } = {}): string {
   const isNegative = cents < 0n;
   const absolute = isNegative ? -cents : cents;
   const wholeUnits = absolute / 100n;
@@ -39,6 +39,9 @@ export function formatCentsToBRL(cents: bigint): string {
           maximumFractionDigits: 0,
         }).format(Number(wholeUnits))
       : `R$ ${groupIntegerPtBR(wholeUnits)}`;
-  const decimals = String(absolute % 100n).padStart(2, '0');
-  return `${isNegative ? '-' : ''}${units},${decimals}`;
+  const remainder = absolute % 100n;
+  const sign = isNegative ? '-' : '';
+  // Valores inteiros aparecem sem ",00" nos resumos do design ("R$ 1.200").
+  if (options.omitZeroCents && remainder === 0n) return `${sign}${units}`;
+  return `${sign}${units},${String(remainder).padStart(2, '0')}`;
 }

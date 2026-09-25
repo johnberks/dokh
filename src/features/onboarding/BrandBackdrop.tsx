@@ -3,12 +3,12 @@ import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { palette } from '@/theme/tokens';
 
 /**
- * Manchas de luz das telas escuras do onboarding (00B, 06 e 12 de `design/onboarding.html`).
+ * Manchas de luz das telas escuras do onboarding (00B, 06, 12 e TELA 10 de `design/onboarding.html`).
  * O HTML usa `filter: blur(...)` em quadrados; em React Native a borda suave vem de
  * gradientes radiais, que o Hermes desenha sem depender de filtros SVG.
  * Medidas em pontos sobre a moldura de 390×844 do design.
  */
-export type BrandBackdropVariant = 'splash' | 'intro' | 'ready';
+export type BrandBackdropVariant = 'splash' | 'intro' | 'ready' | 'done';
 
 type Blob = {
   id: string;
@@ -38,6 +38,13 @@ const BLOBS: Record<BrandBackdropVariant, readonly Blob[]> = {
     { id: 'top', cx: 430, cy: 140, rx: 245, ry: 245, color: palette.structure, opacity: 0.8 },
     { id: 'left', cx: 80, cy: 360, rx: 195, ry: 195, color: palette.authHeroShade, opacity: 1 },
     { id: 'glow', cx: 160, cy: 240, rx: 130, ry: 130, color: palette.bronze, opacity: 0.22 },
+  ],
+  // TELA 10: verde à esquerda, sombra à direita, núcleo sálvia e brilho bronze sobre o total.
+  done: [
+    { id: 'left', cx: 50, cy: 250, rx: 230, ry: 230, color: palette.structure, opacity: 0.85 },
+    { id: 'right', cx: 330, cy: 460, rx: 210, ry: 210, color: palette.authHeroShade, opacity: 1 },
+    { id: 'core', cx: 220, cy: 270, rx: 110, ry: 110, color: palette.workSage, opacity: 0.4 },
+    { id: 'glow', cx: 245, cy: 155, rx: 70, ry: 70, color: palette.bronze, opacity: 0.35 },
   ],
 };
 
