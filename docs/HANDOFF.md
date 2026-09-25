@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-24 · Claude Code · 7.1 (splash e carrossel) na branch `codex/7.1-onboarding-splash`, empilhada sobre o [#32](https://github.com/johnberks/dokh/pull/32). A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-24 · Claude Code · 7.1 (splash e carrossel) no PR draft [#33](https://github.com/johnberks/dokh/pull/33) (`codex/7.1-onboarding-splash`), empilhado sobre o [#32](https://github.com/johnberks/dokh/pull/32). A 3.1 segue pendente da conexão real do app preview.
 
 Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
 
@@ -76,9 +76,9 @@ O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.m
 
 ## Retomada
 
-O ponto de retomada desta trilha é a branch `codex/7.1-onboarding-splash` (7.1), empilhada sobre o PR draft [#32](https://github.com/johnberks/dokh/pull/32). A 2.7 foi confirmada pelo usuário no iPhone 16: card, carrossel, retorno 2 → 1 e espaçamento dos status funcionam. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da conexão do app preview. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+O ponto de retomada desta trilha é o PR draft [#33](https://github.com/johnberks/dokh/pull/33), branch `codex/7.1-onboarding-splash` (7.1), sobre o [#32](https://github.com/johnberks/dokh/pull/32). A 2.7 foi confirmada pelo usuário no iPhone 16: card, carrossel, retorno 2 → 1 e espaçamento dos status funcionam. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da conexão do app preview. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
 
-Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → #28 → #29 → #30 → #31 → #32 → 7.1. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → #28 → #29 → #30 → #31 → #32 → #33. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
 
 Próximo passo após esta branch: validar no iPhone o ajuste de teclado da **4.2** e a apresentação da **7.1**; em seguida, montar a tela 04 da **7.2** (Criar conta), que passa a receber `Pular`/`Começar` conforme HTML e UX sem considerar suas dependências 4.3/4.4 concluídas. A 9.1 (queries financeiras) pode ser planejada em paralelo à UI; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9).
 
