@@ -1,3 +1,4 @@
+import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext } from 'react';
@@ -13,6 +14,7 @@ import {
   onboardingProfileMetrics as m,
   palette,
 } from '@/theme/tokens';
+import { BrandBackdrop } from '../BrandBackdrop';
 import { useProfileDraft } from '../profile-draft';
 
 /**
@@ -36,6 +38,7 @@ export function ProfileReadyScreen() {
       testID="onboarding-profile-ready"
     >
       <StatusBar style="light" />
+      <BrandBackdrop variant="ready" />
       <View style={styles.wordmark}>
         <BrandMark light size={22} />
         <AppText style={[type.wordmark, styles.wordmarkText]}>{t('welcome.splash.label')}</AppText>
@@ -44,7 +47,7 @@ export function ProfileReadyScreen() {
       <View style={styles.summary}>
         <BrandMark light size={intro.symbolSize} />
         {resident ? (
-          <View style={styles.card} testID="profile-ready-residency">
+          <BlurView intensity={36} tint="dark" style={styles.card} testID="profile-ready-residency">
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
               <AppText variant="technical" style={styles.badgeLabel}>
@@ -64,16 +67,21 @@ export function ProfileReadyScreen() {
                 </AppText>
               )}
             </View>
-          </View>
+          </BlurView>
         ) : (
-          <View style={styles.card} testID="profile-ready-generalist">
+          <BlurView
+            intensity={36}
+            tint="dark"
+            style={styles.card}
+            testID="profile-ready-generalist"
+          >
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
               <AppText variant="technical" style={styles.badgeLabel}>
                 {t('profile.ready.generalistBadge')}
               </AppText>
             </View>
-          </View>
+          </BlurView>
         )}
       </View>
 
@@ -118,15 +126,17 @@ const styles = StyleSheet.create({
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   wordmarkText: { fontSize: 12, lineHeight: 14, color: palette.cream },
   summary: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 32 },
+  // Vidro: desfoque real do fundo (expo-blur) + véu creme e borda clara do HTML.
   card: {
     width: 262,
-    backgroundColor: 'rgba(237,234,224,0.08)',
+    backgroundColor: 'rgba(237,234,224,0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(237,234,224,0.16)',
+    borderColor: 'rgba(237,234,224,0.22)',
     borderRadius: 18,
     paddingVertical: 18,
     paddingHorizontal: 20,
     gap: 10,
+    overflow: 'hidden',
   },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   badgeDot: { width: 7, height: 7, backgroundColor: palette.workSage },

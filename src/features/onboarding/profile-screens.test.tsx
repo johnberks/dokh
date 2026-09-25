@@ -3,7 +3,11 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { renderWithProviders } from '@/test/render';
 import { saveOnboardingProfile } from './profile-data';
-import { useProfileDraft } from './profile-draft';
+import {
+  DEFAULT_RESIDENCY_AMOUNT,
+  DEFAULT_RESIDENCY_PAYMENT_DAY,
+  useProfileDraft,
+} from './profile-draft';
 import { NameScreen } from './screens/NameScreen';
 import { ProfileReadyScreen } from './screens/ProfileReadyScreen';
 import { ResidencyIncomeScreen } from './screens/ResidencyIncomeScreen';
@@ -22,6 +26,7 @@ jest.mock('./profile-data', () => ({
   saveOnboardingProfile: jest.fn(async () => {}),
 }));
 
+const dismissKeyboard = jest.spyOn(require('react-native').Keyboard, 'dismiss');
 const mockedPush = jest.mocked(router.push);
 const mockedSave = jest.mocked(saveOnboardingProfile);
 
@@ -100,6 +105,8 @@ describe('residência (tela 09)', () => {
     });
     expect(useProfileDraft.getState().residencyProgram).toBe('Cardiologia');
     expect(screen.getByText('SELECIONADA')).toBeTruthy();
+    // O teclado desce para liberar o botão Continuar.
+    expect(dismissKeyboard).toHaveBeenCalled();
   });
 
   it('Sim sem residência escolhida não avança', async () => {
@@ -156,7 +163,33 @@ describe('residência (tela 09)', () => {
 });
 
 describe('bolsa da residência (TELA 04)', () => {
-  it('exige valor e dia antes de gravar a bolsa mensal', async () => {
+  it('já vem com a bolsa padrão e o dia 05, ambos editáveis', async () => {
+    useProfileDraft.setState({ isResident: true, residencyProgram: 'Cardiologia' });
+    await renderWithProviders(<ResidencyIncomeScreen />);
+    expect(screen.getByLabelText('Bolsa mensal').props.value).toBe(DEFAULT_RESIDENCY_AMOUNT);
+    expect(DEFAULT_RESIDENCY_PAYMENT_DAY).toBe(5);
+    // O dia aparece na caixa grande e marcado entre os atalhos.
+    expect(screen.getAllByText('05').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByTestId('income-day-5').props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+
+    await act(async () => {
+      await fireEvent.changeText(screen.getByLabelText('Bolsa mensal'), '4.000,00');
+    });
+    expect(useProfileDraft.getState().monthlyAmount).toBe('4.000,00');
+  });
+
+  it('a tela rola como um todo, sem área interna rolável', async () => {
+    useProfileDraft.setState({ isResident: true, residencyProgram: 'Cardiologia' });
+    await renderWithProviders(<ResidencyIncomeScreen />);
+    const scroll = screen.getByTestId('income-scroll');
+    expect(scroll.props.showsVerticalScrollIndicator).toBe(false);
+    expect(scroll.props.bounces).toBe(false);
+    expect(screen.getByTestId('income-header')).toBeTruthy();
+  });
+
+  it('valor apagado bloqueia a gravação', async () => {
     useProfileDraft.setState({
       displayName: 'Anna',
       isResident: true,
@@ -164,15 +197,14 @@ describe('bolsa da residência (TELA 04)', () => {
     });
     await renderWithProviders(<ResidencyIncomeScreen />);
     await act(async () => {
+      await fireEvent.changeText(screen.getByLabelText('Bolsa mensal'), '');
       await fireEvent.press(screen.getByTestId('income-cta'));
     });
     expect(mockedSave).not.toHaveBeenCalled();
     expect(screen.getByText('Informe o valor da bolsa.')).toBeTruthy();
-    expect(screen.getByText('Escolha um dia entre 1 e 31.')).toBeTruthy();
 
     await act(async () => {
       await fireEvent.changeText(screen.getByLabelText('Bolsa mensal'), '3.654,42');
-      await fireEvent.press(screen.getByTestId('income-day-5'));
       await fireEvent.press(screen.getByTestId('income-cta'));
     });
     expect(mockedSave).toHaveBeenCalledWith(

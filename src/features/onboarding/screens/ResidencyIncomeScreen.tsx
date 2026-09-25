@@ -2,7 +2,14 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { MoneyInput } from '@/components/MoneyInput';
@@ -58,135 +65,149 @@ export function ResidencyIncomeScreen() {
       testID="onboarding-residency-income"
     >
       <StatusBar style="dark" />
-      <OnboardingHeader step={3} onBack={() => router.back()} testID="income-header" />
-
-      <View style={styles.heading}>
-        <View style={styles.badge}>
-          <View style={styles.badgeDot} />
-          <AppText variant="technical" style={styles.badgeLabel}>
-            {t('profile.income.badge', { specialty: residencyProgram.toUpperCase() })}
-          </AppText>
-        </View>
-        <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-          {t('profile.income.title')}
-        </AppText>
-      </View>
-
-      <ScrollView
-        style={styles.body}
-        contentContainerStyle={styles.bodyContent}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
       >
-        <View style={styles.block}>
-          <AppText style={[type.heading1, styles.question]}>
-            {t('profile.income.amountTitle')}
-          </AppText>
-          <MoneyInput
-            variant="residency"
-            label={t('profile.income.amountLabel')}
-            hint={t('profile.income.amountHint')}
-            error={touched && missingAmount ? t('profile.income.amountRequired') : undefined}
-            value={monthlyAmount}
-            onChangeText={(value) => update({ monthlyAmount: value })}
-            testID="income-amount"
-          />
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+          style={styles.flex}
+          testID="income-scroll"
+        >
+          <OnboardingHeader step={3} onBack={() => router.back()} testID="income-header" />
 
-        <View style={styles.block}>
-          <AppText style={[type.heading1, styles.question]}>{t('profile.income.dayTitle')}</AppText>
-          <View style={styles.dayRow}>
-            <AppText style={styles.dayPrefix}>{t('profile.income.dayPrefix')}</AppText>
-            <View style={styles.dayBox} testID="income-day-current">
-              <AppText style={[type.heading1, styles.dayBoxValue]}>
-                {paymentDay === null ? '--' : String(paymentDay).padStart(2, '0')}
+          <View style={styles.heading}>
+            <View style={styles.badge}>
+              <View style={styles.badgeDot} />
+              <AppText variant="technical" style={styles.badgeLabel}>
+                {t('profile.income.badge', { specialty: residencyProgram.toUpperCase() })}
               </AppText>
             </View>
-          </View>
-          <View
-            accessibilityRole="radiogroup"
-            accessibilityLabel={t('profile.income.dayLabel')}
-            style={styles.dayGrid}
-          >
-            {QUICK_DAYS.map((day) => (
-              <Pressable
-                key={day}
-                accessibilityRole="radio"
-                accessibilityLabel={String(day)}
-                accessibilityState={{ checked: paymentDay === day }}
-                onPress={() => update({ paymentDay: day })}
-                testID={`income-day-${day}`}
-                style={({ pressed }) => [
-                  styles.dayChip,
-                  paymentDay === day ? styles.dayChipOn : styles.dayChipOff,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <AppText
-                  style={[
-                    type.heading1,
-                    paymentDay === day ? styles.dayChipOnText : styles.dayChipOffText,
-                  ]}
-                >
-                  {String(day).padStart(2, '0')}
-                </AppText>
-              </Pressable>
-            ))}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('profile.income.dayOther')}
-              accessibilityState={{ expanded: showAllDays }}
-              onPress={() => setShowAllDays((open) => !open)}
-              testID="income-day-other"
-              style={({ pressed }) => [
-                styles.dayChip,
-                styles.dayChipOff,
-                pressed && styles.pressed,
-              ]}
-            >
-              <AppText style={styles.dayOtherText}>{t('profile.income.dayOther')}</AppText>
-            </Pressable>
+            <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+              {t('profile.income.title')}
+            </AppText>
           </View>
 
-          {showAllDays && (
-            <View style={styles.dayGrid} testID="income-day-all">
-              {CUSTOM_DAYS.map((day) => (
+          <View style={styles.body}>
+            <View style={styles.block}>
+              <AppText style={[type.heading1, styles.question]}>
+                {t('profile.income.amountTitle')}
+              </AppText>
+              <MoneyInput
+                variant="residency"
+                label={t('profile.income.amountLabel')}
+                hint={t('profile.income.amountHint')}
+                error={touched && missingAmount ? t('profile.income.amountRequired') : undefined}
+                value={monthlyAmount}
+                onChangeText={(value) => update({ monthlyAmount: value })}
+                testID="income-amount"
+              />
+            </View>
+
+            <View style={styles.block}>
+              <AppText style={[type.heading1, styles.question]}>
+                {t('profile.income.dayTitle')}
+              </AppText>
+              <View style={styles.dayRow}>
+                <AppText style={styles.dayPrefix}>{t('profile.income.dayPrefix')}</AppText>
+                <View style={styles.dayBox} testID="income-day-current">
+                  <AppText style={[type.heading1, styles.dayBoxValue]}>
+                    {paymentDay === null ? '--' : String(paymentDay).padStart(2, '0')}
+                  </AppText>
+                </View>
+              </View>
+              <View
+                accessibilityRole="radiogroup"
+                accessibilityLabel={t('profile.income.dayLabel')}
+                style={styles.dayGrid}
+              >
+                {QUICK_DAYS.map((day) => (
+                  <Pressable
+                    key={day}
+                    accessibilityRole="radio"
+                    accessibilityLabel={String(day)}
+                    accessibilityState={{ checked: paymentDay === day }}
+                    onPress={() => update({ paymentDay: day })}
+                    testID={`income-day-${day}`}
+                    style={({ pressed }) => [
+                      styles.dayChip,
+                      paymentDay === day ? styles.dayChipOn : styles.dayChipOff,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <AppText
+                      style={[
+                        type.heading1,
+                        paymentDay === day ? styles.dayChipOnText : styles.dayChipOffText,
+                      ]}
+                    >
+                      {String(day).padStart(2, '0')}
+                    </AppText>
+                  </Pressable>
+                ))}
                 <Pressable
-                  key={day}
-                  accessibilityRole="radio"
-                  accessibilityLabel={String(day)}
-                  accessibilityState={{ checked: paymentDay === day }}
-                  onPress={() => update({ paymentDay: day })}
-                  testID={`income-day-${day}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('profile.income.dayOther')}
+                  accessibilityState={{ expanded: showAllDays }}
+                  onPress={() => setShowAllDays((open) => !open)}
+                  testID="income-day-other"
                   style={({ pressed }) => [
                     styles.dayChip,
-                    paymentDay === day ? styles.dayChipOn : styles.dayChipOff,
+                    styles.dayChipOff,
                     pressed && styles.pressed,
                   ]}
                 >
-                  <AppText
-                    style={[
-                      type.heading1,
-                      paymentDay === day ? styles.dayChipOnText : styles.dayChipOffText,
-                    ]}
-                  >
-                    {String(day).padStart(2, '0')}
-                  </AppText>
+                  <AppText style={styles.dayOtherText}>{t('profile.income.dayOther')}</AppText>
                 </Pressable>
-              ))}
+              </View>
+
+              {showAllDays && (
+                <View style={styles.dayGrid} testID="income-day-all">
+                  {CUSTOM_DAYS.map((day) => (
+                    <Pressable
+                      key={day}
+                      accessibilityRole="radio"
+                      accessibilityLabel={String(day)}
+                      accessibilityState={{ checked: paymentDay === day }}
+                      onPress={() => update({ paymentDay: day })}
+                      testID={`income-day-${day}`}
+                      style={({ pressed }) => [
+                        styles.dayChip,
+                        paymentDay === day ? styles.dayChipOn : styles.dayChipOff,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <AppText
+                        style={[
+                          type.heading1,
+                          paymentDay === day ? styles.dayChipOnText : styles.dayChipOffText,
+                        ]}
+                      >
+                        {String(day).padStart(2, '0')}
+                      </AppText>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+
+              <AppText style={styles.dayHint}>
+                {touched && missingDay
+                  ? t('profile.income.dayRequired')
+                  : t('profile.income.dayHint')}
+              </AppText>
             </View>
-          )}
 
-          <AppText style={styles.dayHint}>
-            {touched && missingDay ? t('profile.income.dayRequired') : t('profile.income.dayHint')}
-          </AppText>
-        </View>
+            {save.isError && <MutationError onRetry={submit} retrying={save.isPending} />}
+          </View>
 
-        {save.isError && <MutationError onRetry={submit} retrying={save.isPending} />}
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <OnboardingCta loading={save.isPending} onPress={submit} testID="income-cta" />
-      </View>
+          <View style={styles.footer}>
+            <OnboardingCta loading={save.isPending} onPress={submit} testID="income-cta" />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -198,8 +219,10 @@ const styles = StyleSheet.create({
   badgeDot: { width: 7, height: 7, backgroundColor: palette.workSage },
   badgeLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   title: { fontSize: 28, lineHeight: 31, letterSpacing: -0.84, color: colors.textPrimary },
-  body: { flex: 1, marginTop: 32 },
-  bodyContent: { paddingHorizontal: 32, paddingBottom: 24, gap: 30 },
+  flex: { flex: 1 },
+  // Rolagem da tela inteira, só quando o conteúdo não couber.
+  content: { flexGrow: 1 },
+  body: { flex: 1, marginTop: 32, paddingHorizontal: 32, paddingBottom: 24, gap: 30 },
   block: { gap: 12 },
   question: { fontSize: 17, lineHeight: 22, letterSpacing: -0.17, color: colors.textPrimary },
   dayRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },

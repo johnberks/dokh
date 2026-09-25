@@ -15,12 +15,19 @@ type ProfileDraftState = ProfileDraft & {
   reset: () => void;
 };
 
+/**
+ * Bolsa e dia já vêm sugeridos, como diz o HTML ("valor líquido padrão da bolsa · toque
+ * para ajustar"). São apenas padrões editáveis: nada é gravado sem a pessoa confirmar.
+ */
+export const DEFAULT_RESIDENCY_AMOUNT = '3.654,42';
+export const DEFAULT_RESIDENCY_PAYMENT_DAY = 5;
+
 const EMPTY: ProfileDraft = {
   displayName: '',
   isResident: null,
   residencyProgram: '',
-  monthlyAmount: '',
-  paymentDay: null,
+  monthlyAmount: DEFAULT_RESIDENCY_AMOUNT,
+  paymentDay: DEFAULT_RESIDENCY_PAYMENT_DAY,
 };
 
 /**

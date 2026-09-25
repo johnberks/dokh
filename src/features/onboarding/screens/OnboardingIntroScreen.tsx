@@ -12,6 +12,7 @@ import {
   onboardingProfileMetrics as m,
   palette,
 } from '@/theme/tokens';
+import { BrandBackdrop } from '../BrandBackdrop';
 
 /** Tela 06: estado zero, só símbolo e convite para começar. */
 export function OnboardingIntroScreen() {
@@ -28,6 +29,7 @@ export function OnboardingIntroScreen() {
       testID="onboarding-intro"
     >
       <StatusBar style="light" />
+      <BrandBackdrop variant="intro" />
       <View style={styles.wordmark}>
         <BrandMark light size={22} />
         <AppText style={[type.wordmark, styles.wordmarkText]}>{t('welcome.splash.label')}</AppText>

@@ -5,6 +5,7 @@ import Search from 'lucide-react-native/icons/search';
 import { useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -50,6 +51,8 @@ export function ResidencyScreen() {
   function selectProgram(name: string) {
     update({ residencyProgram: name });
     setQuery(name);
+    // Escolha feita: o teclado sai da frente e o botão Continuar fica livre.
+    Keyboard.dismiss();
   }
 
   function goForward() {

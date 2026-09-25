@@ -12,6 +12,7 @@ import { AppText } from '@/components/AppText';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { onboardingIntroMetrics as m, motion, palette } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
+import { BrandBackdrop } from './BrandBackdrop';
 
 const UNIT = m.symbolSize / 120; // o símbolo do Brand Kit é desenhado em 120×120
 const SURFACE = 62 * UNIT;
@@ -78,6 +79,7 @@ export function BrandSplash({ onFinish, testID }: Props) {
 
   return (
     <View style={styles.screen} testID={testID}>
+      <BrandBackdrop variant="splash" />
       <View accessible accessibilityRole="image" accessibilityLabel={t('welcome.splash.label')}>
         <View style={styles.symbol}>
           <Animated.View style={[styles.surface, styles.cream, back]} />
