@@ -178,6 +178,16 @@ Regras de dependência:
 - Erros de validação são associados ao campo; erros de servidor ficam no formulário sem apagar o rascunho.
 - Botões respeitam as condições explícitas do UX; não inventar obrigatoriedade.
 
+## Telas, teclado e rolagem
+
+Regras permanentes, pedidas pelo usuário em 2026-09-25 após testes no iPhone:
+
+- **Nenhuma tela de fluxo rola.** Os HTMLs foram desenhados para caber em 390×844; se o conteúdo não couber, ajuste espaçamentos, tamanhos e agrupamentos — não acrescente rolagem. Exceção somente quando o UX desenhar uma lista longa (extrato, locais, catálogo).
+- **Nada fica atrás do teclado.** Campos de texto, listas de sugestão e seletores precisam continuar visíveis com o teclado aberto (`KeyboardAvoidingView` e, quando houver lista, `keyboardShouldPersistTaps="handled"`).
+- **O botão de avançar acompanha o teclado**, com respiro entre o topo do botão e o teclado. Nunca deve ser preciso fechar o teclado para encontrá-lo; um toque só avança.
+- **Escolha feita fecha o teclado** e remove a lista de opções.
+- Sem barra de rolagem visível quando houver rolagem legítima (`showsVerticalScrollIndicator={false}`), e a rolagem é da tela inteira, nunca de uma área interna.
+
 ## Tratamento técnico de estados
 
 Quando o UX não desenhar estados técnicos, usar o padrão compartilhado abaixo sem criar novas regras de negócio:
