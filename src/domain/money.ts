@@ -14,19 +14,31 @@ export function parseBRLToCents(raw: string): bigint | null {
   return amount > 0n && amount <= MAX_SIGNED_BIGINT_CENTS ? amount : null;
 }
 
+const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER);
+
+/** Agrupamento pt-BR para valores acima do limite seguro de `number`. */
+function groupIntegerPtBR(value: bigint): string {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 /**
  * Formatação pt-BR na borda da interface; o cálculo continua em centavos inteiros (D31).
- * A parte inteira é formatada como `bigint` para não perder precisão em valores grandes.
+ * O `Intl` do Hermes **não aceita `bigint`** (o do Node aceita), então a parte inteira vira
+ * `number` enquanto for exata; acima disso, o agrupamento é feito manualmente.
  */
 export function formatCentsToBRL(cents: bigint): string {
   const isNegative = cents < 0n;
   const absolute = isNegative ? -cents : cents;
-  const units = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(absolute / 100n);
+  const wholeUnits = absolute / 100n;
+  const units =
+    wholeUnits <= MAX_SAFE
+      ? new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        }).format(Number(wholeUnits))
+      : `R$ ${groupIntegerPtBR(wholeUnits)}`;
   const decimals = String(absolute % 100n).padStart(2, '0');
   return `${isNegative ? '-' : ''}${units},${decimals}`;
 }

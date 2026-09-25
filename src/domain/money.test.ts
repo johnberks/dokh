@@ -39,5 +39,31 @@ describe('formatCentsToBRL', () => {
 
   it('mantém precisão acima do limite seguro de number', () => {
     expect(formatCentsToBRL(9007199254740993n)).toMatch(/90\.071\.992\.547\.409,93$/);
+    // Acima do limite seguro o agrupamento é manual, mas o formato continua o mesmo.
+    expect(formatCentsToBRL(1234567890123456789n)).toMatch(
+      /^R\$\s?12\.345\.678\.901\.234\.567,89$/,
+    );
+  });
+
+  it('funciona onde o Intl recusa bigint, como o Hermes do iOS', () => {
+    const RealNumberFormat = Intl.NumberFormat;
+    // Reproduz o erro visto no iPhone: "Cannot convert BigInt to number".
+    const HermesLikeNumberFormat = ((...args: ConstructorParameters<typeof Intl.NumberFormat>) => {
+      const inner = new RealNumberFormat(...args);
+      return {
+        format: (value: number | bigint) => {
+          if (typeof value === 'bigint') throw new TypeError('Cannot convert BigInt to number');
+          return inner.format(value);
+        },
+      };
+    }) as unknown as typeof Intl.NumberFormat;
+
+    Intl.NumberFormat = HermesLikeNumberFormat;
+    try {
+      expect(formatCentsToBRL(365442n)).toMatch(/3\.654,42$/);
+      expect(formatCentsToBRL(1234567890123456789n)).toMatch(/12\.345\.678\.901\.234\.567,89$/);
+    } finally {
+      Intl.NumberFormat = RealNumberFormat;
+    }
   });
 });

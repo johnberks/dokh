@@ -93,6 +93,19 @@ describe('gravação do perfil do onboarding', () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
+  it('cai no fuso local se o aparelho recusar a opção timeZone', () => {
+    const RealDateTimeFormat = Intl.DateTimeFormat;
+    Intl.DateTimeFormat = (() => {
+      throw new RangeError('timeZone não suportado');
+    }) as unknown as typeof Intl.DateTimeFormat;
+    try {
+      const local = new Date(2026, 8, 15, 12);
+      expect(currentMonthStart('America/Sao_Paulo', local)).toBe('2026-09-01');
+    } finally {
+      Intl.DateTimeFormat = RealDateTimeFormat;
+    }
+  });
+
   it('usa o primeiro dia do mês no fuso do usuário', () => {
     const lastDayLate = new Date('2026-09-30T23:30:00-03:00');
     expect(currentMonthStart('America/Sao_Paulo', lastDayLate)).toBe('2026-09-01');

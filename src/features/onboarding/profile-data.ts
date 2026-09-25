@@ -24,15 +24,25 @@ export type OnboardingProfileInput = {
     }
 );
 
-/** Primeiro dia do mês corrente no fuso informado. */
+/**
+ * Primeiro dia do mês corrente no fuso informado.
+ * Se o `Intl` do aparelho não aceitar `timeZone`, usa o fuso local — que é justamente
+ * o fuso do aparelho de onde `timezone` veio.
+ */
 export function currentMonthStart(timezone: string, now: Date = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(now);
-  return `${parts.slice(0, 7)}-01`;
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(now);
+    return `${parts.slice(0, 7)}-01`;
+  } catch {
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`;
+  }
 }
 
 /**
