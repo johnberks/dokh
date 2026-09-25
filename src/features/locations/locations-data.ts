@@ -2,10 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Database } from '@/data/database.types';
 import { queryKeys } from '@/data/query-keys';
 import { supabase } from '@/data/supabase-client';
-import { nextAutomaticColorToken } from '@/domain/work-location-colors';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import type { AuthClient } from '@/features/auth/session';
 import type { WorkLocationColorToken } from '@/theme/tokens';
+import { nextAutomaticColorToken } from './location-colors';
 
 export type WorkLocationRow = Database['public']['Tables']['work_locations']['Row'];
 export type ColorSource = Database['public']['Enums']['work_location_color_source'];

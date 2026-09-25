@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { OnboardingCta } from '@/features/onboarding/OnboardingCta';
+import { KEYBOARD_CTA_GAP, OnboardingCta } from '@/features/onboarding/OnboardingCta';
 import { OnboardingHeader } from '@/features/onboarding/OnboardingHeader';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
@@ -56,6 +56,7 @@ export function WorkPlaceScreen() {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={KEYBOARD_CTA_GAP}
         style={styles.body}
       >
         <View style={styles.fieldArea}>

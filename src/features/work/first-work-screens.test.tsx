@@ -1,6 +1,7 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { useKeyboardVisible } from '@/components/useKeyboardVisible';
 import { createWorkLocation, listWorkLocations } from '@/features/locations/locations-data';
 import { useProfileDraft } from '@/features/onboarding/profile-draft';
 import { renderWithProviders } from '@/test/render';
@@ -36,7 +37,10 @@ jest.mock('./work-data', () => ({
   newIdempotencyKey: () => 'key-1',
 }));
 
+jest.mock('@/components/useKeyboardVisible', () => ({ useKeyboardVisible: jest.fn(() => false) }));
+
 const mockedPush = jest.mocked(router.push);
+const mockedKeyboardVisible = jest.mocked(useKeyboardVisible);
 const mockedCreateWork = jest.mocked(createWorkWithReceivable);
 const mockedCreateLocation = jest.mocked(createWorkLocation);
 const mockedListLocations = jest.mocked(listWorkLocations);
@@ -46,6 +50,7 @@ beforeEach(() => {
   useWorkDraft.getState().reset();
   useProfileDraft.getState().reset();
   mockedListLocations.mockResolvedValue([]);
+  mockedKeyboardVisible.mockReturnValue(false);
 });
 
 describe('tipo do primeiro Trabalho (TELA 06)', () => {
@@ -119,10 +124,11 @@ describe('quando acontece (tela 20)', () => {
     });
     expect(screen.getByText('Plantão precisa de horário de início e duração.')).toBeTruthy();
 
-    // Tocar no campo abre o seletor de horário nativo.
+    // Tocar no campo abre o seletor nativo numa folha, fora do caminho do botão Continuar.
     await act(async () => {
       await fireEvent.press(screen.getByTestId('work-start-field'));
     });
+    expect(screen.getByTestId('work-start-sheet-panel')).toBeTruthy();
     expect(screen.getByTestId('work-start-picker')).toBeTruthy();
 
     await act(async () => {
@@ -136,9 +142,15 @@ describe('quando acontece (tela 20)', () => {
     });
     expect(mockedPush).not.toHaveBeenCalled();
 
+    // O horário só é gravado ao confirmar na folha.
     await act(async () => {
-      useWorkDraft.getState().update({ startTime: '19:00' });
+      await fireEvent.press(screen.getByTestId('work-start-field'));
     });
+    expect(useWorkDraft.getState().startTime).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-start-confirm'));
+    });
+    expect(useWorkDraft.getState().startTime).toBe('19:00');
     await act(async () => {
       await fireEvent.press(screen.getByTestId('work-when-cta'));
     });
@@ -222,6 +234,47 @@ describe('valor e previsão (tela 22)', () => {
       await fireEvent.press(screen.getByTestId('work-amount-cta'));
     });
     expect(mockedCreateWork.mock.calls[0][0]).toMatchObject({ expectedOn: null });
+  });
+
+  it('Outra data abre o calendário nativo e grava a data confirmada', async () => {
+    useWorkDraft.setState(ready);
+    await renderWithProviders(<WorkAmountScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-expected-other'));
+    });
+    expect(screen.getByTestId('work-expected-sheet-panel')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent(
+        screen.getByTestId('work-expected-picker'),
+        'valueChange',
+        { type: 'set', nativeEvent: {} },
+        new Date(2026, 10, 20, 12),
+      );
+    });
+    // Girar o calendário não grava nada; só a confirmação.
+    expect(useWorkDraft.getState().expected).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-expected-confirm'));
+    });
+    expect(useWorkDraft.getState().expected).toEqual({ kind: 'date', date: '2026-11-20' });
+    expect(screen.getByText('20 DE NOV. DE 2026')).toBeTruthy();
+    expect(screen.getByTestId('work-expected-other').props.accessibilityState).toMatchObject({
+      selected: true,
+    });
+  });
+
+  it('com o teclado aberto mostra só o valor e o botão apenas baixa o teclado', async () => {
+    mockedKeyboardVisible.mockReturnValue(true);
+    useWorkDraft.setState(ready);
+    await renderWithProviders(<WorkAmountScreen />);
+    expect(screen.queryByTestId('work-expected')).toBeNull();
+    expect(screen.getByText('Continuar')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-amount-cta'));
+    });
+    expect(mockedCreateWork).not.toHaveBeenCalled();
+    expect(screen.queryByText('Informe quanto você recebe.')).toBeNull();
   });
 
   it('reaproveita Local existente pelo nome, sem criar duplicado', async () => {

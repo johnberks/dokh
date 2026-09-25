@@ -3,7 +3,7 @@ import {
   isFreeColorToken,
   nextAutomaticColorToken,
   PREMIUM_COLOR_TOKENS,
-} from './work-location-colors';
+} from './location-colors';
 
 describe('cores de Local', () => {
   it('usa a primeira cor livre ainda não usada', () => {

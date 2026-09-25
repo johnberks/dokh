@@ -186,6 +186,8 @@ Regras permanentes, pedidas pelo usuário em 2026-09-25 após testes no iPhone:
 - **Nada fica atrás do teclado.** Campos de texto, listas de sugestão e seletores precisam continuar visíveis com o teclado aberto (`KeyboardAvoidingView` e, quando houver lista, `keyboardShouldPersistTaps="handled"`).
 - **O botão de avançar acompanha o teclado**, com respiro entre o topo do botão e o teclado. Nunca deve ser preciso fechar o teclado para encontrá-lo; um toque só avança.
 - **Escolha feita fecha o teclado** e remove a lista de opções.
+- **Teclado sem tecla de fechar** (numérico, decimal) fecha ao tocar fora dele; quando o que vem depois não cabe acima do teclado, o botão primeiro só baixa o teclado e revela o resto.
+- **Seletores nativos de horário e data abrem numa folha** (`BottomSheet`) com confirmação, nunca embutidos numa tela que não rola, onde empurrariam ou cobririam o botão.
 - Sem barra de rolagem visível quando houver rolagem legítima (`showsVerticalScrollIndicator={false}`), e a rolagem é da tela inteira, nunca de uma área interna.
 
 ## Tratamento técnico de estados

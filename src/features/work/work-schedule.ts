@@ -43,13 +43,23 @@ export function workEndDescription(
 /** Prazos de pagamento oferecidos no MVP (D30/D60/D90). */
 export const PAYMENT_TERMS = [30, 60, 90] as const;
 
+/** Data local como `Date` ao meio-dia, longe das bordas de horário de verão. */
+export function localDateToDate(date: LocalDate): Date {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(year, month - 1, day, 12);
+}
+
+/** Dia do calendário local de um `Date` (ex.: o escolhido no seletor nativo). */
+export function dateToLocalDate(date: Date): LocalDate {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 /** Soma dias a uma data local sem depender de fuso. */
 export function addDaysToLocalDate(date: LocalDate, days: number): LocalDate {
   const [year, month, day] = date.split('-').map(Number);
-  const shifted = new Date(year, month - 1, day + days, 12);
-  const shiftedMonth = String(shifted.getMonth() + 1).padStart(2, '0');
-  const shiftedDay = String(shifted.getDate()).padStart(2, '0');
-  return `${shifted.getFullYear()}-${shiftedMonth}-${shiftedDay}`;
+  return dateToLocalDate(new Date(year, month - 1, day + days, 12));
 }
 
 const EXPECTED_LABEL = new Intl.DateTimeFormat('pt-BR', {
@@ -59,6 +69,5 @@ const EXPECTED_LABEL = new Intl.DateTimeFormat('pt-BR', {
 });
 
 export function formatExpectedDate(date: LocalDate): string {
-  const [year, month, day] = date.split('-').map(Number);
-  return EXPECTED_LABEL.format(new Date(year, month - 1, day, 12)).toUpperCase();
+  return EXPECTED_LABEL.format(localDateToDate(date)).toUpperCase();
 }

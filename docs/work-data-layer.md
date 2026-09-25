@@ -6,7 +6,7 @@ Base: as RPCs atômicas da 3.7/3.8, as tabelas da 3.3 e os tipos gerados da 3.12
 
 - `listWorkLocations` traz apenas ativos, em ordem alfabética. Arquivados somem dos seletores e permanecem no histórico.
 - `createWorkLocation` recebe o `userId` da sessão; a RLS confere `auth.uid() = user_id`, então o app não consegue gravar por outra pessoa.
-- Sem cor escolhida, a **cor automática** vem de `nextAutomaticColorToken` (`src/domain/work-location-colors.ts`): primeira cor livre não usada e, esgotadas, rodízio. Dois locais podem repetir cor — o calendário nunca depende só dela (D14).
+- Sem cor escolhida, a **cor automática** vem de `nextAutomaticColorToken` (`src/features/locations/location-colors.ts`): primeira cor livre não usada e, esgotadas, rodízio. Dois locais podem repetir cor — o calendário nunca depende só dela (D14).
 - `color_source` distingue `automatic`, `free_palette` e `premium_palette`; a paleta ampliada é Premium e validada no servidor (D49).
 - `archiveWorkLocation` faz remoção lógica. Não existe exclusão definitiva de Local.
 

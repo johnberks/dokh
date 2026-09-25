@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { CalendarGrid } from '@/components/CalendarGrid';
-import { type LocalDate, monthOf, shiftMonth } from '@/domain/calendar';
+import { monthOf, shiftMonth } from '@/domain/calendar';
 import { requiresSchedule } from '@/domain/work-type';
 import { OnboardingCta } from '@/features/onboarding/OnboardingCta';
 import { OnboardingHeader } from '@/features/onboarding/OnboardingHeader';
@@ -18,7 +18,7 @@ import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 import { ScheduleFields } from '../ScheduleFields';
 import { WorkTypeChip } from '../WorkTypeChip';
 import { useWorkDraft } from '../work-draft';
-import { todayInTimezone, workEndDescription } from '../work-schedule';
+import { localDateToDate, todayInTimezone, workEndDescription } from '../work-schedule';
 
 const MONTH_LABEL = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
 const SELECTED_LABEL = new Intl.DateTimeFormat('pt-BR', {
@@ -27,11 +27,6 @@ const SELECTED_LABEL = new Intl.DateTimeFormat('pt-BR', {
   year: 'numeric',
   weekday: 'long',
 });
-
-function localDateToDate(date: LocalDate): Date {
-  const [year, month, day] = date.split('-').map(Number);
-  return new Date(year, month - 1, day, 12);
-}
 
 /** Tela 20: data obrigatória; horário e duração só são exigidos em Plantão. */
 export function WorkWhenScreen() {

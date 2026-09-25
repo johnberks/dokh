@@ -1,6 +1,8 @@
 import {
   addDaysToLocalDate,
+  dateToLocalDate,
   formatExpectedDate,
+  localDateToDate,
   PAYMENT_TERMS,
   todayInTimezone,
   workEndDescription,
@@ -55,5 +57,14 @@ describe('horário e prazos do Trabalho', () => {
     } finally {
       Intl.DateTimeFormat = RealDateTimeFormat;
     }
+  });
+});
+
+describe('conversão entre data local e Date', () => {
+  it('ida e volta preservam o dia, inclusive na virada de ano', () => {
+    for (const date of ['2026-01-01', '2026-02-28', '2026-12-31']) {
+      expect(dateToLocalDate(localDateToDate(date))).toBe(date);
+    }
+    expect(localDateToDate('2026-09-12').getHours()).toBe(12);
   });
 });

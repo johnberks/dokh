@@ -98,6 +98,7 @@ export const onboarding = {
       scheduleRequired: 'Plantão precisa de horário de início e duração.',
       pickStart: 'Escolher horário de início',
       confirmStart: 'Confirmar horário',
+      startSheetTitle: 'Que horas começa?',
     },
     amount: {
       title: 'Quanto você recebe por esse trabalho?',
@@ -107,6 +108,11 @@ export const onboarding = {
       expectedLabel: 'PREVISTO PARA ENTRAR',
       change: 'ALTERAR',
       inDays: 'Em {{days}} dias',
+      otherDate: 'Outra data',
+      pickDate: 'Escolher a data prevista',
+      dateSheetTitle: 'Quando esse valor entra?',
+      confirmDate: 'Confirmar data',
+      continueTyping: 'Continuar',
       unknown: 'Ainda não sei quando entra',
       unknownNote:
         'Sem data, o valor entra em Finanças como "sem previsão" — você completa quando souber.',

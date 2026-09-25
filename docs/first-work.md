@@ -20,8 +20,8 @@ Residência não aparece como tipo: é configurada no Perfil e gera Recebíveis 
 
 - **Tipo (TELA 06)** reusa o `WorkTypeSelector` da 2.5. Quem tem residência vê a nota "aqui entram os trabalhos que você faz além dela".
 - **Local (19)** pede só o nome. Campo, dica e botão ficam acima do teclado.
-- **Quando (20)** reusa o `CalendarGrid` da 2.5 numa densidade `compact` (célula 38, círculo 32), com navegação de mês, linha `SELECIONADO`, horário de início (seletor nativo) e duração em 6h, 12h, 24h ou Outro (stepper). O término é derivado (`workEndDescription`) e avisa quando cai no dia seguinte.
-- **Valor (22)** usa o `MoneyInput` grande. A previsão termina sempre num estado conhecido: data por D30/D60/D90 (calculada a partir da data do trabalho), data escolhida ou `Ainda não sei quando entra`, que grava sem data e explica que o valor aparecerá em Finanças como "sem previsão".
+- **Quando (20)** reusa o `CalendarGrid` da 2.5 numa densidade `compact` (célula 38, círculo 32), com navegação de mês, linha `SELECIONADO`, horário de início (roda nativa numa folha com `Confirmar horário`; girar sem confirmar não grava) e duração em 6h, 12h, 24h ou Outro (stepper). O término é derivado (`workEndDescription`) e avisa quando cai no dia seguinte.
+- **Valor (22)** usa o `MoneyInput` grande. A previsão termina sempre num estado conhecido: data por D30/D60/D90 (calculada a partir da data do trabalho), `Outra data` (calendário nativo da Apple numa folha, a partir da data do trabalho, gravado só ao confirmar) ou `Ainda não sei quando entra`, que grava sem data e explica que o valor aparecerá em Finanças como "sem previsão". Enquanto o teclado numérico está aberto, só o valor e o botão aparecem; sem previsão escolhida, o botão vira `Continuar` e apenas baixa o teclado. Tocar fora do teclado também o fecha.
 
 ## Gravação
 

@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { BottomSheet } from '@/components/BottomSheet';
+import { OnboardingCta } from '@/features/onboarding/OnboardingCta';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 
@@ -32,10 +34,22 @@ export function ScheduleFields({ startTime, durationMinutes, onChange }: Props) 
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   const [pickingTime, setPickingTime] = useState(false);
+  // O giro da roda só vale quando a pessoa confirma; fechar a folha descarta.
+  const [pendingTime, setPendingTime] = useState(() => timeToDate(startTime));
   const [customHours, setCustomHours] = useState(false);
 
   const hours = durationMinutes === null ? null : Math.round(durationMinutes / 60);
   const isQuick = hours !== null && (QUICK_HOURS as readonly number[]).includes(hours);
+
+  function openTimePicker() {
+    setPendingTime(timeToDate(startTime));
+    setPickingTime(true);
+  }
+
+  function confirmTime() {
+    onChange({ startTime: dateToTime(pendingTime) });
+    setPickingTime(false);
+  }
 
   function setHours(value: number) {
     onChange({ durationMinutes: Math.min(MAX_HOURS, Math.max(MIN_HOURS, value)) * 60 });
@@ -48,7 +62,7 @@ export function ScheduleFields({ startTime, durationMinutes, onChange }: Props) 
           accessibilityRole="button"
           accessibilityLabel={t('firstWork.when.pickStart')}
           accessibilityValue={{ text: startTime ?? '' }}
-          onPress={() => setPickingTime((open) => !open)}
+          onPress={openTimePicker}
           testID="work-start-field"
           style={({ pressed }) => [styles.field, pressed && styles.pressed]}
         >
@@ -68,35 +82,54 @@ export function ScheduleFields({ startTime, durationMinutes, onChange }: Props) 
         </View>
       </View>
 
-      {pickingTime && (
-        <View style={styles.picker} testID="work-start-picker">
+      {Platform.OS === 'ios' ? (
+        // Folha própria: a roda de horário não cabe na tela, que não rola, sem cobrir o botão.
+        <BottomSheet
+          open={pickingTime}
+          onClose={() => setPickingTime(false)}
+          accessibilityLabel={t('firstWork.when.pickStart')}
+          testID="work-start-sheet"
+        >
+          <AppText style={[type.heading1, styles.sheetTitle]}>
+            {t('firstWork.when.startSheetTitle')}
+          </AppText>
+          <View style={styles.picker} testID="work-start-picker">
+            <DateTimePicker
+              accessibilityLabel={t('firstWork.when.pickStart')}
+              display="spinner"
+              locale="pt-BR"
+              minuteInterval={5}
+              mode="time"
+              onValueChange={(_event, date) => {
+                if (date) setPendingTime(date);
+              }}
+              testID="work-start-picker-input"
+              themeVariant="light"
+              value={pendingTime}
+            />
+          </View>
+          <OnboardingCta
+            label={t('firstWork.when.confirmStart')}
+            onPress={confirmTime}
+            testID="work-start-confirm"
+          />
+        </BottomSheet>
+      ) : (
+        // Android abre o próprio diálogo do sistema.
+        pickingTime && (
           <DateTimePicker
             accessibilityLabel={t('firstWork.when.pickStart')}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             minuteInterval={5}
             mode="time"
             onDismiss={() => setPickingTime(false)}
             onValueChange={(_event, date) => {
-              if (Platform.OS !== 'ios') setPickingTime(false);
+              setPickingTime(false);
               if (date) onChange({ startTime: dateToTime(date) });
             }}
             testID="work-start-picker-input"
             value={timeToDate(startTime)}
           />
-          {Platform.OS === 'ios' && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('firstWork.when.confirmStart')}
-              onPress={() => setPickingTime(false)}
-              testID="work-start-confirm"
-              style={({ pressed }) => [styles.confirm, pressed && styles.pressed]}
-            >
-              <AppText style={[type.heading1, styles.confirmLabel]}>
-                {t('firstWork.when.confirmStart')}
-              </AppText>
-            </Pressable>
-          )}
-        </View>
+        )
       )}
 
       <View
@@ -199,9 +232,8 @@ const styles = StyleSheet.create({
   },
   fieldLabel: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: palette.sage },
   fieldValue: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary },
-  picker: { alignItems: 'center', gap: 4 },
-  confirm: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
-  confirmLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
+  sheetTitle: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: colors.textPrimary },
+  picker: { alignItems: 'center' },
   chips: { flexDirection: 'row', gap: 6 },
   chip: { flex: 1, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   chipOn: { borderWidth: 1, borderColor: colors.foreground, backgroundColor: colors.foreground },

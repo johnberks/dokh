@@ -4,6 +4,9 @@ import { AppText } from '@/components/AppText';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 
+/** Respiro entre o topo do teclado e o botão (`keyboardVerticalOffset`): um toque só avança. */
+export const KEYBOARD_CTA_GAP = 16;
+
 type Props = {
   label?: string;
   onPress: () => void;
