@@ -463,6 +463,33 @@ export const premiumGateMetrics = {
   actionsGap: 10,
 } as const;
 
+/** Telas 06–12 do onboarding: cabeçalho de progresso, opções e dia da bolsa. */
+export const onboardingProfileMetrics = {
+  headerPaddingTop: 20,
+  headerGap: 20,
+  backTarget: 44,
+  backIcon: 20,
+  progressHeight: 2,
+  titlePaddingTop: 44,
+  titleSize: 32,
+  titleLineHeight: 35,
+  titleTracking: -0.96,
+  fieldHeight: 64,
+  fieldRadius: 16,
+  choiceHeight: 60,
+  choiceRadius: 16,
+  choiceRadio: 20,
+  suggestionPaddingVertical: 14,
+  dayBoxWidth: 92,
+  dayBoxHeight: 66,
+  dayChipHeight: 48,
+  dayChipRadius: 14,
+  ctaHeight: 56,
+  ctaRadius: 16,
+  /** O onboarding completo tem 11 passos; as porcentagens do HTML seguem essa escala. */
+  totalSteps: 11,
+} as const;
+
 /** Tela 04 (Criar conta): cartões flutuantes em três camadas de profundidade. */
 export const accountPreviewMetrics = {
   minHeight: 200,

@@ -149,7 +149,10 @@ describe('rotas', () => {
   it('perfil incompleto abre onboarding e bloqueia as tabs', async () => {
     mockOnboarding.data = false;
     const router = await openAt('/finances');
-    expect(screen.getByRole('header', { name: 'Vamos organizar sua rotina' })).toBeTruthy();
+    expect(screen.getByTestId('onboarding-intro')).toBeTruthy();
+    expect(
+      screen.getByRole('header', { name: 'Vamos deixar a DOKH mais com a sua cara.' }),
+    ).toBeTruthy();
     await waitFor(() => expect(router.getPathname()).toBe('/welcome'));
   });
 

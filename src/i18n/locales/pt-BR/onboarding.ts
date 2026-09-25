@@ -1,5 +1,65 @@
 export const onboarding = {
   intro: { title: 'Vamos organizar sua rotina' },
+  /** Telas 06, 07, 09, TELA 04 e 12 de `design/onboarding.html`. */
+  profile: {
+    intro: {
+      title: 'Vamos deixar a DOKH mais com a sua cara.',
+      description: 'Algumas respostas rápidas para adaptar sua experiência.',
+      cta: 'Vamos começar',
+    },
+    steps: 'Etapa {{current}} de {{total}}',
+    back: 'Voltar',
+    continue: 'Continuar',
+    name: {
+      title: 'Como podemos te chamar?',
+      label: 'NOME',
+      hint: 'Só o primeiro nome já basta.',
+      required: 'Informe como quer ser chamado.',
+    },
+    residency: {
+      title: '{{name}}, você está fazendo residência médica atualmente?',
+      titleWithoutName: 'Você está fazendo residência médica atualmente?',
+      yes: 'Sim',
+      no: 'Não',
+      question: 'QUAL É A SUA RESIDÊNCIA?',
+      searchLabel: 'Buscar residência',
+      searchPlaceholder: 'Comece a escrever',
+      selected: 'SELECIONADA',
+      other: 'Outra',
+      otherHint: 'Usaremos o nome que você escrever.',
+      required: 'Escolha a sua residência para continuar.',
+      generalist: 'GENERALISTA',
+      noResidencyNote: 'Sem residência, a DOKH segue com seus trabalhos avulsos.',
+    },
+    income: {
+      badge: 'RESIDÊNCIA · {{specialty}}',
+      title: 'Agora só precisamos entender como sua residência entra nas suas finanças.',
+      amountTitle: 'Quanto você recebe por mês?',
+      amountLabel: 'Bolsa mensal',
+      amountHint: 'Valor líquido da bolsa · toque para ajustar.',
+      amountRequired: 'Informe o valor da bolsa.',
+      dayTitle: 'Qual dia costuma entrar?',
+      dayPrefix: 'Todo dia',
+      dayOther: 'Outro',
+      dayLabel: 'Dia do mês em que a bolsa entra',
+      dayHint: 'Todo mês a DOKH já conta essa entrada para você.',
+      dayRequired: 'Escolha um dia entre 1 e 31.',
+      saveError: 'Não foi possível salvar seu perfil agora. Tente novamente.',
+    },
+    ready: {
+      badge: 'RESIDÊNCIA',
+      generalistBadge: 'GENERALISTA',
+      everyDay: 'todo dia {{day}}',
+      withResidencyTitle: 'Sua residência já é sua primeira entrada.',
+      withResidencyDescription:
+        'Agora vamos adicionar o que você faz além dela — plantões, procedimentos ou atendimentos.',
+      withoutResidencyTitle: 'Agora vamos entender como seu trabalho vira renda.',
+      withoutResidencyDescription:
+        'Registre um plantão, procedimento ou atendimento para a DOKH acompanhar suas entradas.',
+      withResidencyCta: 'Registrar um trabalho',
+      withoutResidencyCta: 'Registrar meu primeiro trabalho',
+    },
+  },
   welcome: {
     splash: { label: 'DOKH' },
     /** Tela 04 de `design/onboarding.html`, com o título aprovado pelo usuário. */

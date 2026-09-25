@@ -1,4 +1,4 @@
-import { parseBRLToCents } from './money';
+import { formatCentsToBRL, parseBRLToCents } from './money';
 
 describe('parseBRLToCents', () => {
   it.each([
@@ -27,5 +27,17 @@ describe('parseBRLToCents', () => {
     '92.233.720.368.547.758,08',
   ])('rejects invalid or non-positive value %s', (input) => {
     expect(parseBRLToCents(input)).toBeNull();
+  });
+});
+
+describe('formatCentsToBRL', () => {
+  it('formata centavos em reais no padrão pt-BR', () => {
+    expect(formatCentsToBRL(365442n)).toMatch(/^R\$\s?3\.654,42$/);
+    expect(formatCentsToBRL(100n)).toMatch(/^R\$\s?1,00$/);
+    expect(formatCentsToBRL(5n)).toMatch(/^R\$\s?0,05$/);
+  });
+
+  it('mantém precisão acima do limite seguro de number', () => {
+    expect(formatCentsToBRL(9007199254740993n)).toMatch(/90\.071\.992\.547\.409,93$/);
   });
 });

@@ -13,3 +13,20 @@ export function parseBRLToCents(raw: string): bigint | null {
   const amount = whole * 100n + cents;
   return amount > 0n && amount <= MAX_SIGNED_BIGINT_CENTS ? amount : null;
 }
+
+/**
+ * Formatação pt-BR na borda da interface; o cálculo continua em centavos inteiros (D31).
+ * A parte inteira é formatada como `bigint` para não perder precisão em valores grandes.
+ */
+export function formatCentsToBRL(cents: bigint): string {
+  const isNegative = cents < 0n;
+  const absolute = isNegative ? -cents : cents;
+  const units = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(absolute / 100n);
+  const decimals = String(absolute % 100n).padStart(2, '0');
+  return `${isNegative ? '-' : ''}${units},${decimals}`;
+}
