@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -41,6 +41,17 @@ function useReveal(index: number) {
  */
 export function AccountPreview() {
   const { t } = useTranslation('onboarding');
+  // Os cartões são absolutos (posições do HTML). A pilha reserva a altura do cartão mais baixo
+  // para nunca invadir os botões abaixo, inclusive com Dynamic Type.
+  const [stackHeight, setStackHeight] = useState<number>(p.minHeight);
+
+  function measureLowestCard(event: LayoutChangeEvent) {
+    const needed = p.earningsTop + event.nativeEvent.layout.height;
+    setStackHeight((current) =>
+      Math.abs(current - needed) < 1 ? current : Math.max(needed, p.minHeight),
+    );
+  }
+
   const shift = useReveal(LAYERS.indexOf('shift'));
   const receivable = useReveal(LAYERS.indexOf('receivable'));
   const earnings = useReveal(LAYERS.indexOf('earnings'));
@@ -49,7 +60,7 @@ export function AccountPreview() {
     <View
       accessible
       accessibilityLabel={t('welcome.account.preview')}
-      style={styles.stack}
+      style={[styles.stack, { height: stackHeight }]}
       testID="account-preview"
     >
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -82,7 +93,11 @@ export function AccountPreview() {
           </View>
         </Animated.View>
 
-        <Animated.View testID="preview-earnings" style={[styles.card, styles.earnings, earnings]}>
+        <Animated.View
+          testID="preview-earnings"
+          onLayout={measureLowestCard}
+          style={[styles.card, styles.earnings, earnings]}
+        >
           <View style={styles.earningsHeader}>
             <AppText variant="technical" style={styles.eyebrow}>
               {t('welcome.account.earningsLabel')}
@@ -109,7 +124,7 @@ export function AccountPreview() {
 }
 
 const styles = StyleSheet.create({
-  stack: { flex: 1, minHeight: p.minHeight },
+  stack: { minHeight: p.minHeight },
   card: {
     position: 'absolute',
     borderRadius: p.radius,

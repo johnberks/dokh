@@ -2,6 +2,7 @@ import '@/i18n';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { legalUrls } from '@/config/legal';
+import { accountPreviewMetrics } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { SPLASH_DURATION } from './BrandSplash';
 import { WelcomeScreen } from './screens/WelcomeScreen';
@@ -120,6 +121,39 @@ describe('tela 04 — criar conta', () => {
     const earnings = elevation('preview-earnings');
     expect(shift.opacity).toBeLessThan(receivable.opacity);
     expect(receivable.radius).toBeLessThan(earnings.radius);
+  });
+
+  it('a pilha reserva a altura do cartão mais baixo e não invade os botões', async () => {
+    await renderAccountScreen();
+    const hidden = { includeHiddenElements: true };
+    const earningsHeight = 120;
+    await act(async () => {
+      fireEvent(screen.getByTestId('preview-earnings', hidden), 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 214, height: earningsHeight } },
+      });
+    });
+    const stack = screen.getByTestId('account-preview', hidden).props.style;
+    const flat = Array.isArray(stack) ? Object.assign({}, ...stack.flat(2)) : stack;
+    expect(flat.height).toBe(accountPreviewMetrics.earningsTop + earningsHeight);
+  });
+
+  it('texto legal mantém fonte e tamanho; só o trecho de link fica em negrito', async () => {
+    await renderAccountScreen();
+    const sentence = screen.getByText(/Ao continuar, você concorda/);
+    const paragraph = Array.isArray(sentence.props.style)
+      ? Object.assign({}, ...sentence.props.style.flat(2))
+      : sentence.props.style;
+    for (const label of ['Termos de Uso', 'Política de Privacidade']) {
+      const part = screen.getByText(label);
+      const style = Array.isArray(part.props.style)
+        ? Object.assign({}, ...part.props.style.flat(2))
+        : part.props.style;
+      expect(style.fontSize).toBe(paragraph.fontSize);
+      expect(style.lineHeight).toBe(paragraph.lineHeight);
+      expect(style.color).toBe(paragraph.color);
+      expect(style.fontWeight).toBe('600');
+      expect(style.textDecorationLine).toBeUndefined();
+    }
   });
 
   it('termos e privacidade só viram link quando a URL existir (P04)', async () => {

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { legalUrls } from '@/config/legal';
@@ -13,15 +13,21 @@ import { colors, onboardingIntroMetrics as m, palette } from '@/theme/tokens';
 import { AccountPreview } from '../AccountPreview';
 import { BrandSplash } from '../BrandSplash';
 
-/** Links legais só existem quando a URL estiver configurada (P04). */
+/**
+ * Mesma família, tamanho e cor do restante da frase; só o peso muda.
+ * O toque existe apenas quando a URL estiver configurada (P04).
+ */
 function LegalLink({ label, url }: { label: string; url: string | null }) {
-  if (!url) return <AppText style={styles.legalStatic}>{label}</AppText>;
+  const type = useBrandTypography();
+  // Só tipografia: o padding pertence ao parágrafo, não ao trecho embutido.
+  const style = [styles.legalInline, { fontFamily: type.label.fontFamily }];
+  if (!url) return <AppText style={style}>{label}</AppText>;
   return (
     <AppText
       accessibilityRole="link"
       accessibilityLabel={label}
       onPress={() => void Linking.openURL(url)}
-      style={styles.legalLink}
+      style={style}
     >
       {label}
     </AppText>
@@ -42,9 +48,12 @@ export function WelcomeScreen() {
     return <BrandSplash onFinish={() => setShowSplash(false)} testID="intro-splash" />;
 
   return (
-    <View
-      style={[
-        styles.screen,
+    <ScrollView
+      style={styles.screen}
+      // Em telas menores o conteúdo rola em vez de se sobrepor; em telas grandes nada se move.
+      bounces={false}
+      contentContainerStyle={[
+        styles.content,
         { paddingTop: insets.top + m.headerPaddingTop, paddingBottom: Math.max(insets.bottom, 24) },
       ]}
       testID="welcome-account"
@@ -91,12 +100,13 @@ export function WelcomeScreen() {
         <LegalLink label={t('welcome.account.privacy')} url={legalUrls.privacy} />
         {t('welcome.account.legalAfter')}
       </AppText>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  content: { flexGrow: 1 },
   header: { paddingHorizontal: m.horizontalPadding },
   heading: { paddingTop: 36, paddingHorizontal: m.horizontalPadding, gap: 12 },
   title: {
@@ -110,7 +120,8 @@ const styles = StyleSheet.create({
     lineHeight: m.slideBodyLineHeight,
     color: colors.textMuted,
   },
-  preview: { flex: 1, marginTop: 28, marginHorizontal: m.horizontalPadding },
+  // A pilha reserva a própria altura; o espaço extra fica antes dos botões.
+  preview: { flexGrow: 1, flexShrink: 0, marginTop: 28, marginHorizontal: m.horizontalPadding },
   actions: { paddingTop: 24, paddingHorizontal: m.horizontalPadding, gap: 10 },
   signInRow: {
     flexDirection: 'row',
@@ -129,6 +140,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: palette.sage,
   },
-  legalStatic: { color: palette.sage, textDecorationLine: 'underline' },
-  legalLink: { color: palette.sage, textDecorationLine: 'underline' },
+  // Sem sublinhado e sem mudança de tamanho: o destaque é só o peso da fonte.
+  legalInline: { fontSize: 11, lineHeight: 18, color: palette.sage, fontWeight: '600' },
 });

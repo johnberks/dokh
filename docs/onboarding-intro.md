@@ -23,7 +23,7 @@ Sem sessão, o guard da 4.5 abre `/intro` (splash + tela 04). Não há estado de
 
 - Título aprovado: **"Organize sua rotina e suas finanças em um só lugar."** (substitui "Comece a organizar sua vida financeira." do HTML). Subtítulo e demais medidas seguem o HTML.
 - Botões Apple/Google, divisor "ou" e CTA escuro reaproveitam `SocialChoices` e `AuthAction` da 4.2, mantendo a mesma aparência do login.
-- Texto legal com "Termos de Uso" e "Política de Privacidade" sublinhados. Enquanto `src/config/legal.ts` tiver URL nula (P04), o texto aparece **sem link** — nenhum destino é inventado; com URL configurada, viram links.
+- Texto legal com uma só família, tamanho e cor; "Termos de Uso" e "Política de Privacidade" aparecem apenas em **negrito**, sem sublinhado (pedido do usuário em 2026-09-24). Enquanto `src/config/legal.ts` tiver URL nula (P04), o trecho não é clicável — nenhum destino é inventado; com URL configurada, vira link mantendo a mesma tipografia.
 
 ### Profundidade dos três cartões
 
@@ -32,6 +32,8 @@ Sem sessão, o guard da 4.5 abre `/intro` (splash + tela 04). Não há estado de
 1. **Ordem das camadas**: o cartão claro de plantão fica atrás, o de a receber no meio e o de ganhos à frente.
 2. **Elevação crescente**: sombra sutil no primeiro, elevada no segundo e a sombra forte do HTML (0 20 40 a 24%) no terceiro — um teste garante que as elevações são diferentes e crescentes.
 3. **Entrada em cascata**: cada cartão sobe e aparece com 90 ms de diferença, do fundo para a frente; com reduzir movimento, todos entram prontos.
+
+A pilha **reserva a própria altura**: o cartão mais baixo é medido no layout e o container fica com `topo + altura`, então os cartões nunca cobrem os botões, mesmo com Dynamic Type. A tela rola quando o conteúdo não couber (sem bounce); em telas grandes nada se move.
 
 A prévia é lida de uma vez pelo leitor de tela ("Prévia do produto: …") e seus números internos ficam ocultos, para não soarem como dados da pessoa.
 
