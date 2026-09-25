@@ -1,14 +1,25 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  brandTypography,
   colors,
+  emptyStateMetrics,
+  fontAliases,
   fontFamilies,
+  getTypography,
+  moneyInputMetrics,
   motion,
+  navigationMetrics,
   palette,
+  progressCardMetrics,
   radius,
+  receivableRowMetrics,
+  reviewCardMetrics,
   shadow,
   spacing,
   typography,
+  workCardMetrics,
+  workLocationColors,
   zIndex,
 } from './tokens';
 
@@ -21,12 +32,21 @@ describe('Brand Kit tokens', () => {
     expect(colors.textPrimary).toBe(palette.base);
     expect(colors.errorTextOnDark).toBe(palette.negativeText);
     expect(colors.pendingText).not.toBe(palette.negative);
+    expect(palette.attention).toBe('#E4D9C2');
+    expect(colors.reviewAttentionBackground).toBe(palette.attention);
+    expect(colors.reviewPreviewSurface).toBe('#FDFCF8');
   });
 
-  it('reserves wordmark type and keeps runtime fonts on fallback until 2.2', () => {
+  it('registers each brand role and provides a safe fallback', () => {
     expect(fontFamilies.wordmark).toBe('Unbounded');
     expect(fontFamilies.technical).toBe('IBM Plex Mono');
-    expect(typography.wordmark.fontFamily).toBe(fontFamilies.fallback);
+    expect(getTypography(true)).toBe(brandTypography);
+    expect(getTypography(false)).toBe(typography);
+    expect(brandTypography.wordmark.fontFamily).toBe(fontAliases.unboundedSemibold);
+    expect(brandTypography.body.fontFamily).toBe(fontAliases.archivoRegular);
+    expect(brandTypography.technical.fontFamily).toBe(fontAliases.plexRegular);
+    expect(brandTypography.tabLabelActive.fontFamily).toBe(fontAliases.plexSemibold);
+    expect(brandTypography.tabLabel.fontSize).toBe(9);
     expect(typography.body.fontFamily).toBe(fontFamilies.fallback);
   });
 
@@ -36,6 +56,28 @@ describe('Brand Kit tokens', () => {
     expect(shadow.raised.shadowColor).toBe(palette.base);
     expect(motion.feedback).toBe(200);
     expect(zIndex.overlay).toBeGreaterThan(zIndex.floating);
+    expect(navigationMetrics.createDiameter).toBe(56);
+    expect(navigationMetrics.navigationControlHitTarget).toBeGreaterThanOrEqual(44);
+    expect(reviewCardMetrics.compactRadius).toBe(18);
+    expect(reviewCardMetrics.regularRadius).toBe(22);
+    expect(reviewCardMetrics.previewBarWidth).toBe(5);
+    expect(workCardMetrics.agendaBarWidth).toBe(4);
+    expect(workCardMetrics.rowBarHeight).toBe(34);
+    expect(workLocationColors.sage).toBe('#6F7E67');
+    expect(workLocationColors.blue).toBe('#6B7F8E');
+    expect(receivableRowMetrics.confirmCircle).toBe(34);
+    expect(receivableRowMetrics.confirmHitTarget).toBeGreaterThanOrEqual(44);
+    expect(emptyStateMetrics.cardRadius).toBe(22);
+    expect(emptyStateMetrics.profileButtonHeight).toBe(56);
+    expect(colors.emptyOutline).toBe('rgba(16,22,15,0.22)');
+    expect(colors.progressSurface).toBe('#DCE0D6');
+    expect(colors.progressTrack).toBe('rgba(16,22,15,0.14)');
+    expect(progressCardMetrics.progressHeight).toBe(4);
+    expect(progressCardMetrics.actionMinHeight).toBeGreaterThanOrEqual(44);
+    expect(moneyInputMetrics.formHeight).toBe(60);
+    expect(moneyInputMetrics.residencyValueSize).toBe(44);
+    expect(moneyInputMetrics.workValueSize).toBe(48);
+    expect(colors.moneyFieldBorder).toBe('rgba(16,22,15,0.2)');
   });
 
   it('keeps demonstration components free of inline hex and font families', () => {

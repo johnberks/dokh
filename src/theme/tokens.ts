@@ -14,6 +14,16 @@ export const palette = {
   secondaryText: '#9AA391',
   deepBackground: '#0A0E09',
   paper: '#F8F6EF',
+  mutedCopy: '#4A5744',
+  bronzeDeep: '#8A6E3C',
+  attention: '#E4D9C2',
+  previewPaper: '#FDFCF8',
+  workSage: '#6F7E67',
+  workBlue: '#6B7F8E',
+  workTerra: '#8C6A5A',
+  workViolet: '#6E6A8A',
+  workBlueDeep: '#4A5F70',
+  authHeroShade: '#161F14',
 } as const;
 
 /** Semantic intent is preferred to raw palette names in components. */
@@ -23,6 +33,7 @@ export const colors = {
   foreground: palette.base,
   textPrimary: palette.base,
   textSecondary: palette.structure,
+  textMuted: palette.mutedCopy,
   border: palette.structure,
   accent: palette.bronze,
   darkBackground: palette.base,
@@ -33,14 +44,89 @@ export const colors = {
   errorTextOnDark: palette.negativeText,
   errorFill: palette.negative,
   pendingText: palette.structure,
+  tabBarBorder: 'rgba(16,22,15,0.1)',
+  tabActiveBackground: 'rgba(16,22,15,0.08)',
+  navigationControlBorder: 'rgba(16,22,15,0.2)',
+  reviewBorder: 'rgba(16,22,15,0.16)',
+  reviewDivider: 'rgba(16,22,15,0.1)',
+  reviewTray: 'rgba(16,22,15,0.045)',
+  reviewPreviewBorder: 'rgba(16,22,15,0.08)',
+  reviewIconBronzeBackground: 'rgba(169,138,84,0.16)',
+  reviewIconSageBackground: 'rgba(111,126,103,0.16)',
+  reviewAttentionBackground: palette.attention,
+  reviewAttentionBorder: 'rgba(169,138,84,0.45)',
+  reviewAttentionDivider: 'rgba(169,138,84,0.4)',
+  reviewAttentionIconBackground: 'rgba(255,255,255,0.5)',
+  reviewPreviewSurface: palette.previewPaper,
+  reviewBronzeText: palette.bronzeDeep,
+  workCardBorder: 'rgba(16,22,15,0.16)',
+  workCardDivider: 'rgba(16,22,15,0.08)',
+  workRowSurface: palette.previewPaper,
+  receivableLine: 'rgba(16,22,15,0.12)',
+  receivableReceivedDay: '#8A9184',
+  receivableReceivedFill: 'rgba(43,58,36,0.10)',
+  receivablePendingFill: 'rgba(169,138,84,0.16)',
+  receivablePendingBorder: 'rgba(169,138,84,0.45)',
+  receivablePendingDivider: 'rgba(169,138,84,0.35)',
+  emptyOutline: 'rgba(16,22,15,0.22)',
+  emptyDashedOutline: 'rgba(16,22,15,0.24)',
+  emptyTeaserOutline: 'rgba(16,22,15,0.25)',
+  emptyFutureDot: 'rgba(127,138,118,0.95)',
+  progressSurface: '#DCE0D6',
+  progressBorder: 'rgba(16,22,15,0.1)',
+  progressTrack: 'rgba(16,22,15,0.14)',
+  progressTray: 'rgba(255,255,255,0.42)',
+  progressActionBorder: 'rgba(16,22,15,0.08)',
+  progressPendingCircleBorder: 'rgba(16,22,15,0.3)',
+  progressFooterBorder: 'rgba(16,22,15,0.12)',
+  moneyFieldBorder: 'rgba(16,22,15,0.2)',
+  workTypeBorder: 'rgba(16,22,15,0.16)',
+  workTypeRadioBorder: 'rgba(16,22,15,0.25)',
+  workTypeShiftTile: 'rgba(111,126,103,0.14)',
+  workTypeProcedureTile: 'rgba(169,138,84,0.16)',
+  workTypeAppointmentTile: 'rgba(107,127,142,0.16)',
+  calendarPastDay: '#8A9184',
+  // A tela de trás aparece esmaecida (opacidade 0,35/0,5 no HTML) = véu creme por cima.
+  sheetScrim: 'rgba(237,234,224,0.65)',
+  sheetMenuScrim: 'rgba(237,234,224,0.5)',
+  sheetHandle: 'rgba(16,22,15,0.2)',
+  sheetMenuHandle: 'rgba(16,22,15,0.18)',
+  premiumBadgeBorder: 'rgba(169,138,84,0.55)',
+  premiumPreviewSurface: '#F6F4EC',
+  premiumPreviewBorder: 'rgba(16,22,15,0.14)',
+  authFieldBorder: 'rgba(16,22,15,0.22)',
+  authDivider: 'rgba(16,22,15,0.14)',
 } as const;
 
-/** Font assets are intentionally not loaded until task 2.2. */
+/** Location color tokens shown in Agenda 13 and used by Agenda/Home cards. */
+export const workLocationColors = {
+  sage: palette.workSage,
+  bronze: palette.bronze,
+  blue: palette.workBlue,
+  green: palette.structure,
+  terra: palette.workTerra,
+  violet: palette.workViolet,
+} as const;
+
+export type WorkLocationColorToken = keyof typeof workLocationColors;
+
+/** Brand family names (Brand Kit) and concrete expo-font registration names. */
 export const fontFamilies = {
   interface: 'Archivo',
   technical: 'IBM Plex Mono',
   wordmark: 'Unbounded',
   fallback: 'System',
+} as const;
+
+export const fontAliases = {
+  archivoRegular: 'Archivo_400Regular',
+  archivoMedium: 'Archivo_500Medium',
+  archivoSemibold: 'Archivo_600SemiBold',
+  archivoBold: 'Archivo_700Bold',
+  plexRegular: 'IBMPlexMono_400Regular',
+  plexMedium: 'IBMPlexMono_500Medium',
+  plexSemibold: 'IBMPlexMono_600SemiBold',
+  unboundedSemibold: 'Unbounded_600SemiBold',
 } as const;
 
 export const fontWeights = {
@@ -50,7 +136,7 @@ export const fontWeights = {
   bold: '700',
 } as const;
 
-/** Use fallback in live placeholders until expo-font loads the brand families (2.2). */
+/** Safe fallback styles while font assets are loading or if they fail. */
 export const typography = {
   display: {
     fontFamily: fontFamilies.fallback,
@@ -73,6 +159,19 @@ export const typography = {
     fontWeight: fontWeights.medium,
     letterSpacing: -0.44,
   },
+  modalTitle: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 30,
+    lineHeight: 32,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: -0.9,
+  },
+  modalDescription: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: fontWeights.regular,
+  },
   body: {
     fontFamily: fontFamilies.fallback,
     fontSize: 15,
@@ -92,6 +191,20 @@ export const typography = {
     lineHeight: 18,
     fontWeight: fontWeights.regular,
   },
+  tabLabel: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: fontWeights.regular,
+    letterSpacing: 1.08,
+  },
+  tabLabelActive: {
+    fontFamily: fontFamilies.fallback,
+    fontSize: 9,
+    lineHeight: 12,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: 1.08,
+  },
   wordmark: {
     fontFamily: fontFamilies.fallback,
     fontSize: 22,
@@ -100,6 +213,25 @@ export const typography = {
     letterSpacing: 0.44,
   },
 } as const;
+
+/** Each registered alias is a font file with the specified weight; avoid synthetic bold. */
+export const brandTypography = {
+  display: { ...typography.display, fontFamily: fontAliases.archivoSemibold },
+  heading1: { ...typography.heading1, fontFamily: fontAliases.archivoSemibold },
+  heading2: { ...typography.heading2, fontFamily: fontAliases.archivoMedium },
+  modalTitle: { ...typography.modalTitle, fontFamily: fontAliases.archivoSemibold },
+  modalDescription: { ...typography.modalDescription, fontFamily: fontAliases.archivoRegular },
+  body: { ...typography.body, fontFamily: fontAliases.archivoRegular },
+  label: { ...typography.label, fontFamily: fontAliases.archivoSemibold },
+  technical: { ...typography.technical, fontFamily: fontAliases.plexRegular },
+  tabLabel: { ...typography.tabLabel, fontFamily: fontAliases.plexRegular },
+  tabLabelActive: { ...typography.tabLabelActive, fontFamily: fontAliases.plexSemibold },
+  wordmark: { ...typography.wordmark, fontFamily: fontAliases.unboundedSemibold },
+} as const;
+
+export function getTypography(fontsLoaded: boolean) {
+  return fontsLoaded ? brandTypography : typography;
+}
 
 export const spacing = {
   none: 0,
@@ -113,6 +245,312 @@ export const spacing = {
   xxl: 32,
   xxxl: 40,
   section: 48,
+} as const;
+
+/** Exact shared tab/navigation geometry from the 390×844 HTML frames. */
+export const navigationMetrics = {
+  tabBarTop: 10,
+  tabBarHorizontal: 20,
+  tabBarBottom: 28,
+  tabWidth: 64,
+  tabIconSize: 22,
+  tabIconStroke: 1.7,
+  tabIconBoxWidth: 40,
+  tabIconBoxHeight: 30,
+  tabIconRadius: 10,
+  tabLabelGap: 4,
+  createDiameter: 56,
+  createLift: 30,
+  createIconSize: 18,
+  createIconStroke: 2,
+  navigationControlDiameter: 40,
+  navigationControlHitTarget: 44,
+  navigationControlIconSize: 20,
+  modalTop: 20,
+  modalHorizontal: 24,
+  modalHeadingGap: 24,
+  modalDescriptionGap: 6,
+} as const;
+
+/** Review Card sizes extracted from design/componentes.dc.html, variants A–D. */
+export const reviewCardMetrics = {
+  compactRadius: 18,
+  regularRadius: 22,
+  compactPaddingTop: 14,
+  compactPaddingHorizontal: 14,
+  compactPaddingLeft: 16,
+  regularPaddingHorizontal: 18,
+  regularPaddingTop: 16,
+  detailedPaddingTop: 18,
+  compactIconTile: 34,
+  regularIconTile: 30,
+  detailedIconTile: 34,
+  compactActionCircle: 32,
+  regularActionCircle: 32,
+  detailedActionCircle: 34,
+  trayRadius: 16,
+  trayPadding: 6,
+  previewRadius: 12,
+  previewBarWidth: 5,
+  previewBarHeight: 28,
+} as const;
+
+/** Card and compact row geometry from Agenda 02/03/05 and Home 01/03. */
+export const workCardMetrics = {
+  radius: 22,
+  agendaPaddingTop: 18,
+  agendaPaddingRight: 20,
+  agendaPaddingBottom: 16,
+  agendaPaddingLeft: 26,
+  agendaBarWidth: 4,
+  agendaBarInset: 20,
+  agendaArrow: 30,
+  featuredPaddingHorizontal: 22,
+  featuredPaddingTop: 22,
+  featuredPaddingBottom: 20,
+  featuredArrow: 32,
+  rowRadius: 12,
+  rowBarWidth: 5,
+  rowBarHeight: 34,
+  rowDateWidth: 34,
+} as const;
+
+/** Finanças 05–10: timeline row, status and confirmation geometry. */
+export const receivableRowMetrics = {
+  dateWidth: 44,
+  timelineWidth: 1,
+  dotDiameter: 10,
+  dotTop: 8,
+  gap: 16,
+  bodyRadius: 18,
+  pendingPaddingVertical: 14,
+  pendingPaddingHorizontal: 16,
+  regularBottomGap: 22,
+  pendingBottomGap: 18,
+  confirmCircle: 34,
+  confirmHitTarget: 44,
+} as const;
+
+/** Empty-state geometries from Home 05–06, Agenda 04, Finanças 11/14 and Perfil. */
+export const emptyStateMetrics = {
+  cardRadius: 22,
+  agendaPaddingVertical: 26,
+  agendaPaddingHorizontal: 22,
+  profileButtonHeight: 56,
+  profileButtonRadius: 16,
+  compactButtonHeight: 40,
+  compactButtonRadius: 12,
+  actionHitTarget: 44,
+  entriesHorizontalInset: 32,
+  profileBottomInset: 80,
+  importBottomInset: 40,
+} as const;
+
+/** Home 01/02/06 setup progress card geometry. */
+export const progressCardMetrics = {
+  radius: 22,
+  paddingHorizontal: 16,
+  paddingTop: 16,
+  gap: 12,
+  progressHeight: 4,
+  trayRadius: 16,
+  trayPadding: 6,
+  rowGap: 4,
+  completedCircle: 20,
+  actionCircle: 28,
+  actionRadius: 12,
+  actionMinHeight: 44,
+} as const;
+
+/** Money entry geometry from Agenda 06/09 and Onboarding 05/09. */
+export const moneyInputMetrics = {
+  formHeight: 60,
+  formRadius: 16,
+  formPaddingHorizontal: 18,
+  formLabelSize: 9,
+  formValueSize: 16,
+  residencyCurrencySize: 20,
+  residencyValueSize: 44,
+  workCurrencySize: 22,
+  workValueSize: 48,
+  heroUnderlineWidth: 1.5,
+} as const;
+
+/** Onboarding 06 (escolha) and Agenda 06B (menu) type selector geometry. */
+export const workTypeSelectorMetrics = {
+  radius: 18,
+  paddingVertical: 16,
+  paddingHorizontal: 18,
+  gap: 14,
+  listGap: 10,
+  iconTile: 42,
+  iconTileRadius: 12,
+  iconSize: 20,
+  iconStroke: 1.7,
+  selectedBorderWidth: 1.5,
+  radio: 22,
+  radioBorderWidth: 1.5,
+  choiceTitleSize: 17,
+  menuTitleSize: 16,
+  descriptionSize: 13,
+  descriptionLineHeight: 18,
+} as const;
+
+/** Agenda 01–05 month grid and Agenda 08 date sheet (same calendar). */
+export const calendarMetrics = {
+  horizontalPadding: 4,
+  rowGap: 2,
+  cellHeight: 46,
+  cellPaddingTop: 2,
+  cellGap: 3,
+  dayCircle: 36,
+  dayFontSize: 16,
+  dayLineHeight: 20,
+  markerBorderWidth: 1.5,
+  dotSize: 5,
+  dotGap: 3,
+  maxDots: 4,
+  weekdayFontSize: 10,
+  weekdayLineHeight: 14,
+  weekdayTracking: 1.2,
+  /** Onboarding 20 desenha a mesma grade em escala menor. */
+  compactCellHeight: 38,
+  compactDayCircle: 32,
+  compactDayFontSize: 15,
+} as const;
+
+/** Agenda 08–14 and Finanças sheets (standard) and Agenda 06B (menu). */
+export const bottomSheetMetrics = {
+  standardRadius: 32,
+  menuRadius: 28,
+  paddingTop: 14,
+  paddingHorizontal: 24,
+  paddingBottom: 36,
+  menuPaddingBottom: 40,
+  standardGap: 18,
+  menuGap: 20,
+  handleWidth: 40,
+  menuHandleWidth: 36,
+  handleHeight: 4,
+  handleHitTarget: 44,
+  /** Fração da altura arrastada para baixo que fecha o sheet ao soltar. */
+  dismissRatio: 0.25,
+  /** Velocidade (pontos/s) de arraste que fecha mesmo com pouco deslocamento. */
+  dismissVelocity: 900,
+} as const;
+
+/** Agenda 12 (recorrência Free) and 14 (cor Free) gate geometry. */
+export const premiumGateMetrics = {
+  badgeRadius: 6,
+  badgePaddingVertical: 3,
+  badgePaddingHorizontal: 7,
+  badgeGap: 5,
+  badgeFontSize: 9,
+  badgeTracking: 1.26,
+  headerGap: 8,
+  headerPaddingTop: 6,
+  titleSize: 26,
+  titleLineHeight: 29,
+  titleTracking: -0.78,
+  descriptionSize: 14,
+  descriptionLineHeight: 21,
+  /** Degradê sobre a prévia: transparente até 20% da altura e 90% creme na base. */
+  previewFadeStart: 0.2,
+  previewFadeOpacity: 0.9,
+  pillPaddingVertical: 8,
+  pillPaddingHorizontal: 14,
+  pillFontSize: 12,
+  pillOverlap: -6,
+  ctaHeight: 56,
+  ctaRadius: 16,
+  exitHeight: 48,
+  actionsGap: 10,
+} as const;
+
+/** Telas 06–12 do onboarding: cabeçalho de progresso, opções e dia da bolsa. */
+export const onboardingProfileMetrics = {
+  headerPaddingTop: 20,
+  headerGap: 20,
+  backTarget: 44,
+  backIcon: 20,
+  progressHeight: 2,
+  titlePaddingTop: 44,
+  titleSize: 32,
+  titleLineHeight: 35,
+  titleTracking: -0.96,
+  fieldHeight: 64,
+  fieldRadius: 16,
+  choiceHeight: 60,
+  choiceRadius: 16,
+  choiceRadio: 20,
+  suggestionPaddingVertical: 14,
+  dayBoxWidth: 92,
+  dayBoxHeight: 66,
+  dayChipHeight: 48,
+  dayChipRadius: 14,
+  ctaHeight: 56,
+  ctaRadius: 16,
+  /** O onboarding completo tem 11 passos; as porcentagens do HTML seguem essa escala. */
+  totalSteps: 11,
+} as const;
+
+/** Tela 04 (Criar conta): cartões flutuantes em três camadas de profundidade. */
+export const accountPreviewMetrics = {
+  minHeight: 200,
+  radius: 16,
+  paddingVertical: 14,
+  paddingHorizontal: 16,
+  gap: 6,
+  shiftWidth: 190,
+  receivableWidth: 180,
+  receivableTop: 58,
+  earningsWidth: 214,
+  earningsLeft: 22,
+  earningsTop: 134,
+  barHeight: 14,
+  /** Entrada em cascata: o cartão de trás chega primeiro. */
+  revealStagger: 90,
+  revealRise: 14,
+} as const;
+
+/** Onboarding 00B (splash) and 01–03 (carousel) from design/onboarding.html. */
+export const onboardingIntroMetrics = {
+  symbolSize: 96,
+  symbolWordmarkGap: 28,
+  splashWordmarkSize: 24,
+  /** Deslocamento inicial de cada superfície antes de se aproximarem (00B). */
+  splashApproach: 26,
+  /** Aproximação das superfícies do símbolo. */
+  splashSymbol: 620,
+  /** Assinatura entra depois do símbolo, com leve subida. */
+  splashWordmarkDelay: 420,
+  splashWordmark: 420,
+  splashWordmarkRise: 10,
+  /** Leitura antes de entregar a tela 04: total entre 1,2 s e 1,6 s. */
+  splashHold: 360,
+  headerPaddingTop: 22,
+  horizontalPadding: 32,
+  headingPaddingTop: 40,
+  headingGap: 14,
+  slideTitleSize: 32,
+  /** O slide 1 usa três linhas e um corpo menor no HTML. */
+  workTitleSize: 28,
+  slideTitleLineHeight: 35,
+  workTitleLineHeight: 30,
+  slideTitleTracking: -0.96,
+  slideBodySize: 15,
+  slideBodyLineHeight: 23,
+  artMarginTop: 36,
+  footerPaddingTop: 28,
+  footerPaddingBottom: 44,
+  dotSize: 6,
+  dotActiveWidth: 24,
+  dotGap: 8,
+  ctaHeight: 56,
+  ctaRadius: 16,
+  ctaPaddingHorizontal: 28,
+  cardRadius: 22,
+  cardPadding: 22,
 } as const;
 
 export const radius = {
@@ -150,6 +588,27 @@ export const shadow = {
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
   },
+  sheet: {
+    shadowColor: palette.base,
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: -20 },
+    elevation: 16,
+  },
+  sheetMenu: {
+    shadowColor: palette.base,
+    shadowOpacity: 0.35,
+    shadowRadius: 25,
+    shadowOffset: { width: 0, height: -20 },
+    elevation: 16,
+  },
+  tabCreate: {
+    shadowColor: palette.base,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
+  },
 } as const;
 
 /** Durations only: reduce-motion handling and Reanimated presets belong to 2.7. */
@@ -158,6 +617,9 @@ export const motion = {
   feedback: 200,
   enter: 250,
   exit: 200,
+  heroPage: 450,
+  heroBar: 400,
+  reviewRemoval: 200,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

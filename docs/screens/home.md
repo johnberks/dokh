@@ -18,6 +18,8 @@ A Home resume e encaminha. Listas completas e edição pertencem às seções de
 
 ## Estrutura obrigatória
 
+O topo verde (header e hero) e todas as seções sobre fundo bege pertencem à **mesma rolagem vertical**. Ao deslizar para baixo na página, o topo verde também sobe e sai da área visível; não é um header fixo nem uma lista aninhada sob um hero imóvel. A barra inferior de navegação permanece fora dessa rolagem. O carrossel horizontal do hero não deve bloquear o gesto vertical da página.
+
 1. Header com marca, avatar/inicial e hero mensal.
 2. Carrossel do hero quando houver histórico suficiente.
 3. Próximo trabalho ou estado vazio correspondente.

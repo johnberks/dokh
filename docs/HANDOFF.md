@@ -3,39 +3,72 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-21 · Codex · tarefa 2.1 na branch `codex/2.1-tokens`.
+Última atualização: 2026-09-25 · Claude Code · Pilha de PRs #3–#36 integrada na `main` pelo PR [#36](https://github.com/johnberks/dokh/pull/36) (merge commit, histórico por tarefa preservado); as PRs intermediárias foram fechadas como incluídas. Onboarding até o primeiro Trabalho (7.1, 7.3, 7.4) aprovado no iPhone; Android adiado. Próxima tarefa: **7.5**, em branch nova a partir da `main`. A 3.1 segue pendente da conexão real do app preview.
+
+Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
+
+Feedback visual subsequente no iPhone: e-mail e senha cortavam letras com descendente enquanto a pessoa digitava. A primeira tentativa aumentou o `TextInput` interno de 20/20 para 28/24 px, mas a captura do usuário mostrou que o recorte continuava **somente com o teclado aberto**; sem foco, o texto fica correto. A revisão removeu altura e `lineHeight` explícitas do `TextInput` de linha única, deixando a medida nativa do iOS; o campo externo continua com 54 px, Archivo 15 px e a paleta do HTML. Teste de componente verifica a ausência das restrições e preservação do rascunho. **O usuário confirmou que esse ajuste resolveu o problema no iPhone.**
+
+Após reabrir o Supabase local, o usuário confirmou que Auth voltou a funcionar. O erro `AuthRetryableFetchError: bad gateway` vinha de Docker/Supabase parados: o proxy LAN em `:8082` continuava aberto, mas retornava HTTP 502 porque não alcançava `127.0.0.1:54321`. Não houve correção de código nem reset do banco. Antes de testar login/cadastro no iPhone, iniciar Docker Desktop e `npm run supabase:start`, confirmar os dois endpoints `/auth/v1/health` e só então iniciar proxy/Expo. Novo pedido visual: a tela 05B de login não deve permitir arrasto; e-mail/senha devem ficar acima do teclado ao receber foco. O ajuste na branch `codex/4.2-login-keyboard` bloqueia a rolagem por toque e usa deslocamento programático do campo em foco, sem mudar o layout do HTML. `typecheck`, `check`, `check:agents`, Jest (34 suítes/198 testes), Expo Doctor (21/21) e export iOS passaram; validação visual no iPhone ainda pendente.
 
 ## Onde paramos
 
-A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** está concluída nesta branch; a próxima tarefa de design system é **2.2 (fontes e assets)**. A **1.9 (EAS)** continua dependendo de conta Expo.
+**Desde 2026-09-25 tudo está na `main`.** Novas tarefas saem de branches criadas a partir da `main` (sem empilhar), com PR de volta para ela. O parágrafo abaixo é o histórico da pilha.
+
+A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. A **2.1 (tokens)** foi integrada no PR #2. Esta branch empilha os PRs draft #3 (fontes da 2.2), #4 (primitives da 2.3), #5 (navegação da 2.4), #6 (estados técnicos da 2.6), #7 (Review Card), #8 (Card de Trabalho), #9 (ReceivableRow), #10 (EmptyState), #11 (ProgressCard), #12 (MoneyInput), #13 (WorkTypeSelector), #14 (CalendarGrid), #15 (BottomSheet) e #16 (PremiumGate). Esses PRs anteriores estão em rascunho, cada um baseado no anterior. As quatro tabs ainda são placeholders: seus headers e conteúdos próprios serão montados nas tarefas de tela, sempre com HTML e UX correspondentes. A tela Entrar agora é funcional em 4.2; cadastro e recuperação são fluxos técnicos até 7.2. A 2.2 ainda depende do SVG D1 final e de splash em build nativo; a 2.3, a 2.4, a 2.5 e a 2.6 ainda dependem de inspeção visual/VoiceOver em device, sem bloquear trabalho independente. O usuário dispensou sua validação para prosseguir, adiou a validação Android e confirmou em 2026-09-25 tanto o ajuste de teclado da 4.2 quanto as telas da 7.1. A **1.9 (EAS)** continua dependendo de conta Expo.
 
 | Tarefa | Estado | O que falta para marcar `[x]` |
 | --- | --- | --- |
 | 0.1 Normalizar fontes | ✅ Concluída | — |
 | 0.2 Instruções Codex | 🟡 Implementada | Abrir uma sessão Codex na raiz e confirmar que ele lê o `AGENTS.md` |
 | 0.3 Git e proteção | 🟡 Parcial | Ativar proteção da `main` no GitHub (Settings → Branches) |
-| 1.1 App Expo | 🟡 Verificada só no iOS | Abrir no Android (Expo Go no celular ou emulador) |
+| 1.1 App Expo | 🟡 Verificada no iPhone 16 pelo usuário | Abrir no Android (Expo Go no celular ou emulador) |
 | 1.2 Pastas e alias | ✅ Concluída | — |
 | 1.3 Rotas | 🟡 Verificada só no iOS | Testar navegação e botão voltar no Android |
 | 1.4 Ambientes/env | ✅ Concluída | — |
 | 1.5 i18n | ✅ Concluída | — |
 | 1.6 Estado e formulários | ✅ Concluída | — |
 | 1.7 Qualidade local | ✅ Concluída | — |
-| 1.8 CI | 🟡 Implementada | Ver o workflow rodar num PR e tornar o check obrigatório na `main` |
+| 1.8 CI | 🟡 Workflow passou no PR #2 | Tornar o check obrigatório na `main` e validar bloqueio de falha intencional |
 | 1.9 EAS | ⏳ Não iniciada | Precisa de conta Expo (`npx eas-cli login`) |
-| 2.1 Tokens do Brand Kit | ✅ Concluída nesta branch | —; integrar PR |
+| 2.1 Tokens do Brand Kit | ✅ Integrada no PR #2 | — |
+| 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
+| 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
+| 2.4 Navegação visual | 🟡 Barra inferior e controle voltar/fechar no PR draft #5 | Headers de telas reais, inspeção 390×844/iPhone com notch e Android depois |
+| 2.5 Componentes de domínio visual | 🟡 Review Card no PR draft #7, Trabalho no #8, ReceivableRow no #9, EmptyState no #10, ProgressCard no #11, MoneyInput no #12, WorkTypeSelector no #13, CalendarGrid no #14, BottomSheet no #15 e PremiumGate no #16 — os 10 componentes existem | Aplicação nas telas reais e inspeção em aparelho |
+| 2.6 Estados técnicos | 🟡 Componentes e catálogo no PR draft #6 | Inspeção visual, VoiceOver no iPhone e Android/TalkBack depois |
+| 2.7 Motion e reduzir movimento | ✅ Carrossel, barras, saída de Review Card e redução de movimento demonstrados/testados | Inspeção de fluidez nas telas reais continua nas tarefas 9.2/10.2 |
+| 3.1 Supabase local/remoto | 🟡 Start/reset local passaram; `dokh-preview` e `dokh-production` ativos em `johnberks's Org` Free; chaves públicas isoladas | Configurar EAS/cliente e comprovar conexão real do app preview somente ao projeto preview |
+| 3.2 Perfis e preferências | ✅ Migration, constraints, RLS, rollback descartável e tipos testados | — |
+| 3.3 Núcleo profissional | ✅ Cinco tabelas, constraints, FKs por dono, índices, RLS, rollback e tipos testados | — |
+| 3.4 Suporte operacional | ✅ Quatro tabelas, idempotência por evento/arquivo/linha, FKs, RLS, rollback e tipos testados | — |
+| 3.5 RLS completa | ✅ Matriz automatizada das 12 tabelas, privilégios mínimos, `service_role` e guard de views | — |
+| 3.6 Storage privado | ✅ Buckets, paths por usuário, policies e testes de upload/download/exclusão/URL assinada | — |
+| 3.7 RPCs Trabalho + Recebível | ✅ Criar, editar e excluir atomicamente com JWT, idempotência e rollback testados | — |
+| 3.8 Confirmação de Recebível | ✅ RPC explícita, horário de servidor imutável, ownership e concorrência testados | — |
+| 3.9 Residência recorrente Free | ✅ RPCs de criação/edição/desativação, geração mensal e job de extensão; histórico e limites testados | — |
+| 3.11 Projeções de Agenda e Finanças | ✅ Views `security_invoker`, métricas de caixa/competência, status e ano testados | — |
+| 3.12 Tipos e seed local | ✅ `generate:types`, três contas sintéticas, estados de Home/Agenda/Finanças, Auth e RLS testados | — |
+| 4.1 Cliente Supabase e sessão segura | 🟡 Cliente tipado, SecureStore em partes, refresh e logout/limpeza implementados | Conferir persistência nativa após reinício e saída/redirecionamento numa tela real; 4.5 ainda pendente |
+| 4.2 E-mail/senha e recuperação | 🟡 Login 05B, cadastro, recuperação e callback implementados; fluxo real local testado | Configurar URLs/SMTP de preview e validar e-mail, reset e logout em aparelho; Android adiado pelo usuário |
+| 6.1 Dados de Locais | 🟡 Lista, criação com cor automática, edição e arquivamento tipados; exercitado no iPhone pela 7.4 (2026-09-25) | Edição e arquivamento pela UI entram na Fase 8/11 |
+| 6.2 Dados de Trabalho/Recebível | 🟡 RPCs atômicas, confirmação de recebimento, idempotência e invalidação; criação exercitada no iPhone pela 7.4 (2026-09-25) | Edição, exclusão e confirmação pela UI entram na 6.7 e na Fase 8 |
+| 7.4 Primeiro Trabalho | 🟡 Telas de tipo, local, quando e valor, com gravação atômica e idempotente; aprovadas pelo usuário no iPhone (2026-09-25) | Android depois; conclusão dinâmica é a 7.5 |
+| 7.1 Splash e tela de criar conta | 🟡 Splash animado de ~1,4 s e tela 04 com prévia em profundidade; carrossel e `Pular` removidos a pedido do usuário; aprovados no iPhone | Android depois. O fluxo aprovado tem uma tela após o splash: a DoD original da 7.1 (três slides) foi substituída por decisão do usuário |
+| 7.3 Perfil e bifurcação de Residência | 🟡 Telas 06, 07, 09, TELA 04 e 12, com lista oficial de residências e gravação no Supabase; aprovadas no iPhone | Android depois |
+| 4.5 Guards de sessão/onboarding | 🟡 Três estados, splash sem flash de rota, deep links de recuperação e logout temporário de desenvolvimento implementados | Testar matriz de abrir/entrar/sair no iPhone físico e depois Android; onboarding completo depende da UI 7.2 |
 
 ## Como rodar o projeto
 
 ```bash
-cd ~/Desktop/dokh
-fnm use                      # Node 22 (.nvmrc)
+cd <raiz do seu checkout>      # ex.: ~/Desktop/dokh
+fnm exec --using=22 node -v   # Node 22 (.nvmrc)
 cp .env.example .env.local   # se ainda não existir
-npm install
-npm run start                # QR code para o Expo Go; tecla i abre o simulador iOS
+fnm exec --using=22 npm ci
+fnm exec --using=22 npm run start -- --clear  # QR code para o Expo Go
 ```
 
-Até a tarefa 3.1 (Supabase local), o `.env.local` pode usar valores provisórios:
+Até configurar a chave pública local, o `.env.local` pode usar valores provisórios apenas para abrir as telas sem backend:
 
 ```text
 EXPO_PUBLIC_APP_ENV=local
@@ -43,21 +76,129 @@ EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 EXPO_PUBLIC_SUPABASE_ANON_KEY=replace-after-supabase-start
 ```
 
+O Docker já está operacional: siga [`docs/supabase-local.md`](supabase-local.md) e substitua pelos valores reais de `npm run supabase:status`. Para preview/production, os refs públicos foram fixados no código; configure a URL e a chave publishable do projeto correto. O arquivo local ignorado `supabase/.env.local` guarda as credenciais remotas nesta worktree, sem enviá-las ao Git.
+
+**Auth no iPhone físico:** abrir Docker Desktop, executar `fnm exec --using=22 npm run supabase:start` e confirmar `curl -f http://127.0.0.1:54321/auth/v1/health`. Com a URL LAN e a chave pública correta no `.env.local`, executar `fnm exec --using=22 npm run supabase:lan-proxy` em outro terminal e confirmar `curl -f http://192.168.0.2:8082/auth/v1/health` (ajuste o IP se mudar). Só então iniciar o Metro com `fnm exec --using=22 npm run start -- --clear`. Se o proxy retornar 502, conferir Docker/Supabase antes de recriar conta ou limpar dados. Não executar `supabase:reset` para esse problema.
+
+## Retomada
+
+O ponto de retomada desta trilha é o PR draft [#34](https://github.com/johnberks/dokh/pull/34), branch `codex/7.3-onboarding-profile` (7.3), sobre o [#33](https://github.com/johnberks/dokh/pull/33) (7.1). O usuário confirmou no iPhone o ajuste de teclado da 4.2 e as telas da 7.1; a validação Android segue adiada. A 2.7 foi confirmada pelo usuário no iPhone 16: card, carrossel, retorno 2 → 1 e espaçamento dos status funcionam. A 3.1 está **parcial**: configuração e testes de ambiente prontos, mas sem prova da conexão do app preview. Na base, **todos os componentes da 2.5 existem**; a 2.5 continua desmarcada até aplicação nas telas reais e validação em aparelho.
+
+Ordem de integração em `main`: #3 → #4 → #5 → #6 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20 → #21 → #22 → #23 → #24 → #25 → #26 → #27 → #28 → #29 → #30 → #31 → #32 → #33 → #34. Cada um usa o anterior como base e nenhum chegou à `main`. O #7 (Review Card) já foi mesclado na branch do #6, então entra junto com ele.
+
+Próximo passo após esta branch: validar no iPhone a **7.3** com Supabase local (perfil de residente e de generalista, bolsa aparecendo em Finanças); em seguida, **7.5** (conclusão dinâmica do onboarding e marcação de `onboarding_completed_at`), que fecha o fluxo e leva à Home. A **7.2** fica reduzida a Apple/Google quando 4.3/4.4 existirem, já que a tela 04 e os caminhos de e-mail/login estão feitos conforme HTML e UX sem considerar suas dependências 4.3/4.4 concluídas. A 9.1 (queries financeiras) pode ser planejada em paralelo à UI; a 3.10 depende antes da 5.4 (espelho de entitlement Premium). Para a 3.1, ainda falta comprovar a conexão **do app preview** ao projeto `dokh-preview`, após configurar EAS (1.9).
+
+Na 7.1, o usuário revisou o fluxo em 2026-09-24: **sem carrossel e sem `Pular`**, o app vai do splash direto à tela 04 (Criar conta). O splash anima o símbolo (620 ms) e depois a assinatura (420 ms), durando ~1,4 s no total (`SPLASH_DURATION`, com teste exigindo 1–2 s); com **Reduzir movimento** tudo aparece montado e o tempo de leitura é mantido. A tela 04 segue o HTML, com o título aprovado "Organize sua rotina e suas finanças em um só lugar."; `Continuar com e-mail` leva a `/sign-up` e `Entrar` a `/sign-in`; Apple/Google seguem desabilitados até 4.3/4.4. Os três cartões da prévia ganharam profundidade por camadas, elevações crescentes e entrada em cascata, sem mudar cores, tamanhos ou tipografia. Os links legais só existem quando `src/config/legal.ts` tiver URL (P04). As ilustrações dos antigos slides foram **guardadas** em `src/features/onboarding/art/` e aparecem no catálogo `/dev/primitives` via a nova prop `extra` de `PrimitivesCatalog` — componentes continuam sem importar features, e a regra de camadas do Biome foi corrigida para `@/features/**` (a anterior não pegava importação profunda). O `BrandMark` saiu de `AuthVisuals` para `src/components/BrandMark.tsx`, sem mudança visual. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (35 suítes/206 testes) e `npx expo export --platform ios` passaram com Node 22; `expo-doctor` seguiu 20/21 pelo mesmo desvio de versões patch já registrado, anterior a esta branch. Nenhum HTML, schema ou projeto remoto foi alterado. Após o primeiro teste no iPhone 16, o usuário apontou dois ajustes, já aplicados: os cartões cobriam o botão da Apple (a pilha passou a reservar a altura medida do cartão mais baixo, e a tela rola quando não couber) e o texto legal (agora uma só família/tamanho/cor, com os trechos de link apenas em negrito, sem sublinhado). Em seguida o usuário pediu tela **estática** (sem rolagem) e **sem o subtítulo**: a prévia passou a encolher proporcionalmente para caber no espaço livre e os espaçamentos foram reajustados. Falta a reinspeção no iPhone; a 7.1 permanece desmarcada e sua DoD original (três slides) foi substituída pela decisão do usuário.
+
+Na 4.5, `AuthNavigationGate` segura o splash até resolver sessão e `profiles.onboarding_completed_at`, consulta o perfil por UUID/RLS e protege os grupos `(auth)`, `(onboarding)` e `(tabs)` com `Stack.Protected` do Expo Router 57. Deep links de confirmação, recuperação e reset ficam acessíveis fora dos grupos. Sem sessão abre `/sign-in`; com perfil ausente/incompleto, `/welcome`; com perfil concluído, Home. Erro de leitura mostra retry sem inventar estado de onboarding. O logout local aparece temporariamente em `__DEV__` no Perfil e no welcome placeholder; o botão Entrar de desenvolvimento saiu da Home. A 7.2 ainda precisa criar as telas do HTML e gravar `onboarding_completed_at` ao final real. `npm run typecheck`, `npm run check`, `npm run check:agents` e `npm test -- --runInBand` (33 suítes/193 testes) passaram; `expo-doctor` passou 21/21 com cache temporário. Docker Desktop não estava rodando nesta sessão (`supabase:status` não conectou ao daemon), então `test:db` não foi executado; não houve mudança de schema. A matriz de rotas e a consulta têm testes automatizados, mas a DoD de abrir/entrar/sair no aparelho ainda exige validação; checkbox permanece aberto. Contrato e fixtures em [`auth-guards.md`](auth-guards.md). Nenhum HTML, schema, seed ou projeto remoto foi alterado.
+
+Na 4.2, `/sign-in` usa o HTML 05B para o topo com blur, campos, botões e tipografia; Apple/Google são visíveis e inacessíveis até 4.3/4.4. O antigo botão **Entrar** de desenvolvimento na Home foi removido na 4.5, quando o guard passou a abrir o login sem sessão. Cadastro por e-mail, recuperação e callback usam Supabase Auth e `expo-linking`. O HTML não desenha os formulários secundários: eles usam a paleta e estados técnicos compartilhados; a composição final da tela 04 fica para 7.2. `supabase/config.toml` permite retornos `dokh://` e `exp://**` **apenas localmente**; preview/production não foram alterados. `scripts/test-email-auth-4.2.mjs` comprovou cadastro → login → e-mail de reset no Mailpit → callback nativo → nova senha → novo login, com conta sintética excluída. O Supabase local foi reiniciado com backup dos volumes para aplicar a allowlist, sem reset. Na entrega original, `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (32 suítes/179 testes), `npm run test:db`, `npm run check:db-types`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. O checkout local tem `.env.local` ignorado apontando para `192.168.0.2:8082` e chave pública local; conferir o IP se a rede mudar. O checkbox 4.2 permanece desmarcado até teste real em aparelho, URLs/SMTP de preview e Android (adiado pelo usuário); 4.1 ainda carece de persistência nativa/logout visível. Ver [`email-auth.md`](email-auth.md).
+
+Na 4.1, `@supabase/supabase-js` tipado usa o ambiente da 1.4 e `expo-secure-store` como armazenamento exclusivo de Auth; a sessão é dividida em partes pequenas e gravada com manifesto por último. `AuthSessionProvider` expõe somente estado e `userId`, inicia/para refresh conforme foreground, limpa o cache de domínio ao trocar de conta ou sair e oferece logout local com redirect para `/sign-in`. Não existe tela de login funcional nesta tarefa; os placeholders continuam. Testes unitários cobrem partes grandes, reinício lógico, falha de gravação, logout e ciclo de refresh. `scripts/test-auth-session-4.1.mjs` comprovou login → novo cliente → logout contra Supabase local com conta sintética removida no `finally`, sem reset; preview/production não foram acessados. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (30 suítes/162 testes), `npm run test:db`, `npm run check:db-types`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Nenhum HTML foi modificado. A DoD completa ainda exige testar `SecureStore` nativo/reabertura no aparelho e saída pela UI após 4.2/4.5; o checkbox permanece desmarcado. Contrato em [`auth-session.md`](auth-session.md).
+
+Na 2.7, o catálogo recebeu `HeroCarousel` horizontal com altura fixa (450 ms), `HeroBar` (400 ms) e remoção/reacomodação de `ReviewCardStack` após o chamador retirar um item (200 ms), todos respeitando `Reduzir movimento`. O novo `TwoToneScrollScreen` põe topo verde e corpo bege **na mesma rolagem** e deixa a tab bar fora, conforme pedido explícito do usuário; o topo verde deve subir junto em Home e Finanças, nunca ficar fixo. Isso foi registrado nos UX docs e na DoD das tarefas 9.2/10.2. Após o teste no Expo Go revelar que `GestureDetector` precisava de um ancestral `GestureHandlerRootView`, o layout raiz passou a envolver toda a navegação; o `BottomSheet` mantém a própria raiz por abrir em um `Modal` separado. O teste de rota verifica a raiz e o catálogo de movimento. Os checks da correção e o teste no iPhone 16 estão registrados abaixo. As telas de produto ainda são placeholders; fluidez visual e status bar ao rolar serão checadas no iPhone quando Home/Finanças forem montadas. Contrato em [`motion.md`](motion.md).
+
+Correção do PR #28: `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (28 suítes/154 testes), `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. O erro original ocorreu ao abrir `/dev/primitives` no iPhone; o usuário confirmou que o catálogo e o card de demonstração abrem sem erro. O bundle e o Jest não substituem essa validação no Expo Go.
+
+Retorno do usuário no iPhone 16: o catálogo e o card de demonstração abrem, e os pontos do carrossel funcionam. “Visão do mês” não mostra valores porque a 2.7 demonstra apenas movimento, não integra dados na Home. Ao arrastar a página 2 para a 1, o gesto nativo de voltar levava à Home; a rota interna passou a desabilitar apenas esse gesto e ganhou botão explícito “Voltar”. O usuário confirmou o ajuste no iPhone. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (28 suítes/154 testes), `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A revisão React manteve o controle de navegação acessível e reutilizou o componente já existente, sem nova dependência.
+
+Segundo retorno visual no iPhone: os rótulos `Recebido`, `Previsto` e `Confirmação pendente` na timeline estavam comprimidos porque `ReceivableRow.statusText` herdava `letterSpacing: -1.02` de `heading1` mesmo usando 12 px. `design/financas.html` não aplica espaçamento negativo nesse selo; o componente agora define `letterSpacing: 0` para os três estados, sem alterar tamanho, família ou cor. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (28 suítes/154 testes), `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. O usuário confirmou o ajuste no Expo Go.
+
+Na 3.12, `npm run generate:types` passou a gerar e formatar atomicamente os tipos públicos versionados. O seed SQL local cria três contas fictícias (`@example.invalid`) para Premium com residência e histórico, Free com entrada sem data e primeiro acesso vazio. As datas relativas ao dia de São Paulo mantêm próximo Trabalho, entrada de hoje, confirmação pendente, sem data e recebido; os dados seguem os estados dos HTMLs e UX sem copiá-los como regras financeiras. `npm run test:db` aplica o seed duas vezes em transação revertida no banco Auth real, verifica hashes/identidades, contas, projeções e isolamento RLS. Nenhum reset foi executado no banco do usuário e nada foi aplicado a preview/production. `npm run generate:types`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run test:db`, `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Veja [`supabase-local.md`](supabase-local.md) antes de optar por reset; a 3.12 não altera a UI nem a versão visual do Expo.
+
+Na 3.11, `receivable_projection` e `agenda_work_projection` são views `security_invoker` com RLS das tabelas de origem. As funções de mês, origem e ano separam previsão de caixa, recebimento confirmado no mês e competência de Trabalho. O valor/hora e quantias detalhadas por origem só são retornados com entitlement ativo no servidor; Free mantém os totais organizacionais. As fixtures cobrem sem data, confirmação pendente, Residência, primeiro mês, virada de ano e fuso local. Migration/rollback passaram em banco descartável e PostgREST local confirmou owner/anon. A migration foi aplicada somente no Supabase local, sem reset nem alteração em preview/production. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. O teste HTTP da 3.8 deixou de depender de relógios cliente/servidor sincronizados ao milissegundo; o teste SQL continua comprovando o horário do servidor. HTMLs e UX de Agenda, Home e Finanças foram consultados, sem mudança de UI. Contrato em [`financial-projections.md`](financial-projections.md).
+
+Na 3.9, `create_or_update_residency`, `generate_residency_receivables` e `deactivate_residency` fazem o agregado Free sem `work_series` ou consulta a entitlement. O primeiro cadastro gera do mês inicial ao término ou à janela atual + 12 meses; o dia 31 é limitado ao último dia válido. Edição/desativação afetam apenas Recebíveis futuros não recebidos; históricos confirmados permanecem. Um job privado diário do Supabase Cron estende a janela sem depender do app aberto. Testes SQL em banco descartável e PostgREST local cobriram fevereiro bissexto/comum, concorrência, idempotência, ownership, rollback, worker e zero linhas em `work_series`. O job foi verificado no banco local principal; nenhuma migration foi aplicada em preview/production e não houve reset local. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Onboarding, Perfil, Home e Finanças foram consultados; não houve mudança de UI. Contrato em [`residency-recurrence.md`](residency-recurrence.md).
+
+Na 3.8, `confirm_receivable_received` confirma apenas por ação explícita do dono, sob lock de linha, com `received_at` do relógio do servidor. Chamadas repetidas ou concorrentes devolvem o primeiro horário sem nova gravação. Uma trigger impede reescrever ou limpar um horário já confirmado; Recebível invalidado e outro usuário são negados. O teste SQL em banco descartável cobriu ausência de confirmação automática, ownership, auditoria, repetição, permissões e rollback. O teste PostgREST local cobriu concorrência, leitura persistida e rejeição cruzada/anônima. A migration foi aplicada somente no Supabase local, sem reset nem alteração em preview/production. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Agenda/Finanças foram consultados, sem mudança de UI. Contrato em [`confirm-receivable.md`](confirm-receivable.md).
+
+Na 3.7, três RPCs `SECURITY DEFINER` com `search_path` vazio fazem CRUD lógico do agregado manual Trabalho + Recebível numa transação, derivando o dono de `auth.uid()`. A tabela privada de idempotência tem RLS e chave por usuário; não concede escrita direta de domínio ao app. O teste SQL cobre anônimo, sessão sem sujeito, outro usuário, repetição/colisão de chave, rollback da primeira tabela se a segunda falhar, coerência de competência/valor/previsão e exclusão dos dois lados. Um teste PostgREST local cobriu chamadas concorrentes com a mesma chave, parâmetros nulos e bloqueio cruzado. Migration/rollback passaram em banco descartável; a migration foi aplicada apenas no Supabase local. Tipos públicos foram regenerados. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. HTMLs e UX de Agenda/Finanças foram consultados, sem alteração de UI. Contrato e limites em [`work-aggregate-rpcs.md`](work-aggregate-rpcs.md).
+
+Na 3.6, `avatars` e `imports` foram criados como buckets privados com limite de 10 MiB, MIME permitido e policies de `storage.objects` por primeira pasta igual a `auth.uid()`. O teste da API Storage local usou duas contas descartáveis e comprovou upload/download/delete do dono, bloqueio de outro usuário e anônimo, ausência de URL pública, MIME negado, recusa de overwrite, expiração da URL assinada e indisponibilidade após excluir o objeto. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. O primeiro Jest em paralelo teve um timeout isolado em rotas; a repetição isolada e a suíte completa sequencial passaram. A migration foi aplicada **somente no Supabase local**, sem reset nem alteração em preview/production. Não houve mudança de UI ou tipos públicos; HTML/UX de Perfil foram consultados. Contrato e pendências em [`private-storage.md`](private-storage.md).
+
+Na 3.5, a auditoria encontrou privilégios herdados de `TRUNCATE`, `REFERENCES`, `TRIGGER` e `MAINTAIN` em perfis/preferências; a migration os removeu e padronizou grants mínimos das 12 tabelas. `service_role` agora tem CRUD explícito para Edge Functions, mas segue proibido no app. `supabase/tests/3_5_rls_matrix.sql` comprova anônimo, dono, outra conta e service role em **cada** tabela, além de escrita cruzada negada, grants padrão futuros restritos e guard de views. `npm run test:db`, `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Não houve mudança de tipos nem UI; a migration foi aplicada somente no Supabase local, sem reset ou alteração remota. Detalhes em [`rls.md`](rls.md).
+
+Na 3.4, `subscription_entitlements`, `device_push_tokens`, `imports` e `import_issues` receberam enums, constraints, índices e RLS. O espelho Premium e o preview de importação são leitura do dono e escrita exclusiva do servidor; tokens push permitem CRUD apenas do dono. `imports` deduplica por `(user_id, file_sha256)` e `work_entries` por `(import_id, import_row_key)`, com FK composta por dono. O preview e as pendências não criam Trabalhos. `npm run test:db` passou para 3.2–3.4 em bancos descartáveis, incluindo rollback; `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. A migration foi aplicada **somente no Supabase local**, sem reset nem alteração em preview/production. Os HTMLs/UX de Perfil foram consultados, sem mudança visual nesta tarefa.
+
+Na 3.3, as cinco tabelas do núcleo profissional foram criadas com enums, checks de Plantão, XOR/unicidades de Recebível, FKs compostas por dono e índices de Agenda/caixa/competência. `npm run test:db` valida 3.2 e 3.3 em bancos descartáveis, incluindo rollback, acesso do dono/outro usuário/anônimo e bloqueio de escrita direta. `npm run check:db-types`, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. A migration foi aplicada somente no Supabase local, sem reset; preview/production não foram alterados. Escritas do app continuam fechadas até as RPCs atômicas e gates Premium posteriores. Detalhes em [`supabase-local.md`](supabase-local.md).
+
+Na 3.2, `supabase/migrations/20260922000000_profiles_preferences.sql` criou as três tabelas, enum, validação de zona IANA, trigger de `updated_at` e policies por `auth.uid()`. `profiles.user_id` é gerado a partir de `id = auth.users.id`; não deve ser enviado pelo cliente, embora o gerador da CLI ainda o liste como campo opcional em `Insert`/`Update`. Quatro toggles de notificação começam em `false` até a pessoa optar por ativá-los. `npm run test:db` comprovou up/down em banco temporário, constraints e isolamento dono/outro usuário/anônimo; `npm run check:db-types` bateu com o schema local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes/147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram. Nada foi aplicado em preview/production. O CI agora repete testes SQL e paridade de tipos.
+
+Nesta branch, a CLI 2.113.0 foi fixada como devDependency; `supabase/config.toml` e os scripts locais foram criados. Os refs públicos remotos estão versionados no schema, que recusa preview→production e URL local. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 147 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22. Em 2026-09-22, após o usuário liberar a porta 54322, os contêineres DOKH ficaram saudáveis, `npm run supabase:status` e `npm run supabase:reset` passaram, e `/auth/v1/health` respondeu HTTP 200. Os projetos remotos `dokh-preview` (`lakpndtdkcjtazoybgnv`) e `dokh-production` (`irdsieciowovsaakikbf`) foram criados na organização pessoal Free, região `sa-east-1`, sem upgrade. Cada chave publishable acessou o próprio endpoint REST e foi rejeitada (`401`) no projeto oposto. O checkbox 3.1 permanece desmarcado apenas pela prova de conexão do app preview.
+
+## Assunção pelo Claude Code
+
+1. Abrir **este checkout** na raiz do repositório, não a pasta antiga `projeto_dokh` sem o script `npm run start`. Ler `CLAUDE.md` (canônico), este handoff, `build-plan.md`, `decisions.md` e `domain-model.md`. Antes de cada tela, ler também o UX em `docs/screens/` e o respectivo `.html` em `design/`; não editar os HTMLs de referência. `AGENTS.md` deve continuar cópia idêntica de `CLAUDE.md`.
+2. Conferir `git status`, `git log` e o diff do PR [#32](https://github.com/johnberks/dokh/pull/32). Em 2026-09-24, a branch de partida `codex/4.2-login-keyboard` estava publicada, sem mudanças locais, com CI verde (`typecheck · biome · jest` e `migration · RLS · generated types`). O PR é **draft**, aberto e baseado em `codex/4.5-auth-guards` (#31). Não fazer merge direto em `main`, rebase destrutivo nem fechar a 4.2 antes da DoD; manter a cadeia de PRs empilhados.
+   - Na verificação deste handoff, `typecheck`, `check`, `check:agents` e Jest (34 suítes/198 testes) passaram. O Expo Doctor passou **20/21**: há somente drift de versões patch (`expo` esperado `~57.0.25`, instalado `57.0.24`; `expo-linking` `~57.0.11`/`57.0.10`; `expo-router` `~57.0.23`/`57.0.22`). O PR #32 tinha passado 21/21 antes dessa recomendação mudar. Atualizar com `npx expo install` em uma tarefa própria, com lockfile, testes e PR; não tratar esta diferença de patch como prova de falha do ajuste de teclado.
+3. Para retomar localmente neste checkout, executar os comandos abaixo. A branch já está ativa nesta worktree; em outra worktree, criar a próxima branch de tarefa a partir de `origin/codex/4.2-login-keyboard` em vez de tentar fazer checkout da mesma branch ativa duas vezes.
+
+```bash
+cd /Users/joaolucasberlinck/Documents/Codex/2026-09-21/leia-docs-handoff-md-e-agents/work/dokh-4.1-session
+git status --short --branch
+git fetch origin codex/4.2-login-keyboard
+git log -1 --oneline
+fnm exec --using=22 npm ci
+fnm exec --using=22 npm run typecheck
+fnm exec --using=22 npm run check
+fnm exec --using=22 npm test -- --runInBand
+fnm exec --using=22 npm run check:agents
+```
+
+4. Para Expo Go no iPhone, manter `.env.local` **ignorado** com URL LAN e chave pública local; nunca copiar segredos para Git. Abrir Docker Desktop, subir Supabase (`fnm exec --using=22 npm run supabase:start`), verificar `/auth/v1/health` em `127.0.0.1:54321`, iniciar `fnm exec --using=22 npm run supabase:lan-proxy` em outro terminal e verificar a porta LAN `:8082` no Safari do iPhone. Depois rodar `fnm exec --using=22 npm run start -- --clear`. Se aparecer 502, conferir Docker/Supabase; **não** resetar o banco. Ajustar o IP da LAN no `.env.local` se necessário. Detalhes em [`email-auth.md`](email-auth.md) e [`supabase-local.md`](supabase-local.md).
+5. Validar no iPhone 16 o PR #32: tela Entrar sem arrasto; e-mail e senha visíveis acima do teclado ao alternar foco; fechar o teclado restaura a posição inicial; verificar também login/cadastro. Essa validação **ainda não foi confirmada** pelo usuário. Android foi adiado, não dispensado da DoD. Apple/Google continuam indisponíveis até 4.3/4.4; recuperação local usa Mailpit, não o e-mail real.
+6. Para trabalho novo, escolher uma unidade do `build-plan.md`, criar `codex/<task-id>-<slug>` a partir do topo do #32, implementar sem mudar cores/tamanhos/tipografia dos HTMLs, rodar os checks de `CLAUDE.md` e atualizar este handoff. Abrir PR draft empilhado sobre `codex/4.2-login-keyboard`; registrar no PR testes, validação em aparelho e lacunas. Marcar checkbox só quando a DoD completa passar. Ao entregar UI, fornecer Bash de checkout/Expo e dizer o que testar.
+
+Prompt sugerido ao Claude Code:
+
+```text
+Leia CLAUDE.md, docs/HANDOFF.md, build-plan.md, decisions.md e domain-model.md.
+Parta do PR draft #32 (branch codex/4.2-login-keyboard, base do próximo PR).
+Antes de implementar uma tela, leia seu UX e HTML de design como fontes de verdade.
+Preserve o trabalho existente, rode typecheck/check/test/expo-doctor, documente
+pendências reais e só marque a DoD quando houver evidência completa.
+```
+
+### Cuidados nesta máquina
+
+- Codex pode trabalhar em **worktrees** próprias (`~/Documents/Codex/.../work/dokh-*`). Uma branch já aberta em uma worktree não pode ser usada em outra: crie a nova branch a partir de `origin/<branch>`.
+- O `fnm` não está no perfil do shell. Use `fnm exec --using=22 <comando>` ou `eval "$(fnm env --use-on-cd --shell zsh)"` antes.
+- Instalar biblioteca Expo/nativa com `npx expo install`; bibliotecas puramente JS com `npm install`.
+- Um único Metro por vez: inspecione `lsof -iTCP:8081 -sTCP:LISTEN` e pare a sessão anterior com `Ctrl+C` antes de subir outra.
+
 Checks obrigatórios antes de concluir qualquer tarefa:
 
 ```bash
-npm run typecheck && npm run check && npm test && npm run check:agents
+fnm exec --using=22 npm run typecheck
+fnm exec --using=22 npm run check
+fnm exec --using=22 npm test -- --runInBand
+fnm exec --using=22 npm run check:agents
+npm_config_cache=/private/tmp/dokh-npm-cache fnm exec --using=22 npx expo-doctor
 ```
 
 ## O que já existe no código
 
-- **Rotas** (`app/`): grupos `(auth)`, `(onboarding)` e `(tabs)`; telas provisórias de Início, Agenda, Finanças e Perfil; o `+` central abre o modal `work/new` sem ser uma tab.
+- **Rotas** (`app/`): grupos `(auth)`, `(onboarding)` e `(tabs)` protegidos pela sessão/perfil; telas provisórias de Início, Agenda, Finanças e Perfil; o `+` central abre o modal `work/new` sem ser uma tab. Veja `docs/auth-guards.md`.
 - **Ambiente** (`src/config/env*.ts`): valida `EXPO_PUBLIC_*` na inicialização e mostra erro claro quando falta variável.
 - **i18n** (`src/i18n/`): um namespace por feature, chaves tipadas. Texto literal em JSX quebra o teste `src/test/no-hardcoded-text.test.ts`.
 - **Estado** (`src/data/query-client.ts`, `src/features/app-shell/AppProviders.tsx`): TanStack Query só em memória, revalida ao voltar ao app e ao reconectar.
 - **Regras de camada**: o Biome impede, por exemplo, `src/domain` de importar React Native (`biome.json` > `overrides`).
 - **Billing**: nada implementado de propósito. `docs/billing-readiness.md` lista o que não pode mudar (bundle `com.dokh.app`, `app_user_id` = UUID do Supabase, entitlement `premium`).
-- **Tokens** (`src/theme/tokens.ts`, `docs/theme-tokens.md`): paleta e papéis semânticos, tipografia com fallback temporário, spacing, radius, shadow, motion e z-index. `PlaceholderScreen` usa tokens. O carregamento das fontes reais permanece na 2.2.
+- **Tokens** (`src/theme/tokens.ts`, `docs/theme-tokens.md`): paleta e papéis semânticos, tipografia, spacing, radius, shadow, motion e z-index. `PlaceholderScreen` usa tokens.
+- **Fontes (2.2 parcial)**: Archivo 400/500/600/700, IBM Plex Mono 400/500 e Unbounded 600 via `@expo-google-fonts` + `expo-font`. `BrandFontProvider` segura o splash até carregar ou falhar; o placeholder usa Archivo carregada ou `System` no fallback. O splash atual ainda usa a imagem genérica anterior; o Brand Kit diz que o desenho D1 no HTML não é o vetor final de produção.
+- **Primitives (2.3 parcial)**: `src/components/` contém Text, Button, IconButton, Input, SegmentedControl, Toggle, Chip, Divider, Card, Screen e ScrollScreen. Catálogo interno em `/dev/primitives` apenas em desenvolvimento, acessível por botão na Home provisória; detalhes em `docs/primitives.md`. Nesta prévia, `AppText` e `Input` adotam Archivo ao carregar e `System` se a fonte falhar.
+- **Navegação (2.4 parcial)**: `BottomTabs` segue a geometria e tipografia dos quatro HTMLs de tabs; centro abre o modal sem selecionar tab. `NavigationControl` fornece alvo acessível de voltar/fechar; o topo do modal de criação usa a copy de `Agenda 06`. Detalhes e lacunas em `docs/navigation.md`.
+- **Estados técnicos (2.6 parcial)**: `Skeleton`, `LoadError`, `MutationError` e `OfflineBanner` seguem as regras de `AGENTS.md`, sem inventar valores ou confundir erro com vazio. `docs/technical-states.md` descreve uso e lacunas; o catálogo interno demonstra os estados.
+- **Review Card (2.5 parcial)**: variantes compacto/padrão/detalhado/atenção conforme `design/componentes.dc.html`, seleção de no máximo dois por tela e até dois previews, com exemplo no catálogo interno. `docs/review-card.md` detalha contrato, medidas e divergência deliberada da confirmação instantânea do mock.
+- **Card de Trabalho (2.5 parcial)**: layouts Agenda, Home em destaque e linha compacta a partir dos HTMLs e UX. Cor é token validado de Local, horário é opcional para tipos que permitem e “Recebido” só vem de confirmação derivada do Recebível. `docs/work-card.md` documenta a divergência sem badge e os limites; o catálogo interno demonstra os estados.
+- **ReceivableRow (2.5 parcial)**: linha de Entradas recebida, prevista e com confirmação pendente a partir de Finanças 05–10. A confirmação é callback separado, sem alteração otimista; `docs/receivable-row.md` detalha medidas e limites.
+- **EmptyState (2.5 parcial)**: nove posições de dados legitimamente vazios em Home, Agenda, Finanças/Entradas e Perfil. Não substitui `LoadError`; `docs/empty-state.md` especifica variações, medidas e limites. O catálogo interno permite inspeção.
+- **ProgressCard (2.5 parcial)**: card inicial da Home com barra proporcional, marcos concluídos e próxima ação; desaparece quando completo. Não presume residência nem conclui marcos sozinho. `docs/progress-card.md` especifica as medidas e o contrato; o catálogo demonstra as três variações HTML.
+- **PremiumGate e PremiumBadge (2.5 parcial)**: folha Free de Agenda 12/14 na ordem valor → explicação → oferta, com prévia real esmaecida, CTA para o fluxo de benefícios (nunca direto à compra) e saída Free obrigatória; o gate não consulta plano. Selo reutilizável nos cartões de Finanças. Detalhes em `docs/premium-gate.md`.
+- **BottomSheet (2.5 parcial)**: variações `standard` (Agenda 08–14, Finanças) e `menu` (Agenda 06B), controlado pela tela, fecha por fundo/alça/arraste/voltar do Android/escape do VoiceOver, respeita reduzir movimento (`src/theme/useReducedMotion.ts`). Detalhes em `docs/bottom-sheet.md`.
+- **CalendarGrid (2.5 parcial)**: grade de Agenda 01–05 e do sheet de data 08 com hoje (contorno bronze), selecionado (círculo verde escuro), passado (cinza-verde) e pontos por Trabalho na cor do Local; início Domingo/Segunda (D39). Lógica pura em `src/domain/calendar.ts` com `date-fns`. Detalhes em `docs/calendar-grid.md`.
+- **WorkTypeSelector (2.5 parcial)**: `choice` (Onboarding 06, rádio com check bronze) e `menu` (Agenda 06B, ação com chevron) para Plantão, Procedimento e Atendimento; área inteira clicável, seleção anunciada e marcada por borda/check. `src/domain/work-type.ts` define os tipos e `requiresSchedule`. Detalhes em `docs/work-type-selector.md`.
+- **MoneyInput (2.5 parcial)**: campo compacto da Agenda e números grandes do Onboarding, com rascunho textual controlado; `src/domain/money.ts` converte pt-BR em centavos `bigint` só na validação/envio. `docs/money-input.md` registra o contrato e o catálogo mostra quatro tratamentos dos HTMLs.
 
 ## Armadilhas já encontradas
 
@@ -68,6 +209,8 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - QueryClient de teste precisa de `gcTime: Infinity` em queries e mutations, senão o Jest não encerra.
 - Não usar `new URL().hostname` no app: a implementação de URL do React Native é incompleta.
 - `lucide-react-native` é mapeado para o build CJS só no Jest (`package.json` > `jest.moduleNameMapper`).
+- Reanimated 4 no Jest: `src/test/native-mocks.setup.ts` mocka `react-native-worklets` e chama `setUpTests()`. Os testes de rota usam o mock do Expo Router, que **não tem** `useReducedMotion`; use o hook próprio `src/theme/useReducedMotion.ts`.
+- Use `useContext(SafeAreaInsetsContext)` com fallback em componentes que também aparecem em testes sem `SafeAreaProvider`.
 - `npx expo-doctor` pode falhar se o cache global npm não for gravável. Neste ambiente, `npm_config_cache=/private/tmp/dokh-npm-cache npx expo-doctor` executou 21/21 checks.
 
 ## Evidência da tarefa 2.1
@@ -79,16 +222,95 @@ npm run typecheck && npm run check && npm test && npm run check:agents
 - `npm_config_cache=/private/tmp/dokh-npm-cache npx expo-doctor`: 21/21 checks passaram.
 - `src/theme/tokens.test.ts` valida o mapeamento de marca e impede hex/família inline no componente de demonstração.
 
+## Evidência parcial da tarefa 2.2
+
+- Usuário confirmou abertura do projeto em iPhone 16; não há confirmação de navegação completa nem build nativo de release.
+- Fontes: `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (9 suítes, 32 testes), `npm run check:agents` e `expo-doctor` (21/21) passaram.
+- `BrandFontProvider.test.tsx` cobre espera, carregamento e fallback após falha.
+- **Não marcar `[x]` ainda:** falta receber/aprovar o SVG final D1, aplicá-lo ao app/splash e verificar tamanhos mínimos e splash em build nativo. Expo Go não reproduz fielmente o splash.
+
+## Evidência parcial da tarefa 2.3
+
+- No PR #4, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (9 suítes, 37 testes), `npm run check:agents` e `expo-doctor` (21/21) passaram.
+- Testes cobrem estados de botão/campo, seleção, acessibilidade, alvo 44×44, contraste AA e deep link do catálogo.
+- O simulador iOS abriu, mas `simctl` não conseguiu conectar ao CoreSimulatorService neste ambiente; sem validação visual e VoiceOver/TalkBack, **não marcar `[x]`**.
+
+## Prévia integrada para iPhone
+
+- Branch local `codex/2.3-ios-preview` combina os PRs #3 e #4 sem mesclá-los em `main`.
+- `AppText` e `Input` usam as fontes carregadas pelo `BrandFontProvider`, com fallback testado.
+- O botão **Componentes básicos** na Home abre o catálogo. Confirmar visual e navegação com VoiceOver no iPhone 16; splash nativo não é validado no Expo Go.
+- `npm ci` em checkout limpo, `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (10 suítes, 42 testes), `npm run check:agents` e `npx expo-doctor` (21/21) passaram com Node 22.
+- `npx expo export --platform ios` gerou o bundle iOS sem erro. O script `generate-route-types.mjs` passou a criar `.expo/types` antes de chamar a geração do Expo Router; no checkout limpo ele antes imprimia ENOENT sem falhar o processo.
+- O teste no iPhone 16 com VoiceOver ainda precisa da confirmação do usuário; bundle/export não provam aparência ou comportamento no device.
+
+## Evidência parcial da tarefa 2.4
+
+- HTMLs de Home, Agenda, Finanças e Perfil conferidos para extrair a barra de 390×844; `Agenda 06` e `07` para controles de fechar/voltar. Os arquivos de referência não foram alterados.
+- A barra mantém quatro tabs, fonte IBM Plex Mono 9 e ação central de 56 pontos. O modal fecha para a tab anterior e o controle visível de 40 tem alvo de 44 pontos.
+- A revisão de boas práticas React levou a imports diretos de ícones Lucide e pesos de fonte usados: o bundle iOS caiu de 5,6 MB/3357 módulos para 3,6 MB/1482 módulos. O mapper do Jest foi ajustado para os subcaminhos CJS; nenhum visual ou família foi alterado.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (11 suítes, 46 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22.
+- O `simctl` continua sem acesso ao CoreSimulatorService neste ambiente; inspeção visual no iPhone 16 e VoiceOver ainda dependem do usuário. Não marcar a 2.4 como concluída.
+- PR draft #5 usa `codex/2.3-ios-preview` como base temporária para manter o diff da 2.4 isolado; não mesclar em `main` antes dos PRs #3 e #4.
+
+## Evidência parcial da tarefa 2.6
+
+- Os HTMLs de Home/Agenda/Finanças/Perfil não desenham skeleton, erro de rede ou offline; nenhum foi editado. Os componentes usam a paleta, fontes e espaçamentos existentes.
+- Skeletons não contêm valores; `LoadError` apresenta retry acessível; `MutationError` não controla o formulário e só expõe retry quando o chamador informa uma operação idempotente; `OfflineBanner` distingue dados em memória potencialmente desatualizados.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (12 suítes, 51 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22.
+- PR draft #6 usa a branch da 2.4 como base temporária para manter o diff isolado; seguir a ordem #3 → #4 → #5 → #6, sem mesclar diretamente em `main`.
+- A integração com queries, o envio sanitizado ao Sentry e a validação em tela real virão com as features correspondentes. Não marcar a 2.6 como concluída sem validação visual/VoiceOver e Android/TalkBack posteriormente.
+
+## Evidência parcial da tarefa 2.5
+
+- O Review Card usa medidas, cores e famílias de fonte de `design/componentes.dc.html`; `docs/screens/home.md` e `docs/screens/financas.md` definem os limites e comportamento.
+- O componente nunca confirma recebimento sozinho: apenas aciona callback, bloqueia toque duplo enquanto ocupado e espera a feature remover o card após sucesso do servidor. Isso respeita a regra de domínio acima do toggle ilustrativo do HTML.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (13 suítes, 57 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Testes cobrem os quatro estados, limite de previews/cards/atenção, alvo acessível e ausência de confirmação otimista.
+- PR draft #7 usa a branch da 2.6 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7, sem mesclar diretamente em `main`.
+- O catálogo interno demonstra as quatro variações. Os outros nove componentes, integração nas telas reais e inspeção visual/VoiceOver/TalkBack ainda faltam; **não marcar a 2.5 concluída**.
+- O HTML original usa rótulos pequenos em sálvia/bronze com contraste calculado de cerca de 3,35–3,43:1; foram mantidos literalmente a pedido do usuário. Confirmar a legibilidade no iPhone antes de fechar a validação visual.
+- O card de Trabalho cobre Agenda 02/03/05 e Home 01/03, com barra lateral do Local e estados financeiros explícitos; `Agenda 05` difere do UX ao desenhar uma cápsula para `Recebido`, por isso a UI segue o UX com check e texto sem badge.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (14 suítes, 63 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 ainda tem oito componentes sem implementação e não foi marcada como concluída.
+- PR draft #8 usa #7 como base temporária; ordem de integração #3 → #4 → #5 → #6 → #7 → #8. O checkout desta branch é a prévia mais recente; não mesclar diretamente em `main`.
+- `ReceivableRow` reproduz os itens de Entradas 05–10 nos estados recebido, previsto e confirmação pendente. O estado vem do Recebível; a ação de confirmar não altera o item localmente e fica bloqueada quando `confirming` é verdadeiro. O catálogo mostra os três estados; sem persistência, resumo mensal ou extrato completo neste recorte.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (15 suítes, 69 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 ainda tem sete componentes sem implementação e segue desmarcada.
+- PR draft #9 usa #8 como base; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9. Esta branch é a prévia mais recente para Expo Go, mas o catálogo não substitui a integração nas telas reais.
+- `EmptyState` cobre Home 05/06, Agenda 04, Finanças 11/14 e `Nenhuma prevista`, Perfil 03b/05b/12c, sem ilustrar ou inventar `R$ 0`. Callbacks e rótulo de mês vêm da tela; erros usam os estados técnicos.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (16 suítes, 78 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22 após o ajuste de altura mínima para Dynamic Type. A 2.5 segue desmarcada.
+- PR draft #10 usa #9 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10. Este checkout é a prévia mais recente no Expo Go, sem ainda apresentar estes estados nas telas reais.
+- `ProgressCard` cobre Home 01/02/06 com superfície `#DCE0D6`, barra proporcional, lista de marcos e ação de destino acessível. Conclusão e elegibilidade são fornecidas pela feature; o card inteiro some quando completo. O catálogo mostra as três próximas ações do HTML, mas ainda não há integração na Home real.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (17 suítes, 83 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 segue desmarcada, com cinco componentes restantes.
+- PR draft #11 usa #10 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10 → #11. Este checkout é a prévia mais recente no Expo Go; os estados do catálogo não substituem a integração nas telas reais.
+- `MoneyInput` cobre o campo vazio/preenchido da Agenda 06/09 e as entradas grandes de Residência e primeiro Trabalho do Onboarding. A revisão de boas práticas React manteve o campo controlado e sem efeito para estado derivado. O parser só produz centavos `bigint` positivos e rejeita formatos ambíguos/overflow; nenhuma feature grava esses valores ainda.
+- `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (19 suítes, 106 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. `simctl` novamente falhou ao conectar ao CoreSimulatorService; inspeção visual/VoiceOver no iPhone e Android/TalkBack continuam pendentes. A 2.5 segue desmarcada, com quatro componentes restantes.
+- PR draft #12 usa #11 como base temporária; seguir a ordem #3 → #4 → #5 → #6 → #7 → #8 → #9 → #10 → #11 → #12. Este checkout é a prévia mais recente no Expo Go; o catálogo não substitui a integração nas telas reais.
+- Após o ajuste final de formatação no commit `2a27836`, a CI do PR #12 passou (typecheck, Biome e Jest). O CoreSimulatorService segue indisponível neste ambiente, portanto o catálogo precisa ser conferido no iPhone 16 pelo Expo Go quando possível.
+
+- `WorkTypeSelector` cobre Onboarding 06 (escolha) e Agenda 06B (menu), com ícones pelos paths exatos do HTML e descrições distintas de cada tela. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (21 suítes, 116 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Sem teste em simulador, a pedido do usuário; a conferência visual fica no Expo Go do iPhone. A 2.5 segue desmarcada, com três componentes restantes.
+
+- `CalendarGrid` cobre Agenda 01–05 e 08. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (23 suítes, 130 testes; calendário também em fusos −11 h, −3 h e +14 h), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. A 2.5 segue desmarcada, com dois componentes restantes.
+
+- `BottomSheet` cobre Agenda 06B/08–14 e as folhas de Finanças. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (25 suítes, 138 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Arraste e voltar do Android não são exercitados no Jest; conferir no aparelho. A 2.5 segue desmarcada, com o PremiumGate restante.
+
+- `PremiumGate` cobre Agenda 12 e 14; `PremiumBadge` serve também a Finanças. `npm run typecheck`, `npm run check`, `npm test -- --runInBand` (26 suítes, 145 testes), `npm run check:agents`, `npx expo-doctor` (21/21) e `npx expo export --platform ios` passaram com Node 22. Com ele, os dez componentes da 2.5 existem; a tarefa segue desmarcada até integração em telas e validação em aparelho.
+
+Na 7.3, o onboarding passou a coletar nome, situação de residência, programa, bolsa e dia. A pedido do usuário (2026-09-25): a busca de residência **só aparece para quem responde Sim**; quem responde Não vê a etiqueta **GENERALISTA** na tela e na conclusão; e a conclusão do perfil **não tem `Pular`** — a única saída é `Registrar um trabalho`, que hoje leva a um destino provisório até a 7.4. A lista traz as 55 especialidades e as 59 áreas de atuação da Resolução CFM nº 2.221/2018, com busca a partir do primeiro caractere, sem acento/caixa e com destaque do trecho; `Outra` grava o texto digitado. `saveOnboardingProfile` grava `profiles` e, para residentes, chama a RPC da bolsa Free; generalista grava `specialty = null` e `onboarding_completed_at` continua para a 7.5. Sem retry automático nem atualização otimista. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (38 suítes/233 testes) e `npx expo export --platform ios` passaram; `expo-doctor` segue 20/21 pelo desvio de versões patch já registrado. Após o primeiro teste no iPhone, o usuário pediu e foi aplicado: remover a dica do primeiro nome, corrigir o teclado (botão sobe junto, um toque só), tornar a tela de residência rolável como um todo (sem área interna nem barra lateral), manter as sugestões visíveis acima do teclado e incluir **Traumatologia Bucomaxilofacial**. Também foi corrigido um erro só visível no aparelho: o `Intl` do Hermes não converte `bigint`, e a conclusão do perfil quebrava ao formatar a bolsa — há teste que reproduz o `Intl` do Hermes. Em seguida, pelo segundo retorno no iPhone: escolher a residência agora fecha o teclado; a bolsa vem preenchida com R$ 3.654,42 e dia 05 (editáveis); a tela da bolsa também rola como um todo, sem barra lateral; as telas escuras ganharam o fundo em gradiente do HTML (`BrandBackdrop`, com gradientes radiais no lugar do `filter: blur`) e o card da conclusão passou a usar `BlurView`. No terceiro retorno: a lista de residências some após a escolha; a tela da bolsa deixou de rolar (espaçamentos compactados para o botão não cortar); e escolher um dia em `Outro` recolhe a grade, deixando o dia como atalho selecionado. O usuário aprovou a tela de conclusão. Falta reinspecionar no iPhone; a 7.3 permanece desmarcada. Contrato em [`onboarding-profile.md`](onboarding-profile.md).
+
+Nas 6.1/6.2, `src/features/locations/locations-data.ts` e `src/features/work/work-data.ts` expõem o acesso tipado: Locais (lista de ativos, criação com cor automática do rodízio livre, edição e arquivamento) e o agregado Trabalho + Recebível pelas RPCs atômicas, com chave de idempotência por envio (`expo-crypto`), confirmação explícita de recebimento e invalidação conjunta de Agenda, Home e Finanças (`src/data/query-keys.ts`). Sem retry automático nem atualização otimista. O `CLAUDE.md`/`AGENTS.md` ganhou a seção **Telas, teclado e rolagem** com as regras pedidas pelo usuário: telas de fluxo não rolam, campos e listas ficam visíveis com o teclado aberto e o botão de avançar acompanha o teclado com respiro. `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (41 suítes/258 testes) e `npx expo export --platform ios` passaram. Contrato em [`work-data-layer.md`](work-data-layer.md).
+
+Na 7.4, o onboarding ganhou as telas do primeiro Trabalho (TELA 06, 19, 20 e 22): tipo com chip nas telas seguintes, local só pelo nome, data no `CalendarGrid` em densidade compacta com horário/duração (obrigatórios apenas em Plantão, término derivado inclusive no dia seguinte) e valor com previsão D30/D60/D90 ou "ainda não sei". A gravação reaproveita o Local pelo nome e usa a RPC atômica com chave de idempotência reaproveitada no retry. Nenhuma tela rola e, onde há teclado, campo e botão ficam acima dele. O fluxo termina num destino provisório até a **7.5** (conclusão dinâmica e `onboarding_completed_at`). `npm run typecheck`, `npm run check`, `npm run check:agents`, `npm test -- --runInBand` (43 suítes/274 testes) e `npx expo export --platform ios` passaram; `expo-doctor` segue 20/21 pelo desvio de patch já registrado. Contrato em [`first-work.md`](first-work.md). Primeiro retorno no iPhone (2026-09-25), aplicado: a roda de horário ficava atrás do botão Continuar — agora abre numa folha com confirmação; o teclado numérico do valor não fechava — agora fecha ao tocar fora, e enquanto ele está aberto só valor e botão aparecem (o botão vira `Continuar` e baixa o teclado); nova opção **Outra data** abre o calendário nativo da Apple numa folha. Botão acima do teclado com respiro de 16 (`KEYBOARD_CTA_GAP`) no local e no valor. De passagem, `work-location-colors` saiu de `src/domain` para `src/features/locations/location-colors.ts`: importava `@/theme` e quebrava a regra de camadas do Biome (o `npm run check` estava vermelho nas branches 6.1 e 7.4). Verificação: 43 suítes/277 testes; numa de quatro execuções completas houve uma falha intermitente não reproduzida depois (as advertências de `act()` sobrepostos vêm de `welcome.test.tsx`) — vale observar no CI.
+
 ## Pendências humanas (bloqueiam só o trecho relacionado)
 
 - Android SDK/emulador ou celular Android com Expo Go (fecha 1.1 e 1.3).
+- Validação Android/TalkBack da 2.3 adiada a pedido do usuário; não substitui a DoD original.
 - Proteção da `main` no GitHub (fecha 0.3 e 1.8).
-- Conta Expo/EAS (1.9), projetos Supabase preview/production (3.1).
+- Conta Expo/EAS (1.9) e integração cliente/sessão (4.1) para provar app preview em `dokh-preview` (3.1). Docker local foi reparado pelo usuário e start/reset validados em 2026-09-22. Os dois projetos DOKH foram criados no Free, sem alterar projetos alheios.
 - P01 preços, P02 arquivos do Plantãozinho, P03 recorrência custom, P04 textos legais, P05 confirmações destrutivas.
 
 ## Próximas tarefas sugeridas (em ordem)
 
-1. **2.2** Fontes (Archivo, IBM Plex Mono, Unbounded) e símbolo; substituir fallback de `typography` após carregamento.
-2. **2.3** Primitives acessíveis → **2.6** estados técnicos → **2.4** navegação visual.
-3. **3.1** Supabase local (Docker e Supabase CLI já instalados) → **3.2–3.5** migrations e RLS.
-4. **4.1/4.2/4.5** Sessão, e-mail/senha e guards.
+1. **4.2 / PR #32:** conferir no iPhone o login fixo e a posição dos campos com teclado aberto; registrar resultado. Não marcar `[x]` ainda por causa do reset/callback nativo, preview e Android adiado.
+2. **7.2 (recorte de UI):** compor a entrada/criação conforme `design/onboarding.html` e `docs/screens/onboarding.md`; 4.3/4.4 e 7.1 continuam dependências reais da DoD completa. A coleta de perfil/Residência é 7.3, não presumir que 7.2 a conclui.
+3. **9.1:** integrar queries tipadas das projeções financeiras já criadas e testá-las contra fixtures; depois montar Finanças 9.2 com topo verde e corpo bege numa rolagem única.
+4. **1.9 / 3.1:** configurar EAS com a conta Expo e provar que o app preview usa apenas `dokh-preview`. **2.2** ainda espera o vetor D1 final aprovado para splash/ícones. Não aplicar migrations em projetos remotos sem os testes e aprovação do trecho correspondente.

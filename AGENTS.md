@@ -58,6 +58,7 @@ O projeto é desenvolvido ao longo do tempo com **Claude Code e Codex**, alterna
 - Rotas ficam em `app/` **na raiz**, conforme o README. Não criar `src/app/`: o Expo Router daria precedência a ele.
 - `ios/` e `android/` não são versionados (Continuous Native Generation). Configuração nativa vai em `app.json`/config plugins.
 - Testes manuais são feitos no **Expo Go** (`npm run start`, QR code ou `i` para o simulador iOS). Enquanto for assim, só usar bibliotecas incluídas no Expo Go. Bibliotecas com código nativo fora do Expo Go (RevenueCat, Sentry nativo, notificações push remotas etc.) exigem development build (D02): adicionar somente na tarefa correspondente e registrar a mudança de fluxo no PR.
+- **Não dirigir o simulador iOS para verificação.** O usuário testa no próprio iPhone pelo Expo Go. Ao final de cada entrega com UI, fornecer um bloco bash pronto (checkout da branch + `npx expo start --clear`) e dizer o que conferir no app.
 - Antes de concluir qualquer tarefa: `npm run typecheck`, `npm run check` e `npm test` (quando existirem) e `npx expo-doctor`.
 - Testes (Jest + RNTL 14): `render` e `fireEvent` são **assíncronos** — sempre `await`. Use `renderWithProviders` (`src/test/render.tsx`) para telas com Query. `renderRouter` do Expo Router ainda não aguarda o render: siga o helper de `src/test/routes.test.tsx`. Mocks de módulos nativos ficam em `src/test/native-mocks.setup.ts`.
 - `npm run typecheck` gera os tipos de rota (`scripts/generate-route-types.mjs`) antes do `tsc`; não é preciso subir o Metro.
@@ -176,6 +177,18 @@ Regras de dependência:
 - Datas de pagamento continuam `YYYY-MM-DD` na API.
 - Erros de validação são associados ao campo; erros de servidor ficam no formulário sem apagar o rascunho.
 - Botões respeitam as condições explícitas do UX; não inventar obrigatoriedade.
+
+## Telas, teclado e rolagem
+
+Regras permanentes, pedidas pelo usuário em 2026-09-25 após testes no iPhone:
+
+- **O onboarding não rola.** Da apresentação ao cadastro do primeiro Trabalho, os HTMLs foram desenhados para caber em 390×844: se o conteúdo não couber, ajuste espaçamentos, tamanhos e agrupamentos em vez de acrescentar rolagem. Nas demais áreas do app, decida por tela com o UX e o HTML correspondentes — listas longas (extrato, locais, catálogo) rolam normalmente.
+- **Nada fica atrás do teclado.** Campos de texto, listas de sugestão e seletores precisam continuar visíveis com o teclado aberto (`KeyboardAvoidingView` e, quando houver lista, `keyboardShouldPersistTaps="handled"`).
+- **O botão de avançar acompanha o teclado**, com respiro entre o topo do botão e o teclado. Nunca deve ser preciso fechar o teclado para encontrá-lo; um toque só avança.
+- **Escolha feita fecha o teclado** e remove a lista de opções.
+- **Teclado sem tecla de fechar** (numérico, decimal) fecha ao tocar fora dele; quando o que vem depois não cabe acima do teclado, o botão primeiro só baixa o teclado e revela o resto.
+- **Seletores nativos de horário e data abrem numa folha** (`BottomSheet`) com confirmação, nunca embutidos numa tela que não rola, onde empurrariam ou cobririam o botão.
+- Sem barra de rolagem visível quando houver rolagem legítima (`showsVerticalScrollIndicator={false}`), e a rolagem é da tela inteira, nunca de uma área interna.
 
 ## Tratamento técnico de estados
 

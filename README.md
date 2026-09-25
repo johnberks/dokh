@@ -217,13 +217,16 @@ Depois da Fase 0 do build plan, o fluxo local deve ser:
 
 ```bash
 fnm use            # Node do .nvmrc
-cp .env.example .env.local   # preencher com os valores de `npx supabase status`
-npm install
-npx supabase start
-npm run db:reset
-npm run generate:types
+cp .env.example .env.local   # preencher com os valores de `npm run supabase:status`
+npm ci
+npm run supabase:start
+npm run supabase:reset
 npm run start
 ```
+
+Para configuração local e isolamento preview/production, veja
+[`docs/supabase-local.md`](docs/supabase-local.md). As migrations e a geração de tipos
+entram nas tarefas 3.2–3.12; o cliente Supabase entra na 4.1.
 
 Comandos de qualidade esperados:
 

@@ -147,7 +147,7 @@
   - Skeleton, LoadError, MutationError e OfflineBanner.
   - **DoD:** erro nunca renderiza EmptyState; retry é acessível; skeleton não mostra valores falsos.
 
-- [ ] **2.7 — Configurar motion e reduce motion**
+- [x] **2.7 — Configurar motion e reduce motion**
   - Dependências: 2.3.
   - Reanimated e helpers padronizados.
   - **DoD:** carrossel e remoção de card têm demonstração; reduce motion remove/reduz transições sem quebrar navegação.
@@ -161,44 +161,44 @@
   - Supabase CLI, config local e projetos separados preview/production.
   - **DoD:** `supabase start` e reset local funcionam; app preview conecta somente ao projeto preview.
 
-- [ ] **3.2 — Migration de perfis e preferências**
+- [x] **3.2 — Migration de perfis e preferências**
   - Dependências: 3.1.
   - `profiles`, `work_preferences`, `notification_preferences`, enums e trigger `updated_at`.
   - **DoD:** constraints do `domain-model.md` passam; migration sobe e desce em banco descartável.
 
-- [ ] **3.3 — Migration do núcleo profissional**
+- [x] **3.3 — Migration do núcleo profissional**
   - Dependências: 3.1.
   - `work_locations`, `work_series`, `work_entries`, `residencies`, `receivables` e índices.
   - **DoD:** XOR de origem do Recebível, unicidades, checks de Plantão e índices por usuário/data validados em testes SQL.
 
-- [ ] **3.4 — Migration de suporte operacional**
+- [x] **3.4 — Migration de suporte operacional**
   - Dependências: 3.1.
   - `subscription_entitlements`, `device_push_tokens`, `imports`, `import_issues`.
   - **DoD:** idempotência/uniqueness definida; nenhum payload vira fonte de verdade de Trabalho.
 
-- [ ] **3.5 — Configurar RLS completa**
+- [x] **3.5 — Configurar RLS completa**
   - Dependências: 3.2, 3.3, 3.4.
   - Policies por ownership e acesso de Edge Functions.
   - Views com segurança correta.
   - **DoD:** testes automatizados cobrem anônimo, dono e outro usuário em cada tabela; acesso cruzado falha.
 
-- [ ] **3.6 — Configurar Storage privado**
+- [x] **3.6 — Configurar Storage privado**
   - Dependências: 3.5.
   - Buckets de avatar e imports, paths por usuário, upload/download/delete.
   - **DoD:** outro usuário e anônimo não acessam; URL assinada expira; exclusão remove objeto.
 
-- [ ] **3.7 — Implementar RPCs do agregado Trabalho**
+- [x] **3.7 — Implementar RPCs do agregado Trabalho**
   - Dependências: 3.3, 3.5.
   - Criar, editar e excluir Trabalho + Recebível atomicamente.
   - Usar usuário do JWT e idempotency key.
   - **DoD:** testes provam atomicidade, ownership, idempotência e atualização coerente das duas entidades.
 
-- [ ] **3.8 — Implementar confirmação de Recebível**
+- [x] **3.8 — Implementar confirmação de Recebível**
   - Dependências: 3.3, 3.5.
   - RPC explícita para confirmar recebido; não aceitar confirmação automática.
   - **DoD:** repetir chamada não duplica/avança estado; outro usuário não confirma; data registrada é auditável.
 
-- [ ] **3.9 — Implementar Residência recorrente Free**
+- [x] **3.9 — Implementar Residência recorrente Free**
   - Dependências: 3.3, 3.5.
   - Criar/editar/desativar Residência e gerar Recebíveis mensais.
   - Não consultar entitlement e não criar `work_series`.
@@ -211,12 +211,12 @@
   - Validar entitlement no servidor.
   - **DoD:** Free é negado sem estado parcial; Premium gera Trabalho + Recebível sem duplicação; weekly/biweekly/monthly testados.
 
-- [ ] **3.11 — Criar views/funções de projeção**
+- [x] **3.11 — Criar views/funções de projeção**
   - Dependências: 3.3, 3.8, 3.9.
   - Agenda por dia, status derivado, mês financeiro, origem, competência, valor/hora e ano.
   - **DoD:** fixtures cobrem caixa versus competência, sem data, confirmação pendente, residência, primeiro mês e virada do ano.
 
-- [ ] **3.12 — Gerar tipos e seed de desenvolvimento**
+- [x] **3.12 — Gerar tipos e seed de desenvolvimento**
   - Dependências: 3.11.
   - Script `generate:types`, fixtures sem PII e usuários de teste.
   - **DoD:** tipos versionados compilam; seed reproduz estados principais dos designs.
@@ -412,7 +412,7 @@ Pré-requisito documental: UX e design de Finanças presentes.
 - [ ] **9.2 — Implementar visão mensal base Free**
   - Dependências: 9.1, 2.5.
   - Hero, recebido × a receber, próxima entrada, Review Card e navegação.
-  - **DoD:** mês completo, sem pendências, tudo recebido, mês anterior, sem trabalhos e somente sem data cobertos.
+  - **DoD:** mês completo, sem pendências, tudo recebido, mês anterior, sem trabalhos e somente sem data cobertos; topo verde e corpo bege rolam juntos, sem salto ao trocar período.
 
 - [ ] **9.3 — Implementar extrato de Entradas**
   - Dependências: 9.1, 3.8.
@@ -451,7 +451,7 @@ Pré-requisito documental: UX e design de Home presentes.
 
 - [ ] **10.2 — Implementar hero e carrossel**
   - Dependências: 10.1, 2.7.
-  - **DoD:** histórico aparece só quando válido; altura fixa e motion correspondem ao design; sem histórico usa uma página.
+  - **DoD:** histórico aparece só quando válido; altura fixa e motion correspondem ao design; sem histórico usa uma página; topo verde e corpo bege formam uma rolagem vertical única.
 
 - [ ] **10.3 — Implementar cards e listas**
   - Dependências: 10.1, 2.5.

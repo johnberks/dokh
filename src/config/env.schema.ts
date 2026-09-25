@@ -16,6 +16,12 @@ const optionalText = z
 
 const LOCAL_HOSTS = /^(localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d+\.\d+)$/;
 
+// Identificadores públicos, versionados para que variáveis de build não possam trocar os ambientes.
+export const SUPABASE_PROJECT_REFS = {
+  preview: 'lakpndtdkcjtazoybgnv',
+  production: 'irdsieciowovsaakikbf',
+} as const;
+
 export const publicEnvSchema = z
   .object({
     EXPO_PUBLIC_APP_ENV: z.enum(APP_ENVS),
@@ -39,6 +45,16 @@ export const publicEnvSchema = z
         code: 'custom',
         path: ['EXPO_PUBLIC_SUPABASE_URL'],
         message: `${env.EXPO_PUBLIC_APP_ENV} não pode apontar para um Supabase local`,
+      });
+    }
+    if (env.EXPO_PUBLIC_APP_ENV === 'local') return;
+
+    const expectedRef = SUPABASE_PROJECT_REFS[env.EXPO_PUBLIC_APP_ENV];
+    if (env.EXPO_PUBLIC_SUPABASE_URL !== `https://${expectedRef}.supabase.co`) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['EXPO_PUBLIC_SUPABASE_URL'],
+        message: `deve apontar exclusivamente para o projeto ${env.EXPO_PUBLIC_APP_ENV}`,
       });
     }
   });

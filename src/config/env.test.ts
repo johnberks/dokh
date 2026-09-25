@@ -1,12 +1,19 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { EnvValidationError, parsePublicEnv, publicEnvSchema } from './env.schema';
+import {
+  EnvValidationError,
+  parsePublicEnv,
+  publicEnvSchema,
+  SUPABASE_PROJECT_REFS,
+} from './env.schema';
 
 const valid = {
   EXPO_PUBLIC_APP_ENV: 'local',
   EXPO_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
   EXPO_PUBLIC_SUPABASE_ANON_KEY: 'public-anon-key',
 };
+const previewRef = 'lakpndtdkcjtazoybgnv';
+const productionRef = 'irdsieciowovsaakikbf';
 
 describe('env público', () => {
   it('aceita o mínimo obrigatório e trata opcionais vazios como ausentes', () => {
@@ -44,13 +51,39 @@ describe('env público', () => {
         /não pode apontar para um Supabase local/,
       );
     }
+  });
+
+  it('fixa refs distintos dos projetos remotos DOKH no código', () => {
+    expect(SUPABASE_PROJECT_REFS).toEqual({ preview: previewRef, production: productionRef });
+  });
+
+  it('exige a URL exata do ambiente remoto, independentemente das variáveis de build', () => {
+    const preview = {
+      ...valid,
+      EXPO_PUBLIC_APP_ENV: 'preview',
+      EXPO_PUBLIC_SUPABASE_URL: `https://${previewRef}.supabase.co`,
+    };
+    expect(parsePublicEnv(preview).EXPO_PUBLIC_APP_ENV).toBe('preview');
+    expect(() =>
+      parsePublicEnv({
+        ...preview,
+        EXPO_PUBLIC_SUPABASE_URL: `https://${productionRef}.supabase.co`,
+        EXPO_PUBLIC_SUPABASE_PREVIEW_PROJECT_REF: productionRef,
+      }),
+    ).toThrow(/deve apontar exclusivamente para o projeto preview/);
+    expect(() =>
+      parsePublicEnv({ ...preview, EXPO_PUBLIC_SUPABASE_URL: 'https://example.supabase.co' }),
+    ).toThrow(/deve apontar exclusivamente para o projeto preview/);
+    expect(() =>
+      parsePublicEnv({ ...preview, EXPO_PUBLIC_SUPABASE_URL: `http://${previewRef}.supabase.co` }),
+    ).toThrow(/deve apontar exclusivamente para o projeto preview/);
     expect(
       parsePublicEnv({
-        ...valid,
-        EXPO_PUBLIC_APP_ENV: 'preview',
-        EXPO_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co',
+        ...preview,
+        EXPO_PUBLIC_APP_ENV: 'production',
+        EXPO_PUBLIC_SUPABASE_URL: `https://${productionRef}.supabase.co`,
       }).EXPO_PUBLIC_APP_ENV,
-    ).toBe('preview');
+    ).toBe('production');
   });
 
   it('só declara variáveis EXPO_PUBLIC_ no schema do bundle', () => {

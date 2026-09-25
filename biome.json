@@ -59,13 +59,13 @@
                 "patterns": [
                   {
                     "group": [
-                      "@/components/*",
-                      "@/features/*",
-                      "@/data/*",
-                      "@/theme/*",
-                      "@/i18n/*",
-                      "@/analytics/*",
-                      "@/observability/*"
+                      "@/components/**",
+                      "@/features/**",
+                      "@/data/**",
+                      "@/theme/**",
+                      "@/i18n/**",
+                      "@/analytics/**",
+                      "@/observability/**"
                     ],
                     "message": "domain é puro: não importa UI, dados ou infraestrutura."
                   }
@@ -87,7 +87,7 @@
                 "paths": {},
                 "patterns": [
                   {
-                    "group": ["@/components/*", "@/features/*"],
+                    "group": ["@/components/**", "@/features/**"],
                     "message": "data não importa componentes nem features."
                   }
                 ]
@@ -110,7 +110,7 @@
                 },
                 "patterns": [
                   {
-                    "group": ["@/data/*", "@/features/*"],
+                    "group": ["@/data/**", "@/features/**"],
                     "message": "componentes compartilhados não acessam dados nem features."
                   }
                 ]
@@ -131,7 +131,7 @@
                 "paths": {},
                 "patterns": [
                   {
-                    "group": ["@/data/*"],
+                    "group": ["@/data/**"],
                     "message": "app/ compõe features; não contém SQL/queries diretas."
                   }
                 ]

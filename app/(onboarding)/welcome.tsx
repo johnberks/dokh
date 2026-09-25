@@ -1,7 +1,3 @@
-import { useTranslation } from 'react-i18next';
-import { PlaceholderScreen } from '@/components/PlaceholderScreen';
+import { OnboardingIntroScreen } from '@/features/onboarding/screens/OnboardingIntroScreen';
 
-export default function OnboardingWelcomeScreen() {
-  const { t } = useTranslation('onboarding');
-  return <PlaceholderScreen title={t('intro.title')} />;
-}
+export default OnboardingIntroScreen;
