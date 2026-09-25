@@ -63,14 +63,14 @@ describe('splash 00B', () => {
 });
 
 describe('tela 04 — criar conta', () => {
-  it('usa o título aprovado e o subtítulo do HTML, sem carrossel nem Pular', async () => {
+  it('usa o título aprovado, sem subtítulo, carrossel ou Pular', async () => {
     await renderAccountScreen();
     expect(
       screen.getByRole('header', {
         name: 'Organize sua rotina e suas finanças em um só lugar.',
       }),
     ).toBeTruthy();
-    expect(screen.getByText('Leva menos de um minuto.')).toBeTruthy();
+    expect(screen.queryByText(/Leva menos de um minuto/)).toBeNull();
     expect(screen.queryByText('Pular')).toBeNull();
     expect(screen.queryByText('Continuar')).toBeNull();
     expect(screen.queryByText('Começar')).toBeNull();
@@ -123,18 +123,41 @@ describe('tela 04 — criar conta', () => {
     expect(receivable.radius).toBeLessThan(earnings.radius);
   });
 
-  it('a pilha reserva a altura do cartão mais baixo e não invade os botões', async () => {
+  it('a tela é estática: a prévia encolhe para caber em vez de rolar ou cobrir os botões', async () => {
     await renderAccountScreen();
     const hidden = { includeHiddenElements: true };
     const earningsHeight = 120;
+    const needed = accountPreviewMetrics.earningsTop + earningsHeight;
+
     await act(async () => {
       fireEvent(screen.getByTestId('preview-earnings', hidden), 'layout', {
         nativeEvent: { layout: { x: 0, y: 0, width: 214, height: earningsHeight } },
       });
+      fireEvent(screen.getByTestId('account-preview', hidden), 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 326, height: needed / 2 } },
+      });
     });
-    const stack = screen.getByTestId('account-preview', hidden).props.style;
-    const flat = Array.isArray(stack) ? Object.assign({}, ...stack.flat(2)) : stack;
-    expect(flat.height).toBe(accountPreviewMetrics.earningsTop + earningsHeight);
+
+    const cards = screen.getByTestId('account-preview-cards', hidden).props.style;
+    const flat = Array.isArray(cards) ? Object.assign({}, ...cards.flat(2)) : cards;
+    expect(flat.height).toBe(needed);
+    expect(flat.transform[0].scale).toBeCloseTo(0.5, 2);
+  });
+
+  it('sobrando espaço, a prévia fica no tamanho do design', async () => {
+    await renderAccountScreen();
+    const hidden = { includeHiddenElements: true };
+    await act(async () => {
+      fireEvent(screen.getByTestId('preview-earnings', hidden), 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 214, height: 120 } },
+      });
+      fireEvent(screen.getByTestId('account-preview', hidden), 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 326, height: 400 } },
+      });
+    });
+    const cards = screen.getByTestId('account-preview-cards', hidden).props.style;
+    const flat = Array.isArray(cards) ? Object.assign({}, ...cards.flat(2)) : cards;
+    expect(flat.transform[0].scale).toBe(1);
   });
 
   it('texto legal mantém fonte e tamanho; só o trecho de link fica em negrito', async () => {

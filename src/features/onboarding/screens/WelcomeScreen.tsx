@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { legalUrls } from '@/config/legal';
@@ -48,12 +48,10 @@ export function WelcomeScreen() {
     return <BrandSplash onFinish={() => setShowSplash(false)} testID="intro-splash" />;
 
   return (
-    <ScrollView
-      style={styles.screen}
-      // Em telas menores o conteúdo rola em vez de se sobrepor; em telas grandes nada se move.
-      bounces={false}
-      contentContainerStyle={[
-        styles.content,
+    // Tela estática: nada rola. A prévia encolhe para caber no espaço que sobra.
+    <View
+      style={[
+        styles.screen,
         { paddingTop: insets.top + m.headerPaddingTop, paddingBottom: Math.max(insets.bottom, 24) },
       ]}
       testID="welcome-account"
@@ -63,12 +61,9 @@ export function WelcomeScreen() {
         <AuthWordmark />
       </View>
 
-      <View style={styles.heading}>
-        <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-          {t('welcome.account.headline')}
-        </AppText>
-        <AppText style={styles.subtitle}>{t('welcome.account.subtitle')}</AppText>
-      </View>
+      <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+        {t('welcome.account.headline')}
+      </AppText>
 
       <View style={styles.preview}>
         <AccountPreview />
@@ -100,29 +95,24 @@ export function WelcomeScreen() {
         <LegalLink label={t('welcome.account.privacy')} url={legalUrls.privacy} />
         {t('welcome.account.legalAfter')}
       </AppText>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  content: { flexGrow: 1 },
   header: { paddingHorizontal: m.horizontalPadding },
-  heading: { paddingTop: 36, paddingHorizontal: m.horizontalPadding, gap: 12 },
   title: {
+    marginTop: 32,
+    marginHorizontal: m.horizontalPadding,
     fontSize: m.slideTitleSize,
     lineHeight: m.slideTitleLineHeight,
     letterSpacing: m.slideTitleTracking,
     color: colors.textPrimary,
   },
-  subtitle: {
-    fontSize: m.slideBodySize,
-    lineHeight: m.slideBodyLineHeight,
-    color: colors.textMuted,
-  },
-  // A pilha reserva a própria altura; o espaço extra fica antes dos botões.
-  preview: { flexGrow: 1, flexShrink: 0, marginTop: 28, marginHorizontal: m.horizontalPadding },
-  actions: { paddingTop: 24, paddingHorizontal: m.horizontalPadding, gap: 10 },
+  // Ocupa o espaço livre entre o título e os botões; a prévia se ajusta a ele.
+  preview: { flex: 1, marginTop: 24, marginHorizontal: m.horizontalPadding },
+  actions: { paddingTop: 20, paddingHorizontal: m.horizontalPadding, gap: 10 },
   signInRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,7 +123,7 @@ const styles = StyleSheet.create({
   signInPrompt: { fontSize: 14, lineHeight: 18, color: colors.textMuted },
   signInLink: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
   legal: {
-    paddingTop: 16,
+    paddingTop: 14,
     paddingHorizontal: m.horizontalPadding,
     textAlign: 'center',
     fontSize: 11,

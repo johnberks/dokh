@@ -5,7 +5,6 @@ export const onboarding = {
     /** Tela 04 de `design/onboarding.html`, com o título aprovado pelo usuário. */
     account: {
       headline: 'Organize sua rotina e suas finanças em um só lugar.',
-      subtitle: 'Leva menos de um minuto.',
       email: 'Continuar com e-mail',
       hasAccount: 'Já tem uma conta?',
       signIn: 'Entrar',

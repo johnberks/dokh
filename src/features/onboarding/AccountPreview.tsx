@@ -41,16 +41,23 @@ function useReveal(index: number) {
  */
 export function AccountPreview() {
   const { t } = useTranslation('onboarding');
-  // Os cartões são absolutos (posições do HTML). A pilha reserva a altura do cartão mais baixo
-  // para nunca invadir os botões abaixo, inclusive com Dynamic Type.
-  const [stackHeight, setStackHeight] = useState<number>(p.minHeight);
+  // Os cartões usam as posições absolutas do HTML. A tela é estática: em vez de rolar ou
+  // invadir os botões, a pilha inteira encolhe proporcionalmente para caber no espaço livre.
+  const [neededHeight, setNeededHeight] = useState<number>(p.minHeight);
+  const [availableHeight, setAvailableHeight] = useState(0);
 
   function measureLowestCard(event: LayoutChangeEvent) {
-    const needed = p.earningsTop + event.nativeEvent.layout.height;
-    setStackHeight((current) =>
-      Math.abs(current - needed) < 1 ? current : Math.max(needed, p.minHeight),
-    );
+    const needed = Math.max(p.earningsTop + event.nativeEvent.layout.height, p.minHeight);
+    setNeededHeight((current) => (Math.abs(current - needed) < 1 ? current : needed));
   }
+
+  function measureAvailable(event: LayoutChangeEvent) {
+    const { height } = event.nativeEvent.layout;
+    setAvailableHeight((current) => (Math.abs(current - height) < 1 ? current : height));
+  }
+
+  const scale =
+    availableHeight > 0 && neededHeight > availableHeight ? availableHeight / neededHeight : 1;
 
   const shift = useReveal(LAYERS.indexOf('shift'));
   const receivable = useReveal(LAYERS.indexOf('receivable'));
@@ -60,10 +67,16 @@ export function AccountPreview() {
     <View
       accessible
       accessibilityLabel={t('welcome.account.preview')}
-      style={[styles.stack, { height: stackHeight }]}
+      onLayout={measureAvailable}
+      style={styles.stack}
       testID="account-preview"
     >
-      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        testID="account-preview-cards"
+        style={[styles.cards, { height: neededHeight, transform: [{ scale }] }]}
+      >
         <Animated.View testID="preview-shift" style={[styles.card, styles.shift, shift]}>
           <AppText variant="technical" style={styles.eyebrowDark}>
             {t('welcome.account.shiftLabel')}
@@ -124,7 +137,9 @@ export function AccountPreview() {
 }
 
 const styles = StyleSheet.create({
-  stack: { minHeight: p.minHeight },
+  stack: { flex: 1, minHeight: p.minHeight, justifyContent: 'flex-start', overflow: 'hidden' },
+  // Encolhe a partir do topo-esquerda para manter o desenho do HTML.
+  cards: { transformOrigin: 'top left' },
   card: {
     position: 'absolute',
     borderRadius: p.radius,
