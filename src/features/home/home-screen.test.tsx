@@ -121,14 +121,16 @@ beforeEach(() => {
 });
 
 describe('Início', () => {
-  it('padrão: mês com comparação, próximo trabalho sobre o verde e as duas listas', async () => {
+  it('padrão: mês com comparação, próximo trabalho abaixo do verde e as duas listas', async () => {
     await renderWithProviders(<HomeScreen />);
     expect(screen.getByTestId('home-hero-amount')).toHaveTextContent(/R\$\s?12\.450/);
     // Visão 2A: card do mês com rótulo, contagem e comparação.
     expect(screen.getByText(/^PARA RECEBER · /)).toBeTruthy();
     expect(screen.getByText('4 entradas previstas')).toBeTruthy();
     expect(screen.getByTestId('home-hero-comparison')).toHaveTextContent(/↑ 12%.*R\$\s?1\.350/);
-    expect(screen.getByTestId('home-next-work-wrap')).toHaveStyle({ marginTop: -114 });
+    // O próximo trabalho fica abaixo do verde; o verde tem a altura padrão das abas.
+    expect(screen.getByTestId('home-next-work-wrap')).not.toHaveStyle({ marginTop: -114 });
+    expect(screen.getByTestId('two-tone-hero')).toHaveStyle({ height: 272 });
     expect(screen.getByText('HOJE')).toBeTruthy();
     expect(screen.getByText('PRÓXIMAS ENTRADAS')).toBeTruthy();
     expect(screen.getByText('Residência')).toBeTruthy();

@@ -20,24 +20,19 @@ import type { AgendaWork } from '@/features/agenda/agenda-data';
 import { durationLabel, workKindLabel, workTimeLabel } from '@/features/agenda/agenda-format';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useConfirmReceivable } from '@/features/work/work-data';
-import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
+import { todayInTimezone } from '@/features/work/work-schedule';
 import { palette } from '@/theme/tokens';
 import { HomeHeroCards } from './HomeHero';
 import { HomeEntryRow, HomeListCard } from './HomeListCard';
 import { type HomeBody, type HomeEntry, useHomeBody, useHomeHero } from './home-data';
 import { setupProgress, temporalLabel } from './home-format';
 
-const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
-const _SHORT = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-const _monthName = (month: LocalMonth) => MONTH_NAME.format(localDateToDate(`${month}-01`));
 const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true });
-
-/** Quanto o card do próximo trabalho sobe sobre o verde (mesmo efeito da Agenda/Finanças). */
-const OVERLAP = 96;
 
 /**
  * Início (Home 01–06): topo verde com o mês (e o histórico, quando existe) e o corpo bege numa
- * única rolagem; o próximo trabalho sobe sobre o verde. Pendências só quando existem (no máximo
+ * única rolagem; o verde tem a mesma altura das outras abas (`TOP_GREEN_HEIGHT`) e o próximo
+ * trabalho fica logo abaixo, no bege. Pendências só quando existem (no máximo
  * dois Review Cards, um de atenção); confirmar é sempre pelo servidor, sem otimismo. O
  * progresso inicial some quando completo. Nada de Premium aqui.
  */
@@ -90,7 +85,6 @@ export function HomeScreen() {
       month={month}
       today={today}
       firstName={data?.firstName ?? null}
-      overlap={data ? OVERLAP : 0}
       onMonth={setMonth}
       onAddWork={addWork}
       onAvatar={() => router.push('/profile')}
@@ -100,6 +94,7 @@ export function HomeScreen() {
   return (
     <TwoToneScrollScreen
       heroBackground={<AgendaHeroBackdrop />}
+      standardHeroHeight
       hero={heroView}
       bodyStyle={styles.body}
       testID="home-screen"
@@ -115,7 +110,7 @@ export function HomeScreen() {
         />
       ) : (
         <View style={styles.sections}>
-          <View style={styles.overlap} testID="home-next-work-wrap">
+          <View testID="home-next-work-wrap">
             {data.upcomingWorks[0] ? (
               <NextWork work={data.upcomingWorks[0]} today={today} onPress={openWork} />
             ) : (
@@ -370,6 +365,5 @@ function SetupProgress({
 const styles = StyleSheet.create({
   body: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40 },
   sections: { gap: 20 },
-  overlap: { marginTop: -(OVERLAP + 18) },
   error: { fontSize: 13, lineHeight: 18, color: palette.bronzeDeep },
 });

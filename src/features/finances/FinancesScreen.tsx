@@ -201,6 +201,7 @@ export function FinancesScreen() {
     return (
       <TwoToneScrollScreen
         heroBackground={<AgendaHeroBackdrop />}
+        standardHeroHeight
         hero={hero}
         bodyStyle={styles.body}
         testID="finances-screen"
@@ -223,6 +224,7 @@ export function FinancesScreen() {
   return (
     <TwoToneScrollScreen
       heroBackground={<AgendaHeroBackdrop />}
+      standardHeroHeight
       hero={hero}
       bodyStyle={styles.body}
       testID="finances-screen"

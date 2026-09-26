@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useRef, useState } from 'react';
@@ -15,7 +16,6 @@ import {
 import Svg, { Circle, Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
-import { EmptyState } from '@/components/EmptyState';
 import { HeroBar } from '@/components/HeroBar';
 import { type LocalMonth, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
@@ -39,7 +39,7 @@ const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true }
 const GAP = 10;
 const SIDE = 24;
 const PEEK = 32;
-const CARD_HEIGHT = 190;
+const CARD_HEIGHT = 140;
 
 /**
  * Topo da Início na visão **2A — cards com peek** (`HOME.dc.html`): marca e avatar, saudação
@@ -52,7 +52,6 @@ export function HomeHeroCards({
   month,
   today,
   firstName,
-  overlap,
   onMonth,
   onAddWork,
   onAvatar,
@@ -61,7 +60,6 @@ export function HomeHeroCards({
   month: LocalMonth;
   today: string;
   firstName: string | null;
-  overlap: number;
   onMonth: (month: LocalMonth) => void;
   onAddWork: () => void;
   onAvatar: () => void;
@@ -190,7 +188,22 @@ export function HomeHeroCards({
           ) : null}
         </>
       ) : (
-        <EmptyState variant="homeEntries" onPrimaryPress={onAddWork} testID="home-no-entries" />
+        // Mês vazio compacto: cabe no card sem mudar a altura do verde (nunca `R$ 0,00`).
+        <View style={styles.emptyMonth} testID="home-no-entries">
+          <AppText numberOfLines={2} style={[type.heading1, styles.emptyTitle]}>
+            {t('empty.noEntriesTitle')}
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onAddWork}
+            hitSlop={8}
+            style={styles.emptyAction}
+            testID="home-no-entries-action"
+          >
+            <AppText style={[type.heading1, styles.emptyActionText]}>{t('empty.addWork')}</AppText>
+            <ArrowRight color={palette.bronze} size={14} strokeWidth={1.8} />
+          </Pressable>
+        </View>
       )}
     </Pressable>
   );
@@ -226,7 +239,7 @@ export function HomeHeroCards({
                 {hidden ? '•••' : compactReais(bar.expectedTotalCents)}
               </AppText>
               <HeroBar
-                height={Math.max(6, (Number(bar.expectedTotalCents) / max) * 58)}
+                height={Math.max(6, (Number(bar.expectedTotalCents) / max) * 40)}
                 width={24}
                 current={bar.current}
               />
@@ -249,7 +262,7 @@ export function HomeHeroCards({
   ) : null;
 
   return (
-    <View style={[styles.hero, { paddingBottom: 24 + overlap }]}>
+    <View style={styles.hero}>
       <StatusBar style="light" />
       <View style={styles.header}>
         <View style={styles.brand}>
@@ -346,9 +359,10 @@ export function HomeHeroCards({
 }
 
 const styles = StyleSheet.create({
-  hero: { overflow: 'hidden' },
+  // Topo compacto: cabe na altura padrão do verde (TOP_GREEN_HEIGHT), igual a Finanças/Agenda.
+  hero: { flex: 1, overflow: 'hidden' },
   header: {
-    paddingTop: 16,
+    paddingTop: 10,
     paddingHorizontal: 32,
     flexDirection: 'row',
     alignItems: 'center',
@@ -374,7 +388,7 @@ const styles = StyleSheet.create({
   },
   avatarText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.cream },
   greetingRow: {
-    paddingTop: 22,
+    paddingTop: 12,
     paddingHorizontal: SIDE,
     flexDirection: 'row',
     alignItems: 'center',
@@ -391,7 +405,7 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   stepperButton: { width: 28, height: 32, alignItems: 'center', justifyContent: 'center' },
   stepperLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.secondaryText },
-  track: { paddingTop: 18, paddingHorizontal: SIDE, gap: GAP },
+  track: { paddingTop: 12, paddingHorizontal: SIDE, gap: GAP },
   // Card de vidro escuro do 2A: verde translúcido, borda sálvia e raio 22.
   // Altura mínima igual nos dois cards; o mês vazio (texto + ação) pode crescer.
   card: {
@@ -400,11 +414,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(43,58,36,0.55)',
     borderWidth: 1,
     borderColor: 'rgba(127,138,118,0.28)',
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    gap: 8,
   },
-  historyCard: { gap: 12 },
+  historyCard: { gap: 6 },
   cardEyebrow: {
     flexShrink: 1,
     fontSize: 10,
@@ -412,7 +426,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.8,
     color: palette.secondaryText,
   },
-  amountBlock: { gap: 6 },
+  amountBlock: { gap: 2 },
   amountRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -421,9 +435,9 @@ const styles = StyleSheet.create({
   },
   amount: {
     flexShrink: 1,
-    fontSize: 44,
-    lineHeight: 48,
-    letterSpacing: -1.76,
+    fontSize: 38,
+    lineHeight: 42,
+    letterSpacing: -1.52,
     color: palette.cream,
   },
   eye: {
@@ -449,7 +463,7 @@ const styles = StyleSheet.create({
   },
   comparisonText: { flexShrink: 1, fontSize: 13, lineHeight: 18, color: palette.secondaryText },
   historyChart: {
-    height: 96,
+    height: 64,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
@@ -464,7 +478,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 4,
-    marginTop: -5,
+    marginTop: 0,
   },
   historyMonth: {
     width: 40,
@@ -475,7 +489,11 @@ const styles = StyleSheet.create({
     color: palette.sage,
   },
   historyMonthCurrent: { color: palette.bronze },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 16 },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 10 },
+  emptyMonth: { flex: 1, justifyContent: 'space-between', gap: 8 },
+  emptyTitle: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: palette.cream },
+  emptyAction: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
+  emptyActionText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.bronze },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(127,138,118,0.45)' },
   dotActive: { width: 22, backgroundColor: palette.bronze },
 });

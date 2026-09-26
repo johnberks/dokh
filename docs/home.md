@@ -9,6 +9,10 @@ Fontes: `design/home.html` (Home 01–06), `docs/screens/home.md`. Aplica os aju
 - Chaves sob `home-overview` (invalidada por toda escrita de Trabalho/Recebível, inclusive confirmar).
 - O corpo é sempre "de hoje em diante"; o mês do topo só muda o topo.
 
+## Altura do verde
+
+Início, Agenda e Finanças usam a mesma altura de topo verde: `TOP_GREEN_HEIGHT` = 272 pt abaixo da barra de status (`TwoToneScrollScreen standardHeroHeight`), com Finanças como referência. Na Início o topo é compacto para caber (cards de 140 pt, mês vazio em versão curta); na Agenda o calendário começa 24 pt abaixo da troca de mês e sobe sobre o restante do verde.
+
 ## Topo (10.2) — visão **2A "cards com peek"** (`HOME.dc.html` do Claude Design, pedido do usuário em 2026-09-26) — `HomeHero.tsx`
 
 - Marca DOKH + avatar (inicial do primeiro nome, abre Perfil); saudação "Seu setembro, Anna." com a troca de mês (`‹ SET 2026 ›`).
@@ -20,7 +24,7 @@ Fontes: `design/home.html` (Home 01–06), `docs/screens/home.md`. Aplica os aju
 
 ## Corpo (10.3/10.4/10.5)
 
-1. **Próximo trabalho** (`WorkCard featured`) sobre o verde: HOJE/AMANHÃ/`SEX 02 OUT`, horário, local, tipo · duração, valor e `Previsto para entrar · 12 OUT` / `Entrada a definir`. Sem trabalho: `EmptyState homeWork`.
+1. **Próximo trabalho** (`WorkCard featured`) **abaixo do verde**, no bege (pedido do usuário, 2026-09-26): HOJE/AMANHÃ/`SEX 02 OUT`, horário, local, tipo · duração, valor e `Previsto para entrar · 12 OUT` / `Entrada a definir`. Sem trabalho: `EmptyState homeWork`.
 2. **Pendências** (`ReviewCardStack`, no máximo 2, uma de atenção): entrada de hoje (atenção, `Você recebeu?`), vencida sem confirmação (neutra, `Confirmar entrada`) e valores sem data (compacto → editar o primeiro trabalho sem data). Confirmar: spinner no card, sem otimismo; falha avisa e mantém; sucesso some e atualiza Finanças. A entrada de hoje não se repete na lista.
 3. **Próximas entradas** (`HomeListCard` + `HomeEntryRow`, até 3, a partir de amanhã) → `Ver todas as entradas` (Entradas do mês atual).
 4. **Próximos trabalhos** (os seguintes ao próximo, `WorkCard row`) → `Ver agenda`.

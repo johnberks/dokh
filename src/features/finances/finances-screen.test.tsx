@@ -107,6 +107,8 @@ describe('Finanças — mês', () => {
     expect(screen.getByTestId('finances-split-awaiting')).toBeTruthy();
     // Card único sobre o topo verde, como o calendário da Agenda.
     expect(screen.getByTestId('finances-split-wrap')).toHaveStyle({ marginTop: -114 });
+    // Mesma altura de verde da Início e da Agenda.
+    expect(screen.getByTestId('two-tone-hero')).toHaveStyle({ height: 272 });
     expect(screen.getByText('67% recebido')).toBeTruthy();
     expect(screen.getByTestId('finances-next')).toBeTruthy();
     // O tempo que falta é a manchete; no dia, a etiqueta vira "Hoje" e dá para confirmar ali.

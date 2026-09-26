@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { CalendarCard } from '@/components/CalendarCard';
 import { EmptyState } from '@/components/EmptyState';
-import { TwoToneScrollScreen } from '@/components/Layout';
+import { TOP_GREEN_HEIGHT, TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { WorkCard } from '@/components/WorkCard';
@@ -115,6 +115,7 @@ export function AgendaScreen() {
   return (
     <TwoToneScrollScreen
       heroBackground={<AgendaHeroBackdrop />}
+      standardHeroHeight
       hero={hero}
       bodyStyle={styles.body}
       testID="agenda-screen"
@@ -203,7 +204,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { paddingHorizontal: 20, gap: 6 },
-  calendar: { marginTop: -116, marginBottom: 18 },
+  // O verde tem a mesma altura das outras abas (TOP_GREEN_HEIGHT); o calendário começa 24 pt
+  // abaixo da troca de mês (topo de 78 pt) e sobe sobre o resto do verde.
+  calendar: { marginTop: -(TOP_GREEN_HEIGHT - 78 - 24), marginBottom: 18 },
   dayRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
