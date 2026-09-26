@@ -322,7 +322,16 @@ export async function readHourlyWindow(
   month: LocalMonth,
   client: AuthClient = supabase,
 ): Promise<HourlyMonth[]> {
-  const months = [shiftMonth(month, -2), shiftMonth(month, -1), month];
+  return readHourlyHistory(month, 3, client);
+}
+
+/** O mês e os `count - 1` anteriores, do mais antigo ao atual (análise completa usa seis). */
+export async function readHourlyHistory(
+  month: LocalMonth,
+  count: number,
+  client: AuthClient = supabase,
+): Promise<HourlyMonth[]> {
+  const months = Array.from({ length: count }, (_, index) => shiftMonth(month, index - count + 1));
   const data = await Promise.all(months.map((item) => readFinanceMonth(item, client)));
   return data.map((item, index) => ({
     month: months[index],
@@ -339,5 +348,100 @@ export function useHourlyWindow(month: LocalMonth, enabled: boolean) {
     queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'hourly-window'],
     queryFn: () => readHourlyWindow(month),
     enabled: userId !== null && enabled,
+  });
+}
+
+/** Análise completa de valor/hora (Finanças 02): seis meses até o escolhido. */
+export function useHourlyHistory(month: LocalMonth, enabled: boolean) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'hourly-history'],
+    queryFn: () => readHourlyHistory(month, 6),
+    enabled: userId !== null && enabled,
+  });
+}
+
+export type EntryStatus = 'received' | 'scheduled' | 'due_today' | 'confirmation_pending';
+
+/** Uma linha de Entradas (05–10): Recebível datado no mês, pela data prevista de pagamento. */
+export type MonthEntry = {
+  receivableId: string;
+  workId: string | null;
+  origin: EntryOrigin;
+  /** Nome do Local, ou `null` para a Residência. */
+  locationName: string | null;
+  amountCents: bigint;
+  expectedOn: LocalDate;
+  /** Derivado no servidor pelo fuso do perfil; nunca confirmado pela passagem do tempo. */
+  status: EntryStatus;
+};
+
+const ENTRY_STATUSES: readonly EntryStatus[] = [
+  'received',
+  'scheduled',
+  'due_today',
+  'confirmation_pending',
+];
+
+/**
+ * Entradas do mês: o mesmo recorte do total de Finanças (data prevista dentro do mês, sem
+ * invalidados nem Trabalhos excluídos), em ordem cronológica. Sem data fica de fora (Review Card).
+ */
+export async function readMonthEntries(
+  month: LocalMonth,
+  client: AuthClient = supabase,
+): Promise<MonthEntry[]> {
+  const { data, error } = await client
+    .from('receivable_projection')
+    .select('receivable_id, work_entry_id, origin, amount_cents, expected_on, receipt_status')
+    .gte('expected_on', `${month}-01`)
+    .lt('expected_on', `${shiftMonth(month, 1)}-01`)
+    .is('invalidated_at', null)
+    .is('work_deleted_at', null)
+    .order('expected_on', { ascending: true })
+    .order('receivable_id', { ascending: true });
+  if (error) throw error;
+  const rows = (data ?? []).filter(
+    (row) =>
+      row.receivable_id &&
+      row.expected_on &&
+      row.origin &&
+      ENTRY_STATUSES.includes(row.receipt_status as EntryStatus),
+  );
+
+  const workIds = [
+    ...new Set(rows.map((row) => row.work_entry_id).filter((id): id is string => !!id)),
+  ];
+  const names = new Map<string, string>();
+  if (workIds.length > 0) {
+    const works = await client
+      .from('agenda_work_projection')
+      .select('work_entry_id, location_name')
+      .in('work_entry_id', workIds);
+    if (works.error) throw works.error;
+    for (const work of works.data ?? []) {
+      if (work.work_entry_id && work.location_name) {
+        names.set(work.work_entry_id, work.location_name);
+      }
+    }
+  }
+
+  return rows.map((row) => ({
+    receivableId: row.receivable_id as string,
+    workId: row.work_entry_id,
+    origin: row.origin as EntryOrigin,
+    locationName: row.work_entry_id ? (names.get(row.work_entry_id) ?? null) : null,
+    amountCents: cents(row.amount_cents),
+    expectedOn: row.expected_on as LocalDate,
+    status: row.receipt_status as EntryStatus,
+  }));
+}
+
+export function useMonthEntries(month: LocalMonth) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'entries'],
+    queryFn: () => readMonthEntries(month),
+    enabled: userId !== null,
   });
 }

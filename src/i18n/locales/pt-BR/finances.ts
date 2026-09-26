@@ -106,6 +106,7 @@ export const finances = {
     closed: '{{month}} está fechado: nenhuma entrada ficou pendente neste mês.',
     pendingConfirmation: 'Há entradas de {{month}} aguardando sua confirmação de recebimento.',
     onlyUndated: 'O que você trabalhou ainda está sem data de entrada prevista.',
+    seeEntries: 'Ver entradas',
   },
   review: {
     eyebrowOne: 'REVISÃO NECESSÁRIA · 1 ENTRADA',
@@ -150,6 +151,41 @@ export const finances = {
     lockedStable:
       'Seu valor por hora em {{month}} ficou parecido com o dos últimos meses. Descubra quanto.',
     chartLabel: 'Valor por hora de {{months}}',
+    seeAnalysis: 'Ver análise completa',
+  },
+  /** Entradas 05–10 e 14 de `design/financas.html`. */
+  entries: {
+    title: 'Entradas',
+    back: 'Voltar para Finanças',
+    backLabel: 'Finanças',
+    received: 'RECEBIDOS',
+    awaiting: 'A RECEBER',
+    expected: 'PREVISTOS',
+    count: 'ENTRADAS',
+    pendingOne: '1 entrada aguardando sua confirmação',
+    pendingMany: '{{count}} entradas aguardando sua confirmação',
+    futureCaption: 'Pagamentos com data prevista para {{month}}.',
+    confirmError: 'Não foi possível confirmar agora. Tente de novo.',
+  },
+  /** Finanças 02 — análise completa de valor/hora (Premium). */
+  analysis: {
+    title: 'Seu valor por hora',
+    eyebrow: 'SEU VALOR POR HORA',
+    generated: 'gerados',
+    worked: 'trabalhadas',
+    textBest:
+      'Cada hora do seu trabalho em {{month}} valeu {{hourly}} — o maior valor dos últimos {{months}} meses.',
+    text: 'Cada hora do seu trabalho em {{month}} valeu {{hourly}}.',
+    noHours: 'Registre a duração dos seus trabalhos de {{month}} para ver quanto cada hora valeu.',
+    evolutionEyebrow: 'EVOLUÇÃO DO SEU VALOR/HORA',
+    evolutionTitle: '{{months}} meses de valor/hora, lado a lado.',
+    evolutionUp: 'Seu valor/hora subiu {{percent}}% desde {{month}}.',
+    evolutionDown: 'Seu valor/hora caiu {{percent}}% desde {{month}}.',
+    evolutionStable: 'Seu valor/hora ficou estável desde {{month}}.',
+    bestTwo: '{{first}} e {{second}} foram os dois melhores meses.',
+    evolutionShort: 'Com mais meses registrados, a evolução do seu valor/hora aparece aqui.',
+    chartLabel: 'Valor por hora de {{months}}',
+    monthsWord: { two: 'Dois', three: 'Três', four: 'Quatro', five: 'Cinco', six: 'Seis' },
   },
   workType: {
     shift: 'PLANTÃO',
