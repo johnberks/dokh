@@ -140,31 +140,20 @@ export function compactReais(cents: bigint): string {
 
 /** Janeiro a dezembro; mês sem dado fica `null` (traço), nunca zero. */
 export function yearBars(data: FinanceYear, year: number, today: LocalDate): ChartBar[] {
-  const byMonth = new Map(data.months.map((item) => [item.month, item]));
+  const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
   const currentMonth = today.slice(0, 7);
   return MONTH_LABELS.map((label, index) => {
     const month = `${year}-${String(index + 1).padStart(2, '0')}`;
-    const item = byMonth.get(month);
-    const has = item !== undefined && item.expectedTotalCents > 0n;
+    const cents = byMonth.get(month);
+    const has = cents !== undefined && cents > 0n;
     return {
       key: month,
       label,
-      value: has ? Number(item.expectedTotalCents) : null,
-      filled: has ? Number(item.receivedCents) : 0,
-      state: month < currentMonth ? 'realized' : month === currentMonth ? 'current' : 'future',
+      value: has ? Number(cents) : null,
+      valueLabel: has ? compactReais(cents) : undefined,
+      current: month === currentMonth,
     };
   });
-}
-
-/** Mês escolhido no gráfico ao abrir: o atual no ano corrente; senão, o último com dado. */
-export function defaultSelectedMonth(
-  data: FinanceYear,
-  year: number,
-  today: LocalDate,
-): LocalMonth | null {
-  if (Number(today.slice(0, 4)) === year) return today.slice(0, 7);
-  const withData = data.months.filter((item) => item.expectedTotalCents > 0n);
-  return withData.length > 0 ? withData[withData.length - 1].month : null;
 }
 
 /** Melhor mês já vivido do ano (até o atual), pelo previsto do mês. */

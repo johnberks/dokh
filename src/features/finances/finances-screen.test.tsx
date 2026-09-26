@@ -453,35 +453,25 @@ describe('Finanças — ano', () => {
     historicalAverageCents: 1100000n,
   });
 
-  it('resumo anual: total com recebido e a receber; primeiro mês sem média inventada', async () => {
+  it('topo só com o total; gráfico com o ganho médio e, no primeiro mês, sem média inventada', async () => {
     await openYear();
     expect(screen.getByTestId('finances-year-title')).toBeTruthy();
     expect(screen.getByText(`recebidos e previstos em ${y}`)).toBeTruthy();
-    expect(screen.getByTestId('finances-year-split')).toBeTruthy();
-    expect(screen.getByText('R$ 8.350')).toBeTruthy();
-    expect(screen.getByText('R$ 4.100')).toBeTruthy();
+    // Sem barra nem valores de recebido/a receber no topo.
+    expect(screen.queryByTestId('finances-year-split')).toBeNull();
     expect(screen.getByTestId('finances-year-chart')).toBeTruthy();
+    expect(screen.getByText('mês atual')).toBeTruthy();
     expect(screen.getByTestId('finances-year-history-start')).toBeTruthy();
-    expect(screen.queryByTestId('finances-year-chart-reference')).toBeNull();
-    expect(screen.getByTestId('finances-stat-average')).toHaveTextContent(/—/);
+    expect(screen.queryByTestId('finances-year-average')).toBeNull();
   });
 
-  it('gráfico: mês atual escolhido ao abrir, tocar noutro mês troca o resumo', async () => {
+  it('com histórico: o gráfico traz o ganho médio até o mês atual, sobre o verde', async () => {
     mockYear = ok(premiumYear());
     await openYear();
-    expect(screen.getByTestId('finances-year-selected')).toHaveTextContent(
-      /R\$\s?12\.450.*R\$\s?8\.350 recebidos · R\$\s?4\.100 a receber/,
+    expect(screen.getByTestId('finances-year-average')).toHaveTextContent(
+      /R\$\s?11\.000.*é sua média de ganho mensal/,
     );
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId(`finances-year-chart-bar-${y}-01`));
-    });
-    expect(screen.getByTestId('finances-year-selected')).toHaveTextContent(
-      /Janeiro.*R\$\s?10\.000/,
-    );
-    // Média como linha tracejada no gráfico.
-    expect(screen.getByText('média 11,0k')).toBeTruthy();
-    expect(screen.getByText('Recebido')).toBeTruthy();
-    expect(screen.getByText('Previsto')).toBeTruthy();
+    expect(screen.getByText('12,4k')).toBeTruthy();
     expect(screen.getByTestId('finances-year-chart-wrap')).toHaveStyle({ marginTop: -114 });
   });
 
@@ -514,7 +504,9 @@ describe('Finanças — ano', () => {
     expect(screen.queryByTestId('finances-year-origin-premium')).toBeNull();
     expect(screen.getByText('Plantões')).toBeTruthy();
     expect(screen.getByTestId('finances-year-hourly-value')).toHaveTextContent(/R\$\s?158\/h/);
-    expect(screen.getByText('+24% no ano')).toBeTruthy();
+    // Sem percentual de evolução no card do valor/hora.
+    expect(screen.queryByText(/no ano$/)).toBeNull();
+    expect(screen.queryByText('+24%')).toBeNull();
     expect(screen.getByText('calculado com 80h de trabalhos com duração registrada')).toBeTruthy();
     expect(screen.getByTestId('finances-projection-chart')).toBeTruthy();
     expect(screen.getByTestId('finances-projection-total')).toBeTruthy();

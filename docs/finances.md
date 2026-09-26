@@ -29,11 +29,11 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 Ordem: resumo → entradas mês a mês → origem → seu ano → valor/hora → projeção.
 
-1. **Resumo anual** (topo verde): total `recebidos e previstos em 2026`, barra fina recebido × a receber e os dois valores (`received_of_expected_cents` somado por mês; sem migration).
-2. **Entradas mês a mês** (`BarChartCard`, sobre o verde): janeiro a dezembro; cada barra é o previsto do mês com a parte **recebida cheia** na base (sálvia). Passado com sobra sem confirmação: topo bronze claro; **mês atual** com contorno bronze; **futuro previsto** só em contorno (ainda não é dinheiro); sem dado, tracejado. Sem rótulos em cima das barras: **tocar escolhe o mês** e o resumo aparece acima (total, recebidos, a receber/aguardando confirmação ou "previstos, ainda por vir"). Abre no mês atual (ou no último com dado, em ano passado). **Média** como linha tracejada (`média 4,9k`), só com base (≥ 2 meses concluídos); sem ela, "Seu histórico começa agora.". Legenda Recebido · A receber · Previsto.
+1. **Resumo anual** (topo verde): só o total `recebidos e previstos em 2026` — sem barra nem valores de recebido/a receber (retirados a pedido do usuário).
+2. **Entradas mês a mês**: voltou ao modelo anterior (pedido do usuário) — `BarChartCard` em card sobre o verde, barras sálvia com o valor em cima (uma linha), mês atual em bronze, sem dado tracejado. O componente é o gráfico + o **ganho médio até o mês atual** no rodapé ("R$ 4.918 é sua média de ganho mensal", média dos meses concluídos, ≥ 2); sem base, "Seu histórico começa agora.".
 3. **Origem**: valor e % por origem (Premium; Free com estrutura oculta e selo).
 4. **Seu ano** (aberto no Free): média mensal, melhor mês já vivido (pelo previsto, até o atual), trabalhos e horas do ano (`readYearWork` soma os meses; agora pedido também no Free).
-5. **Valor/hora médio do ano**: número em destaque (ponderado pelas horas), evolução como etiqueta (`+24% no ano`, primeiro × último mês com valor/hora) e, como apoio, "calculado com Xh de trabalhos com duração registrada". Free: `R$ •••/h` com selo; horas abertas.
+5. **Valor/hora médio do ano**: número em destaque (ponderado pelas horas), sem percentual de evolução (pedido do usuário) e, como apoio, "calculado com Xh de trabalhos com duração registrada". Free: `R$ •••/h` com selo; horas abertas.
 6. **Projeção até dezembro** (Premium, ano corrente, com média): valor final em destaque e escrito no ponto de dezembro. Linha cheia = **só o recebido** acumulado até hoje (área verde suave); tracejado bronze soma o previsto até o mês atual ainda não confirmado e, em cada mês que falta, **o maior entre o já previsto e a média dos meses concluídos** — nunca abaixo do que já está marcado. Marca `HOJE` no mês atual; eixo JAN · atual · DEZ sob os pontos.
 
 ## Premium

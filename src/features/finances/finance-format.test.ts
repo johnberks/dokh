@@ -3,7 +3,6 @@ import type { FinanceMonth } from './finance-data';
 import {
   bestMonth,
   compactReais,
-  defaultSelectedMonth,
   heroCaption,
   hourlyEvolution,
   hoursLabel,
@@ -129,22 +128,15 @@ describe('gráfico anual', () => {
     historicalAverageCents: 1316000n,
   };
 
-  it('janeiro a dezembro: passado, atual e futuro previsto; mês sem dado vira traço', () => {
+  it('janeiro a dezembro, mês sem dado vira traço e o atual fica em destaque', () => {
     const bars = yearBars(data, 2026, '2026-09-26');
     expect(bars).toHaveLength(12);
-    expect(bars[0]).toMatchObject({ label: 'JAN', value: null, filled: 0, state: 'realized' });
-    expect(bars[7]).toMatchObject({ value: 1632000, filled: 1512000, state: 'realized' });
-    expect(bars[8]).toMatchObject({ label: 'SET', value: 1245000, state: 'current' });
-    expect(bars[10]).toMatchObject({ value: 1500000, filled: 0, state: 'future' });
+    expect(bars[0]).toMatchObject({ label: 'JAN', value: null, valueLabel: undefined });
+    expect(bars[7]).toMatchObject({ label: 'AGO', value: 1632000, valueLabel: '16,3k' });
+    expect(bars[8]).toMatchObject({ label: 'SET', current: true, valueLabel: '12,4k' });
   });
 
-  it('mês escolhido ao abrir e melhor mês já vivido', () => {
-    expect(defaultSelectedMonth(data, 2026, '2026-09-26')).toBe('2026-09');
-    expect(defaultSelectedMonth({ ...data, months: [] }, 2027, '2028-01-10')).toBeNull();
-    expect(
-      defaultSelectedMonth({ ...data, months: data.months.slice(0, 2) }, 2026, '2027-02-01'),
-    ).toBe('2026-08');
-    // Novembro (futuro) é maior, mas ainda não foi vivido.
+  it('melhor mês já vivido: um mês futuro maior não conta', () => {
     expect(bestMonth(data, '2026-09-26')).toEqual({ month: '2026-08', amountCents: 1632000n });
   });
 });

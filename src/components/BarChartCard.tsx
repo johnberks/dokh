@@ -1,134 +1,104 @@
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, fontAliases, palette } from '@/theme/tokens';
 import { AppText } from './AppText';
-
-export type ChartBarState = 'realized' | 'current' | 'future';
 
 export type ChartBar = {
   key: string;
   /** Rótulo curto do eixo (`JAN`). */
   label: string;
-  /** Total do período; `null` = sem dado: traço tracejado, nunca uma barra de zero. */
+  /** `null` = sem dado no período: traço tracejado, nunca uma barra de zero. */
   value: number | null;
-  /** Parte já confirmada (recebida) do total: vira a base cheia da barra. */
-  filled: number;
-  /** Passado, atual ou futuro — cada um com seu tratamento (cheio, destacado, contorno). */
-  state: ChartBarState;
+  /** Texto acima da barra (`5,3k`); só aparece quando há valor. */
+  valueLabel?: string;
+  /** Período em destaque (mês atual): barra bronze e rótulos fortes. */
+  current?: boolean;
 };
-
-export type ChartLegendItem = { key: string; label: string; swatch: 'filled' | 'soft' | 'outline' };
 
 export type BarChartCardProps = {
   eyebrow: string;
+  /** Legenda do destaque (`mês atual`), com o quadrado bronze. */
+  legend?: string;
   bars: readonly ChartBar[];
-  /** Período escolhido: fundo destacado; o resumo dele fica em `summary`. */
-  selectedKey?: string | null;
-  onSelect?: (key: string) => void;
-  /** Resumo do período escolhido, entre o título e as barras. */
-  summary?: ReactNode;
-  /** Linha tracejada de referência (média), com rótulo curto. */
-  reference?: { value: number; label: string } | null;
-  legend?: readonly ChartLegendItem[];
-  /** Conteúdo abaixo do gráfico (aviso de histórico curto). */
+  /** Conteúdo abaixo do gráfico (média, aviso de histórico curto). */
   footer?: ReactNode;
-  /** Rótulo acessível de cada barra (mês e valores). */
-  barAccessibilityLabel?: (bar: ChartBar) => string;
   accessibilityLabel: string;
+  /** `card`: superfície própria. `plain`: direto sobre o fundo bege, como em Finanças 03. */
+  surface?: 'card' | 'plain';
   testID?: string;
 };
 
-const CHART_HEIGHT = 132;
+const CHART_HEIGHT = 128;
 const MIN_BAR = 6;
 
 /**
- * Gráfico de barras em card, com a superfície do `CalendarCard`. Cada barra mostra o total do
- * período, com a parte recebida cheia na base: passado em sálvia (topo bronze claro se sobrou
- * algo sem confirmação), atual com contorno bronze, futuro só em contorno (previsto não é
- * dinheiro). Sem rótulos em cima das barras: tocar escolhe o período e o resumo aparece acima.
+ * Gráfico de barras em card (Finanças 03/03-B/13), com a mesma superfície do calendário da
+ * Agenda. As alturas são relativas ao maior valor; período sem dado vira traço tracejado.
  */
 export function BarChartCard({
   eyebrow,
-  bars,
-  selectedKey,
-  onSelect,
-  summary,
-  reference,
   legend,
+  bars,
   footer,
-  barAccessibilityLabel,
   accessibilityLabel,
+  surface = 'card',
   testID,
 }: BarChartCardProps) {
   const type = useBrandTypography();
-  const max = Math.max(0, ...bars.map((bar) => bar.value ?? 0), reference?.value ?? 0);
-  const heightOf = (value: number) => (max > 0 ? (value / max) * CHART_HEIGHT : 0);
+  const max = Math.max(0, ...bars.map((bar) => bar.value ?? 0));
 
   return (
-    <View style={styles.card} testID={testID}>
-      <AppText
-        variant="technical"
-        style={[
-          styles.eyebrow,
-          // Plex Mono tem arquivo próprio por peso: o negrito vem do semibold carregado.
-          type.technical.fontFamily === fontAliases.plexRegular && styles.eyebrowStrong,
-        ]}
-      >
-        {eyebrow}
-      </AppText>
-      {summary}
+    <View style={surface === 'card' ? styles.card : styles.plain} testID={testID}>
+      <View style={styles.header}>
+        <AppText
+          variant="technical"
+          style={[
+            styles.eyebrow,
+            // Plex Mono tem arquivo próprio por peso: o negrito vem do semibold carregado.
+            type.technical.fontFamily === fontAliases.plexRegular && styles.eyebrowStrong,
+          ]}
+        >
+          {eyebrow}
+        </AppText>
+        {legend ? (
+          <View style={styles.legend}>
+            <View style={styles.legendSwatch} />
+            <AppText style={styles.legendText}>{legend}</AppText>
+          </View>
+        ) : null}
+      </View>
 
-      <View accessibilityLabel={accessibilityLabel} style={styles.chart}>
+      <View accessible accessibilityLabel={accessibilityLabel} style={styles.chart}>
         <View style={styles.bars}>
-          {reference && max > 0 ? (
-            <View
-              pointerEvents="none"
-              style={[styles.reference, { bottom: heightOf(reference.value) }]}
-              testID={testID ? `${testID}-reference` : undefined}
-            >
-              <AppText style={styles.referenceLabel}>{reference.label}</AppText>
-            </View>
-          ) : null}
           {bars.map((bar) => {
             const has = bar.value !== null && bar.value > 0;
-            const total = has ? Math.max(MIN_BAR, heightOf(bar.value ?? 0)) : 3;
-            const filled = has ? Math.min(total, heightOf(bar.filled)) : 0;
-            const selected = bar.key === selectedKey;
+            const height =
+              has && max > 0 ? Math.max(MIN_BAR, ((bar.value ?? 0) / max) * CHART_HEIGHT) : 3;
             return (
-              <Pressable
+              <View
                 key={bar.key}
-                accessibilityRole="button"
-                accessibilityLabel={barAccessibilityLabel?.(bar) ?? bar.label}
-                accessibilityState={{ selected }}
-                disabled={!onSelect}
-                hitSlop={{ top: 8, bottom: 8 }}
-                onPress={() => onSelect?.(bar.key)}
-                style={[styles.column, selected && styles.columnSelected]}
+                style={styles.column}
                 testID={testID ? `${testID}-bar-${bar.key}` : undefined}
               >
+                {has && bar.valueLabel ? (
+                  <AppText
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    numberOfLines={1}
+                    style={[styles.value, bar.current && [type.heading1, styles.valueCurrent]]}
+                  >
+                    {bar.valueLabel}
+                  </AppText>
+                ) : null}
                 <View
-                  testID={testID ? `${testID}-bar-${bar.key}-body` : undefined}
                   style={[
                     styles.bar,
-                    { height: total },
-                    !has
-                      ? styles.barEmpty
-                      : bar.state === 'future'
-                        ? styles.barFuture
-                        : bar.state === 'current'
-                          ? styles.barCurrent
-                          : styles.barRealized,
+                    { height },
+                    has ? (bar.current ? styles.barCurrent : styles.barFilled) : styles.barEmpty,
                   ]}
-                >
-                  {has && filled > 0 ? (
-                    <View
-                      testID={testID ? `${testID}-bar-${bar.key}-filled` : undefined}
-                      style={[styles.filled, { height: filled }]}
-                    />
-                  ) : null}
-                </View>
-              </Pressable>
+                />
+              </View>
             );
           })}
         </View>
@@ -137,11 +107,7 @@ export function BarChartCard({
             <AppText
               key={bar.key}
               variant="technical"
-              style={[
-                styles.label,
-                bar.state === 'current' && styles.labelCurrent,
-                bar.key === selectedKey && styles.labelSelected,
-              ]}
+              style={[styles.label, bar.current && styles.labelCurrent]}
             >
               {bar.label}
             </AppText>
@@ -149,32 +115,10 @@ export function BarChartCard({
         </View>
       </View>
 
-      {legend && legend.length > 0 ? (
-        <View style={styles.legend}>
-          {legend.map((item) => (
-            <View key={item.key} style={styles.legendItem}>
-              <View
-                style={[
-                  styles.swatch,
-                  item.swatch === 'filled'
-                    ? styles.swatchFilled
-                    : item.swatch === 'soft'
-                      ? styles.swatchSoft
-                      : styles.swatchOutline,
-                ]}
-              />
-              <AppText style={styles.legendText}>{item.label}</AppText>
-            </View>
-          ))}
-        </View>
-      ) : null}
-
       {footer}
     </View>
   );
 }
-
-const SOFT = 'rgba(169,138,84,0.28)';
 
 const styles = StyleSheet.create({
   // Mesma superfície do CalendarCard: papel claro, raio 28 e sombra longa.
@@ -186,13 +130,15 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 18,
     paddingHorizontal: 18,
-    gap: 14,
+    gap: 16,
     shadowColor: colors.foreground,
     shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.16,
     shadowRadius: 24,
     elevation: 8,
   },
+  plain: { gap: 16 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   // Título do gráfico em negrito e espaçado (`GANHOS DE 2026`).
   eyebrow: {
     fontSize: 12,
@@ -202,86 +148,48 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   eyebrowStrong: { fontFamily: fontAliases.plexSemibold },
-  chart: { gap: 8 },
+  legend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  legendSwatch: { width: 8, height: 8, borderRadius: 2, backgroundColor: palette.bronze },
+  legendText: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
+  chart: { gap: 10 },
   bars: {
-    height: CHART_HEIGHT + 8,
+    height: CHART_HEIGHT + 22,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 4,
+    gap: 6,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(16,22,15,0.14)',
+    paddingHorizontal: 2,
   },
-  column: {
-    flex: 1,
-    minWidth: 0,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+  column: { flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
+  // Rótulo mais largo que a coluna e numa linha só: `15,5k` não quebra.
+  value: {
+    width: 40,
+    textAlign: 'center',
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: -0.18,
+    color: palette.sage,
   },
-  columnSelected: { backgroundColor: 'rgba(16,22,15,0.05)' },
-  bar: {
-    width: '70%',
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-  },
-  // Passado: o que sobrou sem confirmação fica em bronze claro por cima do recebido.
-  barRealized: { backgroundColor: SOFT },
-  barCurrent: { backgroundColor: SOFT, borderWidth: 1.5, borderColor: palette.bronze },
-  // Futuro previsto: só contorno — ainda não é dinheiro.
-  barFuture: {
-    backgroundColor: 'rgba(111,126,103,0.08)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(111,126,103,0.55)',
-    borderBottomWidth: 0,
-  },
+  valueCurrent: { fontSize: 9, letterSpacing: -0.18, color: colors.textPrimary },
+  bar: { width: '70%', borderTopLeftRadius: 3, borderTopRightRadius: 3 },
+  // Cores cheias da paleta (sálvia e bronze no destaque), sem transparência.
+  barFilled: { backgroundColor: palette.workSage },
+  barCurrent: { backgroundColor: palette.bronze },
   barEmpty: {
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: 'rgba(16,22,15,0.18)',
     borderBottomWidth: 0,
   },
-  filled: { width: '100%', backgroundColor: palette.workSage },
-  reference: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(138,110,60,0.7)',
-    zIndex: 1,
-  },
-  referenceLabel: {
-    position: 'absolute',
-    right: 0,
-    bottom: 3,
-    fontSize: 10,
-    lineHeight: 13,
-    color: palette.bronzeDeep,
-    backgroundColor: '#F8F6EF',
-    paddingHorizontal: 4,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  labels: { flexDirection: 'row', gap: 4 },
+  labels: { flexDirection: 'row', gap: 6, paddingHorizontal: 2 },
   label: {
     flex: 1,
     textAlign: 'center',
     fontSize: 9,
     lineHeight: 12,
-    letterSpacing: 0.36,
+    letterSpacing: 0.54,
     color: palette.sage,
   },
-  labelCurrent: { color: palette.bronzeDeep },
-  labelSelected: { color: colors.textPrimary, fontFamily: fontAliases.plexSemibold },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  swatch: { width: 10, height: 10, borderRadius: 3 },
-  swatchFilled: { backgroundColor: palette.workSage },
-  swatchSoft: { backgroundColor: SOFT },
-  swatchOutline: { borderWidth: 1.5, borderColor: 'rgba(111,126,103,0.55)' },
-  legendText: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
+  labelCurrent: { color: colors.textPrimary, fontWeight: '600' },
 });

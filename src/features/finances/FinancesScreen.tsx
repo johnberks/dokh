@@ -7,7 +7,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
-import { BarChartCard, type ChartBar } from '@/components/BarChartCard';
+import { BarChartCard } from '@/components/BarChartCard';
 import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
@@ -43,7 +43,6 @@ import {
 import {
   bestMonth,
   compactReais,
-  defaultSelectedMonth,
   heroCaption,
   hourlyInsight,
   hourlyReais,
@@ -392,8 +391,6 @@ function YearHeroAmount({
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
   const hasData = data.months.length > 0;
-  const receivedShare =
-    data.totalCents > 0n ? Number((data.receivedCents * 1000n) / data.totalCents) / 10 : 0;
   return (
     <View style={styles.heroAmount} testID="finances-year-hero">
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
@@ -412,30 +409,6 @@ function YearHeroAmount({
           />
         )}
       </View>
-      {hasData && (
-        // Resumo anual: quanto já entrou e quanto ainda vem, na mesma barra.
-        <View style={styles.yearSplit} testID="finances-year-split">
-          <View style={styles.yearSplitTrack}>
-            <View style={[styles.yearSplitFill, { width: `${receivedShare}%` }]} />
-          </View>
-          <View style={styles.yearSplitRow}>
-            <View style={styles.yearSplitItem}>
-              <View style={[styles.yearSplitDot, styles.yearSplitDotReceived]} />
-              <AppText style={[type.heading1, styles.yearSplitValue]}>
-                {money(data.receivedCents)}
-              </AppText>
-              <AppText style={styles.yearSplitLabel}>{t('year.received')}</AppText>
-            </View>
-            <View style={styles.yearSplitItem}>
-              <View style={[styles.yearSplitDot, styles.yearSplitDotAwaiting]} />
-              <AppText style={[type.heading1, styles.yearSplitValue]}>
-                {money(data.awaitingCents)}
-              </AppText>
-              <AppText style={styles.yearSplitLabel}>{t('year.awaiting')}</AppText>
-            </View>
-          </View>
-        </View>
-      )}
     </View>
   );
 }
@@ -471,7 +444,6 @@ function YearBody({
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
-  const [picked, setPicked] = useState<{ year: number; month: string } | null>(null);
   if (query.isPending) {
     return (
       <View style={styles.padded}>
@@ -503,57 +475,40 @@ function YearBody({
     );
   }
   const isCurrentYear = Number(today.slice(0, 4)) === year;
-  const bars = yearBars(data, year, today);
-  const selected =
-    picked && picked.year === year ? picked.month : defaultSelectedMonth(data, year, today);
-  const selectedBar = bars.find((bar) => bar.key === selected);
   const best = bestMonth(data, today);
   return (
     <View style={styles.sections}>
       <View style={styles.chartOverlap} testID="finances-year-chart-wrap">
         <BarChartCard
           eyebrow={t('year.range', { year })}
-          bars={bars}
-          selectedKey={selected}
-          onSelect={(key) => setPicked({ year, month: key })}
-          summary={selectedBar ? <YearSelected bar={selectedBar} /> : null}
-          reference={
-            data.historicalAverageCents !== null
-              ? {
-                  value: Number(data.historicalAverageCents),
-                  label: t('year.reference', {
-                    value: compactReais(data.historicalAverageCents),
-                  }),
-                }
-              : null
-          }
-          legend={[
-            { key: 'received', label: t('year.legendReceived'), swatch: 'filled' },
-            { key: 'awaiting', label: t('year.legendAwaiting'), swatch: 'soft' },
-            ...(isCurrentYear
-              ? [{ key: 'expected', label: t('year.legendExpected'), swatch: 'outline' as const }]
-              : []),
-          ]}
-          barAccessibilityLabel={(bar) =>
-            bar.value === null
-              ? t('year.barEmpty', { month: monthName(bar.key) })
-              : t('year.barLabel', {
-                  month: monthName(bar.key),
-                  total: money(BigInt(bar.value)),
-                  received: money(BigInt(bar.filled)),
-                })
-          }
+          legend={isCurrentYear ? t('year.currentMonth') : undefined}
+          bars={yearBars(data, year, today)}
+          accessibilityLabel={t('year.chartLabel', { year })}
           footer={
-            data.historicalAverageCents === null ? (
+            // Componente = gráfico + ganho médio até o mês atual (meses concluídos).
+            data.historicalAverageCents !== null ? (
+              <View style={styles.averageRow} testID="finances-year-average">
+                <AppText style={[type.heading1, styles.averageValue]}>
+                  {money(data.historicalAverageCents)}
+                </AppText>
+                <AppText style={styles.averageLabel}>{t('year.average')}</AppText>
+                <InfoButton
+                  label={t('info.average.title')}
+                  onPress={() =>
+                    onInfo({ key: 'average', value: money(data.historicalAverageCents ?? 0n) })
+                  }
+                  testID="finances-info-average"
+                />
+              </View>
+            ) : (
               <View style={styles.historyStart} testID="finances-year-history-start">
                 <AppText style={[type.heading1, styles.historyTitle]}>
                   {t('year.historyTitle')}
                 </AppText>
                 <AppText style={styles.historyText}>{t('year.historyText')}</AppText>
               </View>
-            ) : null
+            )
           }
-          accessibilityLabel={t('year.chartLabel', { year })}
           testID="finances-year-chart"
         />
       </View>
@@ -582,46 +537,6 @@ function YearBody({
           onInfo={onInfo}
         />
       )}
-    </View>
-  );
-}
-
-/** Resumo do mês escolhido no gráfico: total e quanto entrou, falta ou ainda vem. */
-function YearSelected({ bar }: { bar: ChartBar }) {
-  const { t } = useTranslation('finances');
-  const type = useBrandTypography();
-  const name = monthName(bar.key);
-  if (bar.value === null) {
-    return (
-      <View style={styles.selected} testID="finances-year-selected">
-        <AppText style={styles.selectedMonth}>{name}</AppText>
-        <AppText style={styles.selectedDetail}>{t('year.selectedEmpty')}</AppText>
-      </View>
-    );
-  }
-  const total = BigInt(bar.value);
-  const received = BigInt(bar.filled);
-  const rest = total - received;
-  const detail =
-    bar.state === 'future'
-      ? t('year.selectedExpected')
-      : [
-          t('year.selectedReceived', { value: money(received) }),
-          rest > 0n
-            ? bar.state === 'realized'
-              ? t('year.selectedPending', { value: money(rest) })
-              : t('year.selectedAwaiting', { value: money(rest) })
-            : null,
-        ]
-          .filter(Boolean)
-          .join(' · ');
-  return (
-    <View style={styles.selected} testID="finances-year-selected">
-      <View style={styles.selectedHead}>
-        <AppText style={styles.selectedMonth}>{name}</AppText>
-        <AppText style={[type.heading1, styles.selectedValue]}>{money(total)}</AppText>
-      </View>
-      <AppText style={styles.selectedDetail}>{detail}</AppText>
     </View>
   );
 }
@@ -718,8 +633,8 @@ function Stat({
 }
 
 /**
- * Valor/hora médio do ano em destaque, com a evolução como etiqueta e as horas consideradas no
- * cálculo como apoio. No Free, o número fica oculto com o selo; as horas continuam abertas.
+ * Valor/hora médio do ano em destaque e as horas consideradas no cálculo como apoio (sem
+ * percentual de evolução, a pedido do usuário). No Free, o número fica oculto com o selo; as horas continuam abertas.
  */
 function YearHourly({
   isPremium,
@@ -733,7 +648,6 @@ function YearHourly({
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
   const hourly = work?.hourlyValueCents ?? null;
-  const evolution = work?.hourlyEvolutionPercent ?? null;
   if (!work || work.workDurationMinutes === 0) return null;
   const hoursUsed = isPremium ? work.hourlyMinutes : work.workDurationMinutes;
   return (
@@ -771,16 +685,6 @@ function YearHourly({
           {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
           <AppText style={styles.hourlyUnit}>{t('work.perHour')}</AppText>
         </AppText>
-        {isPremium && evolution !== null ? (
-          <View
-            style={[styles.evolutionTag, evolution < 0 && styles.evolutionTagDown]}
-            testID="finances-year-evolution"
-          >
-            <AppText style={[type.heading1, styles.evolutionTagText]}>
-              {t('year.evolutionTag', { value: `${evolution > 0 ? '+' : ''}${evolution}%` })}
-            </AppText>
-          </View>
-        ) : null}
       </View>
       <AppText style={styles.hourlyHours}>
         {t('year.hourlyHours', { hours: hoursLabel(hoursUsed) })}
@@ -1093,31 +997,6 @@ const styles = StyleSheet.create({
   projectionValue: { fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: colors.textPrimary },
   pressed: { opacity: 0.72 },
   heroAmount: { gap: 8 },
-  // Resumo anual no topo: recebido × a receber numa barra fina e dois números.
-  yearSplit: { gap: 10, marginTop: 6 },
-  yearSplitTrack: {
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(169,138,84,0.35)',
-  },
-  yearSplitFill: { height: '100%', borderRadius: 3, backgroundColor: palette.workSage },
-  yearSplitRow: { flexDirection: 'row', gap: 18 },
-  yearSplitItem: { flexDirection: 'row', alignItems: 'baseline', gap: 6, flexShrink: 1 },
-  yearSplitDot: { width: 8, height: 8, borderRadius: 4, alignSelf: 'center' },
-  yearSplitDotReceived: { backgroundColor: palette.workSage },
-  yearSplitDotAwaiting: { backgroundColor: palette.bronze },
-  yearSplitValue: { fontSize: 15, lineHeight: 20, letterSpacing: 0, color: palette.cream },
-  yearSplitLabel: { fontSize: 13, lineHeight: 18, color: palette.secondaryText },
-  // Resumo do mês escolhido no gráfico.
-  selected: {
-    gap: 2,
-    paddingBottom: 2,
-  },
-  selectedHead: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
-  selectedMonth: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
-  selectedValue: { fontSize: 24, lineHeight: 28, letterSpacing: -0.72, color: colors.textPrimary },
-  selectedDetail: { fontSize: 13, lineHeight: 18, color: palette.mutedCopy },
   // "Seu ano": grade 2×2.
   statGrid: { gap: 10 },
   statRow: { flexDirection: 'row', gap: 10 },
@@ -1146,14 +1025,6 @@ const styles = StyleSheet.create({
   hourlyValueRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   hourlyBig: { flexShrink: 1, fontSize: 34, lineHeight: 38, letterSpacing: -1.02 },
   hourlyUnit: { fontSize: 16, color: palette.sage, letterSpacing: 0 },
-  evolutionTag: {
-    borderRadius: 999,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(43,58,36,0.12)',
-  },
-  evolutionTagDown: { backgroundColor: 'rgba(169,138,84,0.18)' },
-  evolutionTagText: { fontSize: 12, lineHeight: 16, letterSpacing: 0, color: palette.structure },
   hourlyHours: { fontSize: 13, lineHeight: 18, color: palette.mutedCopy },
   heroValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.84, color: palette.cream },
   heroCaption: { fontSize: 15, lineHeight: 20, color: '#B9BFB2' },
