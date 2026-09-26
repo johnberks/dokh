@@ -30,7 +30,7 @@ describe('BarChartCard', () => {
     };
     expect(current).toHaveStyle({ backgroundColor: palette.bronze, height: 128 });
     const half = screen.getByTestId('chart-bar-fev').children[1] as never;
-    expect(half).toHaveStyle({ height: 64 });
+    expect(half).toHaveStyle({ height: 64, backgroundColor: palette.workSage });
     const empty = screen.getByTestId('chart-bar-jan').children[0] as never;
     expect(empty).toHaveStyle({ borderStyle: 'dashed', height: 3 });
   });

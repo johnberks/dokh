@@ -444,7 +444,7 @@ function YearBody({
     <View style={styles.sections}>
       <View>
         <BarChartCard
-          eyebrow={t('year.range')}
+          eyebrow={t('year.range', { year })}
           legend={isCurrentYear ? t('year.currentMonth') : undefined}
           bars={yearBars(data, year, today)}
           accessibilityLabel={t('year.chartLabel', { year })}
@@ -527,9 +527,16 @@ function YearHourly({
           {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
           <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
         </AppText>
-        <View style={styles.hourlyLabelRow}>
-          {!isPremium && <PremiumBadge size="short" />}
-          <AppText style={styles.metricLabel}>{t('year.hourly')}</AppText>
+        {!isPremium && <PremiumBadge size="short" />}
+        <View style={styles.boxLabelRow}>
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            numberOfLines={1}
+            style={[styles.metricLabel, styles.boxLabel]}
+          >
+            {t('year.hourly')}
+          </AppText>
           <InfoButton
             label={t('info.yearHourly.title')}
             onPress={() =>
@@ -558,7 +565,16 @@ function YearHourly({
           >
             {isPremium && evolution !== null ? `${evolution > 0 ? '+' : ''}${evolution}%` : '+••%'}
           </AppText>
-          <AppText style={styles.metricLabel}>{t('year.evolution')}</AppText>
+          <View style={styles.boxLabelRow}>
+            <AppText
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              numberOfLines={1}
+              style={[styles.metricLabel, styles.boxLabel]}
+            >
+              {t('year.evolution')}
+            </AppText>
+          </View>
         </View>
       )}
     </View>
@@ -1011,6 +1027,8 @@ const styles = StyleSheet.create({
   yearHourly: { flexDirection: 'row', gap: 12 },
   yearHourlyItem: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 18,
     borderWidth: 1,
     paddingTop: 16,
@@ -1021,7 +1039,17 @@ const styles = StyleSheet.create({
   hourlyBox: { backgroundColor: 'rgba(169,138,84,0.12)', borderColor: 'rgba(169,138,84,0.4)' },
   evolutionBox: { backgroundColor: 'rgba(43,58,36,0.10)', borderColor: 'rgba(43,58,36,0.28)' },
   hourlyValueAccent: { color: palette.bronzeDeep },
+  // Texto fixo e `i` sempre na mesma linha: o texto encolhe um pouco antes de quebrar.
+  boxLabelRow: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  boxLabel: { flexShrink: 1, textAlign: 'center' },
   yearHourlyValue: {
+    textAlign: 'center',
     fontSize: 24,
     lineHeight: 28,
     letterSpacing: -0.72,

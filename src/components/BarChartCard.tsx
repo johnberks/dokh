@@ -130,7 +130,14 @@ const styles = StyleSheet.create({
   },
   plain: { gap: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  // Título do gráfico em negrito e espaçado (`GANHOS DE 2026`).
+  eyebrow: {
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 2.2,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
   legend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendSwatch: { width: 8, height: 8, borderRadius: 2, backgroundColor: palette.bronze },
   legendText: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
@@ -148,7 +155,8 @@ const styles = StyleSheet.create({
   value: { fontSize: 9, lineHeight: 12, letterSpacing: -0.18, color: palette.sage },
   valueCurrent: { fontSize: 9, letterSpacing: -0.18, color: colors.textPrimary },
   bar: { width: '70%', borderTopLeftRadius: 3, borderTopRightRadius: 3 },
-  barFilled: { backgroundColor: 'rgba(111,126,103,0.55)' },
+  // Cores cheias da paleta (sálvia e bronze no destaque), sem transparência.
+  barFilled: { backgroundColor: palette.workSage },
   barCurrent: { backgroundColor: palette.bronze },
   barEmpty: {
     borderWidth: 1,

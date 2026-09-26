@@ -442,6 +442,12 @@ describe('Finanças — ano', () => {
       await fireEvent.press(screen.getByTestId('finances-mode-year'));
     });
     expect(screen.getByText('+24%')).toBeTruthy();
+    expect(screen.getByText(`GANHOS DE ${current.slice(0, 4)}`)).toBeTruthy();
+    expect(screen.queryByText('JANEIRO → DEZEMBRO')).toBeNull();
+    // Texto fixo das caixinhas nunca quebra: uma linha, encolhendo se faltar espaço.
+    const label = screen.getByText('valor/hora médio no ano');
+    expect(label.props.numberOfLines).toBe(1);
+    expect(label.props.adjustsFontSizeToFit).toBe(true);
     expect(screen.getByText('valor/hora médio no ano')).toBeTruthy();
     expect(screen.getByTestId('finances-projection-chart')).toBeTruthy();
     expect(screen.queryByTestId('finances-year-projection-premium')).toBeNull();

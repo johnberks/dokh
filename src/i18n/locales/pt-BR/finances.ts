@@ -60,7 +60,7 @@ export const finances = {
   },
   year: {
     caption: 'recebidos e previstos em {{year}}',
-    range: 'JANEIRO → DEZEMBRO',
+    range: 'GANHOS DE {{year}}',
     currentMonth: 'mês atual',
     chartLabel: 'Entradas previstas por mês em {{year}}',
     average: 'previstos por mês, em média',
