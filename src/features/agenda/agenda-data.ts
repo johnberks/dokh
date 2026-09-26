@@ -48,7 +48,7 @@ type Row = {
 const COLUMNS =
   'work_entry_id, work_date, start_time, duration_minutes, type, description, location_name, color_token, amount_cents, expected_on, receipt_status';
 
-function toAgendaWork(row: Row): AgendaWork | null {
+export function toAgendaWork(row: Row): AgendaWork | null {
   if (!row.work_entry_id || !row.work_date || !row.type || !row.location_name) return null;
   const token = row.color_token ?? 'sage';
   return {

@@ -23,11 +23,19 @@ export type HeroCarouselProps = {
   /** Fixed page height: switching between month and history never moves the cream body. */
   height: number;
   onPageChange?: (page: number) => void;
+  /** `transparent` deixa aparecer o fundo com blur do topo da tela (Home). */
+  background?: 'dark' | 'transparent';
   testID?: string;
 };
 
 /** Home's two-page hero. Horizontal gestures fail early on vertical movement for page scrolling. */
-export function HeroCarousel({ pages, height, onPageChange, testID }: HeroCarouselProps) {
+export function HeroCarousel({
+  pages,
+  height,
+  onPageChange,
+  background = 'dark',
+  testID,
+}: HeroCarouselProps) {
   const reduced = useReducedMotion();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState(0);
@@ -68,7 +76,7 @@ export function HeroCarousel({ pages, height, onPageChange, testID }: HeroCarous
   return (
     <View
       testID={testID}
-      style={[styles.viewport, { height }]}
+      style={[styles.viewport, background === 'transparent' && styles.transparent, { height }]}
       onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
     >
       <GestureDetector gesture={pan}>
@@ -109,6 +117,7 @@ export function HeroCarousel({ pages, height, onPageChange, testID }: HeroCarous
 
 const styles = StyleSheet.create({
   viewport: { overflow: 'hidden', backgroundColor: colors.darkBackground },
+  transparent: { backgroundColor: 'transparent' },
   track: { flexDirection: 'row' },
   pagination: {
     position: 'absolute',

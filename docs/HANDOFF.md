@@ -361,3 +361,5 @@ Teste na visão anual (2026-09-26): três tipos de barra no gráfico (consolidad
 Títulos fora dos cards revertidos a pedido do usuário (2026-09-26): voltaram para dentro dos componentes; os três tipos de barra continuam.
 
 Títulos de card com peso (2026-09-26): novo `CardLabel` (Plex semibold 11, escuro) substitui o rótulo sálvia de 10 pt em todos os cards (Finanças, Agenda/Home via `WorkCard`, `ReviewCard`, `ProgressCard`, `EmptyState` em card). 59 suítes/389 testes.
+
+Na Fase 10 (2026-09-26, branch `codex/10-home`): a aba Início deixou de ser placeholder. Topo com carrossel (mês + histórico só quando válido), próximo trabalho sobre o verde, Review Cards de entrada de hoje/vencida/sem data (confirmação só pelo servidor), próximas entradas, próximos trabalhos e progresso inicial que some ao completar. Aplica os ajustes das outras seções (sem barra de rolagem, `CardLabel`, textos sem quebra). Catálogo `/dev/primitives` agora sai do Perfil provisório. Teste real cobre as leituras da Home. 61 suítes/408 testes. Contrato em [`home.md`](home.md). Falta a 10.6 (E2E).
