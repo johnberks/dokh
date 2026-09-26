@@ -79,6 +79,13 @@ export function HomeScreen() {
   }
 
   const data = body.data;
+  const reviews = data
+    ? reviewCards(data, t, {
+        confirmingId,
+        onConfirm,
+        onDates: (id) => open(() => router.push({ pathname: '/work/edit/[id]', params: { id } })),
+      })
+    : [];
   const heroView = (
     <HomeHeroCards
       hero={hero.data}
@@ -88,13 +95,13 @@ export function HomeScreen() {
       onMonth={setMonth}
       onAddWork={addWork}
       onAvatar={() => router.push('/profile')}
+      onOpenFinances={() => router.push('/finances')}
     />
   );
 
   return (
     <TwoToneScrollScreen
       heroBackground={<AgendaHeroBackdrop />}
-      standardHeroHeight
       hero={heroView}
       bodyStyle={styles.body}
       testID="home-screen"
@@ -126,15 +133,8 @@ export function HomeScreen() {
             />
           ) : null}
 
-          <ReviewCardStack
-            cards={reviewCards(data, t, {
-              confirmingId,
-              onConfirm,
-              onDates: (id) =>
-                open(() => router.push({ pathname: '/work/edit/[id]', params: { id } })),
-            })}
-            testID="home-reviews"
-          />
+          {/* Só existe quando há pendência: vazia, dobraria o espaço entre os cards. */}
+          {reviews.length > 0 ? <ReviewCardStack cards={reviews} testID="home-reviews" /> : null}
           {failed ? (
             <AppText accessibilityRole="alert" style={styles.error} testID="home-confirm-error">
               {t('review.confirmError')}
@@ -364,6 +364,7 @@ function SetupProgress({
 
 const styles = StyleSheet.create({
   body: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40 },
-  sections: { gap: 20 },
+  // Mesmo respiro entre todos os blocos do corpo.
+  sections: { gap: 16 },
   error: { fontSize: 13, lineHeight: 18, color: palette.bronzeDeep },
 });

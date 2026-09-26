@@ -11,7 +11,7 @@ Fontes: `design/home.html` (Home 01–06), `docs/screens/home.md`. Aplica os aju
 
 ## Altura do verde
 
-Início, Agenda e Finanças usam a mesma altura de topo verde: `TOP_GREEN_HEIGHT` = 272 pt abaixo da barra de status (`TwoToneScrollScreen standardHeroHeight`), com Finanças como referência. Na Início o topo é compacto para caber (cards de 140 pt, mês vazio em versão curta); na Agenda o calendário começa 24 pt abaixo da troca de mês e sobe sobre o restante do verde.
+Agenda e Finanças usam a mesma altura de topo verde: `TOP_GREEN_HEIGHT` = 272 pt abaixo da barra de status (`TwoToneScrollScreen standardHeroHeight`). A Início, a pedido do usuário (2026-09-26), tem **verde maior e com folga** (altura do conteúdo + 30 pt), porque o card do topo ficou denso.
 
 ## Topo (10.2) — visão **2A "cards com peek"** (`HOME.dc.html` do Claude Design, pedido do usuário em 2026-09-26) — `HomeHero.tsx`
 
@@ -22,10 +22,14 @@ Início, Agenda e Finanças usam a mesma altura de topo verde: `TOP_GREEN_HEIGHT
 - Mês sem entrada: o card do mês traz "Nenhuma entrada prevista ainda." + `Adicionar trabalho` (nunca `R$ 0,00`).
 - O `HeroCarousel` de página inteira (2.7) não é mais usado na Início.
 
+## Card do mês — denso (referência do usuário, 2026-09-26)
+
+O card de vidro com olho e etiqueta de % "parecia AI". Agora é sólido (`#1D2A1A`, raio 18): `PARA RECEBER EM SETEMBRO`, valor com `›` (abre Finanças), **linha em degraus** do previsto acumulado no mês por dia (`monthLine`: cheia até hoje com área suave, tracejada depois, ponto em hoje e no fim) e uma **faixa no rodapé** com a comparação ("**R$ 1.350** a mais que em agosto"; sem base, a contagem de entradas previstas). O histórico (`ÚLTIMOS 4 MESES`) continua como segundo card espiando na borda. O olho de ocultar valores saiu.
+
 ## Corpo (10.3/10.4/10.5)
 
 1. **Próximo trabalho** (`WorkCard featured`) **abaixo do verde**, no bege (pedido do usuário, 2026-09-26): HOJE/AMANHÃ/`SEX 02 OUT`, horário, local, tipo · duração, valor e `Previsto para entrar · 12 OUT` / `Entrada a definir`. Sem trabalho: `EmptyState homeWork`.
-2. **Pendências** (`ReviewCardStack`, no máximo 2, uma de atenção): entrada de hoje (atenção, `Você recebeu?`), vencida sem confirmação (neutra, `Confirmar entrada`) e valores sem data (compacto → editar o primeiro trabalho sem data). Confirmar: spinner no card, sem otimismo; falha avisa e mantém; sucesso some e atualiza Finanças. A entrada de hoje não se repete na lista.
+2. **Pendências** (`ReviewCardStack`, só renderizado quando há alguma — vazio dobrava o espaço entre os cards; no máximo 2, uma de atenção): entrada de hoje (atenção, `Você recebeu?`), vencida sem confirmação (neutra, `Confirmar entrada`) e valores sem data (compacto → editar o primeiro trabalho sem data). Confirmar: spinner no card, sem otimismo; falha avisa e mantém; sucesso some e atualiza Finanças. A entrada de hoje não se repete na lista.
 3. **Próximas entradas** (`HomeListCard` + `HomeEntryRow`, até 3, a partir de amanhã) → `Ver todas as entradas` (Entradas do mês atual).
 4. **Próximos trabalhos** (os seguintes ao próximo, `WorkCard row`) → `Ver agenda`.
 5. **Progresso inicial** (`ProgressCard`): residência (só residentes, quando organizada), primeiro trabalho e "visão do mês completa" (sem valores sem data e com próximo trabalho). Próxima ação: primeiro trabalho → datas → próximo trabalho. Completo, o card não existe; depois de 10 trabalhos a fase inicial acabou e ele não volta.

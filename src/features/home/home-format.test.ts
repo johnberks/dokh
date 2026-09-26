@@ -5,6 +5,7 @@ import {
   heroAmount,
   heroComparison,
   heroHistory,
+  monthLine,
   monthTense,
   setupProgress,
   temporalLabel,
@@ -36,6 +37,7 @@ const hero = (patch: Partial<HomeHero> = {}): HomeHero => ({
     { month: '2026-09', expectedTotalCents: 1245000n },
   ],
   openCount: 4,
+  entries: [],
   ...patch,
 });
 
@@ -141,5 +143,29 @@ describe('progresso inicial', () => {
   it('completo ou fora da fase inicial: o card não existe', () => {
     expect(setupProgress(body({ upcomingWorks: [work] }), t)).toBeNull();
     expect(setupProgress(body({ totalWorks: 30, upcomingWorks: [] }), t)).toBeNull();
+  });
+});
+
+describe('linha em degraus do card do topo', () => {
+  const entries = [
+    { expectedOn: '2026-09-05', amountCents: 410609n },
+    { expectedOn: '2026-09-12', amountCents: 120000n },
+    { expectedOn: '2026-09-26', amountCents: 85000n },
+  ];
+
+  it('acumula o previsto por dia; até hoje é cheia', () => {
+    const line = monthLine(entries, '2026-09', '2026-09-20');
+    expect(line?.cumulative).toHaveLength(30);
+    expect(line?.cumulative[3]).toBe(0);
+    expect(line?.cumulative[4]).toBe(410609);
+    expect(line?.cumulative[11]).toBe(530609);
+    expect(line?.total).toBe(615609);
+    expect(line?.todayIndex).toBe(19);
+  });
+
+  it('mês passado inteiro cheio, futuro inteiro apagado, vazio sem linha', () => {
+    expect(monthLine(entries, '2026-09', '2026-10-02')?.todayIndex).toBe(29);
+    expect(monthLine(entries, '2026-09', '2026-08-30')?.todayIndex).toBe(-1);
+    expect(monthLine([], '2026-09', '2026-09-20')).toBeNull();
   });
 });

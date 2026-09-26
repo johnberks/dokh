@@ -62,6 +62,10 @@ const hero = (patch: Partial<HomeHero> = {}): HomeHero => ({
     expectedTotalCents: [980000n, 1040000n, 1110000n, 1245000n][index],
   })),
   openCount: 4,
+  entries: [
+    { expectedOn: `${current}-05`, amountCents: 410609n, received: true },
+    { expectedOn: `${current}-20`, amountCents: 834391n, received: false },
+  ],
   ...patch,
 });
 
@@ -124,13 +128,16 @@ describe('Início', () => {
   it('padrão: mês com comparação, próximo trabalho abaixo do verde e as duas listas', async () => {
     await renderWithProviders(<HomeScreen />);
     expect(screen.getByTestId('home-hero-amount')).toHaveTextContent(/R\$\s?12\.450/);
-    // Visão 2A: card do mês com rótulo, contagem e comparação.
-    expect(screen.getByText(/^PARA RECEBER · /)).toBeTruthy();
-    expect(screen.getByText('4 entradas previstas')).toBeTruthy();
-    expect(screen.getByTestId('home-hero-comparison')).toHaveTextContent(/↑ 12%.*R\$\s?1\.350/);
-    // O próximo trabalho fica abaixo do verde; o verde tem a altura padrão das abas.
+    // Card denso: rótulo, valor, linha em degraus e faixa com a comparação.
+    expect(screen.getByText(/^PARA RECEBER EM /)).toBeTruthy();
+    expect(screen.getByTestId('home-hero-line')).toBeTruthy();
+    expect(screen.getByTestId('home-hero-comparison-strip')).toHaveTextContent(
+      /R\$\s?1\.350 a mais que em /,
+    );
+    // O próximo trabalho fica abaixo do verde, que tem folga própria na Início.
     expect(screen.getByTestId('home-next-work-wrap')).not.toHaveStyle({ marginTop: -114 });
-    expect(screen.getByTestId('two-tone-hero')).toHaveStyle({ height: 272 });
+    // Sem pendências, nenhum bloco vazio entre o próximo trabalho e as entradas.
+    expect(screen.queryByTestId('home-reviews')).toBeNull();
     expect(screen.getByText('HOJE')).toBeTruthy();
     expect(screen.getByText('PRÓXIMAS ENTRADAS')).toBeTruthy();
     expect(screen.getByText('Residência')).toBeTruthy();
@@ -161,24 +168,21 @@ describe('Início', () => {
     expect(router.push).toHaveBeenCalledWith('/agenda');
   });
 
-  it('2A: histórico como segundo card com peek, pontos e olho que oculta os valores', async () => {
+  it('2A: histórico como segundo card com peek e pontos; o card do mês abre Finanças', async () => {
     await renderWithProviders(<HomeScreen />);
     expect(screen.getByTestId('home-hero-history')).toBeTruthy();
-    expect(screen.getByText(/^HISTÓRICO · 4 MESES$/)).toBeTruthy();
-    // O card do mês é mais estreito que a tela: o histórico aparece na borda direita.
+    expect(screen.getByText('ÚLTIMOS 4 MESES')).toBeTruthy();
     expect(screen.getByTestId('home-hero-cards').props.horizontal).toBe(true);
-    expect(screen.getByTestId('home-hero-dot-1')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('home-hero-month'));
+    });
+    expect(router.push).toHaveBeenCalledWith('/finances');
     await act(async () => {
       await fireEvent.press(screen.getByTestId('home-hero-dot-1'));
     });
     expect(screen.getByTestId('home-hero-dot-1').props.accessibilityState).toMatchObject({
       selected: true,
     });
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId('home-hero-eye'));
-    });
-    expect(screen.getByTestId('home-hero-amount')).toHaveTextContent('R$ ••••');
-    expect(screen.queryByText('12,4k')).toBeNull();
   });
 
   it('primeiro acesso: sem histórico, sem comparação e com o progresso inicial', async () => {
@@ -195,7 +199,9 @@ describe('Início', () => {
     await renderWithProviders(<HomeScreen />);
     expect(screen.queryByTestId('home-hero-history')).toBeNull();
     expect(screen.queryByTestId('home-hero-dot-1')).toBeNull();
-    expect(screen.queryByTestId('home-hero-comparison')).toBeNull();
+    expect(screen.getByTestId('home-hero-comparison-strip')).toHaveTextContent(
+      '4 entradas previstas',
+    );
     expect(screen.getByTestId('home-progress')).toBeTruthy();
     expect(screen.getByText('Residência organizada')).toBeTruthy();
     expect(screen.getByText('Adicionar seu próximo trabalho')).toBeTruthy();

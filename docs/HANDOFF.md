@@ -367,3 +367,5 @@ Na Fase 10 (2026-09-26, branch `codex/10-home`): a aba Início deixou de ser pla
 Topo da Início na visão 2A "cards com peek" (2026-09-26, arquivo `HOME.dc.html` do Claude Design, exportado pelo usuário em `~/Downloads/dokh_app`): cards de vidro lado a lado com o histórico espiando pela borda, snap, pontos, olho para ocultar valores. Só o topo mudou. O conector `claude_design` foi adicionado ao projeto `~/Desktop/dokh` (precisa de sessão nova + `/design-login` para ler direto do Claude Design).
 
 Altura do verde padronizada (2026-09-26): `TOP_GREEN_HEIGHT` (272 pt abaixo da status bar) em Início, Agenda e Finanças via `TwoToneScrollScreen standardHeroHeight`. Na Início o próximo trabalho saiu de cima do verde e o topo 2A ficou compacto; na Agenda o calendário passou a `marginTop: -(272-102)`.
+
+Início (2026-09-26, referência do usuário): card do mês denso (valor com `›`, linha em degraus do mês, faixa com a comparação), sem olho nem etiqueta de %; verde da Início com altura própria e folga (não usa mais `standardHeroHeight`); espaço uniforme de 16 pt entre os blocos, e a pilha de pendências só existe quando há pendência.

@@ -20,8 +20,10 @@ export type HomeHero = {
   previous: FinanceMonth;
   /** Três meses antes do selecionado e o próprio, do mais antigo ao atual. */
   history: { month: LocalMonth; expectedTotalCents: bigint }[];
-  /** Entradas do mês ainda não confirmadas (`4 previstos para entrar`). */
+  /** Entradas do mês ainda não confirmadas (`4 entradas previstas`). */
   openCount: number;
+  /** Entradas do mês pela data prevista: base do gráfico em degraus do card do topo. */
+  entries: { expectedOn: LocalDate; amountCents: bigint; received: boolean }[];
 };
 
 export type HomeEntry = {
@@ -68,14 +70,21 @@ export async function readHomeHero(
     Promise.all(months.map((item) => readFinanceMonth(item, client))),
     client
       .from('receivable_projection')
-      .select('receivable_id', { count: 'exact', head: true })
+      .select('expected_on, amount_cents, received_at')
       .gte('expected_on', `${month}-01`)
       .lt('expected_on', `${shiftMonth(month, 1)}-01`)
-      .is('received_at', null)
       .is('invalidated_at', null)
-      .is('work_deleted_at', null),
+      .is('work_deleted_at', null)
+      .order('expected_on', { ascending: true }),
   ]);
   if (open.error) throw open.error;
+  const entries = (open.data ?? [])
+    .filter((row) => row.expected_on)
+    .map((row) => ({
+      expectedOn: row.expected_on as LocalDate,
+      amountCents: cents(row.amount_cents),
+      received: row.received_at !== null,
+    }));
   return {
     month: history[3],
     previous: history[2],
@@ -83,7 +92,8 @@ export async function readHomeHero(
       month: months[index],
       expectedTotalCents: item.hasExpectedEntries ? item.expectedTotalCents : 0n,
     })),
-    openCount: open.count ?? 0,
+    openCount: entries.filter((entry) => !entry.received).length,
+    entries,
   };
 }
 
