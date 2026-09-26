@@ -31,10 +31,14 @@ const SHORT = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'O
 const monthName = (month: LocalMonth) => MONTH_NAME.format(localDateToDate(`${month}-01`));
 const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true });
 
-/** Espaço entre os cards e margem lateral (HOME 2A: cards de 300 em 390, com peek). */
+/**
+ * Espaço entre os cards e margem lateral. O segundo card aparece só numa faixa estreita (≈22 pt)
+ * na borda direita — o bastante para mostrar que há outro card ao lado (pedido do usuário; o 2A
+ * original mostrava ≈56 pt).
+ */
 const GAP = 10;
 const SIDE = 24;
-const PEEK = 66;
+const PEEK = 32;
 const CARD_HEIGHT = 190;
 
 /**
