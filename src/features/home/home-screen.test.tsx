@@ -124,7 +124,9 @@ describe('Início', () => {
   it('padrão: mês com comparação, próximo trabalho sobre o verde e as duas listas', async () => {
     await renderWithProviders(<HomeScreen />);
     expect(screen.getByTestId('home-hero-amount')).toHaveTextContent(/R\$\s?12\.450/);
-    expect(screen.getByText('para receber este mês')).toBeTruthy();
+    // Visão 2A: card do mês com rótulo, contagem e comparação.
+    expect(screen.getByText(/^PARA RECEBER · /)).toBeTruthy();
+    expect(screen.getByText('4 entradas previstas')).toBeTruthy();
     expect(screen.getByTestId('home-hero-comparison')).toHaveTextContent(/↑ 12%.*R\$\s?1\.350/);
     expect(screen.getByTestId('home-next-work-wrap')).toHaveStyle({ marginTop: -114 });
     expect(screen.getByText('HOJE')).toBeTruthy();
@@ -157,11 +159,24 @@ describe('Início', () => {
     expect(router.push).toHaveBeenCalledWith('/agenda');
   });
 
-  it('histórico em segunda página só quando existe; primeiro acesso tem página única', async () => {
+  it('2A: histórico como segundo card com peek, pontos e olho que oculta os valores', async () => {
     await renderWithProviders(<HomeScreen />);
-    // A página do histórico existe (oculta para leitores de tela até ser escolhida).
-    expect(screen.getByTestId('home-hero-history', { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.getByTestId('hero-page-1')).toBeTruthy();
+    expect(screen.getByTestId('home-hero-history')).toBeTruthy();
+    expect(screen.getByText(/^HISTÓRICO · 4 MESES$/)).toBeTruthy();
+    // O card do mês é mais estreito que a tela: o histórico aparece na borda direita.
+    expect(screen.getByTestId('home-hero-cards').props.horizontal).toBe(true);
+    expect(screen.getByTestId('home-hero-dot-1')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('home-hero-dot-1'));
+    });
+    expect(screen.getByTestId('home-hero-dot-1').props.accessibilityState).toMatchObject({
+      selected: true,
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('home-hero-eye'));
+    });
+    expect(screen.getByTestId('home-hero-amount')).toHaveTextContent('R$ ••••');
+    expect(screen.queryByText('12,4k')).toBeNull();
   });
 
   it('primeiro acesso: sem histórico, sem comparação e com o progresso inicial', async () => {
@@ -176,8 +191,8 @@ describe('Início', () => {
     );
     mockBody = ok(body({ isResident: true, hasResidency: true, totalWorks: 1, upcomingWorks: [] }));
     await renderWithProviders(<HomeScreen />);
-    expect(screen.queryByTestId('home-hero-history', { includeHiddenElements: true })).toBeNull();
-    expect(screen.queryByTestId('hero-page-1')).toBeNull();
+    expect(screen.queryByTestId('home-hero-history')).toBeNull();
+    expect(screen.queryByTestId('home-hero-dot-1')).toBeNull();
     expect(screen.queryByTestId('home-hero-comparison')).toBeNull();
     expect(screen.getByTestId('home-progress')).toBeTruthy();
     expect(screen.getByText('Residência organizada')).toBeTruthy();
