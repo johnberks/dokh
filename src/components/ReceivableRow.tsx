@@ -1,4 +1,6 @@
 import Check from 'lucide-react-native/icons/check';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
+import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { colors, receivableRowMetrics } from '@/theme/tokens';
@@ -11,7 +13,10 @@ type CommonProps = {
   month: string;
   origin: string;
   value: string;
-  onPress: () => void;
+  /** Abre o detalhe. Sem destino (Residência), o item não é tocável e não mostra a seta. */
+  onPress?: () => void;
+  /** Ícone do tipo (plantão, procedimento, atendimento, residência) antes da origem. */
+  icon?: ReactNode;
   disabled?: boolean;
   testID?: string;
 };
@@ -33,7 +38,9 @@ export type ReceivableRowProps = PendingProps | RegularProps;
 /** One dated Receivable projection. The parent owns the derived status and server confirmation. */
 export function ReceivableRow(props: ReceivableRowProps) {
   const { t } = useTranslation('finances');
-  const { day, month, origin, value, onPress, disabled = false, status, testID } = props;
+  const { day, month, origin, value, onPress, icon, disabled = false, status, testID } = props;
+  const [pressed, setPressed] = useState(false);
+  const tappable = onPress !== undefined && !disabled;
   const received = status === 'received';
   const pending = status === 'confirmation_pending';
   const label = received ? t('entryReceived') : pending ? t('entryPending') : t('entryExpected');
@@ -58,48 +65,68 @@ export function ReceivableRow(props: ReceivableRowProps) {
           ]}
         />
       </View>
-      <View style={[styles.body, pending ? styles.pendingBody : styles.regularBottom]}>
+      <View
+        style={[
+          styles.body,
+          pending ? styles.pendingBody : styles.regularBody,
+          pressed && styles.bodyPressed,
+        ]}
+      >
         <Pressable
           accessible
-          accessibilityRole="button"
+          accessibilityRole={tappable ? 'button' : undefined}
           accessibilityLabel={[day, month, origin, value, label].join(', ')}
-          accessibilityState={{ disabled }}
-          disabled={disabled}
+          accessibilityState={{ disabled: !tappable }}
+          disabled={!tappable}
           onPress={onPress}
+          onPressIn={() => setPressed(true)}
+          onPressOut={() => setPressed(false)}
           testID={testID ? `${testID}-details` : undefined}
-          style={({ pressed }) => [styles.details, pressed && !disabled && styles.pressed]}
+          style={styles.details}
         >
-          <View style={styles.identity}>
-            <AppText variant="heading1" numberOfLines={2} style={styles.origin}>
-              {origin}
-            </AppText>
-            <AppText variant="heading1" numberOfLines={1} style={styles.value}>
-              {value}
-            </AppText>
-          </View>
-          <View
-            testID={testID ? `${testID}-status` : undefined}
-            accessible={false}
-            style={[
-              styles.status,
-              received
-                ? styles.receivedStatus
-                : pending
-                  ? styles.pendingStatus
-                  : styles.expectedStatus,
-            ]}
-          >
-            {received ? <Check color={colors.textSecondary} size={12} strokeWidth={2} /> : null}
-            <AppText
-              variant="heading1"
+          <View style={styles.detailsContent}>
+            <View style={styles.identity}>
+              {icon ? <View style={styles.icon}>{icon}</View> : null}
+              <AppText variant="heading1" numberOfLines={2} style={styles.origin}>
+                {origin}
+              </AppText>
+              <AppText variant="heading1" numberOfLines={1} style={styles.value}>
+                {value}
+              </AppText>
+            </View>
+            <View
+              testID={testID ? `${testID}-status` : undefined}
+              accessible={false}
               style={[
-                styles.statusText,
-                received ? styles.receivedText : pending ? styles.pendingText : styles.expectedText,
+                styles.status,
+                received
+                  ? styles.receivedStatus
+                  : pending
+                    ? styles.pendingStatus
+                    : styles.expectedStatus,
               ]}
             >
-              {label}
-            </AppText>
+              {received ? <Check color={colors.textSecondary} size={12} strokeWidth={2} /> : null}
+              <AppText
+                variant="heading1"
+                style={[
+                  styles.statusText,
+                  received
+                    ? styles.receivedText
+                    : pending
+                      ? styles.pendingText
+                      : styles.expectedText,
+                ]}
+              >
+                {label}
+              </AppText>
+            </View>
           </View>
+          {tappable ? (
+            <View testID={testID ? `${testID}-chevron` : undefined}>
+              <ChevronRight color={colors.darkTextSecondary} size={18} strokeWidth={1.8} />
+            </View>
+          ) : null}
         </Pressable>
         {pending ? (
           <Pressable
@@ -132,6 +159,9 @@ export function ReceivableRow(props: ReceivableRowProps) {
   );
 }
 
+/** Espaço entre os cards da timeline (a linha acompanha). */
+const CARD_GAP = 12;
+
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: receivableRowMetrics.gap, alignItems: 'stretch' },
   date: {
@@ -149,9 +179,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     backgroundColor: colors.receivableLine,
     position: 'relative',
-    marginBottom: receivableRowMetrics.regularBottomGap,
+    marginBottom: CARD_GAP,
   },
-  pendingBottom: { marginBottom: receivableRowMetrics.pendingBottomGap },
+  pendingBottom: { marginBottom: CARD_GAP },
   dot: {
     position: 'absolute',
     top: receivableRowMetrics.dotTop,
@@ -165,20 +195,32 @@ const styles = StyleSheet.create({
   expectedDot: { backgroundColor: colors.background, borderColor: colors.darkTextSecondary },
   pendingDot: { backgroundColor: colors.accent, borderColor: 'transparent' },
   body: { flex: 1, minWidth: 0, borderRadius: receivableRowMetrics.bodyRadius, gap: 10 },
-  regularBottom: { marginBottom: receivableRowMetrics.regularBottomGap },
+  // Cada entrada é um card leve (referências Tabby/GoPay): a superfície diz "toque aqui".
+  regularBody: {
+    backgroundColor: '#F8F6EF',
+    borderWidth: 1,
+    borderColor: 'rgba(16,22,15,0.10)',
+    paddingVertical: receivableRowMetrics.pendingPaddingVertical,
+    paddingLeft: receivableRowMetrics.pendingPaddingHorizontal,
+    paddingRight: 12,
+    marginBottom: CARD_GAP,
+  },
+  bodyPressed: { opacity: 0.85, transform: [{ translateY: 1 }] },
   pendingBody: {
     backgroundColor: colors.reviewAttentionBackground,
     borderWidth: 1,
     borderColor: colors.receivablePendingBorder,
     paddingVertical: receivableRowMetrics.pendingPaddingVertical,
     paddingHorizontal: receivableRowMetrics.pendingPaddingHorizontal,
-    marginBottom: receivableRowMetrics.pendingBottomGap,
+    marginBottom: CARD_GAP,
   },
   pressed: { opacity: 0.75 },
-  details: { minHeight: 44, gap: 12 },
+  details: { minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  detailsContent: { flex: 1, minWidth: 0, gap: 12 },
+  icon: { alignSelf: 'center' },
   identity: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
   },

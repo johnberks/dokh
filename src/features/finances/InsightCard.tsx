@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
@@ -23,9 +23,12 @@ const longOf = (month: string) => LONG.format(localDateToDate(`${month}-01`));
 export function InsightCard({
   insight,
   isPremium,
+  onOpenAnalysis,
 }: {
   insight: HourlyInsight;
   isPremium: boolean;
+  /** "Ver análise completa" (Finanças 02); sem destino, o link não aparece. */
+  onOpenAnalysis?: () => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
@@ -140,6 +143,17 @@ export function InsightCard({
       <AppText style={styles.text} testID="finances-insight-text">
         {text}
       </AppText>
+      {onOpenAnalysis ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenAnalysis}
+          testID="finances-insight-analysis"
+          style={({ pressed }) => [styles.link, pressed && styles.linkPressed]}
+        >
+          <AppText style={[type.heading1, styles.linkText]}>{t('insight.seeAnalysis')}</AppText>
+          <AppText style={styles.linkArrow}>{'→'}</AppText>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -193,4 +207,19 @@ const styles = StyleSheet.create({
   },
   deltaCaption: { fontSize: 11, lineHeight: 14, color: palette.secondaryText },
   text: { fontSize: 13, lineHeight: 20, color: '#B9BFB2' },
+  link: {
+    minHeight: 44,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingLeft: 16,
+    paddingRight: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(237,234,224,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(237,234,224,0.16)',
+  },
+  linkPressed: { backgroundColor: 'rgba(237,234,224,0.14)' },
+  linkText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.cream },
+  linkArrow: { fontSize: 16, lineHeight: 20, color: palette.bronze },
 });

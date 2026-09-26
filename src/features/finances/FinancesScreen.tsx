@@ -2,8 +2,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import CalendarClock from 'lucide-react-native/icons/calendar-clock';
 import ChartPie from 'lucide-react-native/icons/chart-pie';
-import Stethoscope from 'lucide-react-native/icons/stethoscope';
-import { type ReactNode, useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
@@ -16,7 +15,7 @@ import { ProjectionChart } from '@/components/ProjectionChart';
 import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
-import { formatDayMonth, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
+import { type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
 import { usePremium } from '@/features/billing/entitlement';
@@ -24,11 +23,11 @@ import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
+import { SectionCard, WorkGeneratedCard } from './FinanceCards';
 import { FinanceInfoSheet, InfoButton, type InfoRequest } from './FinanceInfo';
 import {
   type FinanceMonth,
   type FinanceYear,
-  type NextEntry,
   type OriginAmount,
   useFinanceMonth,
   useFinanceOrigins,
@@ -44,7 +43,6 @@ import {
   heroCaption,
   hourlyInsight,
   hourlyReais,
-  hoursLabel,
   isEmptyMonth,
   type MonthTense,
   monthsForYearWork,
@@ -53,11 +51,11 @@ import {
   originShares,
   projectYear,
   receivedPercent,
-  relativeDay,
   splitCaption,
   yearBars,
 } from './finance-format';
 import { InsightCard } from './InsightCard';
+import { NextEntryCard } from './NextEntryCard';
 
 const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
@@ -130,6 +128,9 @@ export function FinancesScreen() {
     openedChild.current = true;
     path();
   }
+
+  const openEntries = () =>
+    openChild(() => router.push({ pathname: '/finances/entries', params: { month } }));
 
   const inYear = mode === 'year';
   // O verde fica por trás do bloco principal, como o calendário da Agenda: no Ano, o gráfico;
@@ -252,11 +253,17 @@ export function FinancesScreen() {
           )}
 
           {tense !== 'past' && next.data ? (
-            <NextEntryCard entry={next.data} today={today} />
+            <NextEntryCard
+              entry={next.data}
+              today={today}
+              showFollowing={tense === 'current'}
+              onOpen={openEntries}
+            />
           ) : tense === 'past' || next.isSuccess || !hasEntries ? (
             <EmptyState
               variant="financesNextEntry"
               description={noNextEntryReason(data, tense, name, t)}
+              onPrimaryPress={hasEntries ? openEntries : undefined}
               testID="finances-no-next"
             />
           ) : null}
@@ -311,7 +318,21 @@ export function FinancesScreen() {
             <WorkGeneratedCard data={data} name={name} isPremium={isPremium} onInfo={setInfo} />
           )}
 
-          {insight && <InsightCard insight={insight} isPremium={isPremium} />}
+          {insight && (
+            <InsightCard
+              insight={insight}
+              isPremium={isPremium}
+              // Análise completa é 100% Premium; o Free vai ao fluxo de benefícios (5.5).
+              onOpenAnalysis={
+                isPremium
+                  ? () =>
+                      openChild(() =>
+                        router.push({ pathname: '/finances/hourly', params: { month } }),
+                      )
+                  : undefined
+              }
+            />
+          )}
         </View>
       )}
       <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
@@ -819,183 +840,6 @@ function ReceivedSplit({
   );
 }
 
-function NextEntryCard({ entry, today }: { entry: NextEntry; today: string }) {
-  const { t } = useTranslation('finances');
-  const type = useBrandTypography();
-  const [day, monthLabel] = formatDayMonth(entry.expectedOn).split(' ');
-  const origin =
-    entry.origin === 'residency'
-      ? t('next.residency')
-      : (entry.locationName ?? t('next.residency'));
-  return (
-    <View style={styles.card} accessible testID="finances-next">
-      <AppText variant="technical" style={styles.eyebrow}>
-        {t('next.eyebrow')}
-      </AppText>
-      <View style={styles.nextDateRow}>
-        <AppText style={[type.heading1, styles.nextDay]}>
-          {day} <AppText style={styles.nextMonth}>{monthLabel}</AppText>
-        </AppText>
-        <AppText style={styles.nextRelative}>{relativeDay(entry.expectedOn, today, t)}</AppText>
-      </View>
-      <View style={styles.nextOriginRow}>
-        <View style={styles.nextOrigin}>
-          <View style={[styles.originDot, { backgroundColor: ORIGIN_COLOR[entry.origin] }]} />
-          <AppText numberOfLines={1} style={[type.heading1, styles.nextOriginName]}>
-            {origin}
-          </AppText>
-        </View>
-        <AppText style={[type.heading1, styles.nextValue]}>{money(entry.amountCents)}</AppText>
-      </View>
-    </View>
-  );
-}
-
-function WorkGeneratedCard({
-  data,
-  name,
-  isPremium,
-  onInfo,
-}: {
-  data: FinanceMonth;
-  name: string;
-  isPremium: boolean;
-  onInfo: (request: InfoRequest) => void;
-}) {
-  const { t } = useTranslation('finances');
-  const type = useBrandTypography();
-  return (
-    <SectionCard
-      icon={<Stethoscope color={colors.textPrimary} size={16} strokeWidth={1.7} />}
-      eyebrow={t('work.eyebrow', { month: name.toUpperCase() })}
-      testID="finances-work"
-    >
-      <View style={styles.generatedRow}>
-        <AppText style={[type.heading1, styles.generatedValue]}>
-          {money(data.workGeneratedCents)}
-        </AppText>
-        <AppText style={styles.generatedLabel}>{t('work.generated')}</AppText>
-        <InfoButton
-          label={t('info.generated.title')}
-          onPress={() => onInfo({ key: 'generated', value: money(data.workGeneratedCents) })}
-          testID="finances-info-generated"
-        />
-      </View>
-      <View style={styles.metrics}>
-        <Metric
-          value={String(data.workCount)}
-          label={data.workCount === 1 ? t('work.worksOne') : t('work.worksMany')}
-        />
-        {data.workDurationMinutes > 0 && (
-          <>
-            <AppText style={styles.metricArrow}>{'→'}</AppText>
-            <Metric value={hoursLabel(data.workDurationMinutes)} label={t('work.hours')} />
-          </>
-        )}
-        {data.workDurationMinutes > 0 && (
-          <>
-            <AppText style={styles.metricArrow}>{'→'}</AppText>
-            <View style={styles.metricWide} testID="finances-hourly">
-              {isPremium && data.hourlyValueCents !== null ? (
-                <AppText
-                  adjustsFontSizeToFit
-                  numberOfLines={1}
-                  style={[type.heading1, styles.metricValue]}
-                  testID="finances-hourly-value"
-                >
-                  {hourlyReais(data.hourlyValueCents)}
-                  <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
-                </AppText>
-              ) : (
-                <AppText
-                  adjustsFontSizeToFit
-                  numberOfLines={1}
-                  style={[type.heading1, styles.metricValue, styles.maskedValue]}
-                >
-                  {'R$ •••'}
-                  <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
-                </AppText>
-              )}
-              <View style={styles.hourlyLabelRow}>
-                {isPremium ? (
-                  <AppText style={styles.metricLabel}>{t('work.hourly')}</AppText>
-                ) : (
-                  <PremiumBadge size="short" />
-                )}
-                <InfoButton
-                  label={t('info.hourly.title')}
-                  onPress={() =>
-                    onInfo({
-                      key: 'hourly',
-                      value:
-                        isPremium && data.hourlyValueCents !== null
-                          ? `${hourlyReais(data.hourlyValueCents)}${t('work.perHour')}`
-                          : `R$ •••${t('work.perHour')}`,
-                      example:
-                        isPremium && data.hourlyValueCents !== null
-                          ? t('info.hourlyExample', {
-                              generated: money(data.workGeneratedCents),
-                              hours: hoursLabel(data.workDurationMinutes),
-                              hourly: hourlyReais(data.hourlyValueCents),
-                            })
-                          : undefined,
-                    })
-                  }
-                  testID="finances-info-hourly"
-                />
-              </View>
-            </View>
-          </>
-        )}
-      </View>
-    </SectionCard>
-  );
-}
-
-function Metric({ value, label }: { value: string; label: string }) {
-  const type = useBrandTypography();
-  return (
-    <View style={styles.metric}>
-      <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.metricValue]}>
-        {value}
-      </AppText>
-      <AppText numberOfLines={1} style={styles.metricLabel}>
-        {label}
-      </AppText>
-    </View>
-  );
-}
-
-/** Card de seção do HTML: ícone em quadrado, rótulo técnico e, no Free, o selo Premium. */
-function SectionCard({
-  icon,
-  eyebrow,
-  premiumBadge = false,
-  children,
-  testID,
-}: {
-  icon: ReactNode;
-  eyebrow: string;
-  premiumBadge?: boolean;
-  children: ReactNode;
-  testID?: string;
-}) {
-  return (
-    <View style={styles.card} testID={testID}>
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitle}>
-          {icon ? <View style={styles.sectionIcon}>{icon}</View> : null}
-          <AppText variant="technical" style={styles.eyebrow}>
-            {eyebrow}
-          </AppText>
-        </View>
-        {premiumBadge && <PremiumBadge testID={testID ? `${testID}-premium` : undefined} />}
-      </View>
-      {children}
-    </View>
-  );
-}
-
 /** Quanto do bloco do gráfico fica sobre o topo verde (mesmo efeito do calendário). */
 const CHART_OVERLAP = 96;
 
@@ -1132,6 +976,10 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   nextValue: { fontSize: 18, lineHeight: 22, letterSpacing: 0, color: colors.textPrimary },
+  cardPressed: { opacity: 0.85, transform: [{ translateY: 1 }] },
+  seeEntries: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  seeEntriesText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  seeEntriesArrow: { fontSize: 14, lineHeight: 18, color: palette.bronze },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   sectionIcon: {

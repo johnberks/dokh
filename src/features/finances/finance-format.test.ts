@@ -3,6 +3,7 @@ import type { FinanceMonth } from './finance-data';
 import {
   compactReais,
   heroCaption,
+  hourlyEvolution,
   hoursLabel,
   isEmptyMonth,
   monthsForYearWork,
@@ -177,5 +178,50 @@ describe('projeção e valor/hora do ano', () => {
     expect(monthsForYearWork(2026, '2026-09-26')).toHaveLength(9);
     expect(monthsForYearWork(2025, '2026-09-26')).toHaveLength(12);
     expect(monthsForYearWork(2027, '2026-09-26')).toEqual([]);
+  });
+});
+
+describe('evolução do valor/hora (análise completa)', () => {
+  const month = (m: string, hourly: bigint | null) => ({
+    month: m,
+    hourlyValueCents: hourly,
+    workCount: 1,
+    workGeneratedCents: 0n,
+    workDurationMinutes: 60,
+  });
+
+  it('só meses com valor/hora; compara primeiro e último e aponta os dois melhores', () => {
+    const result = hourlyEvolution(
+      [
+        month('2026-04', 14200n),
+        month('2026-05', 15100n),
+        month('2026-06', null),
+        month('2026-07', 14800n),
+        month('2026-08', 16200n),
+        month('2026-09', 17600n),
+      ],
+      '2026-09',
+    );
+    expect(result?.bars.map((bar) => bar.month)).toEqual([
+      '2026-04',
+      '2026-05',
+      '2026-07',
+      '2026-08',
+      '2026-09',
+    ]);
+    expect(result?.percent).toBe(24);
+    expect(result?.direction).toBe('up');
+    expect(result?.bestTwo).toEqual(['2026-08', '2026-09']);
+    expect(result?.currentIsBest).toBe(true);
+    expect(result?.bars[4].current).toBe(true);
+  });
+
+  it('um mês só: barra sem comparação; nenhum mês: nada', () => {
+    const one = hourlyEvolution([month('2026-08', null), month('2026-09', 17600n)], '2026-09');
+    expect(one?.percent).toBeNull();
+    expect(one?.direction).toBeNull();
+    expect(one?.bestTwo).toBeNull();
+    expect(one?.currentIsBest).toBe(false);
+    expect(hourlyEvolution([month('2026-09', null)], '2026-09')).toBeNull();
   });
 });

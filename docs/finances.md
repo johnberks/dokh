@@ -40,12 +40,30 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 - ★ Para testes, a conta local `jlucasberlinck@hotmail.com` recebeu um entitlement `sandbox` manual (`dev-manual-2026-09-26`), só no Supabase local.
 - O servidor já nega números interpretativos ao Free (valor/hora e origem `null`); a UI só escolhe como mostrar.
 
+## Próxima entrada — `NextEntryCard.tsx`
+
+Retorno do usuário (2026-09-26), com referências da Mobbin (Kit, Gusto, Quicken/Copilot, Plum): o tempo que falta é a manchete (`Hoje`, `Amanhã`, `Em 3 dias`) com a data por extenso; valor em destaque e origem com o mesmo ícone de tipo de Entradas (`OriginTile`); etiqueta `Previsto` ou `Hoje` (bronze); no dia previsto, `Você recebeu?` confirma no próprio card (só pelo servidor, falha avisa); no mês atual, até duas entradas seguintes e `+N entradas até o fim do mês`; `Ver entradas ›` em linha inteira. `readNextEntry` lê até três com `count: 'exact'`.
+
+## Entradas (9.3) — `EntriesScreen.tsx`, rota `/finances/entries?month=`
+
+- Aberta por `Ver entradas` (card da próxima entrada, inteiro tocável) e `Ver extrato do mês` (sem próxima entrada, só quando o mês tem entradas). Voltar não reseta o mês de Finanças.
+- Topo verde numa **barra só** (retorno do usuário, referências Up/Origin da Mobbin): voltar em círculo à esquerda e, no centro, `ENTRADAS` com o `PeriodSwitcher` compacto. A análise de valor/hora usa a mesma barra, com o título abaixo.
+- Itens em card com seta `›` nos trabalhos e ícone do tipo (Residência sem seta, porque não abre nada). O resumo sobe sobre o verde: `ReceiptProgressCard` (recebidos × a receber + barra) no mês atual/passado; no futuro, previstos e quantidade de entradas. Legenda do passado com pendência: "N entrada(s) aguardando sua confirmação".
+- Timeline com `ReceivableRow`, pela data prevista, no mesmo recorte do total de Finanças (`readMonthEntries`: sem invalidados, sem Trabalhos excluídos, sem "sem data"). Status do servidor (`receipt_status`).
+- `Você recebeu?` chama `confirm_receivable_received` (3.8): sem otimismo, spinner no item, falha mantém pendente e avisa; sucesso invalida `finance-month`, `finance-year`, `agenda` e `home-overview`.
+- Tocar num Trabalho abre o detalhe; Residência não tem destino (desabilitado).
+- Mês vazio: `Nada previsto por enquanto.` sem `R$ 0`; erro de leitura nunca vira vazio.
+
+## Análise completa de valor/hora (9.6, Finanças 02) — `HourlyAnalysisScreen.tsx`, rota `/finances/hourly?month=`
+
+- 100% Premium: o link `Ver análise completa` só aparece no insight Premium; a rota redireciona o Free para Finanças. Sem selo (está liberada) e sem CTAs.
+- Card do trabalho (`WorkGeneratedCard`, extraído para `FinanceCards.tsx`) sobre o verde; card escuro com `R$ 176 /h`, fórmula gerado ÷ horas numa linha e frase. "O maior valor dos últimos N meses" só com ≥ 3 meses e o mês escolhido estritamente maior.
+- Evolução: seis meses até o escolhido (`readHourlyHistory`); só meses com valor/hora viram barra (sem zero inventado). Variação primeiro × último com ≥ 2 meses; "os dois melhores meses" só com ≥ 4.
+
 ## Ainda não entram (itens temporários só quando fazem sentido ★)
 
-- `Ver entradas`/`Ver extrato do mês` e toque nos blocos: chegam com o extrato (9.3).
-- `Desbloquear com Premium`: chega com o fluxo de benefícios (5.5); até lá o Free vê a estrutura e o selo, sem botão que não leva a lugar nenhum.
-- Análise completa de valor/hora (Finanças 02) e o atalho `Ver análise completa` (resto da 9.6).
+- `Desbloquear com Premium`: chega com o fluxo de benefícios (5.5); até lá o Free vê a estrutura e o selo, sem botão que não leva a lugar nenhum (inclusive `Ver análise completa`).
 
 ## Dados — `finance-data.ts`
 
-`finance_month_projection`, `finance_month_origins`, `finance_year_projection` (RPCs da 3.11), `receivable_projection` (próxima entrada) e `agenda_work_projection` (previews sem data). Chaves com prefixo `finance-month`/`finance-year`, invalidadas por toda escrita de Trabalho. O teste real (`scripts/test-location-rpcs-6.1.mjs`) roda as mesmas consultas do app — mês, ano, origens nulas no Free, próxima entrada, entitlement e previews.
+`finance_month_projection`, `finance_month_origins`, `finance_year_projection` (RPCs da 3.11), `receivable_projection` (próxima entrada) e `agenda_work_projection` (previews sem data). Chaves com prefixo `finance-month`/`finance-year`, invalidadas por toda escrita de Trabalho. O teste real (`scripts/test-location-rpcs-6.1.mjs`) roda as mesmas consultas do app — mês, ano, origens nulas no Free, próxima entrada, entitlement, previews, Entradas e confirmação (outra conta não confirma; o resumo reflete).

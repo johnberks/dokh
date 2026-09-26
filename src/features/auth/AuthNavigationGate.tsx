@@ -60,6 +60,8 @@ export function AuthNavigationGate() {
         <Stack.Screen name="work/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="work/[id]" />
         <Stack.Screen name="work/edit/[id]" />
+        <Stack.Screen name="finances/entries" />
+        <Stack.Screen name="finances/hourly" />
         <Stack.Screen name="dev/primitives" options={{ gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Screen name="auth-callback" />
