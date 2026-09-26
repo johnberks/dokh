@@ -23,7 +23,7 @@ export type EmptyStateProps =
   | (PrimaryProps & { variant: 'financesNextEntry'; description: string })
   | (PrimaryProps & { variant: 'profileImportNoData'; onSecondaryPress: () => void });
 
-type ActionAppearance = 'dark' | 'darkSmall' | 'outline' | 'bronzeLink' | 'quiet';
+type ActionAppearance = 'dark' | 'darkSmall' | 'darkCompact' | 'outline' | 'bronzeLink' | 'quiet';
 
 function EmptyAction({
   label,
@@ -38,7 +38,7 @@ function EmptyAction({
   glyph?: 'plus' | 'arrow';
   testID?: string;
 }) {
-  const dark = appearance === 'dark' || appearance === 'darkSmall';
+  const dark = appearance === 'dark' || appearance === 'darkSmall' || appearance === 'darkCompact';
   const link = appearance === 'bronzeLink';
   return (
     <Pressable
@@ -63,6 +63,7 @@ function EmptyAction({
             appearance === 'darkSmall' && styles.smallActionText,
             appearance === 'bronzeLink' && styles.bronzeActionText,
             appearance === 'quiet' && styles.quietActionText,
+            appearance === 'darkCompact' && styles.darkCompactActionText,
           ]}
         >
           {label}
@@ -155,7 +156,7 @@ export function EmptyState(props: EmptyStateProps) {
         <EmptyAction
           label={t('agenda:empty.addWork')}
           onPress={props.onPrimaryPress}
-          appearance="outline"
+          appearance="darkCompact"
           glyph="plus"
           testID={props.testID ? `${props.testID}-action` : undefined}
         />
@@ -345,6 +346,16 @@ const styles = StyleSheet.create({
     borderColor: colors.textPrimary,
     gap: 8,
   },
+  // Dia livre da Agenda: preenchido para ser o próximo passo óbvio (pedido do usuário,
+  // 2026-09-25); espaçamento de letras neutro, porque o do título grudava as palavras.
+  darkCompact: {
+    minHeight: 48,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    backgroundColor: colors.darkBackground,
+    gap: 10,
+  },
+  darkCompactActionText: { fontSize: 15, lineHeight: 20, letterSpacing: 0.2 },
   bronzeLink: { alignSelf: 'flex-start', gap: 8 },
   quiet: { minHeight: 48 },
   homeEntries: { gap: 14 },

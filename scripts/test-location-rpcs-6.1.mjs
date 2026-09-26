@@ -203,6 +203,61 @@ try {
   });
   assert.ok(!foreign.response.ok, 'foreign account must not archive location');
 
+  // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
+  const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {
+    method: 'POST',
+    token: stranger.token,
+    body: {
+      p_idempotency_key: randomUUID(),
+      p_work_entry_id: work.work_id,
+      p_type: 'shift',
+      p_location_id: location.id,
+      p_description: null,
+      p_work_date: '2026-09-27',
+      p_start_time: '07:00',
+      p_duration_minutes: 720,
+      p_timezone: 'America/Sao_Paulo',
+      p_amount_cents: 1,
+      p_expected_on: null,
+    },
+  });
+  assert.ok(!foreignUpdate.response.ok, 'foreign account must not edit work');
+  success(
+    await call('/rest/v1/rpc/update_work_with_receivable', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_idempotency_key: randomUUID(),
+        p_work_entry_id: work.work_id,
+        p_type: 'shift',
+        p_location_id: location.id,
+        p_description: null,
+        p_work_date: '2026-09-27',
+        p_start_time: '07:00',
+        p_duration_minutes: 720,
+        p_timezone: 'America/Sao_Paulo',
+        p_amount_cents: 150000,
+        p_expected_on: '2026-10-27',
+      },
+    }),
+    'owner edits work',
+  );
+  const edited = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_date,start_time,amount_cents,expected_on&work_entry_id=eq.${work.work_id}`,
+      { token: owner.token },
+    ),
+    'owner reads edited work',
+  );
+  assert.deepEqual(edited, [
+    {
+      work_date: '2026-09-27',
+      start_time: '07:00:00',
+      amount_cents: 150000,
+      expected_on: '2026-10-27',
+    },
+  ]);
+
   // Excluir (Agenda 15): mesma chamada do app; some da Agenda e das projeções de Finanças.
   const foreignDelete = await call('/rest/v1/rpc/delete_work_with_receivable', {
     method: 'POST',
@@ -263,7 +318,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

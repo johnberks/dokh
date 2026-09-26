@@ -22,7 +22,7 @@ import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { useSaveWork } from '../use-save-work';
-import { useNewWorkDraft } from '../work-draft';
+import { useNewWorkDraft, type WorkDraftStore } from '../work-draft';
 import { addDaysToLocalDate, todayInTimezone, workEndDescription } from '../work-schedule';
 import { DarkButton, FieldBox } from './FormPieces';
 import { LocationField } from './LocationField';
@@ -59,17 +59,24 @@ export function WorkForm({
   onBack,
   onSaved,
   initialSheet = null,
+  store = useNewWorkDraft,
+  workId,
 }: {
   onBack: () => void;
   onSaved: () => void;
   /** Vindo de um template, o formulário já abre perguntando "quando será?". */
   initialSheet?: Sheet;
+  /** Rascunho usado: o do `+` (padrão) ou o da edição. */
+  store?: WorkDraftStore;
+  /** Presente na edição (Agenda 16): grava por atualização e muda título e botão. */
+  workId?: string;
 }) {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const draft = useNewWorkDraft();
-  const save = useSaveWork(useNewWorkDraft);
+  const draft = store();
+  const save = useSaveWork(store, workId);
+  const editing = workId !== undefined;
   const [sheet, setSheet] = useState<Sheet>(initialSheet);
   const [today] = useState(() => todayInTimezone(deviceTimezone()));
 
@@ -106,7 +113,7 @@ export function WorkForm({
       <View style={styles.header}>
         <NavigationControl kind="back" onPress={onBack} />
         <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-          {t('form.title')}
+          {editing ? t('form.editTitle') : t('form.title')}
         </AppText>
       </View>
 
@@ -234,7 +241,7 @@ export function WorkForm({
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
           <DarkButton
-            label={t('form.save')}
+            label={editing ? t('form.saveChanges') : t('form.save')}
             disabled={!ready}
             loading={save.isPending}
             onPress={submit}

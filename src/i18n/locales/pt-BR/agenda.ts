@@ -31,6 +31,7 @@ export const agenda = {
     end: 'TÉRMINO',
     endNextDay: '+1 dia · {{date}}',
     duration: 'DURAÇÃO',
+    edit: 'Editar trabalho',
     delete: 'Excluir',
     confirmTitle: 'Excluir este trabalho?',
     confirmText:
@@ -62,6 +63,8 @@ export const agenda = {
   /** Agenda 07–10: formulário de Trabalho e suas folhas. */
   form: {
     title: 'Novo trabalho',
+    editTitle: 'Editar trabalho',
+    saveChanges: 'Salvar alterações',
     location: 'LOCAL',
     locationPlaceholder: 'Hospital, clínica ou consultório',
     locationNew: 'Local novo — será criado ao salvar, com cor automática.',

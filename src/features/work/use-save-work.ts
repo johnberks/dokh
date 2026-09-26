@@ -4,7 +4,12 @@ import { parseBRLToCents } from '@/domain/money';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { createWorkLocation, listWorkLocations } from '@/features/locations/locations-data';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
-import { createWorkWithReceivable, newIdempotencyKey } from './work-data';
+import {
+  createWorkWithReceivable,
+  newIdempotencyKey,
+  updateWorkWithReceivable,
+  type WorkAggregateInput,
+} from './work-data';
 import type { WorkDraftStore } from './work-draft';
 
 /**
@@ -12,7 +17,10 @@ import type { WorkDraftStore } from './work-draft';
  * e chama a RPC atômica de Trabalho + Recebível. A chave de idempotência nasce na primeira
  * tentativa e é reaproveitada no retry, para não gravar dois Trabalhos.
  */
-export function useSaveWork(store: WorkDraftStore) {
+/**
+ * Com `workId`, grava a edição pela RPC atômica de atualização (Agenda 16); sem, cria.
+ */
+export function useSaveWork(store: WorkDraftStore, workId?: string) {
   const session = useAuthSession();
   const queryClient = useQueryClient();
 
@@ -36,20 +44,21 @@ export function useSaveWork(store: WorkDraftStore) {
       );
       const location = existing ?? (await createWorkLocation({ name }, locations));
 
-      return createWorkWithReceivable(
-        {
-          type: draft.type,
-          locationId: location.id,
-          workDate: draft.workDate,
-          startTime: draft.startTime,
-          durationMinutes: draft.durationMinutes,
-          amountCents,
-          // Sem previsão escolhida o valor entra em Finanças como "sem previsão" (UX Agenda).
-          expectedOn: draft.expected?.kind === 'date' ? draft.expected.date : null,
-          timezone: deviceTimezone(),
-        },
-        idempotencyKey,
-      );
+      const input: WorkAggregateInput = {
+        type: draft.type,
+        locationId: location.id,
+        workDate: draft.workDate,
+        startTime: draft.startTime,
+        durationMinutes: draft.durationMinutes,
+        description: draft.description,
+        amountCents,
+        // Sem previsão escolhida o valor entra em Finanças como "sem previsão" (UX Agenda).
+        expectedOn: draft.expected?.kind === 'date' ? draft.expected.date : null,
+        timezone: deviceTimezone(),
+      };
+      return workId === undefined
+        ? createWorkWithReceivable(input, idempotencyKey)
+        : updateWorkWithReceivable(workId, input, idempotencyKey);
     },
     onSuccess: () => {
       if (session.userId === null) return;

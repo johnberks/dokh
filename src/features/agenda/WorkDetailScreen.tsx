@@ -40,8 +40,8 @@ const STATUS_DOT = {
 
 /**
  * Agenda 15: data por extenso, local, horário em blocos (início, término, duração), valor,
- * previsão e status (ponto + texto, sem badge) e `Excluir` com confirmação. `Editar trabalho`
- * entra com a 6.7/8.4; recorrência, com a 8.5.
+ * previsão e status (ponto + texto, sem badge), `Editar trabalho` (mesmo formulário, preenchido)
+ * e `Excluir` com confirmação. Recorrência entra com a 8.5.
  */
 export function WorkDetailScreen({ workId }: { workId: string }) {
   const { t } = useTranslation('agenda');
@@ -225,15 +225,26 @@ function DetailContent({ work }: { work: AgendaWork }) {
   );
 
   const footer = (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('detail.delete')}
-      onPress={() => setConfirming(true)}
-      testID="work-detail-delete"
-      style={({ pressed }) => [styles.delete, pressed && styles.pressed]}
-    >
-      <AppText style={[type.heading1, styles.deleteText]}>{t('detail.delete')}</AppText>
-    </Pressable>
+    <View style={styles.actions}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('detail.edit')}
+        onPress={() => router.push({ pathname: '/work/edit/[id]', params: { id: work.id } })}
+        testID="work-detail-edit"
+        style={({ pressed }) => [styles.edit, pressed && styles.pressed]}
+      >
+        <AppText style={[type.heading1, styles.editText]}>{t('detail.edit')}</AppText>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('detail.delete')}
+        onPress={() => setConfirming(true)}
+        testID="work-detail-delete"
+        style={({ pressed }) => [styles.delete, pressed && styles.pressed]}
+      >
+        <AppText style={[type.heading1, styles.deleteText]}>{t('detail.delete')}</AppText>
+      </Pressable>
+    </View>
   );
 
   return (
@@ -421,6 +432,15 @@ const styles = StyleSheet.create({
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
   footer: { paddingHorizontal: 24, paddingTop: 8, backgroundColor: colors.background },
+  actions: { gap: 6 },
+  edit: {
+    minHeight: 56,
+    borderRadius: 16,
+    backgroundColor: colors.foreground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editText: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
   delete: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.negative },
   confirmCopy: { gap: 8, paddingTop: 6 },

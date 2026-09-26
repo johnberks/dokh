@@ -296,6 +296,15 @@ describe('detalhes do trabalho (Agenda 15, leitura)', () => {
     expect(router.back).toHaveBeenCalled();
   });
 
+  it('Editar trabalho abre o formulário de edição', async () => {
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: work({}) };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-edit'));
+    });
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/work/edit/[id]', params: { id: 'w1' } });
+  });
+
   it('cancelar não apaga', async () => {
     mockDetail = { isPending: false, isError: false, isSuccess: true, data: work({}) };
     await renderWithProviders(<WorkDetailScreen workId="w1" />);
