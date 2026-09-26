@@ -138,30 +138,16 @@ function Metric({ value, label }: { value: string; label: string }) {
 export function SectionCard({
   icon,
   eyebrow,
-  title,
   premiumBadge = false,
   children,
   testID,
 }: {
   icon: ReactNode;
   eyebrow: string;
-  /** Título da seção fora do card (teste do usuário na visão anual); substitui o rótulo interno. */
-  title?: string;
   premiumBadge?: boolean;
   children: ReactNode;
   testID?: string;
 }) {
-  const badge = premiumBadge ? (
-    <PremiumBadge testID={testID ? `${testID}-premium` : undefined} />
-  ) : null;
-  if (title) {
-    return (
-      <View style={styles.section} testID={testID}>
-        <SectionTitle title={title} right={badge} />
-        <View style={styles.card}>{children}</View>
-      </View>
-    );
-  }
   return (
     <View style={styles.card} testID={testID}>
       <View style={styles.sectionHeader}>
@@ -171,61 +157,14 @@ export function SectionCard({
             {eyebrow}
           </AppText>
         </View>
-        {badge}
+        {premiumBadge && <PremiumBadge testID={testID ? `${testID}-premium` : undefined} />}
       </View>
       {children}
     </View>
   );
 }
 
-/**
- * Título de seção fora do card (referência do usuário): texto de seção à esquerda e, à direita,
- * o selo ou o `i`. `light` para quando o título fica sobre o topo verde.
- */
-export function SectionTitle({
-  title,
-  right,
-  tone = 'dark',
-  testID,
-}: {
-  title: string;
-  right?: ReactNode;
-  tone?: 'dark' | 'light';
-  testID?: string;
-}) {
-  const type = useBrandTypography();
-  return (
-    <View style={styles.titleRow} testID={testID}>
-      <AppText
-        accessibilityRole="header"
-        numberOfLines={1}
-        style={[type.heading1, styles.titleText, tone === 'light' && styles.titleLight]}
-      >
-        {title}
-      </AppText>
-      {right}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  section: { gap: 12 },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingHorizontal: 4,
-  },
-  // heading1 traz letterSpacing -1.02: em 18 pt as letras grudariam.
-  titleText: {
-    flexShrink: 1,
-    fontSize: 18,
-    lineHeight: 22,
-    letterSpacing: -0.27,
-    color: colors.textPrimary,
-  },
-  titleLight: { color: palette.cream },
   card: {
     backgroundColor: '#F8F6EF',
     borderWidth: 1,

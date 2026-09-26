@@ -24,7 +24,7 @@ import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
-import { SectionCard, SectionTitle, WorkGeneratedCard } from './FinanceCards';
+import { SectionCard, WorkGeneratedCard } from './FinanceCards';
 import { FinanceInfoSheet, InfoButton, type InfoRequest } from './FinanceInfo';
 import {
   type FinanceMonth,
@@ -478,9 +478,9 @@ function YearBody({
   const best = bestMonth(data, today);
   return (
     <View style={styles.sections}>
-      <View style={[styles.chartOverlap, styles.chartSection]} testID="finances-year-chart-wrap">
-        <SectionTitle tone="light" title={t('year.sectionChart', { year })} />
+      <View style={styles.chartOverlap} testID="finances-year-chart-wrap">
         <BarChartCard
+          eyebrow={t('year.range', { year })}
           legend={
             isCurrentYear
               ? [
@@ -522,7 +522,6 @@ function YearBody({
       </View>
       <OriginCard
         eyebrow={t('origin.yearEyebrow')}
-        title={t('year.sectionOrigin')}
         hint={t('origin.lockedYearHint')}
         isPremium={isPremium}
         origins={origins}
@@ -567,7 +566,6 @@ function YourYear({
     <SectionCard
       icon={<CalendarRange color={colors.textPrimary} size={16} strokeWidth={1.7} />}
       eyebrow={t('year.yourYear')}
-      title={t('year.sectionYours')}
       testID="finances-your-year"
     >
       <View style={styles.statGrid}>
@@ -661,46 +659,44 @@ function YearHourly({
   if (!work || work.workDurationMinutes === 0) return null;
   const hoursUsed = isPremium ? work.hourlyMinutes : work.workDurationMinutes;
   return (
-    <View style={styles.titledSection} testID="finances-year-hourly">
-      <SectionTitle
-        title={t('year.sectionHourly')}
-        right={
-          isPremium ? (
-            <InfoButton
-              label={t('info.yearHourly.title')}
-              onPress={() =>
-                onInfo({
-                  key: 'yearHourly',
-                  value: hourly !== null ? `${hourlyReais(hourly)}${t('work.perHour')}` : '—',
-                })
-              }
-              testID="finances-info-yearHourly"
-            />
-          ) : (
-            <PremiumBadge testID="finances-year-hourly-premium" />
-          )
-        }
-      />
-      <View style={styles.hourlyCard}>
-        <View style={styles.hourlyValueRow}>
-          <AppText
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            style={[
-              type.heading1,
-              styles.hourlyBig,
-              isPremium ? styles.hourlyValueAccent : styles.maskedValue,
-            ]}
-            testID="finances-year-hourly-value"
-          >
-            {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
-            <AppText style={styles.hourlyUnit}>{t('work.perHour')}</AppText>
-          </AppText>
-        </View>
-        <AppText style={styles.hourlyHours}>
-          {t('year.hourlyHours', { hours: hoursLabel(hoursUsed) })}
+    <View style={styles.hourlyCard} testID="finances-year-hourly">
+      <View style={styles.hourlyHeader}>
+        <AppText variant="technical" style={styles.eyebrow}>
+          {t('year.hourlyEyebrow')}
+        </AppText>
+        {isPremium ? (
+          <InfoButton
+            label={t('info.yearHourly.title')}
+            onPress={() =>
+              onInfo({
+                key: 'yearHourly',
+                value: hourly !== null ? `${hourlyReais(hourly)}${t('work.perHour')}` : '—',
+              })
+            }
+            testID="finances-info-yearHourly"
+          />
+        ) : (
+          <PremiumBadge testID="finances-year-hourly-premium" />
+        )}
+      </View>
+      <View style={styles.hourlyValueRow}>
+        <AppText
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          style={[
+            type.heading1,
+            styles.hourlyBig,
+            isPremium ? styles.hourlyValueAccent : styles.maskedValue,
+          ]}
+          testID="finances-year-hourly-value"
+        >
+          {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
+          <AppText style={styles.hourlyUnit}>{t('work.perHour')}</AppText>
         </AppText>
       </View>
+      <AppText style={styles.hourlyHours}>
+        {t('year.hourlyHours', { hours: hoursLabel(hoursUsed) })}
+      </AppText>
     </View>
   );
 }
@@ -745,7 +741,6 @@ function YearProjection({
     <SectionCard
       icon={null}
       eyebrow={t('year.projectionEyebrow', { year })}
-      title={t('year.sectionProjection', { year })}
       premiumBadge={!isPremium}
       testID="finances-year-projection"
     >
@@ -802,15 +797,12 @@ function YearProjection({
 /** Origem das entradas: valores reais no Premium, estrutura oculta com selo no Free. */
 function OriginCard({
   eyebrow,
-  title,
   hint,
   isPremium,
   origins,
   testID,
 }: {
   eyebrow: string;
-  /** Título fora do card (visão anual). */
-  title?: string;
   hint: string;
   isPremium: boolean;
   origins: OriginAmount[] | undefined;
@@ -822,7 +814,6 @@ function OriginCard({
     <SectionCard
       icon={<ChartPie color={colors.textPrimary} size={16} strokeWidth={1.7} />}
       eyebrow={eyebrow}
-      title={title}
       premiumBadge={!isPremium}
       testID={testID}
     >
@@ -943,9 +934,6 @@ const styles = StyleSheet.create({
   heroBehindChart: { paddingBottom: 24 + CHART_OVERLAP },
   // Sobe o bloco pelo espaço extra do topo e pelo respiro do corpo.
   chartOverlap: { marginTop: -(CHART_OVERLAP + 18) },
-  // Título da seção fora do card (teste do usuário na visão anual).
-  titledSection: { gap: 12 },
-  chartSection: { gap: 12 },
   heroContent: { paddingTop: 22, paddingHorizontal: 24, gap: 14 },
   heroTop: {
     flexDirection: 'row',

@@ -357,3 +357,5 @@ Visão anual refeita pelo conceito do usuário (2026-09-26, branch `codex/9.5-ye
 Ajustes na visão anual (2026-09-26): topo só com o total (sem barra/valores de recebido e a receber); gráfico de barras de volta ao modelo anterior, com o ganho médio até o mês atual no rodapé do componente; valor/hora do ano sem o percentual de evolução.
 
 Teste na visão anual (2026-09-26): três tipos de barra no gráfico (consolidado sálvia, atual bronze, futuro só contorno) com legenda; títulos das seções fora dos cards (`SectionTitle`/`SectionCard title`), o do gráfico em creme sobre o verde. Mês ainda com rótulo interno — aguardando aprovação do usuário para estender.
+
+Títulos fora dos cards revertidos a pedido do usuário (2026-09-26): voltaram para dentro dos componentes; os três tipos de barra continuam.
