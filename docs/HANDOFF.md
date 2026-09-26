@@ -361,3 +361,15 @@ Teste na visão anual (2026-09-26): três tipos de barra no gráfico (consolidad
 Títulos fora dos cards revertidos a pedido do usuário (2026-09-26): voltaram para dentro dos componentes; os três tipos de barra continuam.
 
 Títulos de card com peso (2026-09-26): novo `CardLabel` (Plex semibold 11, escuro) substitui o rótulo sálvia de 10 pt em todos os cards (Finanças, Agenda/Home via `WorkCard`, `ReviewCard`, `ProgressCard`, `EmptyState` em card). 59 suítes/389 testes.
+
+Na Fase 10 (2026-09-26, branch `codex/10-home`): a aba Início deixou de ser placeholder. Topo com carrossel (mês + histórico só quando válido), próximo trabalho sobre o verde, Review Cards de entrada de hoje/vencida/sem data (confirmação só pelo servidor), próximas entradas, próximos trabalhos e progresso inicial que some ao completar. Aplica os ajustes das outras seções (sem barra de rolagem, `CardLabel`, textos sem quebra). Catálogo `/dev/primitives` agora sai do Perfil provisório. Teste real cobre as leituras da Home. 61 suítes/408 testes. Contrato em [`home.md`](home.md). Falta a 10.6 (E2E).
+
+Topo da Início na visão 2A "cards com peek" (2026-09-26, arquivo `HOME.dc.html` do Claude Design, exportado pelo usuário em `~/Downloads/dokh_app`): cards de vidro lado a lado com o histórico espiando pela borda, snap, pontos, olho para ocultar valores. Só o topo mudou. O conector `claude_design` foi adicionado ao projeto `~/Desktop/dokh` (precisa de sessão nova + `/design-login` para ler direto do Claude Design).
+
+Altura do verde padronizada (2026-09-26): `TOP_GREEN_HEIGHT` (272 pt abaixo da status bar) em Início, Agenda e Finanças via `TwoToneScrollScreen standardHeroHeight`. Na Início o próximo trabalho saiu de cima do verde e o topo 2A ficou compacto; na Agenda o calendário passou a `marginTop: -(272-102)`.
+
+Início (2026-09-26, referência do usuário): card do mês denso (valor com `›`, linha em degraus do mês, faixa com a comparação), sem olho nem etiqueta de %; verde da Início com altura própria e folga (não usa mais `standardHeroHeight`); espaço uniforme de 16 pt entre os blocos, e a pilha de pendências só existe quando há pendência.
+
+Início: cards do topo voltaram ao modelo 2A anterior (vidro, olho, etiqueta de %), mantendo o verde maior com folga; o card "denso" com linha em degraus foi descartado pelo usuário.
+
+Contagem do valor do topo (2026-09-26): `src/theme/useCountUp.ts` anima de zero ao total em 650 ms ao entrar na Início e em Finanças (Mês e Ano); respeita "Reduzir movimento". 62 suítes/410 testes.

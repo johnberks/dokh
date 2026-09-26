@@ -386,6 +386,60 @@ try {
   assert.equal(Number(novemberRow.received_of_expected_cents), 85000);
   assert.equal(Number(novemberRow.expected_total_cents), 85000);
 
+  // Início (Home): as mesmas leituras do app, pelo dono e com RLS.
+  const homeProfile = success(
+    await call(`/rest/v1/profiles?select=display_name,professional_status&id=eq.${owner.id}`, {
+      token: owner.token,
+    }),
+    'home reads profile',
+  );
+  assert.equal(homeProfile.length, 1);
+  assert.equal(homeProfile[0].professional_status, 'general_practitioner');
+  const homeResidency = success(
+    await call(`/rest/v1/residencies?select=id&user_id=eq.${owner.id}&active=eq.true&limit=1`, {
+      token: owner.token,
+    }),
+    'home reads residency',
+  );
+  assert.deepEqual(homeResidency, []);
+  const homeWorks = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_entry_id,work_date,start_time,location_name,color_token,amount_cents,expected_on,receipt_status&work_date=gte.2026-09-01&order=work_date.asc,start_time.asc.nullslast,created_at.asc&limit=3',
+      { token: owner.token },
+    ),
+    'home reads upcoming works',
+  );
+  assert.ok(homeWorks.length >= 1, 'home lists upcoming works');
+  assert.equal(homeWorks[0].location_name, 'Hospital São Lucas');
+  const homeOpen = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null',
+      { token: owner.token },
+    ),
+    'home counts open entries of the month',
+  );
+  assert.equal(homeOpen.length, 1, 'October has one open entry');
+  const homeUpcoming = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&expected_on=gt.2026-09-26&order=expected_on.asc&order=receivable_id.asc&limit=3',
+      { token: owner.token },
+    ),
+    'home reads upcoming entries',
+  );
+  // A entrada de novembro já foi confirmada: só outubro segue em aberto.
+  assert.deepEqual(
+    homeUpcoming.map((row) => row.expected_on),
+    ['2026-10-26'],
+  );
+  const strangerHome = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id&received_at=is.null&invalidated_at=is.null',
+      { token: stranger.token },
+    ),
+    'stranger reads own home entries',
+  );
+  assert.deepEqual(strangerHome, [], 'home never shows another account entries');
+
   // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
   const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {
     method: 'POST',
@@ -501,7 +555,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

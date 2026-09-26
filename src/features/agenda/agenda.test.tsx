@@ -146,6 +146,8 @@ describe('Agenda (01–05)', () => {
       work({ id: 'w2', startTime: null, type: 'procedure', durationMinutes: null }),
     ];
     await renderWithProviders(<AgendaScreen />);
+    // Mesma altura de verde da Início e de Finanças.
+    expect(screen.getByTestId('two-tone-hero')).toHaveStyle({ height: 272 });
     expect(screen.getByTestId('agenda-day-label').props.children).toBe(
       `HOJE · ${formatDayMonth(today)}`,
     );

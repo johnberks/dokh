@@ -23,6 +23,11 @@ jest.mock('@/features/auth/AuthSessionProvider', () => ({
 jest.mock('@/features/auth/onboarding-status', () => ({
   useOnboardingStatus: () => mockOnboarding,
 }));
+// A Home real lê dados; nas rotas basta ela montar (carregando).
+jest.mock('@/features/home/home-data', () => ({
+  useHomeHero: () => ({ isPending: true, isError: false, isFetching: true, refetch: jest.fn() }),
+  useHomeBody: () => ({ isPending: true, isError: false, isFetching: true, refetch: jest.fn() }),
+}));
 
 /**
  * No RNTL 14 `render` é assíncrono, mas `renderRouter` do expo-router ainda devolve o valor
@@ -45,7 +50,7 @@ describe('rotas', () => {
   it('abre nas tabs com Início', async () => {
     const router = await openAt('/');
     expect(router.getPathname()).toBe('/');
-    expect(screen.getByRole('header', { name: 'Início' })).toBeTruthy();
+    expect(screen.getByTestId('home-screen')).toBeTruthy();
   });
 
   it.each([
@@ -131,12 +136,12 @@ describe('rotas', () => {
     expect(router.getPathname()).toBe('/');
   });
 
-  it('Home provisória abre o catálogo apenas em desenvolvimento', async () => {
-    const router = await openAt('/');
+  it('Perfil provisório abre o catálogo apenas em desenvolvimento', async () => {
+    const router = await openAt('/profile');
     await fireEvent.press(screen.getByRole('button', { name: 'Componentes básicos' }));
     expect(router.getPathname()).toBe('/dev/primitives');
     await fireEvent.press(screen.getByRole('button', { name: 'Voltar' }));
-    expect(router.getPathname()).toBe('/');
+    expect(router.getPathname()).toBe('/profile');
   });
 
   it('sessão ausente abre o splash e a tela de criar conta, bloqueando as tabs', async () => {
@@ -172,20 +177,20 @@ describe('rotas', () => {
   it('perfil concluído não permite voltar ao login ou onboarding', async () => {
     const router = await openAt('/sign-in');
     expect(router.getPathname()).toBe('/');
-    expect(screen.getByRole('header', { name: 'Início' })).toBeTruthy();
+    expect(screen.getByTestId('home-screen')).toBeTruthy();
   });
 
   it('perfil concluído não reabre o onboarding por deep link', async () => {
     const router = await openAt('/welcome');
     expect(router.getPathname()).toBe('/');
-    expect(screen.getByRole('header', { name: 'Início' })).toBeTruthy();
+    expect(screen.getByTestId('home-screen')).toBeTruthy();
   });
 
   it('segura o splash enquanto sessão e perfil não foram resolvidos', async () => {
     mockSession = { status: 'loading', userId: null };
     await openAt('/');
     expect(screen.queryByRole('header', { name: 'Bem-vindo de volta.' })).toBeNull();
-    expect(screen.queryByRole('header', { name: 'Início' })).toBeNull();
+    expect(screen.queryByTestId('home-screen')).toBeNull();
     expect(screen.getByLabelText('Carregando sua conta')).toBeTruthy();
     expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
   });
@@ -195,7 +200,7 @@ describe('rotas', () => {
     mockOnboarding.data = undefined;
     await openAt('/');
     expect(screen.getByLabelText('Carregando sua conta')).toBeTruthy();
-    expect(screen.queryByRole('header', { name: 'Início' })).toBeNull();
+    expect(screen.queryByTestId('home-screen')).toBeNull();
     expect(screen.queryByRole('header', { name: 'Vamos organizar sua rotina' })).toBeNull();
   });
 
