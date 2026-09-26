@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-26 · Claude Code · 9.1/9.2/9.5 (Finanças mês e ano) na branch `codex/9.2-finances-month`, com PR para a `main` (inclui os commits da 6.7/8.4 enquanto o #40 não entra). Android adiado. A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-26 · Claude Code · 1.9 (EAS) na branch `codex/1.9-eas`: projeto `@jberks/dokh`, perfis e canais OTA; faltam chave publishable no EAS, conta Apple paga e aparelho Android para fechar a DoD. Finanças 9.1–9.6 e edição 6.7/8.4 já estão na `main` (#40, #41).
 
 Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
 
@@ -30,7 +30,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 1.6 Estado e formulários | ✅ Concluída | — |
 | 1.7 Qualidade local | ✅ Concluída | — |
 | 1.8 CI | 🟡 Workflow passou no PR #2 | Tornar o check obrigatório na `main` e validar bloqueio de falha intencional |
-| 1.9 EAS | ⏳ Não iniciada | Precisa de conta Expo (`npx eas-cli login`) |
+| 1.9 EAS | 🟡 Projeto `@jberks/dokh`, `eas.json` (development/preview/production), `expo-dev-client`, `expo-updates`, runtime por versão e canais; variáveis públicas de preview/production no EAS | Chave publishable no EAS; build iOS exige Apple Developer Program; build Android sem aparelho para testar. Ver [`eas.md`](eas.md) |
 | 2.1 Tokens do Brand Kit | ✅ Integrada no PR #2 | — |
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
@@ -343,3 +343,5 @@ Terceiro retorno de Finanças (2026-09-26): menos espaço entre o verde e o bege
 Quarto retorno (2026-09-26): sem barra de rolagem no `TwoToneScrollScreen` (Agenda, Finanças, Início); topo escuro uniforme — o fundo com blur (`AgendaHeroBackdrop`, agora gradientes radiais em coordenadas absolutas sobre um retângulo, sem bordas de elipse) passou a cobrir também a área da barra de status via a nova prop `heroBackground` do `TwoToneScrollScreen`. Dados fictícios de teste (30 Trabalhos recebidos, mar–set/2026, `created_at = 2026-09-26 00:00:01+00`) foram criados só no Supabase local para `jlucasberlinck@hotmail.com`.
 
 Quinto retorno (visão anual, 2026-09-26): gráfico de barras voltou a ser um bloco (card) com a média no rodapé; valor/hora do ano e evolução em duas caixinhas com destaque (bronze/verde); projeção agora **acumulada** (a linha só sobe e termina no total projetado), porque a versão mês a mês parecia cair a zero depois do mês atual.
+
+Na 1.9 (2026-09-26), com a conta Expo do usuário (`jberks`, conta pessoal escolhida por ele), o projeto `@jberks/dokh` foi criado e ligado ao `app.json`; `expo-dev-client` e `expo-updates` instalados; `eas.json` com perfis development/preview/production, canais homônimos e EAS Environments. `EXPO_PUBLIC_APP_ENV` e `EXPO_PUBLIC_SUPABASE_URL` foram cadastrados em preview e production; a chave publishable fica com o usuário. O usuário ainda não tem Apple Developer Program, então nenhum build foi disparado. `expo-doctor` segue 20/21 pelo desvio de patch já registrado. 56 suítes/367 testes, export iOS ok. Contrato em [`eas.md`](eas.md).
