@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { CardLabel } from '@/components/CardLabel';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { WorkTypeIcon, workTypeTone } from '@/components/WorkTypeIcon';
 import { formatCentsToBRL } from '@/domain/money';
@@ -153,9 +154,7 @@ export function SectionCard({
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitle}>
           {icon ? <View style={styles.sectionIcon}>{icon}</View> : null}
-          <AppText variant="technical" style={styles.eyebrow}>
-            {eyebrow}
-          </AppText>
+          <CardLabel style={styles.eyebrowFlex}>{eyebrow}</CardLabel>
         </View>
         {premiumBadge && <PremiumBadge testID={testID ? `${testID}-premium` : undefined} />}
       </View>
@@ -178,7 +177,7 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 3,
   },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  eyebrowFlex: { flexShrink: 1 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   sectionIcon: {

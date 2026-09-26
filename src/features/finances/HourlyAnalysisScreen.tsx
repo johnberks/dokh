@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { CardLabel } from '@/components/CardLabel';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import type { LocalMonth } from '@/domain/calendar';
@@ -98,9 +99,7 @@ function HourlyResult({
       <View style={styles.darkBackdrop} pointerEvents="none">
         <AgendaHeroBackdrop />
       </View>
-      <AppText variant="technical" style={styles.darkEyebrow}>
-        {t('analysis.eyebrow')}
-      </AppText>
+      <CardLabel tone="bronze">{t('analysis.eyebrow')}</CardLabel>
       {hourly !== null ? (
         <>
           <View style={styles.resultRow}>
@@ -188,9 +187,7 @@ function EvolutionCard({ evolution }: { evolution: HourlyEvolution }) {
   return (
     <View style={styles.card} testID="analysis-evolution">
       <View style={styles.cardHeader}>
-        <AppText variant="technical" style={styles.cardEyebrow}>
-          {t('analysis.evolutionEyebrow')}
-        </AppText>
+        <CardLabel style={styles.cardEyebrowFlex}>{t('analysis.evolutionEyebrow')}</CardLabel>
         <AppText variant="technical" style={styles.cardPeriod}>
           {period}
         </AppText>
@@ -272,7 +269,6 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   darkBackdrop: { position: 'absolute', top: -40, right: -120, width: 360, height: 260 },
-  darkEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.bronze },
   resultRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   resultValue: { fontSize: 44, lineHeight: 48, letterSpacing: -1.76, color: palette.cream },
   resultAccent: { fontSize: 44, letterSpacing: -1.76, color: palette.bronze },
@@ -297,7 +293,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  cardEyebrowFlex: { flexShrink: 1 },
   cardPeriod: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: palette.sage },
   cardTitle: { fontSize: 22, lineHeight: 26, letterSpacing: -0.66, color: colors.textPrimary },
   chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingTop: 2 },

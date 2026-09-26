@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 export type ReceiptProgressCardProps = {
   receivedLabel: string;
@@ -51,9 +52,7 @@ export function ReceiptProgressCard({
             <View style={styles.receivedIcon}>
               <Check color={palette.cream} size={11} strokeWidth={3} />
             </View>
-            <AppText variant="technical" style={[styles.eyebrow, styles.receivedEyebrow]}>
-              {receivedLabel}
-            </AppText>
+            <CardLabel tone="structure">{receivedLabel}</CardLabel>
           </View>
           <AppText
             adjustsFontSizeToFit
@@ -75,9 +74,7 @@ export function ReceiptProgressCard({
             <View style={styles.awaitingIcon}>
               <View style={styles.awaitingDot} />
             </View>
-            <AppText variant="technical" style={styles.eyebrow}>
-              {awaitingLabel}
-            </AppText>
+            <CardLabel>{awaitingLabel}</CardLabel>
           </View>
           <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.value]}>
             {awaitingValue}
@@ -148,8 +145,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   awaitingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.bronze },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  receivedEyebrow: { color: palette.structure },
   value: { fontSize: 26, lineHeight: 30, letterSpacing: -0.78, color: colors.textPrimary },
   receivedValue: { color: palette.structure },
   // Barra mais grossa (12) que a anterior (8), dentro do card.

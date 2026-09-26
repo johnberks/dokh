@@ -359,3 +359,5 @@ Ajustes na visão anual (2026-09-26): topo só com o total (sem barra/valores de
 Teste na visão anual (2026-09-26): três tipos de barra no gráfico (consolidado sálvia, atual bronze, futuro só contorno) com legenda; títulos das seções fora dos cards (`SectionTitle`/`SectionCard title`), o do gráfico em creme sobre o verde. Mês ainda com rótulo interno — aguardando aprovação do usuário para estender.
 
 Títulos fora dos cards revertidos a pedido do usuário (2026-09-26): voltaram para dentro dos componentes; os três tipos de barra continuam.
+
+Títulos de card com peso (2026-09-26): novo `CardLabel` (Plex semibold 11, escuro) substitui o rótulo sálvia de 10 pt em todos os cards (Finanças, Agenda/Home via `WorkCard`, `ReviewCard`, `ProgressCard`, `EmptyState` em card). 59 suítes/389 testes.

@@ -71,3 +71,7 @@ Retorno do usuário (2026-09-26), com referências da Mobbin (Kit, Gusto, Quicke
 ## Dados — `finance-data.ts`
 
 `finance_month_projection`, `finance_month_origins`, `finance_year_projection` (RPCs da 3.11), `receivable_projection` (próxima entrada) e `agenda_work_projection` (previews sem data). Chaves com prefixo `finance-month`/`finance-year`, invalidadas por toda escrita de Trabalho. O teste real (`scripts/test-location-rpcs-6.1.mjs`) roda as mesmas consultas do app — mês, ano, origens nulas no Free, próxima entrada, entitlement, previews, Entradas e confirmação (outra conta não confirma; o resumo reflete).
+
+## Títulos de card — `CardLabel` (`src/components`)
+
+Pedido do usuário (2026-09-26): o rótulo técnico dos cards (Plex 10 pt, regular, sálvia) ficava apagado. Todos os títulos de card seguem o modelo do `GANHOS DE 2026`: Plex Mono **semibold**, 11 pt, espaçamento 1,65, cor escura (`tone`: `structure` no Recebido, `bronze` nos cards escuros de insight/análise, `attention` na revisão). Aplicado em `SectionCard`, gráfico anual, valor/hora do ano, próxima entrada, Recebido × A receber, Entradas (futuro), análise de valor/hora, insight, `WorkCard`, `ReviewCard`, `ProgressCard` e nos cards do `EmptyState` (próxima entrada, teaser de Finanças, Home). Rótulos de topo e de formulário não mudaram.

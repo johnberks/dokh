@@ -9,6 +9,7 @@ import {
   workLocationColors,
 } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 type CommonProps = {
   place: string;
@@ -167,9 +168,9 @@ export function WorkCard(props: WorkCardProps) {
         ]}
       >
         <View style={styles.featuredHeader}>
-          <AppText numberOfLines={1} variant="technical" style={styles.eyebrow}>
+          <CardLabel numberOfLines={1} style={styles.eyebrow}>
             {props.eyebrow}
-          </AppText>
+          </CardLabel>
           <ActionArrow placement="featured" />
         </View>
         <View style={styles.featuredTimeLine}>
@@ -327,13 +328,7 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   featuredHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: colors.darkTextSecondary,
-  },
+  eyebrow: { flex: 1 },
   featuredTimeLine: { flexDirection: 'row', alignItems: 'flex-end', gap: 14 },
   temporalLabel: {
     fontSize: 11,

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { BarChartCard } from '@/components/BarChartCard';
+import { CardLabel } from '@/components/CardLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
@@ -661,9 +662,7 @@ function YearHourly({
   return (
     <View style={styles.hourlyCard} testID="finances-year-hourly">
       <View style={styles.hourlyHeader}>
-        <AppText variant="technical" style={styles.eyebrow}>
-          {t('year.hourlyEyebrow')}
-        </AppText>
+        <CardLabel>{t('year.hourlyEyebrow')}</CardLabel>
         {isPremium ? (
           <InfoButton
             label={t('info.yearHourly.title')}
