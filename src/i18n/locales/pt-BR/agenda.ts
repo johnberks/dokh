@@ -1,6 +1,9 @@
 export const agenda = {
   title: 'Sua agenda',
   /** Agenda 01–05. */
+  eyebrow: 'SUA AGENDA',
+  previousMonth: 'Mês anterior',
+  nextMonth: 'Próximo mês',
   day: {
     today: 'HOJE · {{date}}',
     free: 'Dia livre',

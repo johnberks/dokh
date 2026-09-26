@@ -68,8 +68,8 @@ export type FullCalendarCell = {
 };
 
 /**
- * Seis semanas completas (42 dias), com os dias do mês anterior e do seguinte preenchendo
- * as pontas — a grade não muda de altura ao trocar de mês.
+ * Semanas completas do mês: os dias do mês anterior e do seguinte só completam a primeira e
+ * a última semana — nunca uma semana inteira de outro mês.
  */
 export function buildFullMonthGrid(
   month: LocalMonth,
@@ -79,7 +79,8 @@ export function buildFullMonthGrid(
   if (!first) throw new RangeError(`Mês inválido: ${month}`);
   const leading = (first.getDay() - weekStartsOn + 7) % 7;
   const start = addDays(first, -leading);
-  const cells: FullCalendarCell[] = Array.from({ length: 42 }, (_, offset) => {
+  const length = Math.ceil((leading + getDaysInMonth(first)) / 7) * 7;
+  const cells: FullCalendarCell[] = Array.from({ length }, (_, offset) => {
     const date = addDays(start, offset);
     const local = format(date, DATE_FORMAT);
     return {

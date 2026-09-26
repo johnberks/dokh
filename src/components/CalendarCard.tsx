@@ -36,15 +36,18 @@ export type CalendarCardProps = {
   dots?: Partial<Record<LocalDate, readonly WorkLocationColorToken[]>>;
   weekStartsOn?: WeekStart;
   onSelectDate: (date: LocalDate) => void;
-  onPreviousMonth: () => void;
-  onNextMonth: () => void;
-  onToday: () => void;
+  /**
+   * Cabeçalho com mês, atalho para hoje e setas. Sem ele (Agenda), o mês e a navegação
+   * ficam fora do card, no topo da tela.
+   */
+  header?: { onPreviousMonth: () => void; onNextMonth: () => void; onToday: () => void };
   testID?: string;
 };
 
 /**
- * Calendário mensal em card: cabeçalho com mês, atalho para hoje e navegação; dias em
- * quadrados arredondados. Dias vizinhos completam as seis semanas (tocar leva ao mês deles).
+ * Calendário mensal em card, com cabeçalho opcional (mês, atalho para hoje e navegação); dias
+ * em quadrados arredondados. Dias vizinhos só completam a primeira e a última semana (tocar
+ * leva ao mês deles).
  * Hoje tem contorno bronze e a seleção é verde-escura; cor nunca é a única pista — o nome
  * acessível diz "hoje" e quantos trabalhos há no dia.
  */
@@ -55,9 +58,7 @@ export function CalendarCard({
   dots = {},
   weekStartsOn = 1,
   onSelectDate,
-  onPreviousMonth,
-  onNextMonth,
-  onToday,
+  header,
   testID,
 }: CalendarCardProps) {
   const { t } = useTranslation('components');
@@ -66,41 +67,43 @@ export function CalendarCard({
 
   return (
     <View style={styles.card} testID={testID}>
-      <View style={styles.header}>
-        <AppText accessibilityRole="header" style={[type.heading1, styles.month]}>
-          {monthTitle(month)}{' '}
-          <AppText style={[type.heading1, styles.year]}>{month.slice(0, 4)}</AppText>
-        </AppText>
-        <View style={styles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('calendarCard.goToToday')}
-            onPress={onToday}
-            testID={testID ? `${testID}-today` : undefined}
-            style={({ pressed }) => [styles.action, pressed && styles.pressed]}
-          >
-            <CalendarDays color={colors.textPrimary} size={21} strokeWidth={1.7} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('calendarCard.previousMonth')}
-            onPress={onPreviousMonth}
-            testID={testID ? `${testID}-previous` : undefined}
-            style={({ pressed }) => [styles.action, pressed && styles.pressed]}
-          >
-            <ChevronLeft color={colors.textPrimary} size={22} strokeWidth={1.8} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('calendarCard.nextMonth')}
-            onPress={onNextMonth}
-            testID={testID ? `${testID}-next` : undefined}
-            style={({ pressed }) => [styles.action, pressed && styles.pressed]}
-          >
-            <ChevronRight color={colors.textPrimary} size={22} strokeWidth={1.8} />
-          </Pressable>
+      {header && (
+        <View style={styles.header}>
+          <AppText accessibilityRole="header" style={[type.heading1, styles.month]}>
+            {monthTitle(month)}{' '}
+            <AppText style={[type.heading1, styles.year]}>{month.slice(0, 4)}</AppText>
+          </AppText>
+          <View style={styles.actions}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('calendarCard.goToToday')}
+              onPress={header.onToday}
+              testID={testID ? `${testID}-today` : undefined}
+              style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+            >
+              <CalendarDays color={colors.textPrimary} size={21} strokeWidth={1.7} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('calendarCard.previousMonth')}
+              onPress={header.onPreviousMonth}
+              testID={testID ? `${testID}-previous` : undefined}
+              style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+            >
+              <ChevronLeft color={colors.textPrimary} size={22} strokeWidth={1.8} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('calendarCard.nextMonth')}
+              onPress={header.onNextMonth}
+              testID={testID ? `${testID}-next` : undefined}
+              style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+            >
+              <ChevronRight color={colors.textPrimary} size={22} strokeWidth={1.8} />
+            </Pressable>
+          </View>
         </View>
-      </View>
+      )}
 
       <View style={styles.weekdays}>
         {weekdayOrder(weekStartsOn).map((weekday) => (
@@ -190,8 +193,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1,
     borderColor: 'rgba(16,22,15,0.08)',
-    paddingTop: 20,
-    paddingBottom: 14,
+    paddingTop: 16,
+    paddingBottom: 12,
     paddingHorizontal: 14,
     gap: 10,
     shadowColor: colors.foreground,

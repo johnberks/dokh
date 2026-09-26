@@ -20,6 +20,8 @@ import { WorkDetailScreen } from './WorkDetailScreen';
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
+  // Foco da tela = montagem, suficiente para o comportamento de abrir no mês atual.
+  useFocusEffect: (effect: () => undefined) => jest.requireActual('react').useEffect(effect, []),
 }));
 jest.mock('@/features/auth/AuthSessionProvider', () => ({
   AuthSessionProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -174,40 +176,44 @@ describe('Agenda (01–05)', () => {
   it('outro mês seleciona o dia 1; voltar ao mês atual seleciona hoje', async () => {
     await renderWithProviders(<AgendaScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('agenda-calendar-next'));
+      await fireEvent.press(screen.getByTestId('agenda-next-month'));
     });
     const first = `${shiftMonth(month, 1)}-01`;
     expect(screen.getByTestId('agenda-day-label').props.children).toBe(
       `${formatDayMonth(first)} · ${weekdayShort(first)}`,
     );
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('agenda-calendar-previous'));
+      await fireEvent.press(screen.getByTestId('agenda-previous-month'));
     });
     expect(screen.getByTestId('agenda-day-label').props.children).toBe(
       `HOJE · ${formatDayMonth(today)}`,
     );
   });
 
-  it('dia de outro mês leva ao mês dele; o atalho de hoje volta', async () => {
+  it('dia de outro mês leva ao mês dele e a grade não tem semana extra', async () => {
     await renderWithProviders(<AgendaScreen />);
-    // A grade tem seis semanas: o último quadrado é sempre do mês seguinte.
-    const next = `${shiftMonth(month, 1)}-`;
-    const cells = screen
+    expect(screen.getByTestId('agenda-month')).toBeTruthy();
+    // O último quadrado da grade completa a última semana do mês, no máximo.
+    const ids = screen
       .getAllByRole('button')
       .map((button) => button.props.testID as string | undefined)
-      .filter((id): id is string => id?.startsWith(`agenda-calendar-${next}`) ?? false);
-    const target = cells[cells.length - 1].replace('agenda-calendar-', '');
+      .filter((id): id is string => /^agenda-calendar-\d{4}-\d{2}-\d{2}$/.test(id ?? ''));
+    const last = ids[ids.length - 1].replace('agenda-calendar-', '');
+    const lastOfMonth = ids
+      .filter((id) => id.includes(`-${month}-`))
+      .pop()
+      ?.replace('agenda-calendar-', '');
+    expect(lastOfMonth).toBeDefined();
+    expect(ids.length % 7).toBe(0);
+    // Nunca uma semana inteira do mês seguinte.
+    expect(ids.slice(-7).some((id) => id.includes(`-${month}-`))).toBe(true);
+
+    if (last.startsWith(month)) return;
     await act(async () => {
-      await fireEvent.press(screen.getByTestId(`agenda-calendar-${target}`));
+      await fireEvent.press(screen.getByTestId(`agenda-calendar-${last}`));
     });
     expect(screen.getByTestId('agenda-day-label').props.children).toBe(
-      `${formatDayMonth(target)} · ${weekdayShort(target)}`,
-    );
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId('agenda-calendar-today'));
-    });
-    expect(screen.getByTestId('agenda-day-label').props.children).toBe(
-      `HOJE · ${formatDayMonth(today)}`,
+      `${formatDayMonth(last)} · ${weekdayShort(last)}`,
     );
   });
 

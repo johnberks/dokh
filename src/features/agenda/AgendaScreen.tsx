@@ -1,7 +1,9 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import ChevronLeft from 'lucide-react-native/icons/chevron-left';
+import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import Plus from 'lucide-react-native/icons/plus';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
@@ -10,16 +12,10 @@ import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { WorkCard } from '@/components/WorkCard';
-import {
-  formatDayMonth,
-  type LocalDate,
-  type LocalMonth,
-  monthOf,
-  shiftMonth,
-} from '@/domain/calendar';
+import { type LocalDate, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
-import { todayInTimezone } from '@/features/work/work-schedule';
+import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { AgendaHeroBackdrop } from './AgendaHeroBackdrop';
@@ -32,6 +28,13 @@ import {
   workTimeLabel,
 } from './agenda-format';
 
+const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
+
+function monthName(month: LocalMonth): string {
+  const name = MONTH_NAME.format(localDateToDate(`${month}-01`));
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 /**
  * Agenda 01–05: mês com pontos por Local, hoje em bronze, dia selecionado em verde e a lista
  * do dia em ordem de horário. A Agenda não soma valores — consolidação é de Finanças.
@@ -39,9 +42,25 @@ import {
 export function AgendaScreen() {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
-  const [today] = useState(() => todayInTimezone(deviceTimezone()));
+  const [today, setToday] = useState(() => todayInTimezone(deviceTimezone()));
   const [month, setMonth] = useState<LocalMonth>(() => monthOf(today));
   const [selected, setSelected] = useState<LocalDate>(today);
+  // Voltar do detalhe ou do `+` preserva o dia que a pessoa olhava.
+  const openedChild = useRef(false);
+
+  // A Agenda sempre abre no mês atual (pedido do usuário, 2026-09-25).
+  useFocusEffect(
+    useCallback(() => {
+      if (openedChild.current) {
+        openedChild.current = false;
+        return;
+      }
+      const now = todayInTimezone(deviceTimezone());
+      setToday(now);
+      setMonth(monthOf(now));
+      setSelected(now);
+    }, []),
+  );
   const agenda = useAgendaMonth(month);
 
   const works = agenda.data ?? [];
@@ -60,7 +79,10 @@ export function AgendaScreen() {
     setSelected(date);
   }
 
-  const addWork = () => router.push('/work/new');
+  const addWork = () => {
+    openedChild.current = true;
+    router.push('/work/new');
+  };
 
   const hero = (
     <View style={styles.hero}>
@@ -69,9 +91,37 @@ export function AgendaScreen() {
       <View style={styles.heroRow}>
         <View style={styles.heroText}>
           <AppText variant="technical" style={styles.eyebrow}>
-            {t('day.today', { date: formatDayMonth(today) })}
+            {t('eyebrow')}
           </AppText>
-          <AppText style={[type.heading1, styles.heroTitle]}>{t('title')}</AppText>
+          <View style={styles.monthRow}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('previousMonth')}
+              hitSlop={6}
+              onPress={() => goToMonth(shiftMonth(month, -1))}
+              testID="agenda-previous-month"
+              style={({ pressed }) => [styles.monthButton, pressed && styles.pressed]}
+            >
+              <ChevronLeft color={palette.sage} size={22} />
+            </Pressable>
+            <AppText
+              accessibilityRole="header"
+              style={[type.heading1, styles.heroTitle]}
+              testID="agenda-month"
+            >
+              {monthName(month)} <AppText style={styles.year}>{month.slice(0, 4)}</AppText>
+            </AppText>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('nextMonth')}
+              hitSlop={6}
+              onPress={() => goToMonth(shiftMonth(month, 1))}
+              testID="agenda-next-month"
+              style={({ pressed }) => [styles.monthButton, pressed && styles.pressed]}
+            >
+              <ChevronRight color={palette.cream} size={22} />
+            </Pressable>
+          </View>
         </View>
         <Pressable
           accessibilityRole="button"
@@ -95,9 +145,6 @@ export function AgendaScreen() {
           selected={selected}
           dots={dotsByDay(works)}
           onSelectDate={selectDate}
-          onPreviousMonth={() => goToMonth(shiftMonth(month, -1))}
-          onNextMonth={() => goToMonth(shiftMonth(month, 1))}
-          onToday={() => goToMonth(monthOf(today))}
           testID="agenda-calendar"
         />
       </View>
@@ -138,7 +185,10 @@ export function AgendaScreen() {
                   : formatCentsToBRL(work.amountCents, { omitZeroCents: true })
               }
               payment={workPayment(work, t)}
-              onPress={() => router.push({ pathname: '/work/[id]', params: { id: work.id } })}
+              onPress={() => {
+                openedChild.current = true;
+                router.push({ pathname: '/work/[id]', params: { id: work.id } });
+              }}
               accessibilityHint={t('card.hint')}
               testID={`agenda-work-${work.id}`}
             />
@@ -159,7 +209,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
-  heroText: { gap: 8 },
+  heroText: { gap: 10 },
+  monthRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: -8 },
+  monthButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  year: { color: palette.sage },
   eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   heroTitle: { fontSize: 28, lineHeight: 30, letterSpacing: -0.84, color: palette.cream },
   add: {
