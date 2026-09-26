@@ -63,7 +63,7 @@ export const finances = {
     range: 'GANHOS DE {{year}}',
     currentMonth: 'mês atual',
     chartLabel: 'Entradas previstas por mês em {{year}}',
-    average: 'previstos por mês, em média',
+    average: 'é sua média de ganho mensal',
     historyTitle: 'Seu histórico começa agora.',
     historyText: 'Conforme você usa a DOKH, sua evolução aparece aqui.',
     hourly: 'valor/hora médio no ano',

@@ -396,7 +396,7 @@ describe('Finanças — ano', () => {
     ]);
     await openYear();
     expect(screen.getByTestId('finances-year-average')).toBeTruthy();
-    expect(screen.getByText('previstos por mês, em média')).toBeTruthy();
+    expect(screen.getByText('é sua média de ganho mensal')).toBeTruthy();
     expect(screen.queryByTestId('finances-year-origin-premium')).toBeNull();
     expect(screen.getByText('Plantões')).toBeTruthy();
   });

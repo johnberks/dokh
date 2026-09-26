@@ -83,6 +83,8 @@ export function BarChartCard({
               >
                 {has && bar.valueLabel ? (
                   <AppText
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
                     numberOfLines={1}
                     style={[styles.value, bar.current && [type.heading1, styles.valueCurrent]]}
                   >
@@ -160,7 +162,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   column: { flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'flex-end', gap: 6 },
-  value: { fontSize: 9, lineHeight: 12, letterSpacing: -0.18, color: palette.sage },
+  // Rótulo mais largo que a coluna e numa linha só: `15,5k` não quebra.
+  value: {
+    width: 40,
+    textAlign: 'center',
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: -0.18,
+    color: palette.sage,
+  },
   valueCurrent: { fontSize: 9, letterSpacing: -0.18, color: colors.textPrimary },
   bar: { width: '70%', borderTopLeftRadius: 3, borderTopRightRadius: 3 },
   // Cores cheias da paleta (sálvia e bronze no destaque), sem transparência.

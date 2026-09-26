@@ -24,7 +24,10 @@ describe('BarChartCard', () => {
     expect(screen.getByText('média')).toBeTruthy();
     // Sem dado: nem valor, nem barra cheia.
     expect(screen.queryByText('0')).toBeNull();
-    expect(screen.getByText('5,0k')).toBeTruthy();
+    const label = screen.getByText('5,0k');
+    // Nunca quebra: uma linha, encolhendo se faltar espaço.
+    expect(label.props.numberOfLines).toBe(1);
+    expect(label.props.adjustsFontSizeToFit).toBe(true);
     const current = screen.getByTestId('chart-bar-mar').children[1] as unknown as {
       props: { style: unknown };
     };
