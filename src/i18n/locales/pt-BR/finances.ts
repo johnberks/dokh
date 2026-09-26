@@ -1,7 +1,20 @@
 export const finances = {
   title: 'Finanças',
+  eyebrow: 'SUAS FINANÇAS',
   previousMonth: 'Mês anterior',
   nextMonth: 'Próximo mês',
+  previousYear: 'Ano anterior',
+  nextYear: 'Próximo ano',
+  mode: { month: 'Mês', year: 'Ano' },
+  year: {
+    caption: 'recebidos e previstos em {{year}}',
+    range: 'JANEIRO → DEZEMBRO',
+    currentMonth: 'mês atual',
+    chartLabel: 'Entradas previstas por mês em {{year}}',
+    average: 'previstos por mês, em média',
+    historyTitle: 'Seu histórico começa agora.',
+    historyText: 'Conforme você usa a DOKH, sua evolução aparece aqui.',
+  },
   hero: {
     empty: 'R$ —',
     nothingYet: 'nada registrado ainda',
@@ -45,6 +58,8 @@ export const finances = {
     appointment: 'Atendimentos',
     residency: 'Residência',
     lockedHint: 'Descubra quanto de cada tipo de trabalho formou o seu mês.',
+    yearEyebrow: 'ORIGEM DAS ENTRADAS NO ANO',
+    lockedYearHint: 'Descubra quanto de cada tipo de trabalho formou o seu ano.',
   },
   work: {
     eyebrow: 'SEU TRABALHO EM {{month}}',

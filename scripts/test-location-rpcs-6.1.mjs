@@ -215,6 +215,19 @@ try {
   assert.equal(financeMonth.has_expected_entries, true);
   assert.equal(Number(financeMonth.expected_total_cents), 120000);
   assert.equal(financeMonth.hourly_value_cents, null, 'Free never receives hourly value');
+  const financeYear = success(
+    await call('/rest/v1/rpc/finance_year_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_year: 2026 },
+    }),
+    'owner reads finance year',
+  );
+  assert.deepEqual(
+    financeYear.map((row) => [row.month_start, Number(row.expected_total_cents)]),
+    [['2026-10-01', 120000]],
+    'year series has only months with real entries',
+  );
   const origins = success(
     await call('/rest/v1/rpc/finance_month_origins', {
       method: 'POST',
@@ -369,7 +382,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

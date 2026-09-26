@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
+import type { ChartBar } from '@/components/BarChartCard';
 import { differenceInLocalDays, type LocalDate, type LocalMonth } from '@/domain/calendar';
-import type { EntryOrigin, FinanceMonth, OriginAmount } from './finance-data';
+import type { EntryOrigin, FinanceMonth, FinanceYear, OriginAmount } from './finance-data';
 
 type T = TFunction<'finances'>;
 
@@ -106,4 +107,44 @@ export function originShares(origins: readonly OriginAmount[]): OriginShare[] {
 export function hoursLabel(minutes: number): string {
   const hours = minutes / 60;
   return Number.isInteger(hours) ? `${hours}h` : `${hours.toFixed(1).replace('.', ',')}h`;
+}
+
+const MONTH_LABELS = [
+  'JAN',
+  'FEV',
+  'MAR',
+  'ABR',
+  'MAI',
+  'JUN',
+  'JUL',
+  'AGO',
+  'SET',
+  'OUT',
+  'NOV',
+  'DEZ',
+];
+
+/** `5,3k` acima de mil reais; abaixo, o valor inteiro (`850`). */
+export function compactReais(cents: bigint): string {
+  const reais = Number(cents) / 100;
+  if (reais < 1000) return String(Math.round(reais));
+  return `${(reais / 1000).toFixed(1).replace('.', ',')}k`;
+}
+
+/** Janeiro a dezembro; mês sem dado fica `null` (traço), nunca zero. */
+export function yearBars(data: FinanceYear, year: number, today: LocalDate): ChartBar[] {
+  const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
+  const currentMonth = today.slice(0, 7);
+  return MONTH_LABELS.map((label, index) => {
+    const month = `${year}-${String(index + 1).padStart(2, '0')}`;
+    const cents = byMonth.get(month);
+    const has = cents !== undefined && cents > 0n;
+    return {
+      key: month,
+      label,
+      value: has ? Number(cents) : null,
+      valueLabel: has ? compactReais(cents) : undefined,
+      current: month === currentMonth,
+    };
+  });
 }

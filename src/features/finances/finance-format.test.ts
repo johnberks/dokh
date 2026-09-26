@@ -1,6 +1,7 @@
 import { i18n } from '@/i18n';
 import type { FinanceMonth } from './finance-data';
 import {
+  compactReais,
   heroCaption,
   hoursLabel,
   isEmptyMonth,
@@ -10,6 +11,7 @@ import {
   receivedPercent,
   relativeDay,
   splitCaption,
+  yearBars,
 } from './finance-format';
 
 const t = i18n.getFixedT('pt-BR', 'finances');
@@ -99,5 +101,37 @@ describe('regras de apresentação de Finanças', () => {
   it('horas trabalhadas', () => {
     expect(hoursLabel(5040)).toBe('84h');
     expect(hoursLabel(450)).toBe('7,5h');
+  });
+});
+
+describe('gráfico anual', () => {
+  it('valores compactos em reais', () => {
+    expect(compactReais(530600n)).toBe('5,3k');
+    expect(compactReais(85000n)).toBe('850');
+  });
+
+  it('janeiro a dezembro, mês sem dado vira traço e o atual fica em destaque', () => {
+    const bars = yearBars(
+      {
+        months: [
+          { month: '2026-08', expectedTotalCents: 1632000n },
+          { month: '2026-09', expectedTotalCents: 1245000n },
+        ],
+        totalCents: 2877000n,
+        historicalMonthCount: 1,
+        historicalAverageCents: null,
+      },
+      2026,
+      '2026-09-26',
+    );
+    expect(bars).toHaveLength(12);
+    expect(bars[0]).toMatchObject({ label: 'JAN', value: null, valueLabel: undefined });
+    expect(bars[7]).toMatchObject({
+      label: 'AGO',
+      value: 1632000,
+      valueLabel: '16,3k',
+      current: false,
+    });
+    expect(bars[8]).toMatchObject({ label: 'SET', current: true, valueLabel: '12,4k' });
   });
 });

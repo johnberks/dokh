@@ -187,3 +187,74 @@ export function useUndatedPreviews(enabled: boolean) {
     enabled: userId !== null && enabled,
   });
 }
+
+export type YearMonth = { month: LocalMonth; expectedTotalCents: bigint };
+
+/** Série do ano: só meses com dado real, média apenas com base suficiente (≥ 2 meses). */
+export type FinanceYear = {
+  months: YearMonth[];
+  totalCents: bigint;
+  historicalMonthCount: number;
+  historicalAverageCents: bigint | null;
+};
+
+export async function readFinanceYear(
+  year: number,
+  client: AuthClient = supabase,
+): Promise<FinanceYear> {
+  const { data, error } = await client.rpc('finance_year_projection', { p_year: year });
+  if (error) throw error;
+  const rows = data ?? [];
+  const months = rows.map((row) => ({
+    month: row.month_start.slice(0, 7),
+    expectedTotalCents: cents(row.expected_total_cents),
+  }));
+  const first = rows[0];
+  return {
+    months,
+    totalCents: months.reduce((sum, item) => sum + item.expectedTotalCents, 0n),
+    historicalMonthCount: first?.historical_month_count ?? 0,
+    historicalAverageCents:
+      first?.historical_average_cents == null ? null : cents(first.historical_average_cents),
+  };
+}
+
+/**
+ * Origem das entradas no ano (Premium): soma das origens de cada mês com entrada. O servidor
+ * devolve quantias `null` no Free, então nada é calculado fora do plano.
+ */
+export async function readYearOrigins(
+  months: readonly LocalMonth[],
+  client: AuthClient = supabase,
+): Promise<OriginAmount[]> {
+  const perMonth = await Promise.all(months.map((month) => readFinanceOrigins(month, client)));
+  const totals = new Map<EntryOrigin, bigint | null>();
+  for (const origins of perMonth) {
+    for (const item of origins) {
+      const previous = totals.get(item.origin);
+      totals.set(
+        item.origin,
+        item.amountCents === null ? (previous ?? null) : (previous ?? 0n) + item.amountCents,
+      );
+    }
+  }
+  return [...totals].map(([origin, amountCents]) => ({ origin, amountCents }));
+}
+
+export function useFinanceYear(year: number, enabled: boolean) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: queryKeys.financeYear(userId ?? '', year),
+    queryFn: () => readFinanceYear(year),
+    enabled: userId !== null && enabled,
+  });
+}
+
+export function useYearOrigins(year: number, months: readonly LocalMonth[], enabled: boolean) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeYear(userId ?? '', year), 'origins', months.join(',')],
+    queryFn: () => readYearOrigins(months),
+    enabled: userId !== null && enabled,
+  });
+}

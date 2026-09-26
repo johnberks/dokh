@@ -24,6 +24,8 @@ let mockMonth: Query<FinanceMonth> = ok(undefined as never);
 let mockOrigins: Query<unknown> = ok([]);
 let mockNext: Query<unknown> = ok(null);
 let mockUndated: Query<unknown> = ok([]);
+let mockYear: Query<unknown> = ok(undefined);
+let mockYearOrigins: Query<unknown> = ok([]);
 const mockRefetch = jest.fn();
 
 jest.mock('@/features/billing/entitlement', () => ({ usePremium: () => mockPremium }));
@@ -33,6 +35,8 @@ jest.mock('./finance-data', () => ({
   useFinanceOrigins: () => mockOrigins,
   useNextEntry: () => mockNext,
   useUndatedPreviews: () => mockUndated,
+  useFinanceYear: () => ({ ...mockYear, refetch: mockRefetch, isFetching: false }),
+  useYearOrigins: () => mockYearOrigins,
 }));
 
 const today = todayInTimezone(deviceTimezone());
@@ -70,6 +74,13 @@ beforeEach(() => {
     expectedOn: today,
   });
   mockUndated = ok([]);
+  mockYear = ok({
+    months: [{ month: current, expectedTotalCents: 1245000n }],
+    totalCents: 1245000n,
+    historicalMonthCount: 0,
+    historicalAverageCents: null,
+  });
+  mockYearOrigins = ok([]);
 });
 
 describe('Finanças — mês', () => {
@@ -200,5 +211,69 @@ describe('Finanças — mês', () => {
   it('abre no mês atual', async () => {
     await renderWithProviders(<FinancesScreen />);
     expect(screen.getByText(` ${current.slice(0, 4)}`)).toBeTruthy();
+  });
+});
+
+describe('Finanças — ano', () => {
+  async function openYear() {
+    await renderWithProviders(<FinancesScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-mode-year'));
+    });
+  }
+
+  it('Ano mostra o total, o gráfico e, no primeiro mês, que o histórico começa agora', async () => {
+    await openYear();
+    expect(screen.getByTestId('finances-year-title')).toBeTruthy();
+    expect(screen.getByText(`recebidos e previstos em ${current.slice(0, 4)}`)).toBeTruthy();
+    expect(screen.getByTestId('finances-year-chart')).toBeTruthy();
+    expect(screen.getByText('mês atual')).toBeTruthy();
+    // Sem base suficiente, nada de média inventada.
+    expect(screen.getByTestId('finances-year-history-start')).toBeTruthy();
+    expect(screen.queryByTestId('finances-year-average')).toBeNull();
+  });
+
+  it('com histórico mostra a média; Premium vê a origem do ano sem selo', async () => {
+    mockPremium = ok(true);
+    mockYear = ok({
+      months: [
+        { month: `${current.slice(0, 4)}-01`, expectedTotalCents: 1000000n },
+        { month: current, expectedTotalCents: 1245000n },
+      ],
+      totalCents: 2245000n,
+      historicalMonthCount: 2,
+      historicalAverageCents: 1289700n,
+    });
+    mockYearOrigins = ok([
+      { origin: 'shift', amountCents: 1245000n },
+      { origin: 'residency', amountCents: 1000000n },
+    ]);
+    await openYear();
+    expect(screen.getByTestId('finances-year-average')).toBeTruthy();
+    expect(screen.getByText('previstos por mês, em média')).toBeTruthy();
+    expect(screen.queryByTestId('finances-year-origin-premium')).toBeNull();
+    expect(screen.getByText('Plantões')).toBeTruthy();
+  });
+
+  it('Free: origem do ano oculta com selo; voltar para Mês', async () => {
+    await openYear();
+    expect(screen.getByTestId('finances-year-origin-locked')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-origin-premium')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-mode-month'));
+    });
+    expect(screen.getByTestId('finances-month-title')).toBeTruthy();
+  });
+
+  it('ano sem nenhum dado: convite para adicionar, sem gráfico vazio', async () => {
+    mockYear = ok({
+      months: [],
+      totalCents: 0n,
+      historicalMonthCount: 0,
+      historicalAverageCents: null,
+    });
+    await openYear();
+    expect(screen.getByTestId('finances-year-empty')).toBeTruthy();
+    expect(screen.queryByTestId('finances-year-chart')).toBeNull();
   });
 });

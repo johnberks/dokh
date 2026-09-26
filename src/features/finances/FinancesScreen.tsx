@@ -6,8 +6,9 @@ import Check from 'lucide-react-native/icons/check';
 import Stethoscope from 'lucide-react-native/icons/stethoscope';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { BarChartCard } from '@/components/BarChartCard';
 import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
@@ -24,11 +25,15 @@ import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import {
   type FinanceMonth,
+  type FinanceYear,
   type NextEntry,
+  type OriginAmount,
   useFinanceMonth,
   useFinanceOrigins,
+  useFinanceYear,
   useNextEntry,
   useUndatedPreviews,
+  useYearOrigins,
 } from './finance-data';
 import {
   heroCaption,
@@ -41,6 +46,7 @@ import {
   receivedPercent,
   relativeDay,
   splitCaption,
+  yearBars,
 } from './finance-format';
 
 const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
@@ -61,16 +67,17 @@ const ORIGIN_COLOR = {
 } as const;
 
 /**
- * Finanças — visão mensal (Finanças 01, 01-B/C/D/E, 11 e 12). Topo verde e corpo bege são
+ * Finanças — visões mensal (Finanças 01, 01-B/C/D/E, 11 e 12) e anual (03-B e 13). Topo verde e corpo bege são
  * uma única rolagem; os blocos Recebido × A receber sobem sobre o topo, como o calendário da
  * Agenda. Pendências (Review Card) só aparecem no mês atual e quando existem; recursos
  * Premium liberados não mostram selo nem cadeado. Caixa e competência nunca se misturam.
  */
 export function FinancesScreen() {
   const { t } = useTranslation('finances');
-  const type = useBrandTypography();
   const [today, setToday] = useState(() => todayInTimezone(deviceTimezone()));
   const [month, setMonth] = useState<LocalMonth>(() => monthOf(today));
+  const [mode, setMode] = useState<'month' | 'year'>('month');
+  const [year, setYear] = useState(() => Number(today.slice(0, 4)));
   const openedChild = useRef(false);
 
   // Como a Agenda: entrar na aba sempre abre o mês atual.
@@ -83,6 +90,8 @@ export function FinancesScreen() {
       const now = todayInTimezone(deviceTimezone());
       setToday(now);
       setMonth(monthOf(now));
+      setMode('month');
+      setYear(Number(now.slice(0, 4)));
     }, []),
   );
 
@@ -98,30 +107,84 @@ export function FinancesScreen() {
   // Pendência sem data é tarefa de agora: só no mês atual e só quando existe.
   const showReview = tense === 'current' && (data?.undatedCount ?? 0) > 0;
   const undated = useUndatedPreviews(showReview);
+  const yearData = useFinanceYear(year, mode === 'year');
+  const yearMonths = (yearData.data?.months ?? []).map((item) => item.month);
+  const yearOrigins = useYearOrigins(year, yearMonths, mode === 'year' && yearMonths.length > 0);
 
   function openChild(path: () => void) {
     openedChild.current = true;
     path();
   }
 
+  const inYear = mode === 'year';
   const hero = (
-    <View style={[styles.hero, hasEntries && styles.heroWithSplit]}>
+    <View
+      style={[
+        styles.hero,
+        (inYear ? (yearData.data?.months.length ?? 0) > 0 : hasEntries) && styles.heroWithOverlap,
+      ]}
+    >
       <StatusBar style="light" />
       <AgendaHeroBackdrop />
       <View style={styles.heroContent}>
-        <PeriodSwitcher
-          title={name}
-          secondary={month.slice(0, 4)}
-          previousLabel={t('previousMonth')}
-          nextLabel={t('nextMonth')}
-          onPrevious={() => setMonth(shiftMonth(month, -1))}
-          onNext={() => setMonth(shiftMonth(month, 1))}
-          testID="finances-month"
-        />
-        {data && <HeroAmount data={data} tense={tense} name={name} />}
+        <View style={styles.heroTop}>
+          <AppText variant="technical" style={styles.heroEyebrow}>
+            {t('eyebrow')}
+          </AppText>
+          <PeriodToggle
+            mode={mode}
+            onChange={setMode}
+            monthLabel={t('mode.month')}
+            yearLabel={t('mode.year')}
+          />
+        </View>
+        {inYear ? (
+          <PeriodSwitcher
+            title={String(year)}
+            previousLabel={t('previousYear')}
+            nextLabel={t('nextYear')}
+            onPrevious={() => setYear(year - 1)}
+            onNext={() => setYear(year + 1)}
+            testID="finances-year"
+          />
+        ) : (
+          <PeriodSwitcher
+            title={name}
+            secondary={month.slice(0, 4)}
+            previousLabel={t('previousMonth')}
+            nextLabel={t('nextMonth')}
+            onPrevious={() => setMonth(shiftMonth(month, -1))}
+            onNext={() => setMonth(shiftMonth(month, 1))}
+            testID="finances-month"
+          />
+        )}
+        {inYear
+          ? yearData.data && (
+              <YearHeroAmount
+                total={yearData.data.totalCents}
+                year={year}
+                hasData={yearData.data.months.length > 0}
+              />
+            )
+          : data && <HeroAmount data={data} tense={tense} name={name} />}
       </View>
     </View>
   );
+
+  if (inYear) {
+    return (
+      <TwoToneScrollScreen hero={hero} bodyStyle={styles.body} testID="finances-screen">
+        <YearBody
+          query={yearData}
+          year={year}
+          today={today}
+          isPremium={isPremium}
+          origins={yearOrigins.data}
+          onAddWork={() => openChild(() => router.push('/work/new'))}
+        />
+      </TwoToneScrollScreen>
+    );
+  }
 
   return (
     <TwoToneScrollScreen hero={hero} bodyStyle={styles.body} testID="finances-screen">
@@ -198,58 +261,13 @@ export function FinancesScreen() {
           )}
 
           {hasEntries && (
-            <SectionCard
-              icon={<ChartPie color={colors.textPrimary} size={16} strokeWidth={1.7} />}
+            <OriginCard
               eyebrow={t('origin.eyebrow')}
-              premiumBadge={!isPremium}
+              hint={t('origin.lockedHint')}
+              isPremium={isPremium}
+              origins={origins.data}
               testID="finances-origin"
-            >
-              {isPremium ? (
-                <View style={styles.originList}>
-                  {originShares(origins.data ?? []).map((share) => (
-                    <View key={share.origin} style={styles.originRow}>
-                      <View style={styles.originLine}>
-                        <AppText style={[type.heading1, styles.originName]}>
-                          {t(`origin.${share.origin}` as 'origin.shift')}
-                        </AppText>
-                        <AppText style={[type.heading1, styles.originValue]}>
-                          {money(share.amountCents)}
-                        </AppText>
-                      </View>
-                      <View style={styles.originBarRow}>
-                        <View style={styles.originTrack}>
-                          <View
-                            style={[
-                              styles.originFill,
-                              {
-                                width: `${Math.max(share.percent, 2)}%`,
-                                backgroundColor: ORIGIN_COLOR[share.origin],
-                              },
-                            ]}
-                          />
-                        </View>
-                        <AppText variant="technical" style={styles.originPercent}>
-                          {`${share.percent}%`}
-                        </AppText>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.originList} testID="finances-origin-locked">
-                  {[0, 1, 2].map((row) => (
-                    <View key={row} accessible={false} style={styles.originRow}>
-                      <View style={styles.originLine}>
-                        <AppText style={styles.masked}>{'••••••••'}</AppText>
-                        <AppText style={styles.masked}>{'R$ ••••'}</AppText>
-                      </View>
-                      <View style={styles.originTrack} />
-                    </View>
-                  ))}
-                  <AppText style={styles.lockedHint}>{t('origin.lockedHint')}</AppText>
-                </View>
-              )}
-            </SectionCard>
+            />
           )}
 
           {data.workCount > 0 && (
@@ -258,6 +276,231 @@ export function FinancesScreen() {
         </View>
       )}
     </TwoToneScrollScreen>
+  );
+}
+
+function PeriodToggle({
+  mode,
+  onChange,
+  monthLabel,
+  yearLabel,
+}: {
+  mode: 'month' | 'year';
+  onChange: (mode: 'month' | 'year') => void;
+  monthLabel: string;
+  yearLabel: string;
+}) {
+  const type = useBrandTypography();
+  return (
+    <View accessibilityRole="tablist" style={styles.toggle}>
+      {(['month', 'year'] as const).map((option) => {
+        const on = mode === option;
+        return (
+          <Pressable
+            key={option}
+            accessibilityRole="tab"
+            accessibilityLabel={option === 'month' ? monthLabel : yearLabel}
+            accessibilityState={{ selected: on }}
+            onPress={() => onChange(option)}
+            testID={`finances-mode-${option}`}
+            style={[styles.toggleOption, on && styles.toggleOn]}
+          >
+            <AppText style={[type.heading1, styles.toggleText, on && styles.toggleTextOn]}>
+              {option === 'month' ? monthLabel : yearLabel}
+            </AppText>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function YearHeroAmount({
+  total,
+  year,
+  hasData,
+}: {
+  total: bigint;
+  year: number;
+  hasData: boolean;
+}) {
+  const { t } = useTranslation('finances');
+  const type = useBrandTypography();
+  return (
+    <View style={styles.heroAmount} accessible testID="finances-year-hero">
+      <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
+        {hasData ? money(total) : t('hero.empty')}
+      </AppText>
+      <AppText style={styles.heroCaption}>
+        {hasData ? t('year.caption', { year }) : t('hero.nothingYet')}
+      </AppText>
+    </View>
+  );
+}
+
+/** Visão anual (Finanças 03-B/13): barras de janeiro a dezembro, média só com base suficiente. */
+function YearBody({
+  query,
+  year,
+  today,
+  isPremium,
+  origins,
+  onAddWork,
+}: {
+  query: {
+    isPending: boolean;
+    isError: boolean;
+    data?: FinanceYear;
+    refetch: () => unknown;
+    isFetching: boolean;
+  };
+  year: number;
+  today: string;
+  isPremium: boolean;
+  origins: OriginAmount[] | undefined;
+  onAddWork: () => void;
+}) {
+  const { t } = useTranslation('finances');
+  const type = useBrandTypography();
+  if (query.isPending) {
+    return (
+      <View style={styles.padded}>
+        <Skeleton layout="summary" testID="finances-year-loading" />
+      </View>
+    );
+  }
+  if (query.isError || !query.data) {
+    return (
+      <View style={styles.padded}>
+        <LoadError
+          onRetry={() => void query.refetch()}
+          retrying={query.isFetching}
+          testID="finances-year-error"
+        />
+      </View>
+    );
+  }
+  const data = query.data;
+  if (data.months.length === 0) {
+    return (
+      <View style={styles.padded}>
+        <EmptyState
+          variant="financesNoWork"
+          onPrimaryPress={onAddWork}
+          testID="finances-year-empty"
+        />
+      </View>
+    );
+  }
+  const isCurrentYear = Number(today.slice(0, 4)) === year;
+  return (
+    <View style={styles.sections}>
+      <View style={styles.chartWrap}>
+        <BarChartCard
+          eyebrow={t('year.range')}
+          legend={isCurrentYear ? t('year.currentMonth') : undefined}
+          bars={yearBars(data, year, today)}
+          accessibilityLabel={t('year.chartLabel', { year })}
+          footer={
+            data.historicalAverageCents !== null ? (
+              <View style={styles.averageRow} testID="finances-year-average">
+                <AppText style={[type.heading1, styles.averageValue]}>
+                  {money(data.historicalAverageCents)}
+                </AppText>
+                <AppText style={styles.averageLabel}>{t('year.average')}</AppText>
+              </View>
+            ) : (
+              <View style={styles.historyStart} testID="finances-year-history-start">
+                <AppText style={[type.heading1, styles.historyTitle]}>
+                  {t('year.historyTitle')}
+                </AppText>
+                <AppText style={styles.historyText}>{t('year.historyText')}</AppText>
+              </View>
+            )
+          }
+          testID="finances-year-chart"
+        />
+      </View>
+      <OriginCard
+        eyebrow={t('origin.yearEyebrow')}
+        hint={t('origin.lockedYearHint')}
+        isPremium={isPremium}
+        origins={origins}
+        testID="finances-year-origin"
+      />
+    </View>
+  );
+}
+
+/** Origem das entradas: valores reais no Premium, estrutura oculta com selo no Free. */
+function OriginCard({
+  eyebrow,
+  hint,
+  isPremium,
+  origins,
+  testID,
+}: {
+  eyebrow: string;
+  hint: string;
+  isPremium: boolean;
+  origins: OriginAmount[] | undefined;
+  testID: string;
+}) {
+  const { t } = useTranslation('finances');
+  const type = useBrandTypography();
+  return (
+    <SectionCard
+      icon={<ChartPie color={colors.textPrimary} size={16} strokeWidth={1.7} />}
+      eyebrow={eyebrow}
+      premiumBadge={!isPremium}
+      testID={testID}
+    >
+      {isPremium ? (
+        <View style={styles.originList}>
+          {originShares(origins ?? []).map((share) => (
+            <View key={share.origin} style={styles.originRow}>
+              <View style={styles.originLine}>
+                <AppText style={[type.heading1, styles.originName]}>
+                  {t(`origin.${share.origin}` as 'origin.shift')}
+                </AppText>
+                <AppText style={[type.heading1, styles.originValue]}>
+                  {money(share.amountCents)}
+                </AppText>
+              </View>
+              <View style={styles.originBarRow}>
+                <View style={styles.originTrack}>
+                  <View
+                    style={[
+                      styles.originFill,
+                      {
+                        width: `${Math.max(share.percent, 2)}%`,
+                        backgroundColor: ORIGIN_COLOR[share.origin],
+                      },
+                    ]}
+                  />
+                </View>
+                <AppText variant="technical" style={styles.originPercent}>
+                  {`${share.percent}%`}
+                </AppText>
+              </View>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.originList} testID={`${testID}-locked`}>
+          {[0, 1, 2].map((row) => (
+            <View key={row} accessible={false} style={styles.originRow}>
+              <View style={styles.originLine}>
+                <AppText style={styles.masked}>{'••••••••'}</AppText>
+                <AppText style={styles.masked}>{'R$ ••••'}</AppText>
+              </View>
+              <View style={styles.originTrack} />
+            </View>
+          ))}
+          <AppText style={styles.lockedHint}>{hint}</AppText>
+        </View>
+      )}
+    </SectionCard>
   );
 }
 
@@ -483,8 +726,35 @@ const SPLIT_OVERLAP = 56;
 const styles = StyleSheet.create({
   hero: { paddingBottom: 44, overflow: 'hidden' },
   // Os blocos Recebido × A receber sobem sobre o topo escuro, como o calendário da Agenda.
-  heroWithSplit: { paddingBottom: 44 + SPLIT_OVERLAP },
-  heroContent: { paddingTop: 22, paddingHorizontal: 24, gap: 22 },
+  heroWithOverlap: { paddingBottom: 44 + SPLIT_OVERLAP },
+  heroContent: { paddingTop: 22, paddingHorizontal: 24, gap: 14 },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  heroEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  toggle: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(237,234,224,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(237,234,224,0.22)',
+    borderRadius: 999,
+    padding: 3,
+  },
+  toggleOption: {
+    minHeight: 30,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleOn: { backgroundColor: palette.cream },
+  toggleText: { fontSize: 13, lineHeight: 16, letterSpacing: 0, color: palette.sage },
+  toggleTextOn: { color: palette.base },
+  chartWrap: { marginTop: -SPLIT_OVERLAP },
+  averageRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' },
+  averageValue: { fontSize: 24, lineHeight: 28, letterSpacing: -0.72, color: colors.textPrimary },
+  averageLabel: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
+  historyStart: { gap: 4 },
+  historyTitle: { fontSize: 16, lineHeight: 20, letterSpacing: -0.16, color: colors.textPrimary },
+  historyText: { fontSize: 13, lineHeight: 19, color: palette.mutedCopy },
   heroAmount: { gap: 8 },
   heroValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.84, color: palette.cream },
   heroCaption: { fontSize: 15, lineHeight: 20, color: '#B9BFB2' },
