@@ -373,6 +373,18 @@ try {
   )[0];
   assert.equal(Number(novemberAfter.received_of_expected_cents), 85000, 'summary reflects receipt');
   assert.equal(Number(novemberAfter.awaiting_of_expected_cents), 0);
+  // Visão anual: o recebido por mês (base do resumo anual e das barras) reflete a confirmação.
+  const yearAfter = success(
+    await call('/rest/v1/rpc/finance_year_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_year: 2026 },
+    }),
+    'owner reads year after confirming',
+  );
+  const novemberRow = yearAfter.find((row) => row.month_start === '2026-11-01');
+  assert.equal(Number(novemberRow.received_of_expected_cents), 85000);
+  assert.equal(Number(novemberRow.expected_total_cents), 85000);
 
   // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
   const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {

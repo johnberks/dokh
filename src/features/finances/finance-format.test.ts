@@ -1,7 +1,9 @@
 import { i18n } from '@/i18n';
 import type { FinanceMonth } from './finance-data';
 import {
+  bestMonth,
   compactReais,
+  defaultSelectedMonth,
   heroCaption,
   hourlyEvolution,
   hoursLabel,
@@ -113,60 +115,79 @@ describe('gráfico anual', () => {
     expect(compactReais(85000n)).toBe('850');
   });
 
-  it('janeiro a dezembro, mês sem dado vira traço e o atual fica em destaque', () => {
-    const bars = yearBars(
-      {
-        months: [
-          { month: '2026-08', expectedTotalCents: 1632000n },
-          { month: '2026-09', expectedTotalCents: 1245000n },
-        ],
-        totalCents: 2877000n,
-        historicalMonthCount: 1,
-        historicalAverageCents: null,
-      },
-      2026,
-      '2026-09-26',
-    );
+  const data = {
+    months: [
+      { month: '2026-07', expectedTotalCents: 1000000n, receivedCents: 1000000n },
+      { month: '2026-08', expectedTotalCents: 1632000n, receivedCents: 1512000n },
+      { month: '2026-09', expectedTotalCents: 1245000n, receivedCents: 835000n },
+      { month: '2026-11', expectedTotalCents: 1500000n, receivedCents: 0n },
+    ],
+    totalCents: 5377000n,
+    receivedCents: 3347000n,
+    awaitingCents: 2030000n,
+    historicalMonthCount: 2,
+    historicalAverageCents: 1316000n,
+  };
+
+  it('janeiro a dezembro: passado, atual e futuro previsto; mês sem dado vira traço', () => {
+    const bars = yearBars(data, 2026, '2026-09-26');
     expect(bars).toHaveLength(12);
-    expect(bars[0]).toMatchObject({ label: 'JAN', value: null, valueLabel: undefined });
-    expect(bars[7]).toMatchObject({
-      label: 'AGO',
-      value: 1632000,
-      valueLabel: '16,3k',
-      current: false,
-    });
-    expect(bars[8]).toMatchObject({ label: 'SET', current: true, valueLabel: '12,4k' });
+    expect(bars[0]).toMatchObject({ label: 'JAN', value: null, filled: 0, state: 'realized' });
+    expect(bars[7]).toMatchObject({ value: 1632000, filled: 1512000, state: 'realized' });
+    expect(bars[8]).toMatchObject({ label: 'SET', value: 1245000, state: 'current' });
+    expect(bars[10]).toMatchObject({ value: 1500000, filled: 0, state: 'future' });
+  });
+
+  it('mês escolhido ao abrir e melhor mês já vivido', () => {
+    expect(defaultSelectedMonth(data, 2026, '2026-09-26')).toBe('2026-09');
+    expect(defaultSelectedMonth({ ...data, months: [] }, 2027, '2028-01-10')).toBeNull();
+    expect(
+      defaultSelectedMonth({ ...data, months: data.months.slice(0, 2) }, 2026, '2027-02-01'),
+    ).toBe('2026-08');
+    // Novembro (futuro) é maior, mas ainda não foi vivido.
+    expect(bestMonth(data, '2026-09-26')).toEqual({ month: '2026-08', amountCents: 1632000n });
   });
 });
 
 describe('projeção e valor/hora do ano', () => {
   const year = {
     months: [
-      { month: '2026-01', expectedTotalCents: 1000000n },
-      { month: '2026-09', expectedTotalCents: 1245000n },
-      { month: '2026-11', expectedTotalCents: 500000n },
+      { month: '2026-01', expectedTotalCents: 1000000n, receivedCents: 1000000n },
+      { month: '2026-09', expectedTotalCents: 1245000n, receivedCents: 835000n },
+      { month: '2026-11', expectedTotalCents: 1500000n, receivedCents: 0n },
     ],
-    totalCents: 2745000n,
+    totalCents: 3745000n,
+    receivedCents: 1835000n,
+    awaitingCents: 1910000n,
     historicalMonthCount: 2,
     historicalAverageCents: 1289700n,
   };
 
-  it('previsto até o mês atual mais a média nos meses que faltam', () => {
+  it('linha cheia só com o recebido; tracejado soma o pendente e o maior entre previsto e média', () => {
     const projection = projectYear(year, 2026, '2026-09-26');
     expect(projection).toMatchObject({
-      realizedCents: 2245000n,
+      receivedCents: 1835000n,
+      pendingCents: 410000n,
       remainingMonths: 3,
-      remainingCents: 3869100n,
-      totalCents: 6114100n,
+      // Outubro e dezembro pela média; novembro já tem mais previsto que a média.
+      remainingCents: 1289700n + 1500000n + 1289700n,
       currentIndex: 8,
     });
-    // Acumulado: nunca cai; meses sem dado mantêm o total anterior.
+    expect(projection?.totalCents).toBe(1835000n + 410000n + 4079400n);
+    // Acumulado recebido: nunca cai; meses sem dado mantêm o total anterior.
     expect(projection?.cumulative).toHaveLength(9);
-    expect(projection?.cumulative[0]).toBe(1000000);
     expect(projection?.cumulative[1]).toBe(1000000);
-    expect(projection?.cumulative[8]).toBe(2245000);
-    // Do mês atual a dezembro, soma a média a cada mês e termina no total projetado.
-    expect(projection?.projected).toEqual([2245000, 3534700, 4824400, 6114100]);
+    expect(projection?.cumulative[8]).toBe(1835000);
+    expect(projection?.projected).toEqual([1835000, 3534700, 5034700, 6324400]);
+  });
+
+  it('em dezembro não há meses à frente: total = recebido + pendente', () => {
+    const projection = projectYear(year, 2026, '2026-12-10');
+    expect(projection?.remainingMonths).toBe(0);
+    expect(projection?.projected).toEqual([Number(projection?.receivedCents)]);
+    expect(projection?.totalCents).toBe(
+      (projection?.receivedCents ?? 0n) + (projection?.pendingCents ?? 0n),
+    );
   });
 
   it('sem média ou fora do ano corrente não há projeção', () => {

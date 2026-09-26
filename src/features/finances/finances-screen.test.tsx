@@ -81,14 +81,22 @@ beforeEach(() => {
   });
   mockUndated = ok([]);
   mockYear = ok({
-    months: [{ month: current, expectedTotalCents: 1245000n }],
+    months: [{ month: current, expectedTotalCents: 1245000n, receivedCents: 835000n }],
     totalCents: 1245000n,
+    receivedCents: 835000n,
+    awaitingCents: 410000n,
     historicalMonthCount: 0,
     historicalAverageCents: null,
   });
   mockYearOrigins = ok([]);
   mockHourlyWindow = ok([]);
-  mockYearWork = ok({ hourlyValueCents: null, hourlyEvolutionPercent: null });
+  mockYearWork = ok({
+    hourlyValueCents: null,
+    hourlyEvolutionPercent: null,
+    workCount: 7,
+    workDurationMinutes: 5040,
+    hourlyMinutes: 0,
+  });
 });
 
 describe('Finanças — mês', () => {
@@ -431,44 +439,97 @@ describe('Finanças — ano', () => {
       await fireEvent.press(screen.getByTestId('finances-mode-year'));
     });
   }
-
-  it('Ano mostra o total, o gráfico e, no primeiro mês, que o histórico começa agora', async () => {
-    await openYear();
-    expect(screen.getByTestId('finances-year-title')).toBeTruthy();
-    expect(screen.getByText(`recebidos e previstos em ${current.slice(0, 4)}`)).toBeTruthy();
-    expect(screen.getByTestId('finances-year-chart')).toBeTruthy();
-    expect(screen.getByText('mês atual')).toBeTruthy();
-    // Sem base suficiente, nada de média inventada.
-    expect(screen.getByTestId('finances-year-history-start')).toBeTruthy();
-    expect(screen.queryByTestId('finances-year-average')).toBeNull();
+  const y = current.slice(0, 4);
+  const premiumYear = () => ({
+    months: [
+      { month: `${y}-01`, expectedTotalCents: 1000000n, receivedCents: 1000000n },
+      { month: `${y}-02`, expectedTotalCents: 1200000n, receivedCents: 1200000n },
+      { month: current, expectedTotalCents: 1245000n, receivedCents: 835000n },
+    ],
+    totalCents: 3445000n,
+    receivedCents: 3035000n,
+    awaitingCents: 410000n,
+    historicalMonthCount: 2,
+    historicalAverageCents: 1100000n,
   });
 
-  it('com histórico mostra a média; Premium vê a origem do ano sem selo', async () => {
-    mockPremium = ok(true);
-    mockYear = ok({
-      months: [
-        { month: `${current.slice(0, 4)}-01`, expectedTotalCents: 1000000n },
-        { month: current, expectedTotalCents: 1245000n },
-      ],
-      totalCents: 2245000n,
-      historicalMonthCount: 2,
-      historicalAverageCents: 1289700n,
+  it('resumo anual: total com recebido e a receber; primeiro mês sem média inventada', async () => {
+    await openYear();
+    expect(screen.getByTestId('finances-year-title')).toBeTruthy();
+    expect(screen.getByText(`recebidos e previstos em ${y}`)).toBeTruthy();
+    expect(screen.getByTestId('finances-year-split')).toBeTruthy();
+    expect(screen.getByText('R$ 8.350')).toBeTruthy();
+    expect(screen.getByText('R$ 4.100')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-chart')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-history-start')).toBeTruthy();
+    expect(screen.queryByTestId('finances-year-chart-reference')).toBeNull();
+    expect(screen.getByTestId('finances-stat-average')).toHaveTextContent(/—/);
+  });
+
+  it('gráfico: mês atual escolhido ao abrir, tocar noutro mês troca o resumo', async () => {
+    mockYear = ok(premiumYear());
+    await openYear();
+    expect(screen.getByTestId('finances-year-selected')).toHaveTextContent(
+      /R\$\s?12\.450.*R\$\s?8\.350 recebidos · R\$\s?4\.100 a receber/,
+    );
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId(`finances-year-chart-bar-${y}-01`));
     });
+    expect(screen.getByTestId('finances-year-selected')).toHaveTextContent(
+      /Janeiro.*R\$\s?10\.000/,
+    );
+    // Média como linha tracejada no gráfico.
+    expect(screen.getByText('média 11,0k')).toBeTruthy();
+    expect(screen.getByText('Recebido')).toBeTruthy();
+    expect(screen.getByText('Previsto')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-chart-wrap')).toHaveStyle({ marginTop: -114 });
+  });
+
+  it('seu ano: média, melhor mês, trabalhos e horas (abertos no Free)', async () => {
+    mockYear = ok(premiumYear());
+    await openYear();
+    expect(screen.getByTestId('finances-stat-average')).toHaveTextContent(/R\$\s?11\.000/);
+    expect(screen.getByTestId('finances-stat-best')).toHaveTextContent(
+      /R\$\s?12\.450.*Setembro|Setembro/,
+    );
+    expect(screen.getByTestId('finances-stat-works')).toHaveTextContent(/7/);
+    expect(screen.getByTestId('finances-stat-hours')).toHaveTextContent(/84h/);
+  });
+
+  it('Premium: origem sem selo, valor/hora com horas usadas e evolução, projeção com valor final', async () => {
+    mockPremium = ok(true);
+    mockYear = ok(premiumYear());
     mockYearOrigins = ok([
       { origin: 'shift', amountCents: 1245000n },
       { origin: 'residency', amountCents: 1000000n },
     ]);
+    mockYearWork = ok({
+      hourlyValueCents: 15800n,
+      hourlyEvolutionPercent: 24,
+      workCount: 7,
+      workDurationMinutes: 5040,
+      hourlyMinutes: 4800,
+    });
     await openYear();
-    expect(screen.getByTestId('finances-year-average')).toBeTruthy();
-    expect(screen.getByText('é sua média de ganho mensal')).toBeTruthy();
     expect(screen.queryByTestId('finances-year-origin-premium')).toBeNull();
     expect(screen.getByText('Plantões')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-hourly-value')).toHaveTextContent(/R\$\s?158\/h/);
+    expect(screen.getByText('+24% no ano')).toBeTruthy();
+    expect(screen.getByText('calculado com 80h de trabalhos com duração registrada')).toBeTruthy();
+    expect(screen.getByTestId('finances-projection-chart')).toBeTruthy();
+    expect(screen.getByTestId('finances-projection-total')).toBeTruthy();
+    expect(screen.queryByTestId('finances-year-projection-premium')).toBeNull();
+    expect(screen.queryByText('PREMIUM')).toBeNull();
   });
 
-  it('Free: origem do ano oculta com selo; voltar para Mês', async () => {
+  it('Free: origem, valor/hora e projeção ocultos com selo; horas abertas; voltar para Mês', async () => {
     await openYear();
     expect(screen.getByTestId('finances-year-origin-locked')).toBeTruthy();
-    expect(screen.getByTestId('finances-year-origin-premium')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-hourly-premium')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-hourly-value')).toHaveTextContent(/R\$ •••/);
+    expect(screen.getByText('calculado com 84h de trabalhos com duração registrada')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-projection-premium')).toBeTruthy();
+    expect(screen.queryByTestId('finances-projection-chart')).toBeNull();
     await act(async () => {
       await fireEvent.press(screen.getByTestId('finances-mode-month'));
     });
@@ -479,54 +540,13 @@ describe('Finanças — ano', () => {
     mockYear = ok({
       months: [],
       totalCents: 0n,
+      receivedCents: 0n,
+      awaitingCents: 0n,
       historicalMonthCount: 0,
       historicalAverageCents: null,
     });
     await openYear();
     expect(screen.getByTestId('finances-year-empty')).toBeTruthy();
     expect(screen.queryByTestId('finances-year-chart')).toBeNull();
-  });
-
-  it('Premium: valor/hora no ano, evolução e projeção até dezembro, sem selos', async () => {
-    mockPremium = ok(true);
-    const y = current.slice(0, 4);
-    mockYear = ok({
-      months: [
-        { month: `${y}-01`, expectedTotalCents: 1000000n },
-        { month: `${y}-02`, expectedTotalCents: 1200000n },
-        { month: current, expectedTotalCents: 1245000n },
-      ],
-      totalCents: 3445000n,
-      historicalMonthCount: 2,
-      historicalAverageCents: 1100000n,
-    });
-    mockYearWork = ok({ hourlyValueCents: 15800n, hourlyEvolutionPercent: 24 });
-    await renderWithProviders(<FinancesScreen />);
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId('finances-mode-year'));
-    });
-    expect(screen.getByText('+24%')).toBeTruthy();
-    expect(screen.getByText(`GANHOS DE ${current.slice(0, 4)}`)).toBeTruthy();
-    expect(screen.queryByText('JANEIRO → DEZEMBRO')).toBeNull();
-    // O bloco do gráfico sobe sobre o topo verde, como o calendário da Agenda.
-    expect(screen.getByTestId('finances-year-chart-wrap')).toHaveStyle({ marginTop: -114 });
-    // Texto fixo das caixinhas nunca quebra: uma linha, encolhendo se faltar espaço.
-    const label = screen.getByText('valor/hora médio no ano');
-    expect(label.props.numberOfLines).toBe(1);
-    expect(label.props.adjustsFontSizeToFit).toBe(true);
-    expect(screen.getByText('valor/hora médio no ano')).toBeTruthy();
-    expect(screen.getByTestId('finances-projection-chart')).toBeTruthy();
-    expect(screen.queryByTestId('finances-year-projection-premium')).toBeNull();
-    expect(screen.queryByText('PREMIUM')).toBeNull();
-  });
-
-  it('Free: valor/hora, evolução e projeção ocultos com selo', async () => {
-    await renderWithProviders(<FinancesScreen />);
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId('finances-mode-year'));
-    });
-    expect(screen.getByText('+••%')).toBeTruthy();
-    expect(screen.getByTestId('finances-year-projection-premium')).toBeTruthy();
-    expect(screen.queryByTestId('finances-projection-chart')).toBeNull();
   });
 });

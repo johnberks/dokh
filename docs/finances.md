@@ -25,14 +25,16 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 ★ Os `i` do HTML abrem folhas no formato das Sheets 15–18/22: rótulo, número (recebido em verde), explicação, exemplo com ponto bronze e o botão `Entendi` (o HTML usa "Entendi"; os textos também são os do HTML): previsto para entrar, recebido e a receber (tocando nos blocos), trabalho gerado, valor/hora, total do ano, média mensal, valor/hora no ano e projeção. No valor/hora, o exemplo usa os números reais do mês (Premium); no Free o valor aparece oculto.
 
-## Ano
+## Ano (conceito do usuário, 2026-09-26; referências Mobbin)
 
-- ★ **Gráfico em bloco** (`BarChartCard`, `src/components`, superfície de card como o `CalendarCard`): título `GANHOS DE 2026` em Plex Mono semibold (o peso mais forte carregado) e espaçado, legenda `mês atual`, barras em sálvia cheio relativas ao maior mês, mês atual em bronze e mês sem dado **tracejado** (nunca zero). A média mensal é o rodapé do próprio bloco. ★ O bloco sobe sobre o topo verde (o verde fica por trás), como o calendário da Agenda.
-- ★ **Valor/hora médio no ano e evolução** (Premium), em duas caixinhas lado a lado com cor de destaque (bronze e verde), valores centralizados e texto fixo + `i` sempre numa linha (o texto encolhe antes de quebrar): valor/hora de todos os trabalhos do ano com duração, ponderado pelas horas de cada mês (não média de médias), e variação entre o primeiro e o último mês com valor/hora — sem dois meses, nada de tendência. Free vê `R$ •••/h` e `+••%` com selo.
-- ★ **Projeção para o ano** (Premium, só no ano corrente e com média): previsto até o mês atual + média × meses restantes. `ProjectionChart` (`src/components`) é **acumulado** (pedido do usuário: a versão mês a mês parecia cair a zero depois do mês atual) — linha verde com o total do ano até agora e tracejado bronze somando a média a cada mês até o total de dezembro; legenda e a frase "Mantendo sua média de R$ X/mês, outubro a dezembro somam mais R$ Y." Free vê o valor oculto, selo e a explicação.
-- Topo: total `recebidos e previstos em 2026`.
-- Rodapé: média mensal só com base suficiente (`historical_average_cents`, ≥ 2 meses); sem ela, "Seu histórico começa agora." (Finanças 13).
-- Origem das entradas no ano: Premium soma as origens dos meses com entrada (o servidor devolve `null` no Free).
+Ordem: resumo → entradas mês a mês → origem → seu ano → valor/hora → projeção.
+
+1. **Resumo anual** (topo verde): total `recebidos e previstos em 2026`, barra fina recebido × a receber e os dois valores (`received_of_expected_cents` somado por mês; sem migration).
+2. **Entradas mês a mês** (`BarChartCard`, sobre o verde): janeiro a dezembro; cada barra é o previsto do mês com a parte **recebida cheia** na base (sálvia). Passado com sobra sem confirmação: topo bronze claro; **mês atual** com contorno bronze; **futuro previsto** só em contorno (ainda não é dinheiro); sem dado, tracejado. Sem rótulos em cima das barras: **tocar escolhe o mês** e o resumo aparece acima (total, recebidos, a receber/aguardando confirmação ou "previstos, ainda por vir"). Abre no mês atual (ou no último com dado, em ano passado). **Média** como linha tracejada (`média 4,9k`), só com base (≥ 2 meses concluídos); sem ela, "Seu histórico começa agora.". Legenda Recebido · A receber · Previsto.
+3. **Origem**: valor e % por origem (Premium; Free com estrutura oculta e selo).
+4. **Seu ano** (aberto no Free): média mensal, melhor mês já vivido (pelo previsto, até o atual), trabalhos e horas do ano (`readYearWork` soma os meses; agora pedido também no Free).
+5. **Valor/hora médio do ano**: número em destaque (ponderado pelas horas), evolução como etiqueta (`+24% no ano`, primeiro × último mês com valor/hora) e, como apoio, "calculado com Xh de trabalhos com duração registrada". Free: `R$ •••/h` com selo; horas abertas.
+6. **Projeção até dezembro** (Premium, ano corrente, com média): valor final em destaque e escrito no ponto de dezembro. Linha cheia = **só o recebido** acumulado até hoje (área verde suave); tracejado bronze soma o previsto até o mês atual ainda não confirmado e, em cada mês que falta, **o maior entre o já previsto e a média dos meses concluídos** — nunca abaixo do que já está marcado. Marca `HOJE` no mês atual; eixo JAN · atual · DEZ sob os pontos.
 
 ## Premium
 

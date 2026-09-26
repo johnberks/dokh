@@ -131,7 +131,7 @@ const MONTH_LABELS = [
   'DEZ',
 ];
 
-/** `5,3k` acima de mil reais; abaixo, o valor inteiro (`850`). */
+/** `5,3k` acima de mil reais; abaixo, o valor inteiro (`850`). Eixos e rótulos curtos. */
 export function compactReais(cents: bigint): string {
   const reais = Number(cents) / 100;
   if (reais < 1000) return String(Math.round(reais));
@@ -140,63 +140,105 @@ export function compactReais(cents: bigint): string {
 
 /** Janeiro a dezembro; mês sem dado fica `null` (traço), nunca zero. */
 export function yearBars(data: FinanceYear, year: number, today: LocalDate): ChartBar[] {
-  const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
+  const byMonth = new Map(data.months.map((item) => [item.month, item]));
   const currentMonth = today.slice(0, 7);
   return MONTH_LABELS.map((label, index) => {
     const month = `${year}-${String(index + 1).padStart(2, '0')}`;
-    const cents = byMonth.get(month);
-    const has = cents !== undefined && cents > 0n;
+    const item = byMonth.get(month);
+    const has = item !== undefined && item.expectedTotalCents > 0n;
     return {
       key: month,
       label,
-      value: has ? Number(cents) : null,
-      valueLabel: has ? compactReais(cents) : undefined,
-      current: month === currentMonth,
+      value: has ? Number(item.expectedTotalCents) : null,
+      filled: has ? Number(item.receivedCents) : 0,
+      state: month < currentMonth ? 'realized' : month === currentMonth ? 'current' : 'future',
     };
   });
 }
 
+/** Mês escolhido no gráfico ao abrir: o atual no ano corrente; senão, o último com dado. */
+export function defaultSelectedMonth(
+  data: FinanceYear,
+  year: number,
+  today: LocalDate,
+): LocalMonth | null {
+  if (Number(today.slice(0, 4)) === year) return today.slice(0, 7);
+  const withData = data.months.filter((item) => item.expectedTotalCents > 0n);
+  return withData.length > 0 ? withData[withData.length - 1].month : null;
+}
+
+/** Melhor mês já vivido do ano (até o atual), pelo previsto do mês. */
+export function bestMonth(
+  data: FinanceYear,
+  today: LocalDate,
+): { month: LocalMonth; amountCents: bigint } | null {
+  const current = today.slice(0, 7);
+  let best: { month: LocalMonth; amountCents: bigint } | null = null;
+  for (const item of data.months) {
+    if (item.month > current || item.expectedTotalCents <= 0n) continue;
+    if (!best || item.expectedTotalCents > best.amountCents) {
+      best = { month: item.month, amountCents: item.expectedTotalCents };
+    }
+  }
+  return best;
+}
+
 export type Projection = {
-  /** Previsto de janeiro até o mês atual (inclusive). */
-  realizedCents: bigint;
-  /** Meses depois do atual, estimados pela média. */
+  /** Recebido de janeiro até hoje (fim da linha cheia). */
+  receivedCents: bigint;
+  /** Previsto até o mês atual que ainda não foi confirmado. */
+  pendingCents: bigint;
+  /** Meses depois do atual. */
   remainingMonths: number;
+  /** Soma dos meses que faltam: o maior entre o já previsto e a média, mês a mês. */
   remainingCents: bigint;
   totalCents: bigint;
   averageCents: bigint;
-  /** Acumulado de janeiro até cada mês, até o atual (linha cheia). */
+  /** Acumulado recebido de janeiro até cada mês, até o atual (linha cheia). */
   cumulative: number[];
-  /** Acumulado do mês atual até dezembro somando a média a cada mês (linha tracejada). */
+  /** Do ponto de hoje a dezembro (linha tracejada); termina no total projetado. */
   projected: number[];
   currentIndex: number;
 };
 
 /**
- * Projeção até dezembro (Premium), acumulada: o total do ano cresce mês a mês com o que está
- * previsto até agora e, dali em diante, com a média mensal — se o ritmo se mantiver, a linha
- * termina no total projetado. Só no ano corrente e com média (≥ 2 meses de histórico).
+ * Projeção até dezembro (Premium), acumulada. A linha cheia soma só o que já foi recebido. O
+ * tracejado parte daí: soma o que está previsto até o mês atual e ainda não entrou e, em cada
+ * mês que falta, o maior entre o que já está previsto e a média dos meses concluídos — a
+ * projeção nunca fica abaixo do que já está marcado. Só no ano corrente e com média (≥ 2 meses).
  */
 export function projectYear(data: FinanceYear, year: number, today: LocalDate): Projection | null {
   if (Number(today.slice(0, 4)) !== year || data.historicalAverageCents === null) return null;
   const currentIndex = Number(today.slice(5, 7)) - 1;
-  const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
+  const byMonth = new Map(data.months.map((item) => [item.month, item]));
+  const monthAt = (index: number) => byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`);
   const cumulative: number[] = [];
-  let realized = 0n;
+  let received = 0n;
+  let pending = 0n;
   for (let index = 0; index <= currentIndex; index++) {
-    realized += byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`) ?? 0n;
-    cumulative.push(Number(realized));
+    const item = monthAt(index);
+    received += item?.receivedCents ?? 0n;
+    pending += (item?.expectedTotalCents ?? 0n) - (item?.receivedCents ?? 0n);
+    cumulative.push(Number(received));
   }
-  const remainingMonths = 11 - currentIndex;
   const average = data.historicalAverageCents;
-  const projected = Array.from({ length: remainingMonths + 1 }, (_, step) =>
-    Number(realized + average * BigInt(step)),
-  );
-  const remaining = average * BigInt(remainingMonths);
+  const remainingMonths = 11 - currentIndex;
+  const projected = [Number(received)];
+  let running = received + pending;
+  let remaining = 0n;
+  for (let index = currentIndex + 1; index <= 11; index++) {
+    const scheduled = monthAt(index)?.expectedTotalCents ?? 0n;
+    const value = scheduled > average ? scheduled : average;
+    remaining += value;
+    running += value;
+    projected.push(Number(running));
+  }
   return {
-    realizedCents: realized,
+    receivedCents: received,
+    pendingCents: pending,
     remainingMonths,
     remainingCents: remaining,
-    totalCents: realized + remaining,
+    totalCents: received + pending + remaining,
     averageCents: average,
     cumulative,
     projected,

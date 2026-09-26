@@ -37,19 +37,27 @@ describe('valor/hora do ano', () => {
       }),
     );
     // (148·10h + 176·30h) / 40h = 169
-    expect(result).toEqual({ hourlyValueCents: 16900n, hourlyEvolutionPercent: 19 });
+    expect(result).toMatchObject({
+      hourlyValueCents: 16900n,
+      hourlyEvolutionPercent: 19,
+      workDurationMinutes: 2400,
+      hourlyMinutes: 2400,
+    });
   });
 
   it('Free (sem valor/hora do servidor) ou um mês só: sem número e sem tendência', async () => {
     expect(
       await readYearWork(['2026-09'], client({ '2026-09': { hourly: null, minutes: 600 } })),
-    ).toEqual({
+    ).toMatchObject({
       hourlyValueCents: null,
       hourlyEvolutionPercent: null,
+      // Horas continuam abertas no Free.
+      workDurationMinutes: 600,
+      hourlyMinutes: 0,
     });
     expect(
       await readYearWork(['2026-09'], client({ '2026-09': { hourly: 17600, minutes: 600 } })),
-    ).toEqual({ hourlyValueCents: 17600n, hourlyEvolutionPercent: null });
+    ).toMatchObject({ hourlyValueCents: 17600n, hourlyEvolutionPercent: null });
   });
 });
 
