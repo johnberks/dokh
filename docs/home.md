@@ -14,7 +14,7 @@ Fontes: `design/home.html` (Home 01–06), `docs/screens/home.md`. Aplica os aju
 - Marca DOKH + avatar (inicial do primeiro nome, abre Perfil); saudação "Seu setembro, Anna." com a troca de mês (`‹ SET 2026 ›`).
 - As visões viram **cards de vidro escuro** (verde translúcido, borda sálvia, raio 22, altura mínima 190) num `ScrollView` horizontal com snap: o card do mês ocupa a tela menos 66 pt, então o **histórico aparece na borda direita** ("peek"). Arrasta; tocar no card ou nos pontos leva a ele. Pontos: ativo largo (22) em bronze.
 - Card do mês: `PARA RECEBER · SETEMBRO` (ou `RECEBIDO · AGOSTO`), valor, **olho** que oculta os valores (`R$ ••••`, também no histórico e na comparação; só na sessão), "N entradas previstas" e a comparação com o mês anterior só com base real.
-- Card do histórico (`HISTÓRICO · 4 MESES →`) só quando o mês e pelo menos um anterior têm entrada; meses sem dado não viram barra zerada. Sem histórico, só o card do mês, na largura toda e sem pontos.
+- Card do histórico (`HISTÓRICO · 4 MESES`, sem seta — retirada a pedido do usuário) só quando o mês e pelo menos um anterior têm entrada; meses sem dado não viram barra zerada. Sem histórico, só o card do mês, na largura toda e sem pontos.
 - Mês sem entrada: o card do mês traz "Nenhuma entrada prevista ainda." + `Adicionar trabalho` (nunca `R$ 0,00`).
 - O `HeroCarousel` de página inteira (2.7) não é mais usado na Início.
 

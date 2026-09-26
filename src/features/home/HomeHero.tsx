@@ -1,5 +1,4 @@
 import { StatusBar } from 'expo-status-bar';
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useRef, useState } from 'react';
@@ -204,12 +203,9 @@ export function HomeHeroCards({
       style={[styles.card, styles.historyCard, { width: cardWidth }]}
       testID="home-hero-history"
     >
-      <View style={styles.historyHead}>
-        <AppText variant="technical" numberOfLines={1} style={styles.cardEyebrow}>
-          {t('hero.historyEyebrow', { count: history.length })}
-        </AppText>
-        <ArrowRight color={palette.bronze} size={15} strokeWidth={1.8} />
-      </View>
+      <AppText variant="technical" numberOfLines={1} style={styles.cardEyebrow}>
+        {t('hero.historyEyebrow', { count: history.length })}
+      </AppText>
       <View style={styles.historyChart}>
         {history.map((bar) => {
           const max = Math.max(...history.map((item) => Number(item.expectedTotalCents)));
@@ -448,7 +444,6 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   comparisonText: { flexShrink: 1, fontSize: 13, lineHeight: 18, color: palette.secondaryText },
-  historyHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   historyChart: {
     height: 96,
     flexDirection: 'row',
