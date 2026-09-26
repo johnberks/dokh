@@ -1,5 +1,5 @@
 import type { AuthClient } from '@/features/auth/session';
-import { readYearWork } from './finance-data';
+import { readHourlyHistory, readMonthEntries, readYearWork } from './finance-data';
 
 function client(rows: Record<string, { hourly: number | null; minutes: number }>) {
   return {
@@ -50,5 +50,130 @@ describe('valor/hora do ano', () => {
     expect(
       await readYearWork(['2026-09'], client({ '2026-09': { hourly: 17600, minutes: 600 } })),
     ).toEqual({ hourlyValueCents: 17600n, hourlyEvolutionPercent: null });
+  });
+});
+
+/** Cliente mínimo encadeável: grava os filtros e devolve as linhas da tabela pedida. */
+function tableClient(tables: Record<string, unknown[]>, calls: string[] = []) {
+  return {
+    from: (table: string) => {
+      const builder = {
+        select: () => builder,
+        gte: (column: string, value: string) => {
+          calls.push(`gte ${column} ${value}`);
+          return builder;
+        },
+        lt: (column: string, value: string) => {
+          calls.push(`lt ${column} ${value}`);
+          return builder;
+        },
+        is: (column: string) => {
+          calls.push(`is ${column}`);
+          return builder;
+        },
+        in: (column: string, values: string[]) => {
+          calls.push(`in ${column} ${values.join(',')}`);
+          return builder;
+        },
+        order: () => builder,
+        // biome-ignore lint/suspicious/noThenProperty: imita o builder "thenable" do supabase-js.
+        then: (resolve: (value: unknown) => void) =>
+          resolve({ data: tables[table] ?? [], error: null }),
+      };
+      return builder;
+    },
+  } as unknown as AuthClient;
+}
+
+describe('entradas do mês', () => {
+  it('mesmo recorte do total (data prevista no mês, sem invalidados nem excluídos) com o Local', async () => {
+    const calls: string[] = [];
+    const result = await readMonthEntries(
+      '2026-09',
+      tableClient(
+        {
+          receivable_projection: [
+            {
+              receivable_id: 'r1',
+              work_entry_id: null,
+              origin: 'residency',
+              amount_cents: 410609,
+              expected_on: '2026-09-05',
+              receipt_status: 'received',
+            },
+            {
+              receivable_id: 'r2',
+              work_entry_id: 'w2',
+              origin: 'shift',
+              amount_cents: 140000,
+              expected_on: '2026-09-12',
+              receipt_status: 'confirmation_pending',
+            },
+            // Um status fora da lista (sem data/invalidado) nunca aparece.
+            {
+              receivable_id: 'r3',
+              work_entry_id: 'w3',
+              origin: 'shift',
+              amount_cents: 1,
+              expected_on: '2026-09-13',
+              receipt_status: 'undated',
+            },
+          ],
+          agenda_work_projection: [
+            { work_entry_id: 'w2', location_name: 'Hospital São Camilo' },
+            { work_entry_id: 'w3', location_name: 'Outro' },
+          ],
+        },
+        calls,
+      ),
+    );
+    expect(calls).toEqual(
+      expect.arrayContaining([
+        'gte expected_on 2026-09-01',
+        'lt expected_on 2026-10-01',
+        'is invalidated_at',
+        'is work_deleted_at',
+        'in work_entry_id w2',
+      ]),
+    );
+    expect(result).toEqual([
+      {
+        receivableId: 'r1',
+        workId: null,
+        origin: 'residency',
+        locationName: null,
+        amountCents: 410609n,
+        expectedOn: '2026-09-05',
+        status: 'received',
+      },
+      {
+        receivableId: 'r2',
+        workId: 'w2',
+        origin: 'shift',
+        locationName: 'Hospital São Camilo',
+        amountCents: 140000n,
+        expectedOn: '2026-09-12',
+        status: 'confirmation_pending',
+      },
+    ]);
+  });
+});
+
+describe('histórico de valor/hora', () => {
+  it('lê os seis meses até o escolhido, do mais antigo ao atual', async () => {
+    const result = await readHourlyHistory(
+      '2026-02',
+      6,
+      client({ '2026-02': { hourly: 17600, minutes: 60 } }),
+    );
+    expect(result.map((item) => item.month)).toEqual([
+      '2025-09',
+      '2025-10',
+      '2025-11',
+      '2025-12',
+      '2026-01',
+      '2026-02',
+    ]);
+    expect(result[5].hourlyValueCents).toBe(17600n);
   });
 });

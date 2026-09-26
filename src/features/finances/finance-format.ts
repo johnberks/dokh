@@ -280,3 +280,67 @@ export function hourlyInsight(window: readonly HourlyMonth[]): HourlyInsight | n
     fewerWorks: direction === 'up' && current.workCount < previousWorks,
   };
 }
+
+export type HourlyEvolution = {
+  bars: InsightBar[];
+  /** Primeiro mês com valor/hora na janela. */
+  firstMonth: LocalMonth;
+  /** Primeiro × último mês com valor/hora; `null` com um mês só. */
+  percent: number | null;
+  direction: 'up' | 'down' | 'stable' | null;
+  /** Os dois maiores, em ordem cronológica; só com quatro meses ou mais. */
+  bestTwo: [LocalMonth, LocalMonth] | null;
+  /** O mês escolhido é o maior da janela (com pelo menos três meses). */
+  currentIsBest: boolean;
+};
+
+/**
+ * Evolução do valor/hora (Finanças 02): só meses com valor/hora real entram — mês sem horas
+ * não vira zero. Comparações só aparecem quando há base para elas.
+ */
+export function hourlyEvolution(
+  history: readonly HourlyMonth[],
+  month: LocalMonth,
+): HourlyEvolution | null {
+  const points = history.filter(
+    (item): item is HourlyMonth & { hourlyValueCents: bigint } =>
+      item.hourlyValueCents !== null && item.hourlyValueCents > 0n,
+  );
+  if (points.length === 0) return null;
+  const first = points[0];
+  const last = points[points.length - 1];
+  const percent =
+    points.length >= 2
+      ? Math.round(
+          (Number(last.hourlyValueCents - first.hourlyValueCents) /
+            Number(first.hourlyValueCents)) *
+            100,
+        )
+      : null;
+  const direction =
+    percent === null ? null : percent >= 3 ? 'up' : percent <= -3 ? 'down' : 'stable';
+  const ranked = [...points].sort((a, b) =>
+    a.hourlyValueCents > b.hourlyValueCents ? -1 : a.hourlyValueCents < b.hourlyValueCents ? 1 : 0,
+  );
+  const bestTwo =
+    points.length >= 4
+      ? ([ranked[0].month, ranked[1].month].sort() as [LocalMonth, LocalMonth])
+      : null;
+  const current = points.find((item) => item.month === month);
+  const currentIsBest =
+    points.length >= 3 &&
+    current !== undefined &&
+    points.every((item) => item === current || item.hourlyValueCents < current.hourlyValueCents);
+  return {
+    bars: points.map((item) => ({
+      month: item.month,
+      hourlyCents: Number(item.hourlyValueCents),
+      current: item.month === month,
+    })),
+    firstMonth: first.month,
+    percent,
+    direction,
+    bestTwo,
+    currentIsBest,
+  };
+}

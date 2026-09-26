@@ -309,6 +309,71 @@ try {
   );
   assert.deepEqual(premiumEntitlement, [{ is_active: true, expires_at: null }]);
 
+  // Entradas (Finanças 05–10): mesma consulta do app e confirmação explícita pelo servidor.
+  const toConfirm = success(
+    await call('/rest/v1/rpc/create_work_with_receivable', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_idempotency_key: randomUUID(),
+        p_type: 'appointment',
+        p_location_id: location.id,
+        p_description: null,
+        p_work_date: '2026-11-02',
+        p_start_time: null,
+        p_duration_minutes: null,
+        p_timezone: 'America/Sao_Paulo',
+        p_amount_cents: 85000,
+        p_expected_on: '2026-11-05',
+      },
+    }),
+    'owner creates a work paid in November',
+  )[0];
+  const entriesQuery =
+    '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on,receipt_status&expected_on=gte.2026-11-01&expected_on=lt.2026-12-01&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&order=receivable_id.asc';
+  const entries = success(await call(entriesQuery, { token: owner.token }), 'owner reads entries');
+  assert.deepEqual(
+    entries.map((row) => [row.receivable_id, row.expected_on, row.receipt_status]),
+    [[toConfirm.receivable_id, '2026-11-05', 'scheduled']],
+  );
+  const entryNames = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id,location_name&work_entry_id=in.(${toConfirm.work_id})`,
+      { token: owner.token },
+    ),
+    'owner reads entry location names',
+  );
+  assert.equal(entryNames[0].location_name, 'Hospital São Lucas');
+  const foreignConfirm = await call('/rest/v1/rpc/confirm_receivable_received', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_receivable_id: toConfirm.receivable_id },
+  });
+  assert.ok(!foreignConfirm.response.ok, 'stranger cannot confirm another user entry');
+  success(
+    await call('/rest/v1/rpc/confirm_receivable_received', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_receivable_id: toConfirm.receivable_id },
+    }),
+    'owner confirms entry received',
+  );
+  const entriesAfter = success(
+    await call(entriesQuery, { token: owner.token }),
+    'owner reads confirmed entries',
+  );
+  assert.equal(entriesAfter[0].receipt_status, 'received');
+  const novemberAfter = success(
+    await call('/rest/v1/rpc/finance_month_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-11-01' },
+    }),
+    'owner reads November after confirming',
+  )[0];
+  assert.equal(Number(novemberAfter.received_of_expected_cents), 85000, 'summary reflects receipt');
+  assert.equal(Number(novemberAfter.awaiting_of_expected_cents), 0);
+
   // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
   const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {
     method: 'POST',
@@ -424,7 +489,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

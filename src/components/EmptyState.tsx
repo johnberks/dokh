@@ -327,7 +327,8 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.75 },
   action: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   actionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  actionText: { fontSize: 16, lineHeight: 20 },
+  // heading1 traz letterSpacing -1.02, que gruda as letras em rótulos de 14–16.
+  actionText: { fontSize: 16, lineHeight: 20, letterSpacing: 0 },
   compactActionText: { fontSize: 14, lineHeight: 18 },
   smallActionText: { fontSize: 15, lineHeight: 20 },
   darkActionText: { color: colors.darkTextPrimary },

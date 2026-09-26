@@ -102,6 +102,15 @@ describe('Finanças — mês', () => {
     expect(screen.getByText('hoje')).toBeTruthy();
     // Sem pendência, nenhum card de revisão.
     expect(screen.queryByTestId('finances-review')).toBeNull();
+    // A próxima entrada leva ao extrato do mês.
+    expect(screen.getByText('Ver entradas')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-next'));
+    });
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/finances/entries',
+      params: { month: current },
+    });
   });
 
   it('Free: origem e valor/hora ocultos com selo Premium, sem números inventados', async () => {
@@ -137,8 +146,14 @@ describe('Finanças — mês', () => {
     await renderWithProviders(<FinancesScreen />);
     expect(screen.getByText('100% recebido · nada em aberto')).toBeTruthy();
     expect(screen.getByTestId('finances-no-next')).toBeTruthy();
-    // O atalho do extrato só aparece quando o extrato existir.
-    expect(screen.queryByTestId('finances-no-next-action')).toBeNull();
+    // Com entradas no mês, o atalho abre o extrato do mês.
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-no-next-action'));
+    });
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/finances/entries',
+      params: { month: expect.any(String) },
+    });
   });
 
   it('mês passado fechado mostra o que entrou', async () => {
@@ -311,6 +326,13 @@ describe('Finanças — valor/hora e insight', () => {
       /^R\$\s?176 por hora em setembro — R\$\s?21 acima da média de julho e agosto\. Menos trabalhos, valor maior\.$/,
     );
     expect(screen.queryByTestId('finances-insight-premium')).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-insight-analysis'));
+    });
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/finances/hourly',
+      params: { month: current },
+    });
   });
 
   it('Free: conclusão visível, números ocultos e selo', async () => {
@@ -328,6 +350,8 @@ describe('Finanças — valor/hora e insight', () => {
     expect(screen.getByTestId('finances-insight-text').props.children).toMatch(
       /Descubra quanto\.$/,
     );
+    // Análise completa é 100% Premium: sem link no Free até o fluxo de benefícios (5.5).
+    expect(screen.queryByTestId('finances-insight-analysis')).toBeNull();
   });
 
   it('sem mês anterior com valor/hora não há insight', async () => {
