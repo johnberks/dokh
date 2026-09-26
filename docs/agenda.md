@@ -4,9 +4,9 @@ Agenda 01–05 e 15 de `design/agenda.html`; regras de `docs/screens/agenda.md`.
 
 ## Mês (8.1) — `src/features/agenda/AgendaScreen.tsx`
 
-- Topo escuro (`SUA AGENDA`, mês/ano com navegação e `+`) sobre o corpo creme, num único scroll (`TwoToneScrollScreen`).
-- `CalendarGrid` com hoje em contorno bronze, dia selecionado em verde, dias passados em cinza-verde e **um ponto por Trabalho na cor do Local** (até 3 por célula). O calendário começa no domingo, como no design; início de semana configurável depende das preferências (Perfil).
-- Seleção inicial: hoje no mês atual; em outro mês, o dia 1; voltar ao mês atual volta a hoje.
+- Topo escuro (`HOJE · 25 SET`, `Sua agenda` e `+`) e corpo creme num único scroll (`TwoToneScrollScreen`). Puxar a tela para baixo mantém o topo escuro (faixa escura acima do conteúdo, no próprio `TwoToneScrollScreen` — vale também para Início e Finanças).
+- **Calendário em card** (`src/components/CalendarCard.tsx`), a pedido do usuário (2026-09-25, referência visual externa aplicada só ao calendário, com cores DOKH): card claro sobre a divisa do topo escuro com o corpo, cabeçalho com mês (ano em sálvia), atalho para hoje e setas; dias da semana em três letras com sábado e domingo em bronze; dias em quadrados arredondados — hoje com contorno bronze, seleção verde-escura, passados em cinza-verde — e **um ponto por Trabalho na cor do Local** (até 3). Seis semanas fixas, com os dias dos meses vizinhos esmaecidos; tocar num deles leva ao mês dele. A semana começa na segunda, como na referência aprovada.
+- Seleção inicial: hoje no mês atual; em outro mês, o dia 1; voltar ao mês atual (ou tocar no atalho de hoje) volta a hoje.
 - Dados: `listAgendaMonth` lê `agenda_work_projection` (view `security_invoker`, RLS do dono) do dia 1 ao último do mês, em ordem de dia, horário (sem horário por último) e criação. Chave `agenda/<user>/<mês>`, invalidada por qualquer escrita de Trabalho.
 
 ## Dia (8.2)
@@ -18,8 +18,11 @@ Agenda 01–05 e 15 de `design/agenda.html`; regras de `docs/screens/agenda.md`.
 - Dia sem Trabalho: `EmptyState agendaDay` com `Adicionar trabalho`, o mesmo fluxo do `+`. Falha de leitura mostra `LoadError` com nova tentativa, nunca "dia livre".
 - Tocar num card abre o detalhe.
 
-## Detalhe em leitura (parte da 6.7/8.4) — `WorkDetailScreen.tsx`, rota `/work/[id]`
+## Detalhe e exclusão (parte da 6.7/8.4) — `WorkDetailScreen.tsx`, rota `/work/[id]`
 
-Data por extenso, local, início → término (com "do dia seguinte" quando cruza a meia-noite), tipo e duração, valor, previsão e status (ponto + texto, sem badge). Sem horário, a linha de horário não existe; sem previsão, `Sem previsão`.
+- Topo escuro com etiqueta do tipo (`PLANTÃO`, com o ponto na cor do Local), data por extenso e local (até duas linhas).
+- Horário em **blocos** lado a lado — `INÍCIO`, `TÉRMINO` (com `+1 dia · 29 SET` quando cruza a meia-noite) e `DURAÇÃO` — que reduzem a fonte em vez de estourar a tela (pedido do usuário após o caso UBS Xpto de 28/09). Sem horário, os blocos de início e término não existem; sem duração, o de duração também não.
+- Card com valor, previsão e status (ponto + texto, sem badge).
+- **Excluir** abre uma folha de confirmação (P05 resolvida para Trabalho pelo usuário em 2026-09-25): "O trabalho em {local} no dia {data} sai da sua Agenda e o valor de {valor} deixa de aparecer em Finanças. Essa ação não pode ser desfeita." — `Excluir trabalho` (terracota) e `Cancelar`. A exclusão usa a RPC atômica (`delete_work_with_receivable`) com chave de idempotência por tentativa e invalida Agenda, Início e Finanças; ao concluir, volta para a Agenda. O teste real (`scripts/test-location-rpcs-6.1.mjs`) confirma que o Trabalho some da Agenda e de `finance_month_projection`.
 
-**Ainda não entram**: `Editar trabalho` e `Excluir` (próxima PR, 6.7/8.4 — a confirmação de exclusão depende de P05), o menu `···` e o bloco de recorrência (8.5).
+**Ainda não entram**: `Editar trabalho` (próxima PR, 6.7/8.4), o menu `···` e o bloco de recorrência (8.5).

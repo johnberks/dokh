@@ -1,4 +1,5 @@
 import {
+  buildFullMonthGrid,
   buildMonthGrid,
   compareLocalDates,
   differenceInLocalDays,
@@ -92,5 +93,23 @@ describe('diferença entre datas locais', () => {
     expect(differenceInLocalDays('2027-01-10', '2026-12-11')).toBe(30);
     expect(differenceInLocalDays('2026-09-12', '2026-09-12')).toBe(0);
     expect(differenceInLocalDays('2026-09-11', '2026-09-12')).toBe(-1);
+  });
+});
+
+describe('grade completa de seis semanas', () => {
+  it('preenche com os meses vizinhos e mantém 42 dias', () => {
+    // Setembro/2026 começa numa terça; com início na segunda, abre em 31/08.
+    const weeks = buildFullMonthGrid('2026-09', 1);
+    expect(weeks).toHaveLength(6);
+    expect(weeks.flat()).toHaveLength(42);
+    expect(weeks[0][0]).toMatchObject({ date: '2026-08-31', day: 31, inMonth: false });
+    expect(weeks[0][1]).toMatchObject({ date: '2026-09-01', inMonth: true });
+    expect(weeks[5][6]).toMatchObject({ date: '2026-10-11', inMonth: false });
+  });
+
+  it('atravessa a virada de ano', () => {
+    const weeks = buildFullMonthGrid('2027-01', 0);
+    expect(weeks[0][0].date).toBe('2026-12-27');
+    expect(weeks[0][5]).toMatchObject({ date: '2027-01-01', inMonth: true });
   });
 });

@@ -24,6 +24,22 @@ export const components = {
       menu: 'Registre um período de atendimentos em consultório ou clínica.',
     },
   },
+  /** Calendário em card (Agenda): cabeçalho com mês, hoje e navegação. */
+  calendarCard: {
+    goToToday: 'Ir para hoje',
+    previousMonth: 'Mês anterior',
+    nextMonth: 'Próximo mês',
+    otherMonth: 'outro mês',
+    weekdayShort: {
+      '0': 'DOM',
+      '1': 'SEG',
+      '2': 'TER',
+      '3': 'QUA',
+      '4': 'QUI',
+      '5': 'SEX',
+      '6': 'SÁB',
+    },
+  },
   calendar: {
     // Cabeçalho de Agenda 01/08: iniciais em pt-BR, ordem definida pelo início da semana.
     weekdayNarrow: {

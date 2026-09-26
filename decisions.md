@@ -171,6 +171,6 @@ Status:
 | P02 | Fixtures/exportações reais do Plantãozinho e política de duplicatas. | Parser de produção. |
 | P03 | UX de recorrência customizada e edição de série versus ocorrência. | Esses dois comportamentos Premium. |
 | P04 | Retenção, textos legais, URLs e política de privacidade. | Release nas lojas. |
-| P05 | Copy e interação de confirmações destrutivas ainda ausentes nos designs. | Exclusão de Trabalho, Local e Conta em produção. |
+| P05 | Copy e interação de confirmações destrutivas ainda ausentes nos designs. **Trabalho resolvido pelo usuário em 2026-09-25**: folha de confirmação que diz que o Trabalho sai da Agenda e o valor deixa de aparecer em Finanças, com `Excluir trabalho` e `Cancelar` (`docs/agenda.md`). | Exclusão de Local e Conta em produção. |
 
 As demais partes do projeto podem avançar sem escolher respostas para essas pendências.

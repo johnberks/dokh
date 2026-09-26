@@ -203,6 +203,43 @@ try {
   });
   assert.ok(!foreign.response.ok, 'foreign account must not archive location');
 
+  // Excluir (Agenda 15): mesma chamada do app; some da Agenda e das projeções de Finanças.
+  const foreignDelete = await call('/rest/v1/rpc/delete_work_with_receivable', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_work_entry_id: work.work_id, p_idempotency_key: randomUUID() },
+  });
+  assert.ok(!foreignDelete.response.ok, 'foreign account must not delete work');
+  success(
+    await call('/rest/v1/rpc/delete_work_with_receivable', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_work_entry_id: work.work_id, p_idempotency_key: randomUUID() },
+    }),
+    'owner deletes work',
+  );
+  const afterDelete = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_entry_id&work_date=gte.2026-09-01&work_date=lt.2026-10-01',
+      { token: owner.token },
+    ),
+    'owner reads agenda after delete',
+  );
+  assert.equal(afterDelete.length, 0, 'deleted work must leave the agenda');
+  const financeAfterDelete = success(
+    await call('/rest/v1/rpc/finance_month_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-10-01' },
+    }),
+    'owner reads finances after delete',
+  );
+  assert.equal(
+    Number(financeAfterDelete[0].expected_total_cents),
+    0,
+    'deleted work must leave finances',
+  );
+
   success(
     await call('/rest/v1/rpc/update_work_location', {
       method: 'POST',
@@ -226,7 +263,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

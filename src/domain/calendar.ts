@@ -59,6 +59,41 @@ export function buildMonthGrid(month: LocalMonth, weekStartsOn: WeekStart): Cale
   return weeks;
 }
 
+export type FullCalendarCell = {
+  date: LocalDate;
+  day: number;
+  weekday: number;
+  /** `false` para os dias do mês anterior/seguinte que completam as semanas. */
+  inMonth: boolean;
+};
+
+/**
+ * Seis semanas completas (42 dias), com os dias do mês anterior e do seguinte preenchendo
+ * as pontas — a grade não muda de altura ao trocar de mês.
+ */
+export function buildFullMonthGrid(
+  month: LocalMonth,
+  weekStartsOn: WeekStart,
+): FullCalendarCell[][] {
+  const first = parseStrict(month, MONTH_FORMAT);
+  if (!first) throw new RangeError(`Mês inválido: ${month}`);
+  const leading = (first.getDay() - weekStartsOn + 7) % 7;
+  const start = addDays(first, -leading);
+  const cells: FullCalendarCell[] = Array.from({ length: 42 }, (_, offset) => {
+    const date = addDays(start, offset);
+    const local = format(date, DATE_FORMAT);
+    return {
+      date: local,
+      day: date.getDate(),
+      weekday: date.getDay(),
+      inMonth: local.startsWith(month),
+    };
+  });
+  const weeks: FullCalendarCell[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
 /** Ordem dos dias da semana (0 = Domingo) para o cabeçalho. */
 export function weekdayOrder(weekStartsOn: WeekStart): number[] {
   return Array.from({ length: 7 }, (_, i) => (i + weekStartsOn) % 7);

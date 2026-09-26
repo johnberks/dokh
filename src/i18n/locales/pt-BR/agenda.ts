@@ -1,9 +1,6 @@
 export const agenda = {
   title: 'Sua agenda',
   /** Agenda 01–05. */
-  eyebrow: 'SUA AGENDA',
-  previousMonth: 'Mês anterior',
-  nextMonth: 'Próximo mês',
   day: {
     today: 'HOJE · {{date}}',
     free: 'Dia livre',
@@ -27,7 +24,16 @@ export const agenda = {
   detail: {
     eyebrow: 'DETALHES DO TRABALHO',
     back: 'Voltar',
-    nextDay: 'do dia seguinte',
+    start: 'INÍCIO',
+    end: 'TÉRMINO',
+    endNextDay: '+1 dia · {{date}}',
+    duration: 'DURAÇÃO',
+    delete: 'Excluir',
+    confirmTitle: 'Excluir este trabalho?',
+    confirmText:
+      'O trabalho em {{place}} no dia {{date}} sai da sua Agenda e o valor de {{amount}} deixa de aparecer em Finanças. Essa ação não pode ser desfeita.',
+    confirmDelete: 'Excluir trabalho',
+    cancel: 'Cancelar',
     amount: 'Você recebe',
     expected: 'Previsto para entrar',
     noExpected: 'Sem previsão',

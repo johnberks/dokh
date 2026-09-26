@@ -64,11 +64,11 @@ describe('rotas', () => {
     15_000,
   );
 
-  it('resolve deep link /agenda na Agenda real (rótulo SUA AGENDA e mês como título)', async () => {
+  it('resolve deep link /agenda na Agenda real (título e calendário em card)', async () => {
     await openAt('/agenda');
     expect(screen.getByTestId('agenda-screen')).toBeTruthy();
-    expect(screen.getByText('SUA AGENDA')).toBeTruthy();
-    expect(screen.getByTestId('agenda-month')).toBeTruthy();
+    expect(screen.getByText('Sua agenda')).toBeTruthy();
+    expect(screen.getByTestId('agenda-calendar')).toBeTruthy();
   });
 
   it('ação central abre o fluxo de criação sem virar tab', async () => {

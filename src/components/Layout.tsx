@@ -86,6 +86,8 @@ export function TwoToneScrollScreen({
         keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
         testID={props.testID ?? 'two-tone-scroll'}
       >
+        {/* Ao puxar a tela para baixo (bounce do iOS), o topo continua escuro, nunca creme. */}
+        <View pointerEvents="none" style={styles.twoToneBleed} testID="two-tone-bleed" />
         <View
           testID="two-tone-hero"
           style={[styles.twoToneHero, { paddingTop: insets.top }, heroStyle]}
@@ -116,6 +118,14 @@ const styles = StyleSheet.create({
   twoToneScreen: { flex: 1, backgroundColor: colors.background },
   twoToneContent: { flexGrow: 1 },
   twoToneHero: { backgroundColor: colors.darkBackground },
+  twoToneBleed: {
+    position: 'absolute',
+    top: -1000,
+    left: 0,
+    right: 0,
+    height: 1000,
+    backgroundColor: colors.darkBackground,
+  },
   twoToneBody: {
     flexGrow: 1,
     backgroundColor: colors.background,
