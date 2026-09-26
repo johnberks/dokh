@@ -20,7 +20,12 @@ export type EmptyStateProps =
         | 'profileResidency';
     })
   | (CommonProps & { variant: 'entriesMonth'; periodLabel: string })
-  | (PrimaryProps & { variant: 'financesNextEntry'; description: string })
+  // `onPrimaryPress` opcional: o atalho para o extrato só aparece quando o extrato existe.
+  | (CommonProps & {
+      variant: 'financesNextEntry';
+      description: string;
+      onPrimaryPress?: () => void;
+    })
   | (PrimaryProps & { variant: 'profileImportNoData'; onSecondaryPress: () => void });
 
 type ActionAppearance = 'dark' | 'darkSmall' | 'darkCompact' | 'outline' | 'bronzeLink' | 'quiet';
@@ -233,13 +238,15 @@ export function EmptyState(props: EmptyStateProps) {
           </View>
           <AppText style={styles.nextEntryDescription}>{props.description}</AppText>
         </View>
-        <EmptyAction
-          label={t('finances:empty.seeStatement')}
-          onPress={props.onPrimaryPress}
-          appearance="darkSmall"
-          glyph="arrow"
-          testID={props.testID ? `${props.testID}-action` : undefined}
-        />
+        {props.onPrimaryPress ? (
+          <EmptyAction
+            label={t('finances:empty.seeStatement')}
+            onPress={props.onPrimaryPress}
+            appearance="darkSmall"
+            glyph="arrow"
+            testID={props.testID ? `${props.testID}-action` : undefined}
+          />
+        ) : null}
       </View>
     );
   }

@@ -425,7 +425,8 @@ const styles = StyleSheet.create({
   },
   detailedActionRow: { minHeight: 62 },
   attentionActionRow: { minHeight: 60, borderTopColor: colors.reviewAttentionDivider },
-  actionLabel: { flex: 1, fontSize: 15, lineHeight: 19 },
+  // Espaçamento neutro: o do título (-1) grudava as palavras de "Adicionar datas".
+  actionLabel: { flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: 0.15 },
   actionCircle: {
     borderRadius: 999,
     backgroundColor: colors.darkBackground,
