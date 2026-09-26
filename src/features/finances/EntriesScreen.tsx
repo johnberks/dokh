@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import GraduationCap from 'lucide-react-native/icons/graduation-cap';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -9,6 +10,7 @@ import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
 import { ReceivableRow } from '@/components/ReceivableRow';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
+import { WorkTypeIcon, workTypeTone } from '@/components/WorkTypeIcon';
 import { formatDayMonth, type LocalMonth, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
@@ -19,6 +21,7 @@ import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { FinanceSubHero } from './FinanceSubHero';
 import {
+  type EntryOrigin,
   type FinanceMonth,
   type MonthEntry,
   useFinanceMonth,
@@ -66,17 +69,28 @@ export function EntriesScreen({ initialMonth }: { initialMonth: LocalMonth }) {
   }
 
   const hero = (
-    <FinanceSubHero title={t('entries.title')} overlap={hasItems ? OVERLAP : 0} testID="entries">
-      <PeriodSwitcher
-        title={name}
-        secondary={month.slice(0, 4)}
-        previousLabel={t('previousMonth')}
-        nextLabel={t('nextMonth')}
-        onPrevious={() => setMonth(shiftMonth(month, -1))}
-        onNext={() => setMonth(shiftMonth(month, 1))}
-        testID="entries-month"
-      />
-    </FinanceSubHero>
+    <FinanceSubHero
+      overlap={hasItems ? OVERLAP : 0}
+      testID="entries"
+      center={
+        <View style={styles.heroCenter}>
+          <AppText variant="technical" accessibilityRole="header" style={styles.heroEyebrow}>
+            {t('entries.title').toUpperCase()}
+          </AppText>
+          <PeriodSwitcher
+            size="compact"
+            title={name}
+            secondary={month.slice(0, 4)}
+            previousLabel={t('previousMonth')}
+            nextLabel={t('nextMonth')}
+            onPrevious={() => setMonth(shiftMonth(month, -1))}
+            onNext={() => setMonth(shiftMonth(month, 1))}
+            style={styles.switcher}
+            testID="entries-month"
+          />
+        </View>
+      }
+    />
   );
 
   return (
@@ -123,25 +137,23 @@ export function EntriesScreen({ initialMonth }: { initialMonth: LocalMonth }) {
           <View testID="entries-list">
             {items.map((entry) => {
               const [day, mon] = formatDayMonth(entry.expectedOn).split(' ');
+              const workId = entry.workId;
               const common = {
                 day,
                 month: mon,
                 origin: entry.locationName ?? t('next.residency'),
                 value: money(entry.amountCents),
-                // A Residência não tem detalhe de Trabalho; o toque não leva a lugar nenhum.
-                disabled: entry.workId === null,
-                onPress: () => {
-                  if (entry.workId) {
-                    router.push({ pathname: '/work/[id]', params: { id: entry.workId } });
-                  }
-                },
+                icon: <OriginTile origin={entry.origin} />,
+                // A Residência não tem detalhe de Trabalho: sem toque e sem seta.
+                onPress: workId
+                  ? () => router.push({ pathname: '/work/[id]', params: { id: workId } })
+                  : undefined,
                 testID: `entries-row-${entry.receivableId}`,
               };
               return entry.status === 'confirmation_pending' ? (
                 <ReceivableRow
                   key={entry.receivableId}
                   {...common}
-                  disabled={false}
                   status="confirmation_pending"
                   confirming={confirmingId === entry.receivableId}
                   onConfirm={() => onConfirm(entry)}
@@ -154,6 +166,27 @@ export function EntriesScreen({ initialMonth }: { initialMonth: LocalMonth }) {
         </View>
       )}
     </TwoToneScrollScreen>
+  );
+}
+
+/** Ícone do tipo em quadradinho com o tom do seletor de tipo; Residência em sálvia. */
+function OriginTile({ origin }: { origin: EntryOrigin }) {
+  return (
+    <View
+      style={[
+        styles.tile,
+        {
+          backgroundColor:
+            origin === 'residency' ? colors.workTypeShiftTile : workTypeTone[origin].tile,
+        },
+      ]}
+    >
+      {origin === 'residency' ? (
+        <GraduationCap color={palette.workSage} size={16} strokeWidth={1.8} />
+      ) : (
+        <WorkTypeIcon type={origin} size={16} />
+      )}
+    </View>
   );
 }
 
@@ -230,6 +263,10 @@ const styles = StyleSheet.create({
   sections: { gap: 26 },
   overlap: { marginTop: -(OVERLAP + 18) },
   error: { fontSize: 13, lineHeight: 18, color: palette.bronzeDeep },
+  heroCenter: { alignItems: 'center', gap: 2 },
+  heroEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  switcher: { marginLeft: 0 },
+  tile: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   futureCard: {
     backgroundColor: '#F8F6EF',
     borderRadius: 28,

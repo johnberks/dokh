@@ -43,7 +43,8 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 ## Entradas (9.3) — `EntriesScreen.tsx`, rota `/finances/entries?month=`
 
 - Aberta por `Ver entradas` (card da próxima entrada, inteiro tocável) e `Ver extrato do mês` (sem próxima entrada, só quando o mês tem entradas). Voltar não reseta o mês de Finanças.
-- Topo verde com `‹ Finanças`, `Entradas` e o mesmo `PeriodSwitcher`. O resumo sobe sobre o verde: `ReceiptProgressCard` (recebidos × a receber + barra) no mês atual/passado; no futuro, previstos e quantidade de entradas. Legenda do passado com pendência: "N entrada(s) aguardando sua confirmação".
+- Topo verde numa **barra só** (retorno do usuário, referências Up/Origin da Mobbin): voltar em círculo à esquerda e, no centro, `ENTRADAS` com o `PeriodSwitcher` compacto. A análise de valor/hora usa a mesma barra, com o título abaixo.
+- Itens em card com seta `›` nos trabalhos e ícone do tipo (Residência sem seta, porque não abre nada). O resumo sobe sobre o verde: `ReceiptProgressCard` (recebidos × a receber + barra) no mês atual/passado; no futuro, previstos e quantidade de entradas. Legenda do passado com pendência: "N entrada(s) aguardando sua confirmação".
 - Timeline com `ReceivableRow`, pela data prevista, no mesmo recorte do total de Finanças (`readMonthEntries`: sem invalidados, sem Trabalhos excluídos, sem "sem data"). Status do servidor (`receipt_status`).
 - `Você recebeu?` chama `confirm_receivable_received` (3.8): sem otimismo, spinner no item, falha mantém pendente e avisa; sucesso invalida `finance-month`, `finance-year`, `agenda` e `home-overview`.
 - Tocar num Trabalho abre o detalhe; Residência não tem destino (desabilitado).

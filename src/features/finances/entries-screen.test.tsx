@@ -73,7 +73,10 @@ beforeEach(() => {
 describe('Entradas', () => {
   it('mês atual: resumo sobre o topo verde e timeline com recebido e previsto distintos', async () => {
     await renderWithProviders(<EntriesScreen initialMonth={current} />);
-    expect(screen.getByText('Entradas')).toBeTruthy();
+    // Topo numa barra só: voltar, rótulo e a troca de mês; sem "‹ Finanças" em texto.
+    expect(screen.getByText('ENTRADAS')).toBeTruthy();
+    expect(screen.queryByText('Finanças')).toBeNull();
+    expect(screen.getByTestId('entries-back')).toBeTruthy();
     expect(screen.getByTestId('entries-summary-wrap')).toHaveStyle({ marginTop: -114 });
     expect(screen.getByText('RECEBIDOS')).toBeTruthy();
     expect(screen.getByText('67% recebido')).toBeTruthy();
@@ -92,6 +95,9 @@ describe('Entradas', () => {
       await fireEvent.press(screen.getByTestId('entries-row-r1-details'));
     });
     expect(router.push).toHaveBeenCalledWith({ pathname: '/work/[id]', params: { id: 'w1' } });
+    // Trabalho tem seta de "abrir"; a Residência não é tocável e não mostra seta.
+    expect(screen.getByTestId('entries-row-r1-chevron')).toBeTruthy();
+    expect(screen.queryByTestId('entries-row-r0-chevron')).toBeNull();
     expect(screen.getByTestId('entries-row-r0-details').props.accessibilityState).toMatchObject({
       disabled: true,
     });

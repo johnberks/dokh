@@ -10,6 +10,10 @@ Fontes: `docs/screens/financas.md`, `design/financas.html` (Entradas 05–10), `
 - O toque no item abre seu detalhe. A confirmação é um segundo controle acessível de no mínimo 44 pontos; `onConfirm` não muda o rótulo localmente. O chamador bloqueia o controle com `confirming` durante a mutation e só muda o status após sucesso do servidor. Falha mantém o Recebível pendente; sem confirmação automática ou otimista.
 - `day`, `month`, `origin` e `value` são strings apresentacionais, não uma segunda fonte de verdade. Um Recebível da Residência usa a mesma linha; não cria Trabalho na Agenda.
 
+## Card tocável (retorno do usuário, 2026-09-26)
+
+A timeline "não parecia clicável". Com referências da Mobbin (Tabby, GoPay, CRED), cada item passou a ser um card leve (`#F8F6EF`, raio 18, borda fina, padding 14×16) com afundamento ao toque e seta `›` à direita — só quando há destino (`onPress`). Sem destino (Residência), o item não é tocável e não mostra seta. `icon` opcional antes da origem (quadradinho do tipo). A linha e os pontos continuam; o espaço entre cards é 12. O pendente mantém o painel bronze.
+
 ## Geometria
 
 O quadro 414 do HTML usa coluna de data 44, intervalo 16, linha de timeline 1, ponto 10 a 8 do topo, dia Archivo 600/22, mês Plex 9 e origem/valor Archivo 600/16. O painel pendente usa raio 18, fundo `#E4D9C2`, borda bronze translúcida, padding 14×16, ação com círculo de 34 e alvo mínimo de 44. Valores em `receivableRowMetrics` e `colors` mantêm as medidas e cores do HTML. O componente ocupa a largura disponível da tela, como a lista original.

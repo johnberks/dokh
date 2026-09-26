@@ -32,6 +32,17 @@ describe('ReceivableRow — Finanças 05–10', () => {
     expect(entry.onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('is a tappable card with a chevron; without a destination it has neither', async () => {
+    const { rerender } = await render(<ReceivableRow {...entry} status="scheduled" testID="row" />);
+    expect(screen.getByTestId('row-chevron')).toBeTruthy();
+    const { onPress: _onPress, ...withoutPress } = entry;
+    await rerender(<ReceivableRow {...withoutPress} status="scheduled" testID="row" />);
+    expect(screen.queryByTestId('row-chevron')).toBeNull();
+    expect(screen.getByTestId('row-details').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+  });
+
   it('shows a neutral outlined dot and date for future entries', async () => {
     await render(<ReceivableRow {...entry} status="scheduled" testID="expected" />);
     expect(screen.getByTestId('expected-dot')).toHaveStyle({

@@ -9,20 +9,21 @@ import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { palette } from '@/theme/tokens';
 
 /**
- * Topo escuro das telas filhas de Finanças (Entradas e análise de valor/hora): voltar para
- * Finanças, rótulo técnico opcional e título. `overlap` reserva o espaço do bloco que sobe
+ * Topo escuro das telas filhas de Finanças (Entradas e análise de valor/hora). Uma barra só:
+ * voltar em círculo à esquerda e, no centro, o conteúdo da tela (em Entradas, o rótulo e a troca
+ * de mês). Título grande opcional abaixo (análise). `overlap` reserva o espaço do bloco que sobe
  * sobre o verde, como o calendário da Agenda.
  */
 export function FinanceSubHero({
+  center,
   title,
   eyebrow,
-  children,
   overlap = 0,
   testID,
 }: {
-  title: string;
+  center?: ReactNode;
+  title?: string;
   eyebrow?: string;
-  children?: ReactNode;
   overlap?: number;
   testID: string;
 }) {
@@ -32,28 +33,31 @@ export function FinanceSubHero({
     <View style={[styles.hero, { paddingBottom: 24 + overlap }]}>
       <StatusBar style="light" />
       <View style={styles.content}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('entries.back')}
-          hitSlop={8}
-          onPress={() => router.back()}
-          testID={`${testID}-back`}
-          style={({ pressed }) => [styles.back, pressed && styles.pressed]}
-        >
-          <ChevronLeft color={palette.secondaryText} size={18} />
-          <AppText style={styles.backText}>{t('entries.backLabel')}</AppText>
-        </Pressable>
-        <View style={styles.titleBlock}>
-          {eyebrow ? (
-            <AppText variant="technical" style={styles.eyebrow}>
-              {eyebrow}
-            </AppText>
-          ) : null}
-          <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-            {title}
-          </AppText>
+        <View style={styles.bar}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('entries.back')}
+            onPress={() => router.back()}
+            testID={`${testID}-back`}
+            style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+          >
+            <ChevronLeft color={palette.cream} size={20} />
+          </Pressable>
+          <View style={styles.center}>{center}</View>
+          <View style={styles.spacer} />
         </View>
-        {children}
+        {title ? (
+          <View style={styles.titleBlock}>
+            {eyebrow ? (
+              <AppText variant="technical" style={styles.eyebrow}>
+                {eyebrow}
+              </AppText>
+            ) : null}
+            <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+              {title}
+            </AppText>
+          </View>
+        ) : null}
       </View>
     </View>
   );
@@ -61,17 +65,21 @@ export function FinanceSubHero({
 
 const styles = StyleSheet.create({
   hero: { overflow: 'hidden' },
-  content: { paddingTop: 14, paddingHorizontal: 24, gap: 14 },
+  content: { paddingTop: 12, paddingHorizontal: 20, gap: 18 },
+  bar: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // Mesmo botão de voltar do detalhe do trabalho.
   back: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(237,234,224,0.28)',
     alignItems: 'center',
-    gap: 4,
-    minHeight: 32,
-    marginLeft: -4,
+    justifyContent: 'center',
   },
-  backText: { fontSize: 14, lineHeight: 18, color: palette.secondaryText },
-  titleBlock: { gap: 6 },
+  center: { flex: 1, minWidth: 0, alignItems: 'center' },
+  spacer: { width: 44 },
+  titleBlock: { gap: 6, paddingHorizontal: 4 },
   eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   title: { fontSize: 26, lineHeight: 30, letterSpacing: -0.78, color: palette.cream },
   pressed: { opacity: 0.72 },
