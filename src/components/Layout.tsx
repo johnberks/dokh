@@ -63,6 +63,8 @@ export type TwoToneScrollScreenProps = Omit<
 > & {
   hero: ReactNode;
   children: ReactNode;
+  /** Fundo do topo (ex.: manchas com blur): cobre também a área da barra de status. */
+  heroBackground?: ReactNode;
   heroStyle?: ViewProps['style'];
   bodyStyle?: ViewProps['style'];
 };
@@ -71,6 +73,7 @@ export type TwoToneScrollScreenProps = Omit<
 export function TwoToneScrollScreen({
   hero,
   children,
+  heroBackground,
   heroStyle,
   bodyStyle,
   ...props
@@ -83,6 +86,7 @@ export function TwoToneScrollScreen({
         contentInsetAdjustmentBehavior="never"
         automaticallyAdjustContentInsets={false}
         contentContainerStyle={styles.twoToneContent}
+        showsVerticalScrollIndicator={props.showsVerticalScrollIndicator ?? false}
         keyboardShouldPersistTaps={props.keyboardShouldPersistTaps ?? 'handled'}
         testID={props.testID ?? 'two-tone-scroll'}
       >
@@ -92,6 +96,7 @@ export function TwoToneScrollScreen({
           testID="two-tone-hero"
           style={[styles.twoToneHero, { paddingTop: insets.top }, heroStyle]}
         >
+          {heroBackground}
           {hero}
         </View>
         <View testID="two-tone-body" style={[styles.twoToneBody, bodyStyle]}>

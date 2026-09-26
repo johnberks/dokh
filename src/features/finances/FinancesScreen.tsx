@@ -135,7 +135,6 @@ export function FinancesScreen() {
   const hero = (
     <View style={styles.hero}>
       <StatusBar style="light" />
-      <AgendaHeroBackdrop />
       <View style={styles.heroContent}>
         <View style={styles.heroTop}>
           {inYear ? (
@@ -190,7 +189,12 @@ export function FinancesScreen() {
 
   if (inYear) {
     return (
-      <TwoToneScrollScreen hero={hero} bodyStyle={styles.body} testID="finances-screen">
+      <TwoToneScrollScreen
+        heroBackground={<AgendaHeroBackdrop />}
+        hero={hero}
+        bodyStyle={styles.body}
+        testID="finances-screen"
+      >
         <YearBody
           query={yearData}
           year={year}
@@ -207,7 +211,12 @@ export function FinancesScreen() {
   }
 
   return (
-    <TwoToneScrollScreen hero={hero} bodyStyle={styles.body} testID="finances-screen">
+    <TwoToneScrollScreen
+      heroBackground={<AgendaHeroBackdrop />}
+      hero={hero}
+      bodyStyle={styles.body}
+      testID="finances-screen"
+    >
       {finance.isPending ? (
         <View style={styles.padded}>
           <Skeleton layout="summary" testID="finances-loading" />

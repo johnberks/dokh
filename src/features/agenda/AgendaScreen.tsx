@@ -84,7 +84,6 @@ export function AgendaScreen() {
   const hero = (
     <View style={styles.hero}>
       <StatusBar style="light" />
-      <AgendaHeroBackdrop />
       <View style={styles.heroRow}>
         <View style={styles.heroText}>
           <AppText variant="technical" style={styles.eyebrow}>
@@ -114,7 +113,12 @@ export function AgendaScreen() {
   );
 
   return (
-    <TwoToneScrollScreen hero={hero} bodyStyle={styles.body} testID="agenda-screen">
+    <TwoToneScrollScreen
+      heroBackground={<AgendaHeroBackdrop />}
+      hero={hero}
+      bodyStyle={styles.body}
+      testID="agenda-screen"
+    >
       <View style={styles.calendar}>
         <CalendarCard
           month={month}
