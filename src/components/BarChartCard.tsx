@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
-import { colors, palette } from '@/theme/tokens';
+import { colors, fontAliases, palette } from '@/theme/tokens';
 import { AppText } from './AppText';
 
 export type ChartBar = {
@@ -51,7 +51,14 @@ export function BarChartCard({
   return (
     <View style={surface === 'card' ? styles.card : styles.plain} testID={testID}>
       <View style={styles.header}>
-        <AppText variant="technical" style={styles.eyebrow}>
+        <AppText
+          variant="technical"
+          style={[
+            styles.eyebrow,
+            // Plex Mono tem arquivo próprio por peso: o negrito vem do semibold carregado.
+            type.technical.fontFamily === fontAliases.plexRegular && styles.eyebrowStrong,
+          ]}
+        >
           {eyebrow}
         </AppText>
         {legend ? (
@@ -132,12 +139,13 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   // Título do gráfico em negrito e espaçado (`GANHOS DE 2026`).
   eyebrow: {
-    fontSize: 11,
-    lineHeight: 15,
-    letterSpacing: 2.2,
-    fontWeight: '700',
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 2.4,
+    fontWeight: '600',
     color: colors.textPrimary,
   },
+  eyebrowStrong: { fontFamily: fontAliases.plexSemibold },
   legend: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendSwatch: { width: 8, height: 8, borderRadius: 2, backgroundColor: palette.bronze },
   legendText: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },

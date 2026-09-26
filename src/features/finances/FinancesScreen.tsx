@@ -132,8 +132,10 @@ export function FinancesScreen() {
   }
 
   const inYear = mode === 'year';
+  // No Ano, o verde fica por trás do bloco do gráfico, como o calendário da Agenda.
+  const chartOverlap = inYear && (yearData.data?.months.length ?? 0) > 0;
   const hero = (
-    <View style={styles.hero}>
+    <View style={[styles.hero, chartOverlap && styles.heroBehindChart]}>
       <StatusBar style="light" />
       <View style={styles.heroContent}>
         <View style={styles.heroTop}>
@@ -442,7 +444,7 @@ function YearBody({
   const isCurrentYear = Number(today.slice(0, 4)) === year;
   return (
     <View style={styles.sections}>
-      <View>
+      <View style={styles.chartOverlap} testID="finances-year-chart-wrap">
         <BarChartCard
           eyebrow={t('year.range', { year })}
           legend={isCurrentYear ? t('year.currentMonth') : undefined}
@@ -987,8 +989,14 @@ function SectionCard({
   );
 }
 
+/** Quanto do bloco do gráfico fica sobre o topo verde (mesmo efeito do calendário). */
+const CHART_OVERLAP = 96;
+
 const styles = StyleSheet.create({
   hero: { paddingBottom: 24, overflow: 'hidden' },
+  heroBehindChart: { paddingBottom: 24 + CHART_OVERLAP },
+  // Sobe o bloco pelo espaço extra do topo e pelo respiro do corpo.
+  chartOverlap: { marginTop: -(CHART_OVERLAP + 18) },
   heroContent: { paddingTop: 22, paddingHorizontal: 24, gap: 14 },
   heroTop: {
     flexDirection: 'row',

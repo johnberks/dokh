@@ -444,6 +444,8 @@ describe('Finanças — ano', () => {
     expect(screen.getByText('+24%')).toBeTruthy();
     expect(screen.getByText(`GANHOS DE ${current.slice(0, 4)}`)).toBeTruthy();
     expect(screen.queryByText('JANEIRO → DEZEMBRO')).toBeNull();
+    // O bloco do gráfico sobe sobre o topo verde, como o calendário da Agenda.
+    expect(screen.getByTestId('finances-year-chart-wrap')).toHaveStyle({ marginTop: -114 });
     // Texto fixo das caixinhas nunca quebra: uma linha, encolhendo se faltar espaço.
     const label = screen.getByText('valor/hora médio no ano');
     expect(label.props.numberOfLines).toBe(1);
