@@ -49,7 +49,6 @@ describe('rotas', () => {
   });
 
   it.each([
-    ['/agenda', 'Sua agenda'],
     ['/finances', 'Finanças'],
     ['/profile', 'Perfil'],
     ['/recover-password', 'Recuperar senha'],
@@ -64,6 +63,14 @@ describe('rotas', () => {
     },
     15_000,
   );
+
+  it('resolve deep link /agenda na Agenda real (mês no topo e calendário em card)', async () => {
+    await openAt('/agenda');
+    expect(screen.getByTestId('agenda-screen')).toBeTruthy();
+    expect(screen.getByText('SUA AGENDA')).toBeTruthy();
+    expect(screen.getByTestId('agenda-month')).toBeTruthy();
+    expect(screen.getByTestId('agenda-calendar')).toBeTruthy();
+  });
 
   it('ação central abre o fluxo de criação sem virar tab', async () => {
     const router = await openAt('/agenda');

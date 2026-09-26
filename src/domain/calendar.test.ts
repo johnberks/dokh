@@ -1,4 +1,5 @@
 import {
+  buildFullMonthGrid,
   buildMonthGrid,
   compareLocalDates,
   differenceInLocalDays,
@@ -92,5 +93,25 @@ describe('diferença entre datas locais', () => {
     expect(differenceInLocalDays('2027-01-10', '2026-12-11')).toBe(30);
     expect(differenceInLocalDays('2026-09-12', '2026-09-12')).toBe(0);
     expect(differenceInLocalDays('2026-09-11', '2026-09-12')).toBe(-1);
+  });
+});
+
+describe('grade de semanas completas do mês', () => {
+  it('só completa a primeira e a última semana, sem semana extra', () => {
+    // Setembro/2026 começa numa terça e termina numa quarta; semana começando na segunda.
+    const weeks = buildFullMonthGrid('2026-09', 1);
+    expect(weeks).toHaveLength(5);
+    expect(weeks[0][0]).toMatchObject({ date: '2026-08-31', day: 31, inMonth: false });
+    expect(weeks[0][1]).toMatchObject({ date: '2026-09-01', inMonth: true });
+    expect(weeks[4][2]).toMatchObject({ date: '2026-09-30', inMonth: true });
+    expect(weeks[4][6]).toMatchObject({ date: '2026-10-04', inMonth: false });
+    // Fevereiro/2027 começa numa segunda e cabe em quatro semanas exatas.
+    expect(buildFullMonthGrid('2027-02', 1)).toHaveLength(4);
+  });
+
+  it('atravessa a virada de ano', () => {
+    const weeks = buildFullMonthGrid('2027-01', 0);
+    expect(weeks[0][0].date).toBe('2026-12-27');
+    expect(weeks[0][5]).toMatchObject({ date: '2027-01-01', inMonth: true });
   });
 });
