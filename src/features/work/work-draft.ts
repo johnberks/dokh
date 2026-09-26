@@ -18,6 +18,8 @@ export type WorkDraft = {
   idempotencyKey: string | null;
   /** Prazo D30/60/90 trazido de um template; vira data quando a nova data for escolhida. */
   plannedTermDays: number | null;
+  /** Descrição já gravada (ex.: "Cirurgia"); o formulário não a edita, mas a edição a preserva. */
+  description: string | null;
 };
 
 export type WorkDraftState = WorkDraft & {
@@ -35,6 +37,7 @@ const EMPTY: WorkDraft = {
   expected: null,
   idempotencyKey: null,
   plannedTermDays: null,
+  description: null,
 };
 
 export type WorkDraftStore = UseBoundStore<StoreApi<WorkDraftState>>;
@@ -52,3 +55,6 @@ export const useWorkDraft = createWorkDraftStore();
 
 /** Rascunho do fluxo `+` (Agenda 06–10); separado para não misturar com o onboarding. */
 export const useNewWorkDraft = createWorkDraftStore();
+
+/** Rascunho da edição (Agenda 16): o `+` aberto por cima não apaga uma edição em curso. */
+export const useEditWorkDraft = createWorkDraftStore();

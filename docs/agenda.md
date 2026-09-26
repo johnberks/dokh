@@ -25,4 +25,15 @@ Agenda 01–05 e 15 de `design/agenda.html`; regras de `docs/screens/agenda.md`.
 - Card com valor, previsão e status (ponto + texto, sem badge).
 - **Excluir** abre uma folha de confirmação (P05 resolvida para Trabalho pelo usuário em 2026-09-25): "O trabalho em {local} no dia {data} sai da sua Agenda e o valor de {valor} deixa de aparecer em Finanças. Essa ação não pode ser desfeita." — `Excluir trabalho` (terracota) e `Cancelar`. A exclusão usa a RPC atômica (`delete_work_with_receivable`) com chave de idempotência por tentativa e invalida Agenda, Início e Finanças; ao concluir, volta para a Agenda. O teste real (`scripts/test-location-rpcs-6.1.mjs`) confirma que o Trabalho some da Agenda e de `finance_month_projection`.
 
-**Ainda não entram**: `Editar trabalho` (próxima PR, 6.7/8.4), o menu `···` e o bloco de recorrência (8.5).
+## Edição (6.7/8.4) — `EditWorkScreen.tsx`, rota `/work/edit/[id]`
+
+- `Editar trabalho` no detalhe abre o **mesmo formulário da criação** (`WorkForm` com `workId`), preenchido com tudo o que está gravado (`editDraftFromWork`): tipo, local, data, horário, duração, valor e previsão — um prazo D30/60/90 aparece como tal, e mudar a data o recalcula.
+- Título `Editar trabalho` e botão `Salvar alterações`. A gravação usa a RPC atômica `update_work_with_receivable` com chave de idempotência por tentativa; a descrição existente é preservada. Trocar o local por um nome novo cria o Local (RPC da 6.1).
+- Rascunho próprio (`useEditWorkDraft`), preenchido uma vez quando o Trabalho chega; ao salvar volta para o detalhe, que já reflete a alteração (Agenda, Início e Finanças são invalidados juntos).
+- O teste real confirma a edição pela mesma RPC e que outra conta não edita.
+
+**Ainda não entram**: o menu `···` e o bloco de recorrência (8.5).
+
+## Dia livre
+
+O botão `Adicionar trabalho` do dia livre ficou preenchido (escuro, 48 de altura) e com espaçamento de letras neutro — o do título grudava as palavras (pedido do usuário, 2026-09-25).

@@ -44,7 +44,11 @@ describe('EmptyState visual placements', () => {
     });
     expect(screen.getByText('Seu dia está livre.')).toBeTruthy();
     expect(screen.queryByText(/R\$/)).toBeNull();
-    expect(screen.getByTestId('agenda-action').props.hitSlop).toBe(2);
+    // Botão preenchido de 48 (pedido do usuário): alvo de toque suficiente sem hitSlop.
+    expect(screen.getByTestId('agenda-action')).toHaveStyle({
+      minHeight: 48,
+      backgroundColor: colors.darkBackground,
+    });
     await fireEvent.press(screen.getByTestId('agenda-action'));
     expect(onPrimaryPress).toHaveBeenCalledTimes(1);
   });
