@@ -95,6 +95,8 @@ describe('Finanças — mês', () => {
     expect(screen.getByText('previstos para entrar este mês')).toBeTruthy();
     expect(screen.getByTestId('finances-split-received')).toBeTruthy();
     expect(screen.getByTestId('finances-split-awaiting')).toBeTruthy();
+    // Card único sobre o topo verde, como o calendário da Agenda.
+    expect(screen.getByTestId('finances-split-wrap')).toHaveStyle({ marginTop: -114 });
     expect(screen.getByText('67% recebido')).toBeTruthy();
     expect(screen.getByTestId('finances-next')).toBeTruthy();
     expect(screen.getByText('hoje')).toBeTruthy();
@@ -178,6 +180,7 @@ describe('Finanças — mês', () => {
     expect(screen.getByText('R$ —')).toBeTruthy();
     expect(screen.getByText('nada previsto para entrar ainda')).toBeTruthy();
     expect(screen.queryByTestId('finances-split-received')).toBeNull();
+    expect(screen.queryByTestId('finances-split-wrap')).toBeNull();
     expect(screen.getByText('REVISÃO NECESSÁRIA · 3 ENTRADAS')).toBeTruthy();
     expect(screen.getByTestId('finances-work')).toBeTruthy();
 

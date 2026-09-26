@@ -132,8 +132,11 @@ export function FinancesScreen() {
   }
 
   const inYear = mode === 'year';
-  // No Ano, o verde fica por trás do bloco do gráfico, como o calendário da Agenda.
-  const chartOverlap = inYear && (yearData.data?.months.length ?? 0) > 0;
+  // O verde fica por trás do bloco principal, como o calendário da Agenda: no Ano, o gráfico;
+  // no Mês, o card Recebido × A receber.
+  const chartOverlap = inYear
+    ? (yearData.data?.months.length ?? 0) > 0
+    : hasEntries && !finance.isError;
   const hero = (
     <View style={[styles.hero, chartOverlap && styles.heroBehindChart]}>
       <StatusBar style="light" />
@@ -242,7 +245,11 @@ export function FinancesScreen() {
         </View>
       ) : (
         <View style={styles.sections}>
-          {hasEntries && <ReceivedSplit data={data} tense={tense} onInfo={setInfo} />}
+          {hasEntries && (
+            <View style={styles.chartOverlap} testID="finances-split-wrap">
+              <ReceivedSplit data={data} tense={tense} onInfo={setInfo} />
+            </View>
+          )}
 
           {tense !== 'past' && next.data ? (
             <NextEntryCard entry={next.data} today={today} />
