@@ -25,6 +25,7 @@ import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
+import { useCountUp } from '@/theme/useCountUp';
 import { SectionCard, WorkGeneratedCard } from './FinanceCards';
 import { FinanceInfoSheet, InfoButton, type InfoRequest } from './FinanceInfo';
 import {
@@ -92,11 +93,14 @@ export function FinancesScreen() {
   const [mode, setMode] = useState<'month' | 'year'>('month');
   const [year, setYear] = useState(() => Number(today.slice(0, 4)));
   const openedChild = useRef(false);
+  // Cada entrada na aba (ou troca de Mês/Ano) recomeça a contagem do valor do topo.
+  const [enterKey, setEnterKey] = useState(0);
   const [info, setInfo] = useState<InfoRequest | null>(null);
 
   // Como a Agenda: entrar na aba sempre abre o mês atual.
   useFocusEffect(
     useCallback(() => {
+      setEnterKey((key) => key + 1);
       if (openedChild.current) {
         openedChild.current = false;
         return;
@@ -172,7 +176,10 @@ export function FinancesScreen() {
           )}
           <PeriodToggle
             mode={mode}
-            onChange={setMode}
+            onChange={(next) => {
+              setMode(next);
+              setEnterKey((key) => key + 1);
+            }}
             monthLabel={t('mode.month')}
             yearLabel={t('mode.year')}
           />
@@ -182,6 +189,7 @@ export function FinancesScreen() {
               <YearHeroAmount
                 data={yearData.data}
                 year={year}
+                enterKey={enterKey}
                 onInfo={() => setInfo({ key: 'yearTotal', value: money(yearData.data.totalCents) })}
               />
             )
@@ -190,6 +198,7 @@ export function FinancesScreen() {
                 data={data}
                 tense={tense}
                 name={name}
+                enterKey={enterKey}
                 onInfo={(value) => setInfo({ key: 'expected', value })}
               />
             )}
@@ -385,19 +394,22 @@ function PeriodToggle({
 function YearHeroAmount({
   data,
   year,
+  enterKey,
   onInfo,
 }: {
   data: FinanceYear;
   year: number;
+  enterKey: number;
   onInfo: () => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
   const hasData = data.months.length > 0;
+  const counted = useCountUp(data.totalCents, enterKey);
   return (
     <View style={styles.heroAmount} testID="finances-year-hero">
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
-        {hasData ? money(data.totalCents) : t('hero.empty')}
+        {hasData ? money(counted) : t('hero.empty')}
       </AppText>
       <View style={styles.captionRow}>
         <AppText style={styles.heroCaption}>
@@ -871,20 +883,24 @@ function HeroAmount({
   data,
   tense,
   name,
+  enterKey,
   onInfo,
 }: {
   data: FinanceMonth;
   tense: MonthTense;
   name: string;
+  enterKey: number;
   onInfo: (value: string) => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
   const { amount, caption } = heroCaption(data, tense, name, t);
+  // O valor do topo conta rápido até o total ao entrar (como na Início).
+  const counted = useCountUp(amount ?? 0n, enterKey);
   return (
     <View style={styles.heroAmount} accessible testID="finances-hero">
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
-        {amount === null ? t('hero.empty') : money(amount)}
+        {amount === null ? t('hero.empty') : money(counted)}
       </AppText>
       <View style={styles.captionRow}>
         <AppText style={styles.heroCaption}>{caption}</AppText>

@@ -369,3 +369,7 @@ Topo da Início na visão 2A "cards com peek" (2026-09-26, arquivo `HOME.dc.html
 Altura do verde padronizada (2026-09-26): `TOP_GREEN_HEIGHT` (272 pt abaixo da status bar) em Início, Agenda e Finanças via `TwoToneScrollScreen standardHeroHeight`. Na Início o próximo trabalho saiu de cima do verde e o topo 2A ficou compacto; na Agenda o calendário passou a `marginTop: -(272-102)`.
 
 Início (2026-09-26, referência do usuário): card do mês denso (valor com `›`, linha em degraus do mês, faixa com a comparação), sem olho nem etiqueta de %; verde da Início com altura própria e folga (não usa mais `standardHeroHeight`); espaço uniforme de 16 pt entre os blocos, e a pilha de pendências só existe quando há pendência.
+
+Início: cards do topo voltaram ao modelo 2A anterior (vidro, olho, etiqueta de %), mantendo o verde maior com folga; o card "denso" com linha em degraus foi descartado pelo usuário.
+
+Contagem do valor do topo (2026-09-26): `src/theme/useCountUp.ts` anima de zero ao total em 650 ms ao entrar na Início e em Finanças (Mês e Ano); respeita "Reduzir movimento". 62 suítes/410 testes.

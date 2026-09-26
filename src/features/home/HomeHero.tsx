@@ -1,5 +1,4 @@
 import { StatusBar } from 'expo-status-bar';
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useRef, useState } from 'react';
@@ -13,9 +12,10 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
+import { EmptyState } from '@/components/EmptyState';
 import { HeroBar } from '@/components/HeroBar';
 import { type LocalMonth, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
@@ -23,15 +23,9 @@ import { compactReais } from '@/features/finances/finance-format';
 import { localDateToDate } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { fontAliases, palette } from '@/theme/tokens';
+import { useCountUp } from '@/theme/useCountUp';
 import type { HomeHero } from './home-data';
-import {
-  heroAmount,
-  heroComparison,
-  heroHistory,
-  type MonthLine,
-  monthLine,
-  monthTense,
-} from './home-format';
+import { heroAmount, heroComparison, heroHistory, monthTense } from './home-format';
 
 const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 const SHORT = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
@@ -49,10 +43,10 @@ const PEEK = 32;
 const CARD_HEIGHT = 178;
 
 /**
- * Topo da Início: 2A (cards com peek) com o card do mês **denso** (referência do usuário):
- * rótulo, valor com `›` (abre Finanças), linha em degraus do previsto acumulado no mês (cheia até
- * hoje, apagada depois) e uma faixa no rodapé com a comparação com o mês anterior. O histórico
- * espia na borda direita; arrasta com snap e os pontos levam a ele. Sem histórico, um card só.
+ * Topo da Início na visão **2A — cards com peek** (`HOME.dc.html`): marca e avatar, saudação
+ * com a troca de mês e as visões em cards lado a lado — o segundo (histórico) começa visível na
+ * borda direita, então fica claro que há mais conteúdo. Arrasta com snap; tocar no card ou nos
+ * pontos leva a ele. O olho oculta os valores. Sem histórico real, só o card do mês, largo.
  */
 export function HomeHeroCards({
   hero,
@@ -62,7 +56,7 @@ export function HomeHeroCards({
   onMonth,
   onAddWork,
   onAvatar,
-  onOpenFinances,
+  enterKey,
 }: {
   hero: HomeHero | undefined;
   month: LocalMonth;
@@ -71,19 +65,22 @@ export function HomeHeroCards({
   onMonth: (month: LocalMonth) => void;
   onAddWork: () => void;
   onAvatar: () => void;
-  onOpenFinances: () => void;
+  /** Muda a cada entrada na Início: o valor do topo conta de novo até o total. */
+  enterKey: number;
 }) {
   const { t } = useTranslation('home');
   const type = useBrandTypography();
   const { width } = useWindowDimensions();
   const scroller = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
+  const [hidden, setHidden] = useState(false);
 
   const history = hero ? heroHistory(hero) : null;
   const name = monthName(month);
   const tense = monthTense(month, today);
   const amount = hero ? heroAmount(hero, tense, name, t) : null;
   const comparison = hero ? heroComparison(hero) : null;
+  const counted = useCountUp(amount?.amount ?? 0n, enterKey);
   const previousName = monthName(shiftMonth(month, -1));
   const twoCards = history !== null;
   const cardWidth = twoCards ? width - SIDE - PEEK : width - SIDE * 2;
@@ -97,87 +94,107 @@ export function HomeHeroCards({
     if (next !== page) setPage(next);
   }
 
-  const line = hero ? monthLine(hero.entries, month, today) : null;
-  const chartWidth = cardWidth;
+  const mask = (text: string) => (hidden ? 'R$ ••••' : text);
 
   const monthCard = (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('hero.openFinances')}
-      onPress={() => (twoCards && page === 1 ? go(0) : onOpenFinances())}
-      style={[styles.card, styles.monthCard, { width: cardWidth }]}
+      accessibilityRole={twoCards ? 'button' : undefined}
+      accessibilityLabel={twoCards ? t('hero.pageMonth') : undefined}
+      disabled={!twoCards}
+      onPress={() => go(0)}
+      style={[styles.card, { width: cardWidth }]}
       testID="home-hero-month"
     >
-      <View style={styles.monthTop}>
-        <AppText variant="technical" numberOfLines={1} style={styles.cardEyebrow}>
-          {tense === 'past'
-            ? t('hero.eyebrowPast', { month: name.toUpperCase() })
-            : t('hero.eyebrow', { month: name.toUpperCase() })}
-        </AppText>
-        {!hero ? null : amount ? (
-          <View style={styles.amountRow}>
-            <AppText
-              adjustsFontSizeToFit
-              numberOfLines={1}
-              style={[type.heading1, styles.amount]}
-              testID="home-hero-amount"
-            >
-              {money(amount.amount)}
-            </AppText>
-            <ChevronRight color={palette.secondaryText} size={22} strokeWidth={1.8} />
-          </View>
-        ) : (
-          // Mês vazio: mensagem e ação no próprio card (nunca `R$ 0,00`).
-          <View style={styles.emptyMonth} testID="home-no-entries">
-            <AppText numberOfLines={2} style={[type.heading1, styles.emptyTitle]}>
-              {t('empty.noEntriesTitle')}
-            </AppText>
-            <Pressable
-              accessibilityRole="button"
-              onPress={onAddWork}
-              hitSlop={8}
-              style={styles.emptyAction}
-              testID="home-no-entries-action"
-            >
-              <AppText style={[type.heading1, styles.emptyActionText]}>
-                {t('empty.addWork')}
+      <AppText variant="technical" numberOfLines={1} style={styles.cardEyebrow}>
+        {tense === 'past'
+          ? t('hero.eyebrowPast', { month: name.toUpperCase() })
+          : t('hero.eyebrow', { month: name.toUpperCase() })}
+      </AppText>
+      {!hero ? null : amount ? (
+        <>
+          <View style={styles.amountBlock}>
+            <View style={styles.amountRow}>
+              <AppText
+                adjustsFontSizeToFit
+                numberOfLines={1}
+                style={[type.heading1, styles.amount]}
+                testID="home-hero-amount"
+              >
+                {mask(money(counted))}
               </AppText>
-              <ArrowRight color={palette.bronze} size={14} strokeWidth={1.8} />
-            </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={hidden ? t('hero.showValues') : t('hero.hideValues')}
+                hitSlop={8}
+                onPress={() => setHidden(!hidden)}
+                style={styles.eye}
+                testID="home-hero-eye"
+              >
+                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z"
+                    stroke={palette.secondaryText}
+                    strokeWidth={1.7}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <Circle
+                    cx={12}
+                    cy={12}
+                    r={2.8}
+                    stroke={palette.secondaryText}
+                    strokeWidth={1.7}
+                  />
+                  {hidden ? (
+                    <Path
+                      d="M4 20 20 4"
+                      stroke={palette.secondaryText}
+                      strokeWidth={1.7}
+                      strokeLinecap="round"
+                    />
+                  ) : null}
+                </Svg>
+              </Pressable>
+            </View>
+            <AppText numberOfLines={1} style={styles.cardSub}>
+              {hero.openCount > 0
+                ? hero.openCount === 1
+                  ? t('hero.countOne')
+                  : t('hero.countMany', { count: hero.openCount })
+                : amount.qualifier}
+            </AppText>
           </View>
-        )}
-      </View>
-
-      {line ? <StepLine line={line} width={chartWidth} /> : null}
-
-      {hero && amount ? (
-        <View style={styles.monthFooter} testID="home-hero-comparison-strip">
-          <AppText numberOfLines={1} style={styles.footerText}>
-            {comparison && comparison.direction !== 'stable' ? (
-              <>
-                <AppText style={[type.heading1, styles.footerStrong]}>
-                  {money(
-                    comparison.deltaCents < 0n ? -comparison.deltaCents : comparison.deltaCents,
-                  )}
-                </AppText>
-                {` ${t(comparison.direction === 'up' ? 'hero.moreThan' : 'hero.lessThan', {
-                  month: previousName,
-                })}`}
-              </>
-            ) : comparison ? (
-              t('hero.comparisonStable', { month: previousName })
-            ) : hero.openCount > 0 ? (
-              hero.openCount === 1 ? (
-                t('hero.countOne')
-              ) : (
-                t('hero.countMany', { count: hero.openCount })
-              )
-            ) : (
-              amount.qualifier
-            )}
-          </AppText>
-        </View>
-      ) : null}
+          {comparison ? (
+            <View style={styles.comparison} testID="home-hero-comparison">
+              <AppText variant="technical" style={styles.comparisonBadge}>
+                {`${comparison.direction === 'up' ? '↑' : comparison.direction === 'down' ? '↓' : '='} ${Math.abs(comparison.percent)}%`}
+              </AppText>
+              <AppText numberOfLines={1} style={styles.comparisonText}>
+                {comparison.direction === 'stable'
+                  ? t('hero.comparisonStable', { month: previousName })
+                  : hidden
+                    ? t(
+                        comparison.direction === 'up' ? 'hero.comparisonUp' : 'hero.comparisonDown',
+                        { value: 'R$ •••', month: previousName },
+                      )
+                    : t(
+                        comparison.direction === 'up' ? 'hero.comparisonUp' : 'hero.comparisonDown',
+                        {
+                          value: money(
+                            comparison.deltaCents < 0n
+                              ? -comparison.deltaCents
+                              : comparison.deltaCents,
+                          ),
+                          month: previousName,
+                        },
+                      )}
+              </AppText>
+            </View>
+          ) : null}
+        </>
+      ) : (
+        <EmptyState variant="homeEntries" onPrimaryPress={onAddWork} testID="home-no-entries" />
+      )}
     </Pressable>
   );
 
@@ -209,10 +226,10 @@ export function HomeHeroCards({
                   bar.current && styles.historyValueCurrent,
                 ]}
               >
-                {compactReais(bar.expectedTotalCents)}
+                {hidden ? '•••' : compactReais(bar.expectedTotalCents)}
               </AppText>
               <HeroBar
-                height={Math.max(6, (Number(bar.expectedTotalCents) / max) * 62)}
+                height={Math.max(6, (Number(bar.expectedTotalCents) / max) * 58)}
                 width={24}
                 current={bar.current}
               />
@@ -331,70 +348,12 @@ export function HomeHeroCards({
   );
 }
 
-const LINE_HEIGHT = 64;
-
-/** Linha em degraus do previsto acumulado no mês, de ponta a ponta do card. */
-function StepLine({ line, width }: { line: MonthLine; width: number }) {
-  const days = line.cumulative.length;
-  const top = 10;
-  const bottom = LINE_HEIGHT - 6;
-  const max = Math.max(1, line.total);
-  const x = (day: number) => (day / days) * width;
-  const y = (value: number) => bottom - (value / max) * (bottom - top);
-  // Degrau depois de cada dia: horizontal pelo dia, sobe no início do seguinte.
-  const path = (from: number, to: number) => {
-    let d = `M ${x(from).toFixed(1)} ${y(from === 0 ? 0 : line.cumulative[from - 1]).toFixed(1)}`;
-    for (let day = from; day < to; day++) {
-      d += ` V ${y(line.cumulative[day]).toFixed(1)} H ${x(day + 1).toFixed(1)}`;
-    }
-    return d;
-  };
-  const split = Math.min(days, Math.max(0, line.todayIndex + 1));
-  const solid = split > 0 ? path(0, split) : null;
-  const rest = split < days ? path(split, days) : null;
-  const todayValue = split > 0 ? line.cumulative[split - 1] : 0;
-  return (
-    <Svg width={width} height={LINE_HEIGHT} accessible={false} testID="home-hero-line">
-      <Defs>
-        <LinearGradient id="homeArea" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={palette.cream} stopOpacity={0.14} />
-          <Stop offset="1" stopColor={palette.cream} stopOpacity={0} />
-        </LinearGradient>
-      </Defs>
-      {solid ? (
-        <Path d={`${solid} V ${LINE_HEIGHT} H 0 Z`} fill="url(#homeArea)" stroke="none" />
-      ) : null}
-      {rest ? (
-        <Path
-          d={rest}
-          fill="none"
-          stroke="rgba(237,234,224,0.35)"
-          strokeWidth={2}
-          strokeDasharray="3 4"
-        />
-      ) : null}
-      {solid ? <Path d={solid} fill="none" stroke={palette.cream} strokeWidth={2.4} /> : null}
-      {split > 0 && split < days ? (
-        <Circle
-          cx={x(split)}
-          cy={y(todayValue)}
-          r={5}
-          fill={palette.base}
-          stroke={palette.cream}
-          strokeWidth={2.4}
-        />
-      ) : null}
-      <Circle cx={width - 7} cy={y(line.total)} r={3.5} fill={palette.sage} />
-    </Svg>
-  );
-}
-
 const styles = StyleSheet.create({
-  // Topo com folga: o verde tem a altura do próprio conteúdo mais respiro embaixo.
+  // Verde com folga (tamanho mantido a pedido do usuário): conteúdo + 30 pt embaixo.
   hero: { overflow: 'hidden', paddingBottom: 30 },
   header: {
     paddingTop: 14,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -437,15 +396,19 @@ const styles = StyleSheet.create({
   stepperButton: { width: 28, height: 32, alignItems: 'center', justifyContent: 'center' },
   stepperLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.secondaryText },
   track: { paddingTop: 18, paddingHorizontal: SIDE, gap: GAP },
-  // Card sólido e denso (referência do usuário): um tom acima do fundo, sem vidro nem brilho.
+  // Card de vidro escuro do 2A: verde translúcido, borda sálvia e raio 22.
+  // Altura mínima igual nos dois cards; o mês vazio (texto + ação) pode crescer.
   card: {
     minHeight: CARD_HEIGHT,
-    borderRadius: 18,
-    backgroundColor: '#1D2A1A',
-    overflow: 'hidden',
+    borderRadius: 22,
+    backgroundColor: 'rgba(43,58,36,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(127,138,118,0.28)',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    gap: 14,
   },
-  monthCard: { justifyContent: 'space-between' },
-  monthTop: { paddingTop: 16, paddingHorizontal: 18, gap: 6 },
+  historyCard: { gap: 12 },
   cardEyebrow: {
     flexShrink: 1,
     fontSize: 10,
@@ -453,26 +416,44 @@ const styles = StyleSheet.create({
     letterSpacing: 1.8,
     color: palette.secondaryText,
   },
-  amountRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  amountBlock: { gap: 6 },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
   amount: {
     flexShrink: 1,
-    fontSize: 36,
-    lineHeight: 40,
-    letterSpacing: -1.26,
+    fontSize: 44,
+    lineHeight: 48,
+    letterSpacing: -1.76,
     color: palette.cream,
   },
-  monthFooter: {
-    backgroundColor: 'rgba(0,0,0,0.24)',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  eye: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(127,138,118,0.35)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  footerText: { fontSize: 13, lineHeight: 18, color: palette.secondaryText },
-  footerStrong: { fontSize: 13, letterSpacing: 0, color: palette.cream },
-  historyCard: { paddingVertical: 16, paddingHorizontal: 18, gap: 8 },
+  cardSub: { fontSize: 14, lineHeight: 18, color: palette.secondaryText },
+  comparison: { marginTop: 'auto', flexDirection: 'row', alignItems: 'center', gap: 10 },
+  comparisonBadge: {
+    fontSize: 11,
+    lineHeight: 15,
+    color: palette.base,
+    backgroundColor: palette.bronze,
+    borderRadius: 6,
+    overflow: 'hidden',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  comparisonText: { flexShrink: 1, fontSize: 13, lineHeight: 18, color: palette.secondaryText },
   historyChart: {
-    flex: 1,
-    minHeight: 90,
+    height: 96,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
@@ -483,7 +464,12 @@ const styles = StyleSheet.create({
   historyColumn: { width: 40, alignItems: 'center', gap: 6 },
   historyValue: { fontSize: 11, lineHeight: 14, letterSpacing: 0, color: palette.secondaryText },
   historyValueCurrent: { color: palette.cream },
-  historyAxis: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
+  historyAxis: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginTop: -5,
+  },
   historyMonth: {
     width: 40,
     textAlign: 'center',
@@ -496,8 +482,4 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, paddingTop: 16 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(127,138,118,0.45)' },
   dotActive: { width: 22, backgroundColor: palette.bronze },
-  emptyMonth: { gap: 12, paddingTop: 4, paddingBottom: 16 },
-  emptyTitle: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: palette.cream },
-  emptyAction: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' },
-  emptyActionText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.bronze },
 });

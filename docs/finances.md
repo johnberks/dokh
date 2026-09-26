@@ -75,3 +75,7 @@ Retorno do usuário (2026-09-26), com referências da Mobbin (Kit, Gusto, Quicke
 ## Títulos de card — `CardLabel` (`src/components`)
 
 Pedido do usuário (2026-09-26): o rótulo técnico dos cards (Plex 10 pt, regular, sálvia) ficava apagado. Todos os títulos de card seguem o modelo do `GANHOS DE 2026`: Plex Mono **semibold**, 11 pt, espaçamento 1,65, cor escura (`tone`: `structure` no Recebido, `bronze` nos cards escuros de insight/análise, `attention` na revisão). Aplicado em `SectionCard`, gráfico anual, valor/hora do ano, próxima entrada, Recebido × A receber, Entradas (futuro), análise de valor/hora, insight, `WorkCard`, `ReviewCard`, `ProgressCard` e nos cards do `EmptyState` (próxima entrada, teaser de Finanças, Home). Rótulos de topo e de formulário não mudaram.
+
+## Contagem do valor do topo
+
+O valor do topo (Mês e Ano) conta rápido até o total ao entrar na aba, trocar Mês/Ano ou mudar o período (`useCountUp`, `motion.countUp` = 650 ms; "Reduzir movimento" mostra direto). Pedido do usuário, 2026-09-26.

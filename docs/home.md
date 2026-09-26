@@ -22,9 +22,13 @@ Agenda e Finanças usam a mesma altura de topo verde: `TOP_GREEN_HEIGHT` = 272 p
 - Mês sem entrada: o card do mês traz "Nenhuma entrada prevista ainda." + `Adicionar trabalho` (nunca `R$ 0,00`).
 - O `HeroCarousel` de página inteira (2.7) não é mais usado na Início.
 
-## Card do mês — denso (referência do usuário, 2026-09-26)
+## Cards do topo
 
-O card de vidro com olho e etiqueta de % "parecia AI". Agora é sólido (`#1D2A1A`, raio 18): `PARA RECEBER EM SETEMBRO`, valor com `›` (abre Finanças), **linha em degraus** do previsto acumulado no mês por dia (`monthLine`: cheia até hoje com área suave, tracejada depois, ponto em hoje e no fim) e uma **faixa no rodapé** com a comparação ("**R$ 1.350** a mais que em agosto"; sem base, a contagem de entradas previstas). O histórico (`ÚLTIMOS 4 MESES`) continua como segundo card espiando na borda. O olho de ocultar valores saiu.
+O teste com o card "denso" (linha em degraus e faixa de comparação) foi revertido a pedido do usuário: os cards voltaram ao modelo 2A anterior (vidro escuro, valor, olho, contagem, comparação com a etiqueta de %, e o histórico `HISTÓRICO · 4 MESES` em barras). **Mantido** o verde maior com folga (conteúdo + 30 pt; cards com altura mínima de 178 pt).
+
+## Contagem do valor
+
+Ao entrar na Início, o valor do card do mês conta rápido de zero até o total (`useCountUp`, 650 ms com desaceleração, passos em reais inteiros e último quadro exato). Com "Reduzir movimento", aparece direto. O mesmo vale para o valor do topo de Finanças (Mês e Ano), que recomeça ao entrar na aba ou trocar Mês/Ano.
 
 ## Corpo (10.3/10.4/10.5)
 

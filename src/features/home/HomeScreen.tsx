@@ -42,6 +42,8 @@ export function HomeScreen() {
   const [today, setToday] = useState(() => todayInTimezone(deviceTimezone()));
   const [month, setMonth] = useState<LocalMonth>(() => monthOf(today));
   const openedChild = useRef(false);
+  // Cada entrada na aba recomeça a contagem do valor do topo.
+  const [enterKey, setEnterKey] = useState(0);
   const hero = useHomeHero(month);
   const body = useHomeBody(today);
   const confirm = useConfirmReceivable();
@@ -51,6 +53,7 @@ export function HomeScreen() {
   // Como Agenda e Finanças: voltar à aba abre o mês atual, exceto ao voltar de uma tela filha.
   useFocusEffect(
     useCallback(() => {
+      setEnterKey((key) => key + 1);
       if (openedChild.current) {
         openedChild.current = false;
         return;
@@ -95,7 +98,7 @@ export function HomeScreen() {
       onMonth={setMonth}
       onAddWork={addWork}
       onAvatar={() => router.push('/profile')}
-      onOpenFinances={() => router.push('/finances')}
+      enterKey={enterKey}
     />
   );
 

@@ -620,6 +620,8 @@ export const motion = {
   heroPage: 450,
   heroBar: 400,
   reviewRemoval: 200,
+  /** Valor do topo da Início contando até o total ao entrar na tela. */
+  countUp: 650,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

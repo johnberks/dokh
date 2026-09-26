@@ -30,6 +30,8 @@ let mockHourlyWindow: Query<unknown> = ok([]);
 let mockYearWork: Query<unknown> = ok({ hourlyValueCents: null, hourlyEvolutionPercent: null });
 const mockRefetch = jest.fn();
 
+// A contagem do valor do topo tem seu próprio teste; aqui o valor aparece direto.
+jest.mock('@/theme/useReducedMotion', () => ({ useReducedMotion: () => true }));
 jest.mock('@/features/billing/entitlement', () => ({ usePremium: () => mockPremium }));
 jest.mock('./finance-data', () => ({
   ...jest.requireActual('./finance-data'),
