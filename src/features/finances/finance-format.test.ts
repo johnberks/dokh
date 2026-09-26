@@ -159,8 +159,13 @@ describe('projeção e valor/hora do ano', () => {
       totalCents: 6114100n,
       currentIndex: 8,
     });
-    expect(projection?.points).toHaveLength(9);
-    expect(projection?.points[1]).toBeNull();
+    // Acumulado: nunca cai; meses sem dado mantêm o total anterior.
+    expect(projection?.cumulative).toHaveLength(9);
+    expect(projection?.cumulative[0]).toBe(1000000);
+    expect(projection?.cumulative[1]).toBe(1000000);
+    expect(projection?.cumulative[8]).toBe(2245000);
+    // Do mês atual a dezembro, soma a média a cada mês e termina no total projetado.
+    expect(projection?.projected).toEqual([2245000, 3534700, 4824400, 6114100]);
   });
 
   it('sem média ou fora do ano corrente não há projeção', () => {

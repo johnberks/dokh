@@ -4,13 +4,13 @@ import { colors, palette } from '@/theme/tokens';
 import { AppText } from './AppText';
 
 export type ProjectionChartProps = {
-  /** Valores de janeiro até o mês atual; `null` = mês sem dado (a linha pula o ponto). */
-  points: readonly (number | null)[];
+  /** Acumulado de janeiro até o mês atual (linha cheia). */
+  cumulative: readonly number[];
+  /** Acumulado do mês atual até dezembro pela média (linha tracejada); começa no atual. */
+  projected: readonly number[];
   /** Índice do mês atual (0 = janeiro). */
   currentIndex: number;
-  /** Média mensal usada na projeção dos meses restantes. */
-  average: number;
-  /** Rótulos do eixo: JAN, ABR, JUL, o mês atual e DEZ. */
+  /** Rótulos dos 12 meses; o eixo mostra JAN, ABR, JUL, o atual e DEZ. */
   monthLabels: readonly string[];
   realizedLabel: string;
   projectedLabel: string;
@@ -20,7 +20,7 @@ export type ProjectionChartProps = {
 
 const W = 330;
 const H = 120;
-const TOP = 4;
+const TOP = 8;
 const BOTTOM = 112;
 const X0 = 6;
 const X1 = 324;
@@ -28,31 +28,30 @@ const X1 = 324;
 const xAt = (index: number) => X0 + ((X1 - X0) / 11) * index;
 
 /**
- * Projeção anual (Finanças 03): linha verde do realizado até o mês atual, tracejado bronze na
- * média até dezembro, média pontilhada e marca vertical no mês atual. Nada é desenhado para
- * meses sem dado.
+ * Projeção anual acumulada: linha verde com o total do ano até o mês atual e tracejado bronze
+ * somando a média mensal até dezembro. Um total acumulado só sobe (ou fica estável), então a
+ * linha nunca "cai" depois do mês atual.
  */
 export function ProjectionChart({
-  points,
+  cumulative,
+  projected,
   currentIndex,
-  average,
   monthLabels,
   realizedLabel,
   projectedLabel,
   accessibilityLabel,
   testID,
 }: ProjectionChartProps) {
-  const values = points.filter((value): value is number => value !== null);
-  const max = Math.max(average, ...values, 1) * 1.15;
+  const max = Math.max(1, ...cumulative, ...projected);
   const yAt = (value: number) => BOTTOM - (value / max) * (BOTTOM - TOP);
-  const realized = points
-    .map((value, index) =>
-      value === null ? null : `${xAt(index).toFixed(1)},${yAt(value).toFixed(1)}`,
-    )
-    .filter((point): point is string => point !== null);
-  const current = points[currentIndex];
-  const startY = yAt(current ?? average);
-  const avgY = yAt(average);
+  const realizedPoints = cumulative
+    .map((value, index) => `${xAt(index).toFixed(1)},${yAt(value).toFixed(1)}`)
+    .join(' ');
+  const projectedPoints = projected
+    .map((value, step) => `${xAt(currentIndex + step).toFixed(1)},${yAt(value).toFixed(1)}`)
+    .join(' ');
+  const current = cumulative[currentIndex] ?? 0;
+  const end = projected[projected.length - 1] ?? current;
   const axis = [0, 3, 6, currentIndex, 11].filter(
     (index, position, list) => list.indexOf(index) === position,
   );
@@ -69,17 +68,10 @@ export function ProjectionChart({
             stroke="rgba(16,22,15,0.14)"
             strokeDasharray="2 3"
           />
-          <Line
-            x1={0}
-            y1={avgY}
-            x2={W}
-            y2={avgY}
-            stroke="rgba(169,138,84,0.35)"
-            strokeDasharray="1 4"
-          />
-          {realized.length > 1 && (
+          <Line x1={0} y1={BOTTOM} x2={W} y2={BOTTOM} stroke="rgba(16,22,15,0.1)" />
+          {cumulative.length > 1 && (
             <Polyline
-              points={realized.join(' ')}
+              points={realizedPoints}
               fill="none"
               stroke={palette.structure}
               strokeWidth={2}
@@ -87,9 +79,9 @@ export function ProjectionChart({
               strokeLinecap="round"
             />
           )}
-          {currentIndex < 11 && (
+          {projected.length > 1 && (
             <Polyline
-              points={`${xAt(currentIndex)},${startY} ${xAt(currentIndex + 1)},${avgY} ${xAt(11)},${avgY}`}
+              points={projectedPoints}
               fill="none"
               stroke={palette.bronze}
               strokeWidth={2}
@@ -99,13 +91,15 @@ export function ProjectionChart({
           )}
           <Circle
             cx={xAt(currentIndex)}
-            cy={startY}
+            cy={yAt(current)}
             r={4}
             fill={colors.background}
             stroke={palette.structure}
             strokeWidth={2}
           />
-          <Circle cx={xAt(11)} cy={avgY} r={4} fill={palette.bronze} />
+          {projected.length > 1 && (
+            <Circle cx={xAt(11)} cy={yAt(end)} r={4} fill={palette.bronze} />
+          )}
         </Svg>
       </View>
       <View style={styles.axis}>

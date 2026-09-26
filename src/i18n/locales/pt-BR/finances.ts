@@ -54,7 +54,7 @@ export const finances = {
     },
     projection: {
       title: 'PROJEÇÃO ATÉ DEZEMBRO',
-      text: 'O que está previsto até este mês, somado à sua média mensal nos meses que faltam.',
+      text: 'Quanto você soma no ano se mantiver sua média mensal: o que está previsto até este mês mais a média em cada mês que falta.',
       example: 'Com média de R$ 12.000, três meses restantes somam mais R$ 36.000.',
     },
   },
@@ -70,8 +70,8 @@ export const finances = {
     evolution: 'evolução do valor/hora',
     projectionEyebrow: 'PROJEÇÃO PARA {{year}}',
     projectionCaption: 'previstos até dezembro',
-    projectionRealized: 'recebido',
-    projectionEstimated: 'projeção pela sua média mensal',
+    projectionRealized: 'acumulado até agora',
+    projectionEstimated: 'mantendo sua média mensal',
     projectionText:
       'Mantendo sua média de {{average}}/mês, {{from}} a dezembro somam mais {{remaining}}.',
     projectionTextOne: 'Mantendo sua média de {{average}}/mês, dezembro soma mais {{remaining}}.',

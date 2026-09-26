@@ -164,35 +164,42 @@ export type Projection = {
   remainingCents: bigint;
   totalCents: bigint;
   averageCents: bigint;
-  /** Valor de cada mês até o atual (`null` sem dado) para a linha realizada. */
-  points: (number | null)[];
+  /** Acumulado de janeiro até cada mês, até o atual (linha cheia). */
+  cumulative: number[];
+  /** Acumulado do mês atual até dezembro somando a média a cada mês (linha tracejada). */
+  projected: number[];
   currentIndex: number;
 };
 
 /**
- * Projeção até dezembro (Premium): o que está previsto até o mês atual mais a média mensal
- * nos meses restantes. Só existe no ano corrente e com média (≥ 2 meses de histórico).
+ * Projeção até dezembro (Premium), acumulada: o total do ano cresce mês a mês com o que está
+ * previsto até agora e, dali em diante, com a média mensal — se o ritmo se mantiver, a linha
+ * termina no total projetado. Só no ano corrente e com média (≥ 2 meses de histórico).
  */
 export function projectYear(data: FinanceYear, year: number, today: LocalDate): Projection | null {
   if (Number(today.slice(0, 4)) !== year || data.historicalAverageCents === null) return null;
   const currentIndex = Number(today.slice(5, 7)) - 1;
   const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
-  const points: (number | null)[] = [];
+  const cumulative: number[] = [];
   let realized = 0n;
   for (let index = 0; index <= currentIndex; index++) {
-    const cents = byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`);
-    points.push(cents === undefined ? null : Number(cents));
-    realized += cents ?? 0n;
+    realized += byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`) ?? 0n;
+    cumulative.push(Number(realized));
   }
   const remainingMonths = 11 - currentIndex;
-  const remaining = data.historicalAverageCents * BigInt(remainingMonths);
+  const average = data.historicalAverageCents;
+  const projected = Array.from({ length: remainingMonths + 1 }, (_, step) =>
+    Number(realized + average * BigInt(step)),
+  );
+  const remaining = average * BigInt(remainingMonths);
   return {
     realizedCents: realized,
     remainingMonths,
     remainingCents: remaining,
     totalCents: realized + remaining,
-    averageCents: data.historicalAverageCents,
-    points,
+    averageCents: average,
+    cumulative,
+    projected,
     currentIndex,
   };
 }

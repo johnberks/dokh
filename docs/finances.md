@@ -27,9 +27,9 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 ## Ano
 
-- ★ **Gráfico em componente** (`BarChartCard`, `src/components`): `JANEIRO → DEZEMBRO`, legenda `mês atual`, barras relativas ao maior mês, mês atual em bronze e mês sem dado **tracejado** (nunca zero).
-- ★ **Valor/hora médio no ano e evolução** (Premium): valor/hora de todos os trabalhos do ano com duração, ponderado pelas horas de cada mês (não média de médias), e variação entre o primeiro e o último mês com valor/hora — sem dois meses, nada de tendência. Free vê `R$ •••/h` e `+••%` com selo.
-- ★ **Projeção para o ano** (Premium, só no ano corrente e com média): previsto até o mês atual + média × meses restantes; `ProjectionChart` (`src/components`) com linha verde realizada, tracejado bronze na média até dezembro, legenda e a frase "Mantendo sua média de R$ X/mês, outubro a dezembro somam mais R$ Y." Free vê o valor oculto, selo e a explicação.
+- ★ **Gráfico em bloco** (`BarChartCard`, `src/components`, superfície de card como o `CalendarCard`): `JANEIRO → DEZEMBRO`, legenda `mês atual`, barras relativas ao maior mês, mês atual em bronze e mês sem dado **tracejado** (nunca zero). A média mensal é o rodapé do próprio bloco.
+- ★ **Valor/hora médio no ano e evolução** (Premium), em duas caixinhas lado a lado com cor de destaque (bronze e verde): valor/hora de todos os trabalhos do ano com duração, ponderado pelas horas de cada mês (não média de médias), e variação entre o primeiro e o último mês com valor/hora — sem dois meses, nada de tendência. Free vê `R$ •••/h` e `+••%` com selo.
+- ★ **Projeção para o ano** (Premium, só no ano corrente e com média): previsto até o mês atual + média × meses restantes. `ProjectionChart` (`src/components`) é **acumulado** (pedido do usuário: a versão mês a mês parecia cair a zero depois do mês atual) — linha verde com o total do ano até agora e tracejado bronze somando a média a cada mês até o total de dezembro; legenda e a frase "Mantendo sua média de R$ X/mês, outubro a dezembro somam mais R$ Y." Free vê o valor oculto, selo e a explicação.
 - Topo: total `recebidos e previstos em 2026`.
 - Rodapé: média mensal só com base suficiente (`historical_average_cents`, ≥ 2 meses); sem ela, "Seu histórico começa agora." (Finanças 13).
 - Origem das entradas no ano: Premium soma as origens dos meses com entrada (o servidor devolve `null` no Free).

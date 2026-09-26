@@ -444,7 +444,6 @@ function YearBody({
     <View style={styles.sections}>
       <View>
         <BarChartCard
-          surface="plain"
           eyebrow={t('year.range')}
           legend={isCurrentYear ? t('year.currentMonth') : undefined}
           bars={yearBars(data, year, today)}
@@ -515,8 +514,16 @@ function YearHourly({
   if (isPremium && hourly === null) return null;
   return (
     <View style={styles.yearHourly} testID="finances-year-hourly">
-      <View style={styles.yearHourlyItem}>
-        <AppText style={[type.heading1, styles.yearHourlyValue, !isPremium && styles.maskedValue]}>
+      <View style={[styles.yearHourlyItem, styles.hourlyBox]}>
+        <AppText
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          style={[
+            type.heading1,
+            styles.yearHourlyValue,
+            isPremium ? styles.hourlyValueAccent : styles.maskedValue,
+          ]}
+        >
           {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
           <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
         </AppText>
@@ -539,8 +546,10 @@ function YearHourly({
         </View>
       </View>
       {(!isPremium || evolution !== null) && (
-        <View style={styles.yearHourlyItem} testID="finances-year-evolution">
+        <View style={[styles.yearHourlyItem, styles.evolutionBox]} testID="finances-year-evolution">
           <AppText
+            adjustsFontSizeToFit
+            numberOfLines={1}
             style={[
               type.heading1,
               styles.yearHourlyValue,
@@ -622,9 +631,9 @@ function YearProjection({
       {isPremium && projection ? (
         <>
           <ProjectionChart
-            points={projection.points}
+            cumulative={projection.cumulative}
+            projected={projection.projected}
             currentIndex={projection.currentIndex}
-            average={Number(projection.averageCents)}
             monthLabels={MONTH_AXIS}
             realizedLabel={t('year.projectionRealized')}
             projectedLabel={t('year.projectionEstimated')}
@@ -998,8 +1007,20 @@ const styles = StyleSheet.create({
   captionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   captionRowLight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   hourlyLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  yearHourly: { flexDirection: 'row', gap: 16 },
-  yearHourlyItem: { flex: 1, gap: 4 },
+  // Duas caixinhas lado a lado com cor de destaque (valor/hora em bronze, evolução em verde).
+  yearHourly: { flexDirection: 'row', gap: 12 },
+  yearHourlyItem: {
+    flex: 1,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    gap: 6,
+  },
+  hourlyBox: { backgroundColor: 'rgba(169,138,84,0.12)', borderColor: 'rgba(169,138,84,0.4)' },
+  evolutionBox: { backgroundColor: 'rgba(43,58,36,0.10)', borderColor: 'rgba(43,58,36,0.28)' },
+  hourlyValueAccent: { color: palette.bronzeDeep },
   yearHourlyValue: {
     fontSize: 24,
     lineHeight: 28,
