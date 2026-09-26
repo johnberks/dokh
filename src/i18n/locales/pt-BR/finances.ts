@@ -5,35 +5,37 @@ export const finances = {
   previousYear: 'Ano anterior',
   nextYear: 'Próximo ano',
   mode: { month: 'Mês', year: 'Ano' },
+  /** Sheets 15–18 e 22 de `design/financas.html` (textos do design) e as do ano. */
   info: {
     open: 'O que é {{label}}?',
-    exampleLabel: 'EXEMPLO',
+    close: 'Entendi',
     hourlyExample: '{{generated}} em {{hours}} de trabalho dão {{hourly}} por hora.',
     expected: {
       title: 'PREVISTO PARA ENTRAR',
-      text: 'Soma das entradas com data de pagamento neste mês — não importa quando o trabalho foi feito.',
-      example: 'Um plantão feito em agosto e pago em setembro entra no total de setembro.',
+      text: 'Este valor considera as entradas previstas para este mês, independentemente de quando o trabalho foi realizado.',
+      example:
+        'Um trabalho feito em agosto com pagamento em setembro entra aqui. Um trabalho de setembro pago em outubro, não.',
     },
     received: {
       title: 'RECEBIDO',
-      text: 'Entradas previstas para este mês que você já confirmou. A DOKH nunca confirma sozinha.',
-      example: 'A bolsa da residência prevista para o dia 5 conta aqui depois que você confirma.',
+      text: 'Valores com pagamento confirmado neste mês.',
+      example: 'Você confirma pela Home no dia previsto — ou em Entradas.',
     },
     awaiting: {
       title: 'A RECEBER',
-      text: 'Entradas previstas para este mês que ainda não entraram. Recebido + a receber = previsto para entrar.',
-      example: 'Um plantão com pagamento previsto para o dia 28 fica aqui até você confirmar.',
+      text: 'Valores com pagamento previsto para este mês que ainda não foram confirmados.',
+      example: 'Inclui trabalhos de meses anteriores cuja data de pagamento cai neste mês.',
     },
     generated: {
       title: 'TRABALHO GERADO',
-      text: 'Valor dos trabalhos realizados neste mês, independentemente de quando serão pagos.',
+      text: 'Este valor considera os trabalhos realizados neste mês, independentemente da data prevista de entrada.',
       example:
-        'Um plantão de setembro pago em outubro conta aqui em setembro e nas entradas de outubro.',
+        'Um trabalho de R$ 1.200 feito em setembro e pago em outubro entra aqui, no seu setembro — mas só entra em Entradas em outubro.',
     },
     hourly: {
-      title: 'VALOR/HORA',
-      text: 'Valor gerado dividido pelas horas trabalhadas, só nos trabalhos com duração registrada.',
-      example: 'R$ 14.800 em 84h de trabalho dão R$ 176 por hora.',
+      title: 'VALOR POR HORA',
+      text: 'Quanto cada hora do seu trabalho gerou neste mês: trabalho gerado dividido pelas horas trabalhadas. Calculado com base nos trabalhos que possuem duração registrada.',
+      example: 'Com a DOKH Premium você acompanha esse valor mês a mês e vê como ele evolui.',
     },
     yearTotal: {
       title: 'RECEBIDOS E PREVISTOS NO ANO',
@@ -46,9 +48,9 @@ export const finances = {
       example: 'Com R$ 10.000 em julho e R$ 12.000 em agosto, a média é R$ 11.000.',
     },
     yearHourly: {
-      title: 'VALOR/HORA NO ANO',
-      text: 'Valor/hora de todos os trabalhos do ano com duração registrada — meses com mais horas pesam mais.',
-      example: 'A evolução compara o primeiro e o último mês do ano com valor/hora.',
+      title: 'VALOR POR HORA NO ANO',
+      text: 'Valor por hora de todos os trabalhos do ano com duração registrada — meses com mais horas pesam mais.',
+      example: 'A evolução compara o primeiro e o último mês do ano com valor por hora.',
     },
     projection: {
       title: 'PROJEÇÃO ATÉ DEZEMBRO',
@@ -130,6 +132,24 @@ export const finances = {
     hours: 'trabalhadas',
     hourly: 'valor/hora',
     perHour: '/h',
+  },
+  insight: {
+    eyebrow: 'INSIGHT',
+    up: 'Seu valor/hora está aumentando.',
+    down: 'Seu valor/hora caiu.',
+    stable: 'Seu valor/hora está estável.',
+    versusAverage: 'vs. média {{months}}',
+    versusRecent: 'vs. últimos meses',
+    textUp: '{{hourly}} por hora em {{month}} — {{delta}} acima da média de {{previous}}.',
+    textDown: '{{hourly}} por hora em {{month}} — {{delta}} abaixo da média de {{previous}}.',
+    textStable: '{{hourly}} por hora em {{month}} — praticamente igual à média de {{previous}}.',
+    fewerWorks: 'Menos trabalhos, valor maior.',
+    lockedUp: 'Você ganhou mais por hora em {{month}} do que nos últimos meses. Descubra quanto.',
+    lockedDown:
+      'Você ganhou menos por hora em {{month}} do que nos últimos meses. Descubra quanto.',
+    lockedStable:
+      'Seu valor por hora em {{month}} ficou parecido com o dos últimos meses. Descubra quanto.',
+    chartLabel: 'Valor por hora de {{months}}',
   },
   workType: {
     shift: 'PLANTÃO',

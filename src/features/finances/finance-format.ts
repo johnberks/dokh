@@ -1,7 +1,14 @@
 import type { TFunction } from 'i18next';
 import type { ChartBar } from '@/components/BarChartCard';
 import { differenceInLocalDays, type LocalDate, type LocalMonth } from '@/domain/calendar';
-import type { EntryOrigin, FinanceMonth, FinanceYear, OriginAmount } from './finance-data';
+import { formatCentsToBRL } from '@/domain/money';
+import type {
+  EntryOrigin,
+  FinanceMonth,
+  FinanceYear,
+  HourlyMonth,
+  OriginAmount,
+} from './finance-data';
 
 type T = TFunction<'finances'>;
 
@@ -199,4 +206,70 @@ export function monthsForYearWork(year: number, today: LocalDate): LocalMonth[] 
     { length: last },
     (_, index) => `${year}-${String(index + 1).padStart(2, '0')}`,
   );
+}
+
+/** Valor/hora em reais inteiros (`R$ 109`), como no HTML: os centavos quebravam a linha. */
+export function hourlyReais(cents: bigint): string {
+  return formatCentsToBRL(((cents + 50n) / 100n) * 100n, { omitZeroCents: true });
+}
+
+export type InsightBar = { month: LocalMonth; hourlyCents: number; current: boolean };
+
+export type HourlyInsight = {
+  direction: 'up' | 'down' | 'stable';
+  /** Variação do mês contra a média dos anteriores, em %. */
+  percent: number;
+  /** Diferença em centavos (positiva ou negativa). */
+  deltaCents: bigint;
+  currentCents: bigint;
+  bars: InsightBar[];
+  previousMonths: LocalMonth[];
+  /** Menos trabalhos que a média anterior, com valor/hora maior. */
+  fewerWorks: boolean;
+};
+
+/**
+ * Insight de valor/hora: o mês contra a média dos até dois meses anteriores com valor/hora.
+ * Sem o mês atual ou sem nenhum anterior, não há insight — nunca uma tendência inventada.
+ * No Free o servidor não entrega valor/hora; a direção vem de gerado ÷ horas (os números
+ * continuam ocultos na tela).
+ */
+export function hourlyInsight(window: readonly HourlyMonth[]): HourlyInsight | null {
+  const hourlyOf = (item: HourlyMonth): bigint | null => {
+    if (item.hourlyValueCents !== null) return item.hourlyValueCents;
+    if (item.workDurationMinutes <= 0 || item.workGeneratedCents <= 0n) return null;
+    return (item.workGeneratedCents * 60n) / BigInt(item.workDurationMinutes);
+  };
+  const current = window[window.length - 1];
+  const currentValue = current ? hourlyOf(current) : null;
+  if (!current || currentValue === null) return null;
+  const previous = window
+    .slice(0, -1)
+    .map((item) => ({ item, value: hourlyOf(item) }))
+    .filter((entry): entry is { item: HourlyMonth; value: bigint } => entry.value !== null);
+  if (previous.length === 0) return null;
+
+  const average = previous.reduce((sum, entry) => sum + entry.value, 0n) / BigInt(previous.length);
+  if (average <= 0n) return null;
+  const deltaCents = currentValue - average;
+  const percent = Math.round((Number(deltaCents) / Number(average)) * 100);
+  const direction = percent >= 3 ? 'up' : percent <= -3 ? 'down' : 'stable';
+  const previousWorks =
+    previous.reduce((sum, entry) => sum + entry.item.workCount, 0) / previous.length;
+  return {
+    direction,
+    percent,
+    deltaCents,
+    currentCents: currentValue,
+    bars: [
+      ...previous.map((entry) => ({
+        month: entry.item.month,
+        hourlyCents: Number(entry.value),
+        current: false,
+      })),
+      { month: current.month, hourlyCents: Number(currentValue), current: true },
+    ],
+    previousMonths: previous.map((entry) => entry.item.month),
+    fewerWorks: direction === 'up' && current.workCount < previousWorks,
+  };
 }

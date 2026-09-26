@@ -6,23 +6,24 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 - ★ **Uma única rolagem**: topo verde e corpo bege sobem juntos (`TwoToneScrollScreen`, com o topo escuro também ao puxar para baixo).
 - ★ **Troca de período igual à Agenda**: `PeriodSwitcher` (`src/components`), o mesmo componente da Agenda, em tamanho compacto na primeira linha do topo, ao lado do seletor `Mês`/`Ano` — `‹ Setembro 2026 ›` no mês e `‹ 2026 ›` no ano (sem rótulo acima, segundo ajuste de 2026-09-26). A aba sempre abre no mês atual, exceto ao voltar do `+` ou da edição.
-- ★ **Layout do HTML, com passagem reta**: nada sobrepõe o topo verde; as seções ficam no bege, e a passagem do verde para o bege é reta (sem os cantos arredondados do HTML). O gráfico anual usa `BarChartCard` com `surface="plain"`, direto no fundo, como em Finanças 03.
+- ★ **Layout do HTML, com passagem reta** e espaço menor entre o fim do verde e o começo do bege: nada sobrepõe o topo verde; as seções ficam no bege, e a passagem do verde para o bege é reta (sem os cantos arredondados do HTML). O gráfico anual usa `BarChartCard` com `surface="plain"`, direto no fundo, como em Finanças 03.
 
 ## Mês — `FinancesScreen.tsx`
 
 | Seção | Quando aparece |
 | --- | --- |
 | Topo | Previsto no mês atual; no futuro, "previstos para entrar em outubro"; no passado, o que **entrou** ("· mês fechado" sem pendência); `R$ —` sem previsão ("nada registrado ainda" ou "nada previsto para entrar ainda"). |
-| Recebido × A receber | Só com entrada prevista. Percentual arredondado para baixo (nunca 100% antes da hora); `nada em aberto`/`mês fechado` quando tudo entrou. |
+| Recebido × A receber | ★ Componente `ReceiptProgressCard` (`src/components`): os dois blocos e a barra num bloco só. Só com entrada prevista. Percentual arredondado para baixo (nunca 100% antes da hora); `nada em aberto`/`mês fechado` quando tudo entrou. Tocar em cada lado abre a folha correspondente. |
 | Próxima entrada | Mês atual/futuro com entrada em aberto: dia, `hoje`/`amanhã`/`em N dias`, origem (Local ou Residência) e valor. Sem ela, o estado `Nenhuma prevista` com o motivo (tudo recebido, mês fechado, aguardando confirmação, só sem data). |
 | ★ Revisão necessária | **Só no mês atual e só quando há valores sem data** (a pendência é de agora, não de cada mês). `ReviewCard` detalhado com até dois previews e `+ N`, sem texto de apoio; `Adicionar datas` (espaçamento corrigido) abre a edição do primeiro Trabalho sem data. |
 | Origem das entradas | Só com entrada prevista. Premium: valores reais e percentuais. Free: estrutura oculta (`••••`) e selo Premium. |
-| Seu trabalho em {mês} | Só com Trabalho no mês (competência): gerado, quantidade, horas e valor/hora. Free vê gerado, quantidade e horas (Finanças 12/13) e o valor/hora oculto com selo. |
+| Seu trabalho em {mês} | Só com Trabalho no mês (competência): gerado, quantidade, horas e valor/hora. ★ Valor/hora em reais inteiros (`R$ 109/h`, como no HTML) e numa linha só — os centavos quebravam a linha. Free vê gerado, quantidade e horas (Finanças 12/13) e o valor/hora oculto com selo. |
+| ★ Insight de valor/hora | Último item de Finanças 01 (`InsightCard`): o mês contra a média dos até dois meses anteriores com valor/hora — conclusão (aumentando/caiu/estável), barras, variação (`↑ 14%`), frase com números reais e "Menos trabalhos, valor maior." quando vale. Sem o mês ou sem mês anterior, não aparece. Free vê a conclusão (direção por gerado ÷ horas) com números ocultos e selo. `Ver análise completa` chega com a análise (Finanças 02). |
 | Sem nada no mês | `EmptyState financesNoWork` com `Adicionar trabalho`. Erro de leitura é `LoadError`, nunca mês vazio. |
 
 ## Folhas explicativas (9.4) — `FinanceInfo.tsx`
 
-★ Os `i` do HTML abrem folhas com rótulo, valor do contexto, explicação simples e exemplo: previsto para entrar, recebido e a receber (tocando nos blocos), trabalho gerado, valor/hora, total do ano, média mensal, valor/hora no ano e projeção. No valor/hora, o exemplo usa os números reais do mês (Premium); no Free o valor aparece oculto.
+★ Os `i` do HTML abrem folhas no formato das Sheets 15–18/22: rótulo, número (recebido em verde), explicação, exemplo com ponto bronze e o botão `Entendi` (o HTML usa "Entendi"; os textos também são os do HTML): previsto para entrar, recebido e a receber (tocando nos blocos), trabalho gerado, valor/hora, total do ano, média mensal, valor/hora no ano e projeção. No valor/hora, o exemplo usa os números reais do mês (Premium); no Free o valor aparece oculto.
 
 ## Ano
 
@@ -43,7 +44,7 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 - `Ver entradas`/`Ver extrato do mês` e toque nos blocos: chegam com o extrato (9.3).
 - `Desbloquear com Premium`: chega com o fluxo de benefícios (5.5); até lá o Free vê a estrutura e o selo, sem botão que não leva a lugar nenhum.
-- Insight do mês e análise completa de valor/hora (resto da 9.6).
+- Análise completa de valor/hora (Finanças 02) e o atalho `Ver análise completa` (resto da 9.6).
 
 ## Dados — `finance-data.ts`
 

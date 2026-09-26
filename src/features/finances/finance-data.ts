@@ -307,3 +307,37 @@ export function useYearWork(year: number, months: readonly LocalMonth[], enabled
     enabled: userId !== null && enabled,
   });
 }
+
+export type HourlyMonth = {
+  month: LocalMonth;
+  /** Servidor: só com Premium. */
+  hourlyValueCents: bigint | null;
+  workCount: number;
+  workGeneratedCents: bigint;
+  workDurationMinutes: number;
+};
+
+/** O mês e os dois anteriores, para o insight de valor/hora (Finanças 01). */
+export async function readHourlyWindow(
+  month: LocalMonth,
+  client: AuthClient = supabase,
+): Promise<HourlyMonth[]> {
+  const months = [shiftMonth(month, -2), shiftMonth(month, -1), month];
+  const data = await Promise.all(months.map((item) => readFinanceMonth(item, client)));
+  return data.map((item, index) => ({
+    month: months[index],
+    hourlyValueCents: item.hourlyValueCents,
+    workCount: item.workCount,
+    workGeneratedCents: item.workGeneratedCents,
+    workDurationMinutes: item.workDurationMinutes,
+  }));
+}
+
+export function useHourlyWindow(month: LocalMonth, enabled: boolean) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'hourly-window'],
+    queryFn: () => readHourlyWindow(month),
+    enabled: userId !== null && enabled,
+  });
+}

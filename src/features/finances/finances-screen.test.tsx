@@ -26,6 +26,7 @@ let mockNext: Query<unknown> = ok(null);
 let mockUndated: Query<unknown> = ok([]);
 let mockYear: Query<unknown> = ok(undefined);
 let mockYearOrigins: Query<unknown> = ok([]);
+let mockHourlyWindow: Query<unknown> = ok([]);
 let mockYearWork: Query<unknown> = ok({ hourlyValueCents: null, hourlyEvolutionPercent: null });
 const mockRefetch = jest.fn();
 
@@ -39,6 +40,7 @@ jest.mock('./finance-data', () => ({
   useFinanceYear: () => ({ ...mockYear, refetch: mockRefetch, isFetching: false }),
   useYearOrigins: () => mockYearOrigins,
   useYearWork: () => mockYearWork,
+  useHourlyWindow: () => mockHourlyWindow,
 }));
 
 const today = todayInTimezone(deviceTimezone());
@@ -83,6 +85,7 @@ beforeEach(() => {
     historicalAverageCents: null,
   });
   mockYearOrigins = ok([]);
+  mockHourlyWindow = ok([]);
   mockYearWork = ok({ hourlyValueCents: null, hourlyEvolutionPercent: null });
 });
 
@@ -90,8 +93,8 @@ describe('Finanças — mês', () => {
   it('mês atual: previsto, recebido × a receber, percentual e próxima entrada', async () => {
     await renderWithProviders(<FinancesScreen />);
     expect(screen.getByText('previstos para entrar este mês')).toBeTruthy();
-    expect(screen.getByTestId('finances-received')).toBeTruthy();
-    expect(screen.getByTestId('finances-awaiting')).toBeTruthy();
+    expect(screen.getByTestId('finances-split-received')).toBeTruthy();
+    expect(screen.getByTestId('finances-split-awaiting')).toBeTruthy();
     expect(screen.getByText('67% recebido')).toBeTruthy();
     expect(screen.getByTestId('finances-next')).toBeTruthy();
     expect(screen.getByText('hoje')).toBeTruthy();
@@ -174,7 +177,7 @@ describe('Finanças — mês', () => {
     await renderWithProviders(<FinancesScreen />);
     expect(screen.getByText('R$ —')).toBeTruthy();
     expect(screen.getByText('nada previsto para entrar ainda')).toBeTruthy();
-    expect(screen.queryByTestId('finances-received')).toBeNull();
+    expect(screen.queryByTestId('finances-split-received')).toBeNull();
     expect(screen.getByText('REVISÃO NECESSÁRIA · 3 ENTRADAS')).toBeTruthy();
     expect(screen.getByTestId('finances-work')).toBeTruthy();
 
@@ -195,7 +198,7 @@ describe('Finanças — mês', () => {
     await renderWithProviders(<FinancesScreen />);
     expect(screen.getByText('nada registrado ainda')).toBeTruthy();
     expect(screen.getByTestId('finances-empty')).toBeTruthy();
-    expect(screen.queryByTestId('finances-received')).toBeNull();
+    expect(screen.queryByTestId('finances-split-received')).toBeNull();
     expect(screen.queryByTestId('finances-work')).toBeNull();
     await act(async () => {
       await fireEvent.press(screen.getByTestId('finances-empty-action'));
@@ -232,10 +235,9 @@ describe('Finanças — topo e explicações', () => {
     });
     expect(screen.getByText('PREVISTO PARA ENTRAR')).toBeTruthy();
     expect(screen.getByTestId('finance-info-value').props.children).toMatch(/12\.450/);
-    expect(screen.getByText('EXEMPLO')).toBeTruthy();
 
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('finances-awaiting'));
+      await fireEvent.press(screen.getByTestId('finances-split-awaiting'));
     });
     // O bloco e a folha dizem "A RECEBER"; a folha traz o valor do bloco.
     expect(screen.getAllByText('A RECEBER')).toHaveLength(2);
@@ -257,6 +259,104 @@ describe('Finanças — topo e explicações', () => {
     await renderWithProviders(<FinancesScreen />);
     expect(screen.getByTestId('finances-review')).toBeTruthy();
     expect(screen.queryByText('Estes valores não entram no total do mês.')).toBeNull();
+  });
+});
+
+describe('Finanças — valor/hora e insight', () => {
+  const window = (current: bigint | null) => [
+    {
+      month: '2026-07',
+      hourlyValueCents: 14800n,
+      workCount: 9,
+      workGeneratedCents: 0n,
+      workDurationMinutes: 600,
+    },
+    {
+      month: '2026-08',
+      hourlyValueCents: 16200n,
+      workCount: 8,
+      workGeneratedCents: 0n,
+      workDurationMinutes: 600,
+    },
+    {
+      month: '2026-09',
+      hourlyValueCents: current,
+      workCount: 7,
+      workGeneratedCents: 0n,
+      workDurationMinutes: 600,
+    },
+  ];
+
+  it('valor/hora em reais inteiros numa linha só (sem quebrar como R$ 109,26)', async () => {
+    mockPremium = ok(true);
+    mockMonth = ok(month({ hourlyValueCents: 10926n }));
+    await renderWithProviders(<FinancesScreen />);
+    const value = screen.getByTestId('finances-hourly-value');
+    expect(value.props.numberOfLines).toBe(1);
+    expect(value.props.adjustsFontSizeToFit).toBe(true);
+    expect(screen.queryByText(/109,26/)).toBeNull();
+    expect(screen.getByText(/R\$\s?109/)).toBeTruthy();
+  });
+
+  it('Premium: insight com barras, variação e frase com números reais', async () => {
+    mockPremium = ok(true);
+    mockHourlyWindow = ok(window(17600n));
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText('Seu valor/hora está aumentando.')).toBeTruthy();
+    expect(screen.getByTestId('finances-insight-delta').props.children).toBe('↑ 14%');
+    expect(screen.getByTestId('finances-insight-text').props.children).toMatch(
+      /^R\$\s?176 por hora em setembro — R\$\s?21 acima da média de julho e agosto\. Menos trabalhos, valor maior\.$/,
+    );
+    expect(screen.queryByTestId('finances-insight-premium')).toBeNull();
+  });
+
+  it('Free: conclusão visível, números ocultos e selo', async () => {
+    mockHourlyWindow = ok(
+      window(null).map((item) => ({
+        ...item,
+        hourlyValueCents: null,
+        workGeneratedCents: item.month === '2026-09' ? 176000n : 150000n,
+      })),
+    );
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText('Seu valor/hora está aumentando.')).toBeTruthy();
+    expect(screen.getByTestId('finances-insight-delta').props.children).toBe('↑ ••%');
+    expect(screen.getByTestId('finances-insight-premium')).toBeTruthy();
+    expect(screen.getByTestId('finances-insight-text').props.children).toMatch(
+      /Descubra quanto\.$/,
+    );
+  });
+
+  it('sem mês anterior com valor/hora não há insight', async () => {
+    mockPremium = ok(true);
+    mockHourlyWindow = ok([
+      {
+        month: '2026-08',
+        hourlyValueCents: null,
+        workCount: 0,
+        workGeneratedCents: 0n,
+        workDurationMinutes: 0,
+      },
+      {
+        month: '2026-09',
+        hourlyValueCents: 17600n,
+        workCount: 1,
+        workGeneratedCents: 0n,
+        workDurationMinutes: 600,
+      },
+    ]);
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.queryByTestId('finances-insight')).toBeNull();
+  });
+
+  it('a folha do i fecha em "Entendi"', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-info-generated'));
+    });
+    expect(screen.getByText('TRABALHO GERADO')).toBeTruthy();
+    expect(screen.getByTestId('finance-info-close')).toBeTruthy();
+    expect(screen.getByText('Entendi')).toBeTruthy();
   });
 });
 

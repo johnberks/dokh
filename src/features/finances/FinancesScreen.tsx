@@ -2,7 +2,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import CalendarClock from 'lucide-react-native/icons/calendar-clock';
 import ChartPie from 'lucide-react-native/icons/chart-pie';
-import Check from 'lucide-react-native/icons/check';
 import Stethoscope from 'lucide-react-native/icons/stethoscope';
 import { type ReactNode, useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +13,7 @@ import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { ProjectionChart } from '@/components/ProjectionChart';
+import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { formatDayMonth, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
@@ -33,6 +33,7 @@ import {
   useFinanceMonth,
   useFinanceOrigins,
   useFinanceYear,
+  useHourlyWindow,
   useNextEntry,
   useUndatedPreviews,
   useYearOrigins,
@@ -41,6 +42,8 @@ import {
 } from './finance-data';
 import {
   heroCaption,
+  hourlyInsight,
+  hourlyReais,
   hoursLabel,
   isEmptyMonth,
   type MonthTense,
@@ -54,6 +57,7 @@ import {
   splitCaption,
   yearBars,
 } from './finance-format';
+import { InsightCard } from './InsightCard';
 
 const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
@@ -114,6 +118,8 @@ export function FinancesScreen() {
   // Pendência sem data é tarefa de agora: só no mês atual e só quando existe.
   const showReview = tense === 'current' && (data?.undatedCount ?? 0) > 0;
   const undated = useUndatedPreviews(showReview);
+  const hourlyWindow = useHourlyWindow(month, (data?.workCount ?? 0) > 0);
+  const insight = hourlyWindow.data ? hourlyInsight(hourlyWindow.data) : null;
   const yearData = useFinanceYear(year, mode === 'year');
   const yearMonths = (yearData.data?.months ?? []).map((item) => item.month);
   const yearOrigins = useYearOrigins(year, yearMonths, mode === 'year' && yearMonths.length > 0);
@@ -286,6 +292,8 @@ export function FinancesScreen() {
           {data.workCount > 0 && (
             <WorkGeneratedCard data={data} name={name} isPremium={isPremium} onInfo={setInfo} />
           )}
+
+          {insight && <InsightCard insight={insight} isPremium={isPremium} />}
         </View>
       )}
       <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
@@ -500,7 +508,7 @@ function YearHourly({
     <View style={styles.yearHourly} testID="finances-year-hourly">
       <View style={styles.yearHourlyItem}>
         <AppText style={[type.heading1, styles.yearHourlyValue, !isPremium && styles.maskedValue]}>
-          {isPremium && hourly !== null ? money(hourly) : 'R$ •••'}
+          {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
           <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
         </AppText>
         <View style={styles.hourlyLabelRow}>
@@ -513,7 +521,7 @@ function YearHourly({
                 key: 'yearHourly',
                 value:
                   isPremium && hourly !== null
-                    ? `${money(hourly)}${t('work.perHour')}`
+                    ? `${hourlyReais(hourly)}${t('work.perHour')}`
                     : `R$ •••${t('work.perHour')}`,
               })
             }
@@ -742,7 +750,7 @@ function HeroAmount({
   );
 }
 
-/** Recebido × A receber: objeto principal do mês, sobre a divisa do topo escuro. */
+/** Recebido × A receber + barra de recebido, no componente compartilhado. */
 function ReceivedSplit({
   data,
   tense,
@@ -753,73 +761,18 @@ function ReceivedSplit({
   onInfo: (request: InfoRequest) => void;
 }) {
   const { t } = useTranslation('finances');
-  const type = useBrandTypography();
-  const percent = receivedPercent(data);
   return (
-    <View style={styles.split}>
-      <View style={styles.splitRow}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t('split.received')}, ${money(data.receivedCents)}`}
-          onPress={() => onInfo({ key: 'received', value: money(data.receivedCents) })}
-          style={({ pressed }) => [
-            styles.splitBlock,
-            styles.receivedBlock,
-            pressed && styles.pressed,
-          ]}
-          testID="finances-received"
-        >
-          <View style={styles.splitLabel}>
-            <View style={styles.receivedIcon}>
-              <Check color={palette.cream} size={11} strokeWidth={3} />
-            </View>
-            <AppText variant="technical" style={[styles.splitEyebrow, styles.receivedEyebrow]}>
-              {t('split.received')}
-            </AppText>
-          </View>
-          <AppText
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            style={[type.heading1, styles.splitValue, styles.receivedValue]}
-          >
-            {money(data.receivedCents)}
-          </AppText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${t('split.awaiting')}, ${money(data.awaitingCents)}`}
-          onPress={() => onInfo({ key: 'awaiting', value: money(data.awaitingCents) })}
-          style={({ pressed }) => [
-            styles.splitBlock,
-            styles.awaitingBlock,
-            pressed && styles.pressed,
-          ]}
-          testID="finances-awaiting"
-        >
-          <View style={styles.splitLabel}>
-            <View style={styles.awaitingIcon}>
-              <View style={styles.awaitingDot} />
-            </View>
-            <AppText variant="technical" style={styles.splitEyebrow}>
-              {t('split.awaiting')}
-            </AppText>
-          </View>
-          <AppText
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            style={[type.heading1, styles.splitValue]}
-          >
-            {money(data.awaitingCents)}
-          </AppText>
-        </Pressable>
-      </View>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${percent}%` }]} />
-      </View>
-      <AppText style={styles.progressCaption} testID="finances-percent">
-        {splitCaption(data, tense, t)}
-      </AppText>
-    </View>
+    <ReceiptProgressCard
+      receivedLabel={t('split.received')}
+      receivedValue={money(data.receivedCents)}
+      awaitingLabel={t('split.awaiting')}
+      awaitingValue={money(data.awaitingCents)}
+      percent={receivedPercent(data)}
+      caption={splitCaption(data, tense, t)}
+      onPressReceived={() => onInfo({ key: 'received', value: money(data.receivedCents) })}
+      onPressAwaiting={() => onInfo({ key: 'awaiting', value: money(data.awaitingCents) })}
+      testID="finances-split"
+    />
   );
 }
 
@@ -901,12 +854,21 @@ function WorkGeneratedCard({
             <AppText style={styles.metricArrow}>{'→'}</AppText>
             <View style={styles.metricWide} testID="finances-hourly">
               {isPremium && data.hourlyValueCents !== null ? (
-                <AppText style={[type.heading1, styles.metricValue]}>
-                  {money(data.hourlyValueCents)}
+                <AppText
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={[type.heading1, styles.metricValue]}
+                  testID="finances-hourly-value"
+                >
+                  {hourlyReais(data.hourlyValueCents)}
                   <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
                 </AppText>
               ) : (
-                <AppText style={[type.heading1, styles.metricValue, styles.maskedValue]}>
+                <AppText
+                  adjustsFontSizeToFit
+                  numberOfLines={1}
+                  style={[type.heading1, styles.metricValue, styles.maskedValue]}
+                >
                   {'R$ •••'}
                   <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
                 </AppText>
@@ -924,14 +886,14 @@ function WorkGeneratedCard({
                       key: 'hourly',
                       value:
                         isPremium && data.hourlyValueCents !== null
-                          ? `${money(data.hourlyValueCents)}${t('work.perHour')}`
+                          ? `${hourlyReais(data.hourlyValueCents)}${t('work.perHour')}`
                           : `R$ •••${t('work.perHour')}`,
                       example:
                         isPremium && data.hourlyValueCents !== null
                           ? t('info.hourlyExample', {
                               generated: money(data.workGeneratedCents),
                               hours: hoursLabel(data.workDurationMinutes),
-                              hourly: money(data.hourlyValueCents),
+                              hourly: hourlyReais(data.hourlyValueCents),
                             })
                           : undefined,
                     })
@@ -951,8 +913,12 @@ function Metric({ value, label }: { value: string; label: string }) {
   const type = useBrandTypography();
   return (
     <View style={styles.metric}>
-      <AppText style={[type.heading1, styles.metricValue]}>{value}</AppText>
-      <AppText style={styles.metricLabel}>{label}</AppText>
+      <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.metricValue]}>
+        {value}
+      </AppText>
+      <AppText numberOfLines={1} style={styles.metricLabel}>
+        {label}
+      </AppText>
     </View>
   );
 }
@@ -988,7 +954,7 @@ function SectionCard({
 }
 
 const styles = StyleSheet.create({
-  hero: { paddingBottom: 44, overflow: 'hidden' },
+  hero: { paddingBottom: 24, overflow: 'hidden' },
   heroContent: { paddingTop: 22, paddingHorizontal: 24, gap: 14 },
   heroTop: {
     flexDirection: 'row',
@@ -1039,11 +1005,9 @@ const styles = StyleSheet.create({
   heroValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.84, color: palette.cream },
   heroCaption: { fontSize: 15, lineHeight: 20, color: '#B9BFB2' },
   // Passagem reta do verde para o bege (sem cantos arredondados), conteúdo no fundo bege.
-  body: { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 32 },
+  body: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 32 },
   padded: {},
   sections: { gap: 22 },
-  split: { gap: 10 },
-  splitRow: { flexDirection: 'row', gap: 12 },
   splitBlock: {
     flex: 1,
     borderRadius: 18,
@@ -1058,40 +1022,6 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 6,
   },
-  receivedBlock: { backgroundColor: 'rgba(43,58,36,0.10)', borderColor: 'rgba(43,58,36,0.28)' },
-  awaitingBlock: { backgroundColor: '#F8F6EF', borderColor: 'rgba(16,22,15,0.16)' },
-  splitLabel: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  receivedIcon: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: palette.structure,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  awaitingIcon: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: palette.bronze,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  awaitingDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.bronze },
-  splitEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  receivedEyebrow: { color: palette.structure },
-  splitValue: { fontSize: 26, lineHeight: 30, letterSpacing: -0.78, color: colors.textPrimary },
-  receivedValue: { color: palette.structure },
-  progressTrack: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(169,138,84,0.28)',
-    marginTop: 4,
-  },
-  progressFill: { height: '100%', borderRadius: 4, backgroundColor: palette.structure },
-  progressCaption: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
   card: {
     backgroundColor: '#F8F6EF',
     borderWidth: 1,

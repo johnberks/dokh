@@ -18,6 +18,9 @@ export type InfoKey =
 
 export type InfoRequest = { key: InfoKey; value: string; example?: string };
 
+/** Cor do número na folha: recebido em verde, como o check da lista (Sheet 16). */
+const VALUE_TONE: Partial<Record<InfoKey, string>> = { received: palette.structure };
+
 /** O `i` do HTML: círculo de 16 com alvo de 44. `tone` segue o fundo (topo escuro ou bege). */
 export function InfoButton({
   label,
@@ -80,19 +83,29 @@ export function FinanceInfoSheet({
         <AppText variant="technical" style={styles.eyebrow}>
           {title}
         </AppText>
-        <AppText style={[type.heading1, styles.value]} testID="finance-info-value">
+        <AppText
+          style={[type.heading1, styles.value, { color: VALUE_TONE[key] ?? colors.textPrimary }]}
+          testID="finance-info-value"
+        >
           {request?.value ?? ''}
         </AppText>
         <AppText style={styles.text}>{t(`info.${key}.text` as 'info.expected.text')}</AppText>
       </View>
       <View style={styles.example}>
-        <AppText variant="technical" style={styles.exampleLabel}>
-          {t('info.exampleLabel')}
-        </AppText>
+        <View style={styles.bullet} />
         <AppText style={styles.exampleText}>
           {request?.example ?? t(`info.${key}.example` as 'info.expected.example')}
         </AppText>
       </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('info.close')}
+        onPress={onClose}
+        testID="finance-info-close"
+        style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+      >
+        <AppText style={[type.heading1, styles.ctaText]}>{t('info.close')}</AppText>
+      </Pressable>
     </BottomSheet>
   );
 }
@@ -112,16 +125,26 @@ const styles = StyleSheet.create({
   textDark: { color: 'rgba(237,234,224,0.7)' },
   textLight: { color: 'rgba(16,22,15,0.5)' },
   pressed: { opacity: 0.6 },
-  copy: { gap: 8, paddingTop: 6 },
+  // Sheet 15–18/22 do HTML: rótulo, número, explicação, exemplo com ponto bronze e `Entendi`.
+  copy: { gap: 10, paddingTop: 6 },
   eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  value: { fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: colors.textPrimary },
-  text: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },
+  value: { fontSize: 30, lineHeight: 32, letterSpacing: -0.9 },
+  text: { fontSize: 16, lineHeight: 25, color: palette.mutedCopy },
   example: {
-    backgroundColor: 'rgba(16,22,15,0.045)',
-    borderRadius: 16,
-    padding: 16,
-    gap: 6,
+    flexDirection: 'row',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(16,22,15,0.1)',
+    paddingTop: 16,
   },
-  exampleLabel: { fontSize: 9, lineHeight: 12, letterSpacing: 1.44, color: palette.bronzeDeep },
-  exampleText: { fontSize: 14, lineHeight: 21, color: colors.textPrimary },
+  bullet: { width: 6, height: 6, borderRadius: 3, backgroundColor: palette.bronze, marginTop: 8 },
+  exampleText: { flex: 1, fontSize: 14, lineHeight: 21, color: palette.mutedCopy },
+  cta: {
+    minHeight: 56,
+    borderRadius: 16,
+    backgroundColor: colors.foreground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaText: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
 });
