@@ -208,12 +208,20 @@ export function useUndatedPreviews(enabled: boolean) {
   });
 }
 
-export type YearMonth = { month: LocalMonth; expectedTotalCents: bigint };
+export type YearMonth = {
+  month: LocalMonth;
+  expectedTotalCents: bigint;
+  /** Parte do previsto do mês já confirmada como recebida. */
+  receivedCents: bigint;
+};
 
 /** Série do ano: só meses com dado real, média apenas com base suficiente (≥ 2 meses). */
 export type FinanceYear = {
   months: YearMonth[];
   totalCents: bigint;
+  /** Recebido e a receber do total do ano (resumo anual). */
+  receivedCents: bigint;
+  awaitingCents: bigint;
   historicalMonthCount: number;
   historicalAverageCents: bigint | null;
 };
@@ -228,11 +236,16 @@ export async function readFinanceYear(
   const months = rows.map((row) => ({
     month: row.month_start.slice(0, 7),
     expectedTotalCents: cents(row.expected_total_cents),
+    receivedCents: cents(row.received_of_expected_cents),
   }));
   const first = rows[0];
+  const totalCents = months.reduce((sum, item) => sum + item.expectedTotalCents, 0n);
+  const receivedCents = months.reduce((sum, item) => sum + item.receivedCents, 0n);
   return {
     months,
-    totalCents: months.reduce((sum, item) => sum + item.expectedTotalCents, 0n),
+    totalCents,
+    receivedCents,
+    awaitingCents: totalCents - receivedCents,
     historicalMonthCount: first?.historical_month_count ?? 0,
     historicalAverageCents:
       first?.historical_average_cents == null ? null : cents(first.historical_average_cents),
@@ -284,6 +297,11 @@ export type YearWork = {
   hourlyValueCents: bigint | null;
   /** Variação entre o primeiro e o último mês do ano com valor/hora; `null` sem base. */
   hourlyEvolutionPercent: number | null;
+  /** Trabalhos e horas do ano (competência): abertos também no Free. */
+  workCount: number;
+  workDurationMinutes: number;
+  /** Horas que entraram no valor/hora (só trabalhos com duração e valor/hora do servidor). */
+  hourlyMinutes: number;
 };
 
 /**
@@ -295,13 +313,23 @@ export async function readYearWork(
   client: AuthClient = supabase,
 ): Promise<YearWork> {
   const monthly = await Promise.all(months.map((month) => readFinanceMonth(month, client)));
+  const workCount = monthly.reduce((sum, item) => sum + item.workCount, 0);
+  const workDurationMinutes = monthly.reduce((sum, item) => sum + item.workDurationMinutes, 0);
   const withHourly = monthly
     .map((data, index) => ({ month: months[index], data }))
     .filter(
       (item): item is { month: LocalMonth; data: FinanceMonth & { hourlyValueCents: bigint } } =>
         item.data.hourlyValueCents !== null && item.data.workDurationMinutes > 0,
     );
-  if (withHourly.length === 0) return { hourlyValueCents: null, hourlyEvolutionPercent: null };
+  if (withHourly.length === 0) {
+    return {
+      hourlyValueCents: null,
+      hourlyEvolutionPercent: null,
+      workCount,
+      workDurationMinutes,
+      hourlyMinutes: 0,
+    };
+  }
 
   const minutes = withHourly.reduce((sum, item) => sum + item.data.workDurationMinutes, 0);
   const weighted = withHourly.reduce(
@@ -316,6 +344,9 @@ export async function readYearWork(
       withHourly.length >= 2 && first > 0n
         ? Math.round((Number(last - first) / Number(first)) * 100)
         : null,
+    workCount,
+    workDurationMinutes,
+    hourlyMinutes: minutes,
   };
 }
 

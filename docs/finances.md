@@ -25,14 +25,18 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 ★ Os `i` do HTML abrem folhas no formato das Sheets 15–18/22: rótulo, número (recebido em verde), explicação, exemplo com ponto bronze e o botão `Entendi` (o HTML usa "Entendi"; os textos também são os do HTML): previsto para entrar, recebido e a receber (tocando nos blocos), trabalho gerado, valor/hora, total do ano, média mensal, valor/hora no ano e projeção. No valor/hora, o exemplo usa os números reais do mês (Premium); no Free o valor aparece oculto.
 
-## Ano
+## Ano (conceito do usuário, 2026-09-26; referências Mobbin)
 
-- ★ **Gráfico em bloco** (`BarChartCard`, `src/components`, superfície de card como o `CalendarCard`): título `GANHOS DE 2026` em Plex Mono semibold (o peso mais forte carregado) e espaçado, legenda `mês atual`, barras em sálvia cheio relativas ao maior mês, mês atual em bronze e mês sem dado **tracejado** (nunca zero). A média mensal é o rodapé do próprio bloco. ★ O bloco sobe sobre o topo verde (o verde fica por trás), como o calendário da Agenda.
-- ★ **Valor/hora médio no ano e evolução** (Premium), em duas caixinhas lado a lado com cor de destaque (bronze e verde), valores centralizados e texto fixo + `i` sempre numa linha (o texto encolhe antes de quebrar): valor/hora de todos os trabalhos do ano com duração, ponderado pelas horas de cada mês (não média de médias), e variação entre o primeiro e o último mês com valor/hora — sem dois meses, nada de tendência. Free vê `R$ •••/h` e `+••%` com selo.
-- ★ **Projeção para o ano** (Premium, só no ano corrente e com média): previsto até o mês atual + média × meses restantes. `ProjectionChart` (`src/components`) é **acumulado** (pedido do usuário: a versão mês a mês parecia cair a zero depois do mês atual) — linha verde com o total do ano até agora e tracejado bronze somando a média a cada mês até o total de dezembro; legenda e a frase "Mantendo sua média de R$ X/mês, outubro a dezembro somam mais R$ Y." Free vê o valor oculto, selo e a explicação.
-- Topo: total `recebidos e previstos em 2026`.
-- Rodapé: média mensal só com base suficiente (`historical_average_cents`, ≥ 2 meses); sem ela, "Seu histórico começa agora." (Finanças 13).
-- Origem das entradas no ano: Premium soma as origens dos meses com entrada (o servidor devolve `null` no Free).
+Ordem: resumo → entradas mês a mês → origem → seu ano → valor/hora → projeção.
+
+Títulos das seções ficam **dentro** dos cards (o teste com títulos fora foi revertido a pedido do usuário).
+
+1. **Resumo anual** (topo verde): só o total `recebidos e previstos em 2026` — sem barra nem valores de recebido/a receber (retirados a pedido do usuário).
+2. **Entradas mês a mês**: modelo anterior (pedido do usuário) — `BarChartCard` em card sobre o verde, valor em cima de cada barra (uma linha), com **três tipos de barra**: consolidado (sálvia cheio), mês atual (bronze) e futuro previsto (só contorno sálvia, valor esmaecido); sem dado, tracejado. Legenda Consolidado · Mês atual · Previsto abaixo das barras. O componente é o gráfico + o **ganho médio até o mês atual** no rodapé ("R$ 4.918 é sua média de ganho mensal", média dos meses concluídos, ≥ 2); sem base, "Seu histórico começa agora.".
+3. **Origem**: valor e % por origem (Premium; Free com estrutura oculta e selo).
+4. **Seu ano** (aberto no Free): média mensal, melhor mês já vivido (pelo previsto, até o atual), trabalhos e horas do ano (`readYearWork` soma os meses; agora pedido também no Free).
+5. **Valor/hora médio do ano**: número em destaque (ponderado pelas horas), sem percentual de evolução (pedido do usuário) e, como apoio, "calculado com Xh de trabalhos com duração registrada". Free: `R$ •••/h` com selo; horas abertas.
+6. **Projeção até dezembro** (Premium, ano corrente, com média): valor final em destaque e escrito no ponto de dezembro. Linha cheia = **só o recebido** acumulado até hoje (área verde suave); tracejado bronze soma o previsto até o mês atual ainda não confirmado e, em cada mês que falta, **o maior entre o já previsto e a média dos meses concluídos** — nunca abaixo do que já está marcado. Marca `HOJE` no mês atual; eixo JAN · atual · DEZ sob os pontos.
 
 ## Premium
 
@@ -67,3 +71,7 @@ Retorno do usuário (2026-09-26), com referências da Mobbin (Kit, Gusto, Quicke
 ## Dados — `finance-data.ts`
 
 `finance_month_projection`, `finance_month_origins`, `finance_year_projection` (RPCs da 3.11), `receivable_projection` (próxima entrada) e `agenda_work_projection` (previews sem data). Chaves com prefixo `finance-month`/`finance-year`, invalidadas por toda escrita de Trabalho. O teste real (`scripts/test-location-rpcs-6.1.mjs`) roda as mesmas consultas do app — mês, ano, origens nulas no Free, próxima entrada, entitlement, previews, Entradas e confirmação (outra conta não confirma; o resumo reflete).
+
+## Títulos de card — `CardLabel` (`src/components`)
+
+Pedido do usuário (2026-09-26): o rótulo técnico dos cards (Plex 10 pt, regular, sálvia) ficava apagado. Todos os títulos de card seguem o modelo do `GANHOS DE 2026`: Plex Mono **semibold**, 11 pt, espaçamento 1,65, cor escura (`tone`: `structure` no Recebido, `bronze` nos cards escuros de insight/análise, `attention` na revisão). Aplicado em `SectionCard`, gráfico anual, valor/hora do ano, próxima entrada, Recebido × A receber, Entradas (futuro), análise de valor/hora, insight, `WorkCard`, `ReviewCard`, `ProgressCard` e nos cards do `EmptyState` (próxima entrada, teaser de Finanças, Home). Rótulos de topo e de formulário não mudaram.

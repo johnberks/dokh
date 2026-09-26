@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { CardLabel } from '@/components/CardLabel';
 import { formatCentsToBRL } from '@/domain/money';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate } from '@/features/work/work-schedule';
@@ -60,9 +61,7 @@ export function NextEntryCard({
         style={({ pressed }) => [styles.main, pressed && styles.pressed]}
       >
         <View style={styles.header}>
-          <AppText variant="technical" style={styles.eyebrow}>
-            {t('next.eyebrow')}
-          </AppText>
+          <CardLabel>{t('next.eyebrow')}</CardLabel>
           <View
             style={[styles.tag, isToday ? styles.tagToday : styles.tagExpected]}
             testID="finances-next-tag"
@@ -187,7 +186,6 @@ const styles = StyleSheet.create({
   main: { paddingTop: 18, paddingHorizontal: 18, paddingBottom: 16, gap: 14 },
   pressed: { opacity: 0.8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   tag: { borderRadius: 999, borderWidth: 1, paddingVertical: 4, paddingHorizontal: 10 },
   tagExpected: { borderColor: 'rgba(16,22,15,0.16)' },
   tagToday: { borderColor: 'transparent', backgroundColor: 'rgba(169,138,84,0.18)' },

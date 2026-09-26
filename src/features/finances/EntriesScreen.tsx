@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { CardLabel } from '@/components/CardLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
@@ -192,9 +193,7 @@ function EntriesSummary({
       <View style={styles.futureCard} testID="entries-summary">
         <View style={styles.futureRow}>
           <View style={styles.futureBlock}>
-            <AppText variant="technical" style={styles.futureEyebrow}>
-              {t('entries.expected')}
-            </AppText>
+            <CardLabel>{t('entries.expected')}</CardLabel>
             <AppText
               adjustsFontSizeToFit
               numberOfLines={1}
@@ -204,9 +203,7 @@ function EntriesSummary({
             </AppText>
           </View>
           <View style={[styles.futureBlock, styles.futureCount]}>
-            <AppText variant="technical" style={styles.futureEyebrow}>
-              {t('entries.count')}
-            </AppText>
+            <CardLabel>{t('entries.count')}</CardLabel>
             <AppText style={[type.heading1, styles.futureValue]}>{String(count)}</AppText>
           </View>
         </View>
@@ -259,7 +256,6 @@ const styles = StyleSheet.create({
   futureRow: { flexDirection: 'row', gap: 16 },
   futureBlock: { flex: 1, gap: 8 },
   futureCount: { flex: 0, alignItems: 'flex-end' },
-  futureEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   futureValue: { fontSize: 26, lineHeight: 30, letterSpacing: -0.78, color: colors.textPrimary },
   caption: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
 });

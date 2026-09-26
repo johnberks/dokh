@@ -351,3 +351,13 @@ Na 9.3 + 9.6 (2026-09-26, branch `codex/9.3-entries`, empilhada sobre `codex/9.2
 Retorno da tela Entradas (2026-09-26), com referências da Mobbin (MCP conectado): topo numa barra só (voltar em círculo + `ENTRADAS` e troca de mês compacta no centro) e `ReceivableRow` como card tocável com seta `›` e ícone do tipo; sem destino (Residência), sem seta. `PeriodSwitcher` aceita `style`. 58 suítes/382 testes.
 
 Card "Próxima entrada" refeito (2026-09-26, referências Mobbin): manchete com o tempo que falta, valor em destaque com ícone do tipo, etiqueta Previsto/Hoje, confirmação no dia, até duas seguintes no mês atual e `Ver entradas ›` em linha inteira (`NextEntryCard.tsx`; `OriginTile` foi para `FinanceCards.tsx`). 58 suítes/385 testes.
+
+Visão anual refeita pelo conceito do usuário (2026-09-26, branch `codex/9.5-year-redesign`, empilhada sobre `codex/9.3-entries`): resumo com recebido × a receber; barras com recebido na base, atual com contorno, futuro previsto em contorno, toque para escolher o mês e média tracejada (sem rótulos sobre as barras); "Seu ano" (média, melhor mês, trabalhos, horas — Free); valor/hora com horas usadas; projeção com linha cheia só do recebido e tracejado pelo maior entre previsto e média, valor final no ponto de dezembro e marca de hoje. Sem migration. 58 suítes/388 testes; teste real cobre o recebido por mês no ano.
+
+Ajustes na visão anual (2026-09-26): topo só com o total (sem barra/valores de recebido e a receber); gráfico de barras de volta ao modelo anterior, com o ganho médio até o mês atual no rodapé do componente; valor/hora do ano sem o percentual de evolução.
+
+Teste na visão anual (2026-09-26): três tipos de barra no gráfico (consolidado sálvia, atual bronze, futuro só contorno) com legenda; títulos das seções fora dos cards (`SectionTitle`/`SectionCard title`), o do gráfico em creme sobre o verde. Mês ainda com rótulo interno — aguardando aprovação do usuário para estender.
+
+Títulos fora dos cards revertidos a pedido do usuário (2026-09-26): voltaram para dentro dos componentes; os três tipos de barra continuam.
+
+Títulos de card com peso (2026-09-26): novo `CardLabel` (Plex semibold 11, escuro) substitui o rótulo sálvia de 10 pt em todos os cards (Finanças, Agenda/Home via `WorkCard`, `ReviewCard`, `ProgressCard`, `EmptyState` em card). 59 suítes/389 testes.

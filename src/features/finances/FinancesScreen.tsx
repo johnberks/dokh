@@ -1,12 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import CalendarClock from 'lucide-react-native/icons/calendar-clock';
+import CalendarRange from 'lucide-react-native/icons/calendar-range';
 import ChartPie from 'lucide-react-native/icons/chart-pie';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { BarChartCard } from '@/components/BarChartCard';
+import { CardLabel } from '@/components/CardLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
@@ -40,9 +42,12 @@ import {
   type YearWork,
 } from './finance-data';
 import {
+  bestMonth,
+  compactReais,
   heroCaption,
   hourlyInsight,
   hourlyReais,
+  hoursLabel,
   isEmptyMonth,
   type MonthTense,
   monthsForYearWork,
@@ -121,8 +126,8 @@ export function FinancesScreen() {
   const yearData = useFinanceYear(year, mode === 'year');
   const yearMonths = (yearData.data?.months ?? []).map((item) => item.month);
   const yearOrigins = useYearOrigins(year, yearMonths, mode === 'year' && yearMonths.length > 0);
-  // Valor/hora do ano só vem do servidor com Premium; no Free nem é pedido.
-  const yearWork = useYearWork(year, monthsForYearWork(year, today), mode === 'year' && isPremium);
+  // Trabalhos e horas do ano valem para todos; o valor/hora só vem do servidor com Premium.
+  const yearWork = useYearWork(year, monthsForYearWork(year, today), mode === 'year');
 
   function openChild(path: () => void) {
     openedChild.current = true;
@@ -175,9 +180,8 @@ export function FinancesScreen() {
         {inYear
           ? yearData.data && (
               <YearHeroAmount
-                total={yearData.data.totalCents}
+                data={yearData.data}
                 year={year}
-                hasData={yearData.data.months.length > 0}
                 onInfo={() => setInfo({ key: 'yearTotal', value: money(yearData.data.totalCents) })}
               />
             )
@@ -377,22 +381,21 @@ function PeriodToggle({
 }
 
 function YearHeroAmount({
-  total,
+  data,
   year,
-  hasData,
   onInfo,
 }: {
-  total: bigint;
+  data: FinanceYear;
   year: number;
-  hasData: boolean;
   onInfo: () => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
+  const hasData = data.months.length > 0;
   return (
-    <View style={styles.heroAmount} accessible testID="finances-year-hero">
+    <View style={styles.heroAmount} testID="finances-year-hero">
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
-        {hasData ? money(total) : t('hero.empty')}
+        {hasData ? money(data.totalCents) : t('hero.empty')}
       </AppText>
       <View style={styles.captionRow}>
         <AppText style={styles.heroCaption}>
@@ -411,7 +414,10 @@ function YearHeroAmount({
   );
 }
 
-/** Visão anual (Finanças 03-B/13): barras de janeiro a dezembro, média só com base suficiente. */
+/**
+ * Visão anual, na ordem do conceito do usuário: resumo (no topo), entradas mês a mês, origem,
+ * seu ano, valor/hora e projeção. Média e tendência só com base suficiente; nada vira zero.
+ */
 function YearBody({
   query,
   year,
@@ -470,15 +476,25 @@ function YearBody({
     );
   }
   const isCurrentYear = Number(today.slice(0, 4)) === year;
+  const best = bestMonth(data, today);
   return (
     <View style={styles.sections}>
       <View style={styles.chartOverlap} testID="finances-year-chart-wrap">
         <BarChartCard
           eyebrow={t('year.range', { year })}
-          legend={isCurrentYear ? t('year.currentMonth') : undefined}
+          legend={
+            isCurrentYear
+              ? [
+                  { label: t('year.legendRealized'), kind: 'realized' },
+                  { label: t('year.legendCurrent'), kind: 'current' },
+                  { label: t('year.legendFuture'), kind: 'future' },
+                ]
+              : undefined
+          }
           bars={yearBars(data, year, today)}
           accessibilityLabel={t('year.chartLabel', { year })}
           footer={
+            // Componente = gráfico + ganho médio até o mês atual (meses concluídos).
             data.historicalAverageCents !== null ? (
               <View style={styles.averageRow} testID="finances-year-average">
                 <AppText style={[type.heading1, styles.averageValue]}>
@@ -512,6 +528,14 @@ function YearBody({
         origins={origins}
         testID="finances-year-origin"
       />
+      <YourYear
+        average={data.historicalAverageCents}
+        best={best}
+        work={work}
+        onInfoAverage={() =>
+          onInfo({ key: 'average', value: money(data.historicalAverageCents ?? 0n) })
+        }
+      />
       <YearHourly isPremium={isPremium} work={work} onInfo={onInfo} />
       {isCurrentYear && (
         <YearProjection
@@ -526,7 +550,101 @@ function YearBody({
   );
 }
 
-/** Valor/hora médio no ano e evolução (Finanças 03). Sem base, nada de tendência inventada. */
+/** "Seu ano": média mensal, melhor mês, trabalhos e horas — abertos também no Free. */
+function YourYear({
+  average,
+  best,
+  work,
+  onInfoAverage,
+}: {
+  average: bigint | null;
+  best: { month: string; amountCents: bigint } | null;
+  work: YearWork | undefined;
+  onInfoAverage: () => void;
+}) {
+  const { t } = useTranslation('finances');
+  return (
+    <SectionCard
+      icon={<CalendarRange color={colors.textPrimary} size={16} strokeWidth={1.7} />}
+      eyebrow={t('year.yourYear')}
+      testID="finances-your-year"
+    >
+      <View style={styles.statGrid}>
+        <View style={styles.statRow}>
+          <Stat
+            value={average !== null ? money(average) : '—'}
+            label={average !== null ? t('year.statAverage') : t('year.statAverageEmpty')}
+            onInfo={average !== null ? onInfoAverage : undefined}
+            testID="finances-stat-average"
+          />
+          <Stat
+            value={best ? money(best.amountCents) : '—'}
+            label={best ? `${t('year.statBest')} · ${monthName(best.month)}` : t('year.statBest')}
+            testID="finances-stat-best"
+          />
+        </View>
+        <View style={styles.statRow}>
+          <Stat
+            value={work ? String(work.workCount) : '—'}
+            label={t('year.statWorks')}
+            testID="finances-stat-works"
+          />
+          <Stat
+            value={
+              work && work.workDurationMinutes > 0 ? hoursLabel(work.workDurationMinutes) : '—'
+            }
+            label={t('year.statHours')}
+            testID="finances-stat-hours"
+          />
+        </View>
+      </View>
+    </SectionCard>
+  );
+}
+
+function Stat({
+  value,
+  label,
+  onInfo,
+  testID,
+}: {
+  value: string;
+  label: string;
+  onInfo?: () => void;
+  testID: string;
+}) {
+  const { t } = useTranslation('finances');
+  const type = useBrandTypography();
+  return (
+    <View style={styles.stat} testID={testID}>
+      <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.statValue]}>
+        {value}
+      </AppText>
+      <View style={styles.statLabelRow}>
+        <AppText
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+          numberOfLines={1}
+          style={styles.statLabel}
+        >
+          {label}
+        </AppText>
+        {onInfo ? (
+          <InfoButton
+            label={t('info.average.title')}
+            onPress={onInfo}
+            testID="finances-info-average"
+          />
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Valor/hora médio do ano em destaque e as horas consideradas no cálculo como apoio (sem
+ * percentual de evolução, a pedido do usuário). No Free, o número fica oculto com o selo; as horas continuam abertas.
+ */
 function YearHourly({
   isPremium,
   work,
@@ -539,74 +657,45 @@ function YearHourly({
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
   const hourly = work?.hourlyValueCents ?? null;
-  const evolution = work?.hourlyEvolutionPercent ?? null;
-  // Premium sem nenhum trabalho com duração no ano: não há o que mostrar.
-  if (isPremium && hourly === null) return null;
+  if (!work || work.workDurationMinutes === 0) return null;
+  const hoursUsed = isPremium ? work.hourlyMinutes : work.workDurationMinutes;
   return (
-    <View style={styles.yearHourly} testID="finances-year-hourly">
-      <View style={[styles.yearHourlyItem, styles.hourlyBox]}>
-        <AppText
-          adjustsFontSizeToFit
-          numberOfLines={1}
-          style={[
-            type.heading1,
-            styles.yearHourlyValue,
-            isPremium ? styles.hourlyValueAccent : styles.maskedValue,
-          ]}
-        >
-          {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
-          <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
-        </AppText>
-        {!isPremium && <PremiumBadge size="short" />}
-        <View style={styles.boxLabelRow}>
-          <AppText
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
-            numberOfLines={1}
-            style={[styles.metricLabel, styles.boxLabel]}
-          >
-            {t('year.hourly')}
-          </AppText>
+    <View style={styles.hourlyCard} testID="finances-year-hourly">
+      <View style={styles.hourlyHeader}>
+        <CardLabel>{t('year.hourlyEyebrow')}</CardLabel>
+        {isPremium ? (
           <InfoButton
             label={t('info.yearHourly.title')}
             onPress={() =>
               onInfo({
                 key: 'yearHourly',
-                value:
-                  isPremium && hourly !== null
-                    ? `${hourlyReais(hourly)}${t('work.perHour')}`
-                    : `R$ •••${t('work.perHour')}`,
+                value: hourly !== null ? `${hourlyReais(hourly)}${t('work.perHour')}` : '—',
               })
             }
             testID="finances-info-yearHourly"
           />
-        </View>
+        ) : (
+          <PremiumBadge testID="finances-year-hourly-premium" />
+        )}
       </View>
-      {(!isPremium || evolution !== null) && (
-        <View style={[styles.yearHourlyItem, styles.evolutionBox]} testID="finances-year-evolution">
-          <AppText
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            style={[
-              type.heading1,
-              styles.yearHourlyValue,
-              isPremium ? styles.evolutionValue : styles.maskedValue,
-            ]}
-          >
-            {isPremium && evolution !== null ? `${evolution > 0 ? '+' : ''}${evolution}%` : '+••%'}
-          </AppText>
-          <View style={styles.boxLabelRow}>
-            <AppText
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
-              numberOfLines={1}
-              style={[styles.metricLabel, styles.boxLabel]}
-            >
-              {t('year.evolution')}
-            </AppText>
-          </View>
-        </View>
-      )}
+      <View style={styles.hourlyValueRow}>
+        <AppText
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          style={[
+            type.heading1,
+            styles.hourlyBig,
+            isPremium ? styles.hourlyValueAccent : styles.maskedValue,
+          ]}
+          testID="finances-year-hourly-value"
+        >
+          {isPremium && hourly !== null ? hourlyReais(hourly) : 'R$ •••'}
+          <AppText style={styles.hourlyUnit}>{t('work.perHour')}</AppText>
+        </AppText>
+      </View>
+      <AppText style={styles.hourlyHours}>
+        {t('year.hourlyHours', { hours: hoursLabel(hoursUsed) })}
+      </AppText>
     </View>
   );
 }
@@ -625,9 +714,11 @@ const MONTH_AXIS = [
   'NOV',
   'DEZ',
 ];
-const MONTH_LONG = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
-/** Projeção até dezembro (Finanças 03): só no ano corrente e com média calculável. */
+/**
+ * Projeção até dezembro (conceito do usuário, gráfico 2): valor final em destaque, linha cheia
+ * com o que já entrou e tracejado até dezembro. Só no ano corrente e com média calculável.
+ */
 function YearProjection({
   data,
   year,
@@ -645,10 +736,6 @@ function YearProjection({
   const type = useBrandTypography();
   const projection = projectYear(data, year, today);
   if (isPremium && projection === null) return null;
-  const nextMonth =
-    projection && projection.currentIndex < 11
-      ? MONTH_LONG.format(new Date(year, projection.currentIndex + 1, 15))
-      : '';
   return (
     <SectionCard
       icon={null}
@@ -657,7 +744,12 @@ function YearProjection({
       testID="finances-year-projection"
     >
       <View style={styles.projectionHead}>
-        <AppText style={[type.heading1, styles.projectionValue, !isPremium && styles.maskedValue]}>
+        <AppText
+          adjustsFontSizeToFit
+          numberOfLines={1}
+          style={[type.heading1, styles.projectionValue, !isPremium && styles.maskedValue]}
+          testID="finances-projection-total"
+        >
           {isPremium && projection ? money(projection.totalCents) : 'R$ •••.•••'}
         </AppText>
         <View style={styles.captionRowLight}>
@@ -681,6 +773,8 @@ function YearProjection({
             projected={projection.projected}
             currentIndex={projection.currentIndex}
             monthLabels={MONTH_AXIS}
+            todayLabel={t('year.projectionToday')}
+            endLabel={compactReais(projection.totalCents)}
             realizedLabel={t('year.projectionRealized')}
             projectedLabel={t('year.projectionEstimated')}
             accessibilityLabel={t('year.chartProjectionLabel', { year })}
@@ -688,16 +782,7 @@ function YearProjection({
           />
           {projection.remainingMonths > 0 && (
             <AppText style={styles.lockedHint}>
-              {projection.remainingMonths === 1
-                ? t('year.projectionTextOne', {
-                    average: money(projection.averageCents),
-                    remaining: money(projection.remainingCents),
-                  })
-                : t('year.projectionText', {
-                    average: money(projection.averageCents),
-                    from: nextMonth,
-                    remaining: money(projection.remainingCents),
-                  })}
+              {t('year.projectionAverage', { average: money(projection.averageCents) })}
             </AppText>
           )}
         </>
@@ -919,6 +1004,35 @@ const styles = StyleSheet.create({
   projectionValue: { fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: colors.textPrimary },
   pressed: { opacity: 0.72 },
   heroAmount: { gap: 8 },
+  // "Seu ano": grade 2×2.
+  statGrid: { gap: 10 },
+  statRow: { flexDirection: 'row', gap: 10 },
+  stat: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+    backgroundColor: 'rgba(16,22,15,0.045)',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  statValue: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: colors.textPrimary },
+  statLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statLabel: { flexShrink: 1, fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
+  // Valor/hora do ano: número em destaque, evolução como etiqueta, horas como apoio.
+  hourlyCard: {
+    backgroundColor: 'rgba(169,138,84,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(169,138,84,0.38)',
+    borderRadius: 22,
+    padding: 18,
+    gap: 10,
+  },
+  hourlyHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  hourlyValueRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  hourlyBig: { flexShrink: 1, fontSize: 34, lineHeight: 38, letterSpacing: -1.02 },
+  hourlyUnit: { fontSize: 16, color: palette.sage, letterSpacing: 0 },
+  hourlyHours: { fontSize: 13, lineHeight: 18, color: palette.mutedCopy },
   heroValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.84, color: palette.cream },
   heroCaption: { fontSize: 15, lineHeight: 20, color: '#B9BFB2' },
   // Passagem reta do verde para o bege (sem cantos arredondados), conteúdo no fundo bege.

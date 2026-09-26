@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { CardLabel } from '@/components/CardLabel';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
 import { localDateToDate } from '@/features/work/work-schedule';
@@ -74,9 +75,7 @@ export function InsightCard({
         <AgendaHeroBackdrop />
       </View>
       <View style={styles.header}>
-        <AppText variant="technical" style={styles.eyebrow}>
-          {t('insight.eyebrow')}
-        </AppText>
+        <CardLabel tone="bronze">{t('insight.eyebrow')}</CardLabel>
         {isPremium ? (
           <AppText variant="technical" style={styles.period}>
             {period}
@@ -177,7 +176,6 @@ const styles = StyleSheet.create({
   },
   backdrop: { position: 'absolute', top: -40, right: -120, width: 360, height: 260, opacity: 0.8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.bronze },
   period: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: palette.sage },
   headline: {
     fontSize: 24,

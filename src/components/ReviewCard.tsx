@@ -7,6 +7,7 @@ import Animated, { FadeOut, LinearTransition, ReduceMotion } from 'react-native-
 import { colors, motion, reviewCardMetrics, shadow, spacing } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 export type ReviewPreview = {
   id: string;
@@ -173,13 +174,13 @@ export function ReviewCard({
               {icon}
             </View>
             {eyebrow ? (
-              <AppText
+              <CardLabel
                 numberOfLines={2}
-                variant="technical"
-                style={[styles.eyebrow, isAttention && styles.attentionEyebrow]}
+                tone={isAttention ? 'attention' : 'default'}
+                style={styles.eyebrow}
               >
                 {eyebrow}
-              </AppText>
+              </CardLabel>
             ) : null}
           </View>
 
@@ -341,14 +342,7 @@ const styles = StyleSheet.create({
   compactValue: { fontSize: 15, lineHeight: 18, letterSpacing: -0.15 },
   compactQualifier: { fontSize: 13, lineHeight: 17, color: colors.textMuted },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  eyebrow: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: colors.darkTextSecondary,
-  },
-  attentionEyebrow: { color: colors.reviewBronzeText },
+  eyebrow: { flex: 1 },
   main: { gap: 6 },
   valueLine: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
   standardValue: { fontSize: 30, lineHeight: 30, letterSpacing: -0.9 },

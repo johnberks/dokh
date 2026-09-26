@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { colors, emptyStateMetrics, shadow } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 type CommonProps = { testID?: string };
 type PrimaryProps = CommonProps & { onPrimaryPress: () => void };
@@ -132,9 +133,7 @@ export function EmptyState(props: EmptyStateProps) {
         testID={props.testID}
         style={({ pressed }) => [styles.homeWork, shadow.raised, pressed && styles.pressed]}
       >
-        <AppText variant="technical" style={styles.homeWorkEyebrow}>
-          {t('home:empty.nextWorkEyebrow')}
-        </AppText>
+        <CardLabel>{t('home:empty.nextWorkEyebrow')}</CardLabel>
         <AppText accessibilityRole="header" variant="heading1" style={styles.homeWorkTitle}>
           {t('home:empty.noWorkTitle')}
         </AppText>
@@ -189,9 +188,7 @@ export function EmptyState(props: EmptyStateProps) {
           />
         </View>
         <View accessible={false} style={styles.financeTeaser}>
-          <AppText variant="technical" style={styles.eyebrow}>
-            {t('finances:empty.teaserEyebrow')}
-          </AppText>
+          <CardLabel>{t('finances:empty.teaserEyebrow')}</CardLabel>
           {teaserKeys.map((key, index) => (
             <View key={key} style={styles.teaserRow}>
               <View style={styles.teaserNumberCircle}>
@@ -227,9 +224,7 @@ export function EmptyState(props: EmptyStateProps) {
     return (
       <View testID={props.testID} style={styles.nextEntry}>
         <View style={styles.nextEntryCopy}>
-          <AppText variant="technical" style={styles.eyebrow}>
-            {t('finances:empty.nextEntryEyebrow')}
-          </AppText>
+          <CardLabel>{t('finances:empty.nextEntryEyebrow')}</CardLabel>
           <View style={styles.nextEntryTitleLine}>
             <View accessible={false} style={styles.nextEntryDot} />
             <AppText accessibilityRole="header" variant="heading1" style={styles.nextEntryTitle}>
@@ -384,12 +379,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingBottom: 24,
     gap: 12,
-  },
-  homeWorkEyebrow: {
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: colors.darkTextSecondary,
   },
   homeWorkTitle: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4 },
   homeWorkDescription: { fontSize: 14, lineHeight: 21, color: colors.textMuted },
