@@ -6,14 +6,14 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 
 - ★ **Uma única rolagem**: topo verde e corpo bege sobem juntos (`TwoToneScrollScreen`, com o topo escuro também ao puxar para baixo).
 - ★ **Troca de período igual à Agenda**: `PeriodSwitcher` (`src/components`), o mesmo componente da Agenda, em tamanho compacto na primeira linha do topo, ao lado do seletor `Mês`/`Ano` — `‹ Setembro 2026 ›` no mês e `‹ 2026 ›` no ano (sem rótulo acima, segundo ajuste de 2026-09-26). A aba sempre abre no mês atual, exceto ao voltar do `+` ou da edição.
-- ★ **Layout do HTML, com passagem reta** e espaço menor entre o fim do verde e o começo do bege: nada sobrepõe o topo verde; as seções ficam no bege, e a passagem do verde para o bege é reta (sem os cantos arredondados do HTML). O gráfico anual usa `BarChartCard` com `surface="plain"`, direto no fundo, como em Finanças 03.
+- ★ **Passagem reta do verde para o bege, com o bloco principal por cima do verde** (pedido do usuário, 2026-09-26, substitui o "nada sobreposto" anterior): no Mês, o card `ReceiptProgressCard`; no Ano, o `BarChartCard` em card. Ambos sobem 96 pt sobre o topo, como o calendário da Agenda. Sem entrada prevista (ou sem dados no ano), o topo volta ao tamanho normal.
 
 ## Mês — `FinancesScreen.tsx`
 
 | Seção | Quando aparece |
 | --- | --- |
 | Topo | Previsto no mês atual; no futuro, "previstos para entrar em outubro"; no passado, o que **entrou** ("· mês fechado" sem pendência); `R$ —` sem previsão ("nada registrado ainda" ou "nada previsto para entrar ainda"). |
-| Recebido × A receber | ★ Componente `ReceiptProgressCard` (`src/components`): os dois blocos e a barra num bloco só. Só com entrada prevista. Percentual arredondado para baixo (nunca 100% antes da hora); `nada em aberto`/`mês fechado` quando tudo entrou. Tocar em cada lado abre a folha correspondente. |
+| Recebido × A receber | ★ Componente `ReceiptProgressCard` (`src/components`): **um card só** (superfície do `CalendarCard`) com as duas caixas em cima e a barra de 12 pt e a legenda embaixo; fica sobre o topo verde. Só com entrada prevista. Percentual arredondado para baixo (nunca 100% antes da hora); `nada em aberto`/`mês fechado` quando tudo entrou. Tocar em cada lado abre a folha correspondente. |
 | Próxima entrada | Mês atual/futuro com entrada em aberto: dia, `hoje`/`amanhã`/`em N dias`, origem (Local ou Residência) e valor. Sem ela, o estado `Nenhuma prevista` com o motivo (tudo recebido, mês fechado, aguardando confirmação, só sem data). |
 | ★ Revisão necessária | **Só no mês atual e só quando há valores sem data** (a pendência é de agora, não de cada mês). `ReviewCard` detalhado com até dois previews e `+ N`, sem texto de apoio; `Adicionar datas` (espaçamento corrigido) abre a edição do primeiro Trabalho sem data. |
 | Origem das entradas | Só com entrada prevista. Premium: valores reais e percentuais. Free: estrutura oculta (`••••`) e selo Premium. |
