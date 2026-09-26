@@ -107,6 +107,10 @@ export const finances = {
     pendingConfirmation: 'Há entradas de {{month}} aguardando sua confirmação de recebimento.',
     onlyUndated: 'O que você trabalhou ainda está sem data de entrada prevista.',
     seeEntries: 'Ver entradas',
+    tagExpected: 'Previsto',
+    tagToday: 'Hoje',
+    moreOne: '+1 entrada até o fim do mês',
+    moreMany: '+{{count}} entradas até o fim do mês',
   },
   review: {
     eyebrowOne: 'REVISÃO NECESSÁRIA · 1 ENTRADA',

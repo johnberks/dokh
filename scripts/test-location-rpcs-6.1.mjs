@@ -243,7 +243,7 @@ try {
   );
   const nextEntry = success(
     await call(
-      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&limit=1',
+      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&order=receivable_id.asc&limit=3',
       { token: owner.token },
     ),
     'owner reads next entry',

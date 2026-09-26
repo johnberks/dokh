@@ -15,7 +15,7 @@ import { ProjectionChart } from '@/components/ProjectionChart';
 import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
-import { formatDayMonth, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
+import { type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
 import { usePremium } from '@/features/billing/entitlement';
@@ -28,7 +28,6 @@ import { FinanceInfoSheet, InfoButton, type InfoRequest } from './FinanceInfo';
 import {
   type FinanceMonth,
   type FinanceYear,
-  type NextEntry,
   type OriginAmount,
   useFinanceMonth,
   useFinanceOrigins,
@@ -52,11 +51,11 @@ import {
   originShares,
   projectYear,
   receivedPercent,
-  relativeDay,
   splitCaption,
   yearBars,
 } from './finance-format';
 import { InsightCard } from './InsightCard';
+import { NextEntryCard } from './NextEntryCard';
 
 const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
@@ -254,7 +253,12 @@ export function FinancesScreen() {
           )}
 
           {tense !== 'past' && next.data ? (
-            <NextEntryCard entry={next.data} today={today} onOpen={openEntries} />
+            <NextEntryCard
+              entry={next.data}
+              today={today}
+              showFollowing={tense === 'current'}
+              onOpen={openEntries}
+            />
           ) : tense === 'past' || next.isSuccess || !hasEntries ? (
             <EmptyState
               variant="financesNextEntry"
@@ -833,56 +837,6 @@ function ReceivedSplit({
       onPressAwaiting={() => onInfo({ key: 'awaiting', value: money(data.awaitingCents) })}
       testID="finances-split"
     />
-  );
-}
-
-function NextEntryCard({
-  entry,
-  today,
-  onOpen,
-}: {
-  entry: NextEntry;
-  today: string;
-  onOpen: () => void;
-}) {
-  const { t } = useTranslation('finances');
-  const type = useBrandTypography();
-  const [day, monthLabel] = formatDayMonth(entry.expectedOn).split(' ');
-  const origin =
-    entry.origin === 'residency'
-      ? t('next.residency')
-      : (entry.locationName ?? t('next.residency'));
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${t('next.eyebrow')}, ${day} ${monthLabel}, ${origin}, ${money(entry.amountCents)}. ${t('next.seeEntries')}`}
-      onPress={onOpen}
-      testID="finances-next"
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-    >
-      <AppText variant="technical" style={styles.eyebrow}>
-        {t('next.eyebrow')}
-      </AppText>
-      <View style={styles.nextDateRow}>
-        <AppText style={[type.heading1, styles.nextDay]}>
-          {day} <AppText style={styles.nextMonth}>{monthLabel}</AppText>
-        </AppText>
-        <AppText style={styles.nextRelative}>{relativeDay(entry.expectedOn, today, t)}</AppText>
-      </View>
-      <View style={styles.nextOriginRow}>
-        <View style={styles.nextOrigin}>
-          <View style={[styles.originDot, { backgroundColor: ORIGIN_COLOR[entry.origin] }]} />
-          <AppText numberOfLines={1} style={[type.heading1, styles.nextOriginName]}>
-            {origin}
-          </AppText>
-        </View>
-        <AppText style={[type.heading1, styles.nextValue]}>{money(entry.amountCents)}</AppText>
-      </View>
-      <View style={styles.seeEntries}>
-        <AppText style={[type.heading1, styles.seeEntriesText]}>{t('next.seeEntries')}</AppText>
-        <AppText style={styles.seeEntriesArrow}>{'→'}</AppText>
-      </View>
-    </Pressable>
   );
 }
 

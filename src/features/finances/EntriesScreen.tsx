@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import GraduationCap from 'lucide-react-native/icons/graduation-cap';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -10,7 +9,6 @@ import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
 import { ReceivableRow } from '@/components/ReceivableRow';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
-import { WorkTypeIcon, workTypeTone } from '@/components/WorkTypeIcon';
 import { formatDayMonth, type LocalMonth, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
@@ -19,9 +17,9 @@ import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
+import { OriginTile } from './FinanceCards';
 import { FinanceSubHero } from './FinanceSubHero';
 import {
-  type EntryOrigin,
   type FinanceMonth,
   type MonthEntry,
   useFinanceMonth,
@@ -169,27 +167,6 @@ export function EntriesScreen({ initialMonth }: { initialMonth: LocalMonth }) {
   );
 }
 
-/** Ícone do tipo em quadradinho com o tom do seletor de tipo; Residência em sálvia. */
-function OriginTile({ origin }: { origin: EntryOrigin }) {
-  return (
-    <View
-      style={[
-        styles.tile,
-        {
-          backgroundColor:
-            origin === 'residency' ? colors.workTypeShiftTile : workTypeTone[origin].tile,
-        },
-      ]}
-    >
-      {origin === 'residency' ? (
-        <GraduationCap color={palette.workSage} size={16} strokeWidth={1.8} />
-      ) : (
-        <WorkTypeIcon type={origin} size={16} />
-      )}
-    </View>
-  );
-}
-
 /**
  * Resumo do mês acima da lista, no mesmo card de Finanças. Mês futuro não tem recebimento:
  * mostra o previsto e a quantidade de entradas.
@@ -266,7 +243,6 @@ const styles = StyleSheet.create({
   heroCenter: { alignItems: 'center', gap: 2 },
   heroEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   switcher: { marginLeft: 0 },
-  tile: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   futureCard: {
     backgroundColor: '#F8F6EF',
     borderRadius: 28,

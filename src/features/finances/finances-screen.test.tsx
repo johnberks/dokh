@@ -76,6 +76,8 @@ beforeEach(() => {
     locationName: null,
     amountCents: 410609n,
     expectedOn: today,
+    following: [],
+    moreCount: 0,
   });
   mockUndated = ok([]);
   mockYear = ok({
@@ -99,18 +101,53 @@ describe('Finanças — mês', () => {
     expect(screen.getByTestId('finances-split-wrap')).toHaveStyle({ marginTop: -114 });
     expect(screen.getByText('67% recebido')).toBeTruthy();
     expect(screen.getByTestId('finances-next')).toBeTruthy();
-    expect(screen.getByText('hoje')).toBeTruthy();
+    // O tempo que falta é a manchete; no dia, a etiqueta vira "Hoje" e dá para confirmar ali.
+    expect(screen.getByTestId('finances-next-when').props.children).toBe('Hoje');
+    expect(screen.getByTestId('finances-next-tag')).toHaveTextContent('Hoje');
+    expect(screen.getByTestId('finances-next-confirm')).toBeTruthy();
     // Sem pendência, nenhum card de revisão.
     expect(screen.queryByTestId('finances-review')).toBeNull();
     // A próxima entrada leva ao extrato do mês.
     expect(screen.getByText('Ver entradas')).toBeTruthy();
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('finances-next'));
+      await fireEvent.press(screen.getByTestId('finances-next-see-entries'));
     });
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/finances/entries',
       params: { month: current },
     });
+  });
+
+  it('próxima entrada futura: "Previsto", sem confirmar, e as seguintes do mês', async () => {
+    const [y, m, d] = today.split('-').map(Number);
+    const plus = (days: number) => {
+      const date = new Date(Date.UTC(y, m - 1, d + days));
+      return date.toISOString().slice(0, 10);
+    };
+    mockNext = ok({
+      receivableId: 'r1',
+      origin: 'shift',
+      locationName: 'Hospital São Lucas',
+      amountCents: 120000n,
+      expectedOn: plus(1),
+      following: [
+        {
+          receivableId: 'r2',
+          origin: 'procedure',
+          locationName: 'Hospital São Camilo',
+          amountCents: 140000n,
+          expectedOn: plus(8),
+        },
+      ],
+      moreCount: 3,
+    });
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByTestId('finances-next-when').props.children).toBe('Amanhã');
+    expect(screen.getByTestId('finances-next-tag')).toHaveTextContent('Previsto');
+    expect(screen.queryByTestId('finances-next-confirm')).toBeNull();
+    expect(screen.getByText('Hospital São Lucas')).toBeTruthy();
+    expect(screen.getByTestId('finances-next-following')).toBeTruthy();
+    expect(screen.getByText('+3 entradas até o fim do mês')).toBeTruthy();
   });
 
   it('Free: origem e valor/hora ocultos com selo Premium, sem números inventados', async () => {

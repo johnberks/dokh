@@ -1,14 +1,16 @@
+import GraduationCap from 'lucide-react-native/icons/graduation-cap';
 import Stethoscope from 'lucide-react-native/icons/stethoscope';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { PremiumBadge } from '@/components/PremiumBadge';
+import { WorkTypeIcon, workTypeTone } from '@/components/WorkTypeIcon';
 import { formatCentsToBRL } from '@/domain/money';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { InfoButton, type InfoRequest } from './FinanceInfo';
-import type { FinanceMonth } from './finance-data';
+import type { EntryOrigin, FinanceMonth } from './finance-data';
 import { hourlyReais, hoursLabel } from './finance-format';
 
 const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true });
@@ -206,4 +208,29 @@ const styles = StyleSheet.create({
   metricUnit: { fontSize: 14, color: palette.sage },
   metricLabel: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
   hourlyLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+});
+
+/** Ícone do tipo em quadradinho com o tom do seletor de tipo; Residência em sálvia. */
+export function OriginTile({ origin }: { origin: EntryOrigin }) {
+  return (
+    <View
+      style={[
+        cardStyles.tile,
+        {
+          backgroundColor:
+            origin === 'residency' ? colors.workTypeShiftTile : workTypeTone[origin].tile,
+        },
+      ]}
+    >
+      {origin === 'residency' ? (
+        <GraduationCap color={palette.workSage} size={16} strokeWidth={1.8} />
+      ) : (
+        <WorkTypeIcon type={origin} size={16} />
+      )}
+    </View>
+  );
+}
+
+const cardStyles = StyleSheet.create({
+  tile: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
 });

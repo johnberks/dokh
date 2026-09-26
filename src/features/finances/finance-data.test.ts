@@ -1,5 +1,5 @@
 import type { AuthClient } from '@/features/auth/session';
-import { readHourlyHistory, readMonthEntries, readYearWork } from './finance-data';
+import { readHourlyHistory, readMonthEntries, readNextEntry, readYearWork } from './finance-data';
 
 function client(rows: Record<string, { hourly: number | null; minutes: number }>) {
   return {
@@ -54,7 +54,7 @@ describe('valor/hora do ano', () => {
 });
 
 /** Cliente mínimo encadeável: grava os filtros e devolve as linhas da tabela pedida. */
-function tableClient(tables: Record<string, unknown[]>, calls: string[] = []) {
+function tableClient(tables: Record<string, unknown[]>, calls: string[] = [], count?: number) {
   return {
     from: (table: string) => {
       const builder = {
@@ -76,9 +76,10 @@ function tableClient(tables: Record<string, unknown[]>, calls: string[] = []) {
           return builder;
         },
         order: () => builder,
+        limit: () => builder,
         // biome-ignore lint/suspicious/noThenProperty: imita o builder "thenable" do supabase-js.
         then: (resolve: (value: unknown) => void) =>
-          resolve({ data: tables[table] ?? [], error: null }),
+          resolve({ data: tables[table] ?? [], error: null, count }),
       };
       return builder;
     },
@@ -175,5 +176,49 @@ describe('histórico de valor/hora', () => {
       '2026-02',
     ]);
     expect(result[5].hourlyValueCents).toBe(17600n);
+  });
+});
+
+describe('próxima entrada', () => {
+  it('traz a próxima, até duas seguintes com o Local e quantas faltam no mês', async () => {
+    const row = (id: string, work: string | null, day: string) => ({
+      receivable_id: id,
+      work_entry_id: work,
+      origin: work ? 'shift' : 'residency',
+      amount_cents: 100000,
+      expected_on: `2026-09-${day}`,
+    });
+    const result = await readNextEntry(
+      '2026-09',
+      '2026-09-04',
+      tableClient(
+        {
+          receivable_projection: [
+            row('r1', null, '05'),
+            row('r2', 'w2', '12'),
+            row('r3', 'w3', '18'),
+          ],
+          agenda_work_projection: [
+            { work_entry_id: 'w2', location_name: 'Hospital São Lucas' },
+            { work_entry_id: 'w3', location_name: 'Clínica Central' },
+          ],
+        },
+        [],
+        5,
+      ),
+    );
+    expect(result?.receivableId).toBe('r1');
+    expect(result?.locationName).toBeNull();
+    expect(result?.following.map((item) => item.locationName)).toEqual([
+      'Hospital São Lucas',
+      'Clínica Central',
+    ]);
+    expect(result?.moreCount).toBe(2);
+  });
+
+  it('sem nada previsto: null', async () => {
+    expect(
+      await readNextEntry('2026-09', '2026-09-04', tableClient({ receivable_projection: [] })),
+    ).toBeNull();
   });
 });

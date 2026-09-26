@@ -40,6 +40,10 @@ Finanças 01, 01-B/C/D/E, 03-B, 11, 12 e 13 de `design/financas.html`; regras de
 - ★ Para testes, a conta local `jlucasberlinck@hotmail.com` recebeu um entitlement `sandbox` manual (`dev-manual-2026-09-26`), só no Supabase local.
 - O servidor já nega números interpretativos ao Free (valor/hora e origem `null`); a UI só escolhe como mostrar.
 
+## Próxima entrada — `NextEntryCard.tsx`
+
+Retorno do usuário (2026-09-26), com referências da Mobbin (Kit, Gusto, Quicken/Copilot, Plum): o tempo que falta é a manchete (`Hoje`, `Amanhã`, `Em 3 dias`) com a data por extenso; valor em destaque e origem com o mesmo ícone de tipo de Entradas (`OriginTile`); etiqueta `Previsto` ou `Hoje` (bronze); no dia previsto, `Você recebeu?` confirma no próprio card (só pelo servidor, falha avisa); no mês atual, até duas entradas seguintes e `+N entradas até o fim do mês`; `Ver entradas ›` em linha inteira. `readNextEntry` lê até três com `count: 'exact'`.
+
 ## Entradas (9.3) — `EntriesScreen.tsx`, rota `/finances/entries?month=`
 
 - Aberta por `Ver entradas` (card da próxima entrada, inteiro tocável) e `Ver extrato do mês` (sem próxima entrada, só quando o mês tem entradas). Voltar não reseta o mês de Finanças.

@@ -27,13 +27,20 @@ export type FinanceMonth = {
 
 export type OriginAmount = { origin: EntryOrigin; amountCents: bigint | null };
 
-export type NextEntry = {
+export type UpcomingEntry = {
   receivableId: string;
   origin: EntryOrigin;
   /** Nome do Local, ou `null` para a Residência. */
   locationName: string | null;
   amountCents: bigint;
   expectedOn: LocalDate;
+};
+
+/** A próxima entrada do mês e, logo depois, até duas seguintes (prévia do card). */
+export type NextEntry = UpcomingEntry & {
+  following: UpcomingEntry[];
+  /** Entradas previstas depois das mostradas, até o fim do mês. */
+  moreCount: number;
 };
 
 export type UndatedPreview = {
@@ -92,36 +99,49 @@ export async function readNextEntry(
 ): Promise<NextEntry | null> {
   const monthStart = `${month}-01`;
   const from = today > monthStart ? today : monthStart;
-  const { data, error } = await client
+  const { data, error, count } = await client
     .from('receivable_projection')
-    .select('receivable_id, work_entry_id, origin, amount_cents, expected_on')
+    .select('receivable_id, work_entry_id, origin, amount_cents, expected_on', {
+      count: 'exact',
+    })
     .gte('expected_on', from)
     .lt('expected_on', `${shiftMonth(month, 1)}-01`)
     .is('received_at', null)
     .is('invalidated_at', null)
     .is('work_deleted_at', null)
     .order('expected_on', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order('receivable_id', { ascending: true })
+    .limit(3);
   if (error) throw error;
-  if (!data?.receivable_id || !data.expected_on || !data.origin) return null;
+  const rows = (data ?? []).filter((row) => row.receivable_id && row.expected_on && row.origin);
+  if (rows.length === 0) return null;
 
-  let locationName: string | null = null;
-  if (data.work_entry_id) {
-    const work = await client
+  const workIds = rows.map((row) => row.work_entry_id).filter((id): id is string => !!id);
+  const names = new Map<string, string>();
+  if (workIds.length > 0) {
+    const works = await client
       .from('agenda_work_projection')
-      .select('location_name')
-      .eq('work_entry_id', data.work_entry_id)
-      .maybeSingle();
-    if (work.error) throw work.error;
-    locationName = work.data?.location_name ?? null;
+      .select('work_entry_id, location_name')
+      .in('work_entry_id', workIds);
+    if (works.error) throw works.error;
+    for (const work of works.data ?? []) {
+      if (work.work_entry_id && work.location_name) {
+        names.set(work.work_entry_id, work.location_name);
+      }
+    }
   }
+  const entries: UpcomingEntry[] = rows.map((row) => ({
+    receivableId: row.receivable_id as string,
+    origin: row.origin as EntryOrigin,
+    locationName: row.work_entry_id ? (names.get(row.work_entry_id) ?? null) : null,
+    amountCents: cents(row.amount_cents),
+    expectedOn: row.expected_on as LocalDate,
+  }));
+  const [first, ...following] = entries;
   return {
-    receivableId: data.receivable_id,
-    origin: data.origin as EntryOrigin,
-    locationName,
-    amountCents: cents(data.amount_cents),
-    expectedOn: data.expected_on,
+    ...first,
+    following,
+    moreCount: Math.max(0, (count ?? entries.length) - entries.length),
   };
 }
 
