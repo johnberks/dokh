@@ -49,7 +49,6 @@ describe('rotas', () => {
   });
 
   it.each([
-    ['/finances', 'Finanças'],
     ['/profile', 'Perfil'],
     ['/recover-password', 'Recuperar senha'],
     ['/reset-password', 'Defina uma nova senha.'],
@@ -68,8 +67,15 @@ describe('rotas', () => {
     await openAt('/agenda');
     expect(screen.getByTestId('agenda-screen')).toBeTruthy();
     expect(screen.getByText('SUA AGENDA')).toBeTruthy();
-    expect(screen.getByTestId('agenda-month')).toBeTruthy();
+    expect(screen.getByTestId('agenda-month-title')).toBeTruthy();
     expect(screen.getByTestId('agenda-calendar')).toBeTruthy();
+  });
+
+  it('resolve deep link /finances na visão mensal (mês como título, igual à Agenda)', async () => {
+    const router = await openAt('/finances');
+    expect(router.getPathname()).toBe('/finances');
+    expect(screen.getByTestId('finances-screen')).toBeTruthy();
+    expect(screen.getByTestId('finances-month-title')).toBeTruthy();
   });
 
   it('ação central abre o fluxo de criação sem virar tab', async () => {

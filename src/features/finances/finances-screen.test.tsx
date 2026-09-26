@@ -1,0 +1,204 @@
+import '@/i18n';
+import { act, fireEvent, screen } from '@testing-library/react-native';
+import { router } from 'expo-router';
+import { monthOf } from '@/domain/calendar';
+import { deviceTimezone } from '@/features/onboarding/profile-data';
+import { todayInTimezone } from '@/features/work/work-schedule';
+import { renderWithProviders } from '@/test/render';
+import { FinancesScreen } from './FinancesScreen';
+import type { FinanceMonth } from './finance-data';
+
+jest.mock('expo-router', () => ({
+  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
+  useFocusEffect: (effect: () => undefined) => jest.requireActual('react').useEffect(effect, []),
+}));
+jest.mock('@/features/auth/AuthSessionProvider', () => ({
+  AuthSessionProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuthSession: () => ({ status: 'signedIn', userId: 'user-1' }),
+}));
+
+type Query<T> = { isPending: boolean; isError: boolean; isSuccess: boolean; data?: T };
+const ok = <T,>(data: T): Query<T> => ({ isPending: false, isError: false, isSuccess: true, data });
+let mockPremium: Query<boolean> = ok(false);
+let mockMonth: Query<FinanceMonth> = ok(undefined as never);
+let mockOrigins: Query<unknown> = ok([]);
+let mockNext: Query<unknown> = ok(null);
+let mockUndated: Query<unknown> = ok([]);
+const mockRefetch = jest.fn();
+
+jest.mock('@/features/billing/entitlement', () => ({ usePremium: () => mockPremium }));
+jest.mock('./finance-data', () => ({
+  ...jest.requireActual('./finance-data'),
+  useFinanceMonth: () => ({ ...mockMonth, refetch: mockRefetch, isFetching: false }),
+  useFinanceOrigins: () => mockOrigins,
+  useNextEntry: () => mockNext,
+  useUndatedPreviews: () => mockUndated,
+}));
+
+const today = todayInTimezone(deviceTimezone());
+const current = monthOf(today);
+
+const month = (patch: Partial<FinanceMonth> = {}): FinanceMonth => ({
+  hasExpectedEntries: true,
+  expectedTotalCents: 1245000n,
+  receivedCents: 835000n,
+  awaitingCents: 410000n,
+  undatedCount: 0,
+  undatedTotalCents: 0n,
+  workGeneratedCents: 1480000n,
+  workCount: 7,
+  workDurationMinutes: 5040,
+  hourlyValueCents: 17600n,
+  ...patch,
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockPremium = ok(false);
+  mockMonth = ok(month());
+  mockOrigins = ok([
+    { origin: 'shift', amountCents: null },
+    { origin: 'procedure', amountCents: null },
+    { origin: 'appointment', amountCents: null },
+    { origin: 'residency', amountCents: null },
+  ]);
+  mockNext = ok({
+    receivableId: 'r1',
+    origin: 'residency',
+    locationName: null,
+    amountCents: 410609n,
+    expectedOn: today,
+  });
+  mockUndated = ok([]);
+});
+
+describe('Finanças — mês', () => {
+  it('mês atual: previsto, recebido × a receber, percentual e próxima entrada', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText('previstos para entrar este mês')).toBeTruthy();
+    expect(screen.getByTestId('finances-received')).toBeTruthy();
+    expect(screen.getByTestId('finances-awaiting')).toBeTruthy();
+    expect(screen.getByText('67% recebido')).toBeTruthy();
+    expect(screen.getByTestId('finances-next')).toBeTruthy();
+    expect(screen.getByText('hoje')).toBeTruthy();
+    // Sem pendência, nenhum card de revisão.
+    expect(screen.queryByTestId('finances-review')).toBeNull();
+  });
+
+  it('Free: origem e valor/hora ocultos com selo Premium, sem números inventados', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByTestId('finances-origin-locked')).toBeTruthy();
+    expect(screen.getByTestId('finances-origin-premium')).toBeTruthy();
+    expect(screen.getByTestId('finances-hourly')).toBeTruthy();
+    expect(screen.queryByText(/176/)).toBeNull();
+  });
+
+  it('Premium liberado: números reais e nenhum selo ou cadeado', async () => {
+    mockPremium = ok(true);
+    mockOrigins = ok([
+      { origin: 'shift', amountCents: 300000n },
+      { origin: 'procedure', amountCents: 0n },
+      { origin: 'appointment', amountCents: 0n },
+      { origin: 'residency', amountCents: 945000n },
+    ]);
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.queryByTestId('finances-origin-premium')).toBeNull();
+    expect(screen.queryByTestId('finances-origin-locked')).toBeNull();
+    expect(screen.queryByText('PREMIUM')).toBeNull();
+    // Residência aparece na próxima entrada e na origem.
+    expect(screen.getAllByText('Residência')).toHaveLength(2);
+    expect(screen.getByText('76%')).toBeTruthy();
+    expect(screen.getByText(/176/)).toBeTruthy();
+    expect(screen.getByText('valor/hora')).toBeTruthy();
+  });
+
+  it('tudo recebido: 100% e "Nenhuma prevista"', async () => {
+    mockMonth = ok(month({ receivedCents: 1245000n, awaitingCents: 0n }));
+    mockNext = ok(null);
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText('100% recebido · nada em aberto')).toBeTruthy();
+    expect(screen.getByTestId('finances-no-next')).toBeTruthy();
+    // O atalho do extrato só aparece quando o extrato existir.
+    expect(screen.queryByTestId('finances-no-next-action')).toBeNull();
+  });
+
+  it('mês passado fechado mostra o que entrou', async () => {
+    mockMonth = ok(
+      month({ receivedCents: 1632000n, awaitingCents: 0n, expectedTotalCents: 1632000n }),
+    );
+    await renderWithProviders(<FinancesScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-month-previous'));
+    });
+    expect(screen.getByText(/^entraram em .* · mês fechado$/)).toBeTruthy();
+    expect(screen.getByText('100% recebido · mês fechado')).toBeTruthy();
+  });
+
+  it('somente sem data: R$ —, revisão no mês atual e trabalho gerado preservado', async () => {
+    mockMonth = ok(
+      month({
+        hasExpectedEntries: false,
+        expectedTotalCents: 0n,
+        receivedCents: 0n,
+        awaitingCents: 0n,
+        undatedCount: 3,
+        undatedTotalCents: 360000n,
+        workGeneratedCents: 360000n,
+        workCount: 3,
+      }),
+    );
+    mockUndated = ok([
+      {
+        workId: 'w1',
+        type: 'procedure',
+        locationName: 'Hospital São Lucas',
+        description: 'Cirurgia',
+        colorToken: 'bronze',
+        amountCents: 150000n,
+      },
+    ]);
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText('R$ —')).toBeTruthy();
+    expect(screen.getByText('nada previsto para entrar ainda')).toBeTruthy();
+    expect(screen.queryByTestId('finances-received')).toBeNull();
+    expect(screen.getByText('REVISÃO NECESSÁRIA · 3 ENTRADAS')).toBeTruthy();
+    expect(screen.getByTestId('finances-work')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-review'));
+    });
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/work/edit/[id]', params: { id: 'w1' } });
+
+    // Em outro mês a pendência não reaparece.
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-month-next'));
+    });
+    expect(screen.queryByTestId('finances-review')).toBeNull();
+  });
+
+  it('sem trabalhos: convite para adicionar, sem cards de R$ 0', async () => {
+    mockMonth = ok(month({ hasExpectedEntries: false, workCount: 0, undatedCount: 0 }));
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText('nada registrado ainda')).toBeTruthy();
+    expect(screen.getByTestId('finances-empty')).toBeTruthy();
+    expect(screen.queryByTestId('finances-received')).toBeNull();
+    expect(screen.queryByTestId('finances-work')).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-empty-action'));
+    });
+    expect(router.push).toHaveBeenCalledWith('/work/new');
+  });
+
+  it('falha de leitura mostra erro, nunca mês vazio', async () => {
+    mockMonth = { isPending: false, isError: true, isSuccess: false };
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByTestId('finances-error')).toBeTruthy();
+    expect(screen.queryByTestId('finances-empty')).toBeNull();
+    expect(screen.queryByText('R$ —')).toBeNull();
+  });
+
+  it('abre no mês atual', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByText(` ${current.slice(0, 4)}`)).toBeTruthy();
+  });
+});

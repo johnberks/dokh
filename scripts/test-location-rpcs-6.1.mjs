@@ -203,6 +203,57 @@ try {
   });
   assert.ok(!foreign.response.ok, 'foreign account must not archive location');
 
+  // Finanças 9.2: mesmas consultas do app para o mês da entrada (out/2026), plano Free.
+  const financeMonth = success(
+    await call('/rest/v1/rpc/finance_month_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-10-01' },
+    }),
+    'owner reads finance month',
+  )[0];
+  assert.equal(financeMonth.has_expected_entries, true);
+  assert.equal(Number(financeMonth.expected_total_cents), 120000);
+  assert.equal(financeMonth.hourly_value_cents, null, 'Free never receives hourly value');
+  const origins = success(
+    await call('/rest/v1/rpc/finance_month_origins', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-10-01' },
+    }),
+    'owner reads finance origins',
+  );
+  assert.deepEqual(
+    origins.map((row) => row.amount_cents),
+    [null, null, null, null],
+    'Free never receives origin amounts',
+  );
+  const nextEntry = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&limit=1',
+      { token: owner.token },
+    ),
+    'owner reads next entry',
+  );
+  assert.equal(nextEntry.length, 1);
+  assert.equal(nextEntry[0].origin, 'shift');
+  assert.equal(nextEntry[0].expected_on, '2026-10-26');
+  const entitlement = success(
+    await call('/rest/v1/subscription_entitlements?select=is_active,expires_at', {
+      token: owner.token,
+    }),
+    'owner reads own entitlement',
+  );
+  assert.deepEqual(entitlement, [], 'no entitlement means Free');
+  const undated = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_entry_id&receipt_status=eq.undated&order=work_date.asc&limit=2',
+      { token: owner.token },
+    ),
+    'owner reads undated previews',
+  );
+  assert.deepEqual(undated, []);
+
   // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
   const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {
     method: 'POST',
@@ -318,7 +369,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

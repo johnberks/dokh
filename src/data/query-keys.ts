@@ -15,6 +15,10 @@ export const queryKeys = {
   financeMonth: (userId: string, month: string) => ['finance-month', userId, month] as const,
   financeYear: (userId: string, year: number) => ['finance-year', userId, year] as const,
   homeOverview: (userId: string) => ['home-overview', userId] as const,
+  entitlement: (userId: string) => ['entitlement', userId] as const,
+  financeNextEntry: (userId: string, month: string) =>
+    ['finance-month', userId, month, 'next'] as const,
+  financeUndated: (userId: string) => ['finance-month', userId, 'undated'] as const,
 } as const;
 
 /** Prefixos invalidados por qualquer escrita de Trabalho/Recebível. */

@@ -1,7 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import Plus from 'lucide-react-native/icons/plus';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,13 +8,13 @@ import { AppText } from '@/components/AppText';
 import { CalendarCard } from '@/components/CalendarCard';
 import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
+import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { WorkCard } from '@/components/WorkCard';
 import { type LocalDate, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
-import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { AgendaHeroBackdrop } from './AgendaHeroBackdrop';
 import { dotsByDay, useAgendaMonth, worksByDay } from './agenda-data';
@@ -41,7 +39,6 @@ function monthName(month: LocalMonth): string {
  */
 export function AgendaScreen() {
   const { t } = useTranslation('agenda');
-  const type = useBrandTypography();
   const [today, setToday] = useState(() => todayInTimezone(deviceTimezone()));
   const [month, setMonth] = useState<LocalMonth>(() => monthOf(today));
   const [selected, setSelected] = useState<LocalDate>(today);
@@ -93,35 +90,15 @@ export function AgendaScreen() {
           <AppText variant="technical" style={styles.eyebrow}>
             {t('eyebrow')}
           </AppText>
-          <View style={styles.monthRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('previousMonth')}
-              hitSlop={6}
-              onPress={() => goToMonth(shiftMonth(month, -1))}
-              testID="agenda-previous-month"
-              style={({ pressed }) => [styles.monthButton, pressed && styles.pressed]}
-            >
-              <ChevronLeft color={palette.sage} size={22} />
-            </Pressable>
-            <AppText
-              accessibilityRole="header"
-              style={[type.heading1, styles.heroTitle]}
-              testID="agenda-month"
-            >
-              {monthName(month)} <AppText style={styles.year}>{month.slice(0, 4)}</AppText>
-            </AppText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('nextMonth')}
-              hitSlop={6}
-              onPress={() => goToMonth(shiftMonth(month, 1))}
-              testID="agenda-next-month"
-              style={({ pressed }) => [styles.monthButton, pressed && styles.pressed]}
-            >
-              <ChevronRight color={palette.cream} size={22} />
-            </Pressable>
-          </View>
+          <PeriodSwitcher
+            title={monthName(month)}
+            secondary={month.slice(0, 4)}
+            previousLabel={t('previousMonth')}
+            nextLabel={t('nextMonth')}
+            onPrevious={() => goToMonth(shiftMonth(month, -1))}
+            onNext={() => goToMonth(shiftMonth(month, 1))}
+            testID="agenda-month"
+          />
         </View>
         <Pressable
           accessibilityRole="button"
@@ -210,11 +187,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   heroText: { gap: 10 },
-  monthRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: -8 },
-  monthButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  year: { color: palette.sage },
   eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  heroTitle: { fontSize: 28, lineHeight: 30, letterSpacing: -0.84, color: palette.cream },
   add: {
     width: 44,
     height: 44,

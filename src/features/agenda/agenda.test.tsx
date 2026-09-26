@@ -176,14 +176,14 @@ describe('Agenda (01–05)', () => {
   it('outro mês seleciona o dia 1; voltar ao mês atual seleciona hoje', async () => {
     await renderWithProviders(<AgendaScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('agenda-next-month'));
+      await fireEvent.press(screen.getByTestId('agenda-month-next'));
     });
     const first = `${shiftMonth(month, 1)}-01`;
     expect(screen.getByTestId('agenda-day-label').props.children).toBe(
       `${formatDayMonth(first)} · ${weekdayShort(first)}`,
     );
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('agenda-previous-month'));
+      await fireEvent.press(screen.getByTestId('agenda-month-previous'));
     });
     expect(screen.getByTestId('agenda-day-label').props.children).toBe(
       `HOJE · ${formatDayMonth(today)}`,
@@ -192,7 +192,7 @@ describe('Agenda (01–05)', () => {
 
   it('dia de outro mês leva ao mês dele e a grade não tem semana extra', async () => {
     await renderWithProviders(<AgendaScreen />);
-    expect(screen.getByTestId('agenda-month')).toBeTruthy();
+    expect(screen.getByTestId('agenda-month-title')).toBeTruthy();
     // O último quadrado da grade completa a última semana do mês, no máximo.
     const ids = screen
       .getAllByRole('button')

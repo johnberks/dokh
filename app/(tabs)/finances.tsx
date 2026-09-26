@@ -1,7 +1,5 @@
-import { useTranslation } from 'react-i18next';
-import { PlaceholderScreen } from '@/components/PlaceholderScreen';
+import { FinancesScreen } from '@/features/finances/FinancesScreen';
 
-export default function FinancesScreen() {
-  const { t } = useTranslation('finances');
-  return <PlaceholderScreen title={t('title')} />;
+export default function FinancesRoute() {
+  return <FinancesScreen />;
 }
