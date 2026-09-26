@@ -267,6 +267,48 @@ try {
   );
   assert.deepEqual(undated, []);
 
+  // Premium ativo (espelho do servidor): valor/hora e origens passam a vir com números.
+  success(
+    await call('/rest/v1/subscription_entitlements', {
+      method: 'POST',
+      token: serviceKey,
+      body: {
+        user_id: owner.id,
+        is_active: true,
+        product_id: 'dokh_premium_test',
+        store: 'app_store',
+        environment: 'sandbox',
+        last_event_id: `test-${randomUUID()}`,
+      },
+    }),
+    'service grants test entitlement',
+  );
+  const premiumWorkMonth = success(
+    await call('/rest/v1/rpc/finance_month_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-09-01' },
+    }),
+    'premium reads work month',
+  )[0];
+  assert.equal(Number(premiumWorkMonth.hourly_value_cents), 10000, 'R$ 1.200 in 12h = R$ 100/h');
+  const premiumOrigins = success(
+    await call('/rest/v1/rpc/finance_month_origins', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-10-01' },
+    }),
+    'premium reads origins',
+  );
+  assert.equal(Number(premiumOrigins.find((row) => row.origin === 'shift').amount_cents), 120000);
+  const premiumEntitlement = success(
+    await call('/rest/v1/subscription_entitlements?select=is_active,expires_at', {
+      token: owner.token,
+    }),
+    'owner reads premium entitlement',
+  );
+  assert.deepEqual(premiumEntitlement, [{ is_active: true, expires_at: null }]);
+
   // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
   const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {
     method: 'POST',
@@ -382,7 +424,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

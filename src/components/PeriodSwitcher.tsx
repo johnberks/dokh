@@ -16,6 +16,8 @@ export type PeriodSwitcherProps = {
   onNext: () => void;
   /** Prefixo dos testIDs: `<prefix>-previous`, `<prefix>-title`, `<prefix>-next`. */
   testID: string;
+  /** `compact` divide a linha com outro controle (Finanças: seletor Mês/Ano). */
+  size?: 'large' | 'compact';
 };
 
 /**
@@ -30,6 +32,7 @@ export function PeriodSwitcher({
   onPrevious,
   onNext,
   testID,
+  size = 'large',
 }: PeriodSwitcherProps) {
   const type = useBrandTypography();
   return (
@@ -46,7 +49,9 @@ export function PeriodSwitcher({
       </Pressable>
       <AppText
         accessibilityRole="header"
-        style={[type.heading1, styles.title]}
+        adjustsFontSizeToFit
+        numberOfLines={1}
+        style={[type.heading1, styles.title, size === 'compact' && styles.titleCompact]}
         testID={`${testID}-title`}
       >
         {title}
@@ -67,9 +72,16 @@ export function PeriodSwitcher({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: -8 },
+  row: { flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: -8 },
   button: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 28, lineHeight: 30, letterSpacing: -0.84, color: palette.cream },
+  title: {
+    flexShrink: 1,
+    fontSize: 28,
+    lineHeight: 30,
+    letterSpacing: -0.84,
+    color: palette.cream,
+  },
+  titleCompact: { fontSize: 22, lineHeight: 26, letterSpacing: -0.66 },
   secondary: { color: palette.sage },
   pressed: { opacity: 0.72 },
 });

@@ -258,3 +258,52 @@ export function useYearOrigins(year: number, months: readonly LocalMonth[], enab
     enabled: userId !== null && enabled,
   });
 }
+
+export type YearWork = {
+  /** Valor/hora do ano: horas de cada mês pesam no resultado (não é média de médias). */
+  hourlyValueCents: bigint | null;
+  /** Variação entre o primeiro e o último mês do ano com valor/hora; `null` sem base. */
+  hourlyEvolutionPercent: number | null;
+};
+
+/**
+ * Valor/hora anual a partir das projeções mensais do próprio ano (até o mês atual). O
+ * servidor só devolve valor/hora com Premium ativo; no Free o resultado é `null`.
+ */
+export async function readYearWork(
+  months: readonly LocalMonth[],
+  client: AuthClient = supabase,
+): Promise<YearWork> {
+  const monthly = await Promise.all(months.map((month) => readFinanceMonth(month, client)));
+  const withHourly = monthly
+    .map((data, index) => ({ month: months[index], data }))
+    .filter(
+      (item): item is { month: LocalMonth; data: FinanceMonth & { hourlyValueCents: bigint } } =>
+        item.data.hourlyValueCents !== null && item.data.workDurationMinutes > 0,
+    );
+  if (withHourly.length === 0) return { hourlyValueCents: null, hourlyEvolutionPercent: null };
+
+  const minutes = withHourly.reduce((sum, item) => sum + item.data.workDurationMinutes, 0);
+  const weighted = withHourly.reduce(
+    (sum, item) => sum + Number(item.data.hourlyValueCents) * item.data.workDurationMinutes,
+    0,
+  );
+  const first = withHourly[0].data.hourlyValueCents;
+  const last = withHourly[withHourly.length - 1].data.hourlyValueCents;
+  return {
+    hourlyValueCents: BigInt(Math.round(weighted / minutes)),
+    hourlyEvolutionPercent:
+      withHourly.length >= 2 && first > 0n
+        ? Math.round((Number(last - first) / Number(first)) * 100)
+        : null,
+  };
+}
+
+export function useYearWork(year: number, months: readonly LocalMonth[], enabled: boolean) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeYear(userId ?? '', year), 'work', months.join(',')],
+    queryFn: () => readYearWork(months),
+    enabled: userId !== null && enabled,
+  });
+}

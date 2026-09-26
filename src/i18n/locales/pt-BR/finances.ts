@@ -1,11 +1,61 @@
 export const finances = {
   title: 'Finanças',
-  eyebrow: 'SUAS FINANÇAS',
   previousMonth: 'Mês anterior',
   nextMonth: 'Próximo mês',
   previousYear: 'Ano anterior',
   nextYear: 'Próximo ano',
   mode: { month: 'Mês', year: 'Ano' },
+  info: {
+    open: 'O que é {{label}}?',
+    exampleLabel: 'EXEMPLO',
+    hourlyExample: '{{generated}} em {{hours}} de trabalho dão {{hourly}} por hora.',
+    expected: {
+      title: 'PREVISTO PARA ENTRAR',
+      text: 'Soma das entradas com data de pagamento neste mês — não importa quando o trabalho foi feito.',
+      example: 'Um plantão feito em agosto e pago em setembro entra no total de setembro.',
+    },
+    received: {
+      title: 'RECEBIDO',
+      text: 'Entradas previstas para este mês que você já confirmou. A DOKH nunca confirma sozinha.',
+      example: 'A bolsa da residência prevista para o dia 5 conta aqui depois que você confirma.',
+    },
+    awaiting: {
+      title: 'A RECEBER',
+      text: 'Entradas previstas para este mês que ainda não entraram. Recebido + a receber = previsto para entrar.',
+      example: 'Um plantão com pagamento previsto para o dia 28 fica aqui até você confirmar.',
+    },
+    generated: {
+      title: 'TRABALHO GERADO',
+      text: 'Valor dos trabalhos realizados neste mês, independentemente de quando serão pagos.',
+      example:
+        'Um plantão de setembro pago em outubro conta aqui em setembro e nas entradas de outubro.',
+    },
+    hourly: {
+      title: 'VALOR/HORA',
+      text: 'Valor gerado dividido pelas horas trabalhadas, só nos trabalhos com duração registrada.',
+      example: 'R$ 14.800 em 84h de trabalho dão R$ 176 por hora.',
+    },
+    yearTotal: {
+      title: 'RECEBIDOS E PREVISTOS NO ANO',
+      text: 'Tudo que já entrou e o que está previsto para entrar no ano, pela data de pagamento.',
+      example: 'Uma entrada prevista para dezembro já soma aqui, antes de chegar.',
+    },
+    average: {
+      title: 'MÉDIA MENSAL',
+      text: 'Média das entradas dos meses anteriores ao atual. Só aparece com pelo menos dois meses de histórico.',
+      example: 'Com R$ 10.000 em julho e R$ 12.000 em agosto, a média é R$ 11.000.',
+    },
+    yearHourly: {
+      title: 'VALOR/HORA NO ANO',
+      text: 'Valor/hora de todos os trabalhos do ano com duração registrada — meses com mais horas pesam mais.',
+      example: 'A evolução compara o primeiro e o último mês do ano com valor/hora.',
+    },
+    projection: {
+      title: 'PROJEÇÃO ATÉ DEZEMBRO',
+      text: 'O que está previsto até este mês, somado à sua média mensal nos meses que faltam.',
+      example: 'Com média de R$ 12.000, três meses restantes somam mais R$ 36.000.',
+    },
+  },
   year: {
     caption: 'recebidos e previstos em {{year}}',
     range: 'JANEIRO → DEZEMBRO',
@@ -14,6 +64,18 @@ export const finances = {
     average: 'previstos por mês, em média',
     historyTitle: 'Seu histórico começa agora.',
     historyText: 'Conforme você usa a DOKH, sua evolução aparece aqui.',
+    hourly: 'valor/hora médio no ano',
+    evolution: 'evolução do valor/hora',
+    projectionEyebrow: 'PROJEÇÃO PARA {{year}}',
+    projectionCaption: 'previstos até dezembro',
+    projectionRealized: 'recebido',
+    projectionEstimated: 'projeção pela sua média mensal',
+    projectionText:
+      'Mantendo sua média de {{average}}/mês, {{from}} a dezembro somam mais {{remaining}}.',
+    projectionTextOne: 'Mantendo sua média de {{average}}/mês, dezembro soma mais {{remaining}}.',
+    projectionLocked:
+      'Descubra quanto você deve receber até o fim do ano, com base no seu ritmo atual.',
+    chartProjectionLabel: 'Projeção das entradas até dezembro de {{year}}',
   },
   hero: {
     empty: 'R$ —',
@@ -47,7 +109,6 @@ export const finances = {
     eyebrowOne: 'REVISÃO NECESSÁRIA · 1 ENTRADA',
     eyebrowMany: 'REVISÃO NECESSÁRIA · {{count}} ENTRADAS',
     qualifier: 'sem data prevista',
-    hint: 'Estes valores não entram no total do mês.',
     undated: 'SEM DATA',
     action: 'Adicionar datas',
   },

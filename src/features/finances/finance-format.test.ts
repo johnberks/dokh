@@ -5,9 +5,11 @@ import {
   heroCaption,
   hoursLabel,
   isEmptyMonth,
+  monthsForYearWork,
   monthTense,
   noNextEntryReason,
   originShares,
+  projectYear,
   receivedPercent,
   relativeDay,
   splitCaption,
@@ -133,5 +135,42 @@ describe('gráfico anual', () => {
       current: false,
     });
     expect(bars[8]).toMatchObject({ label: 'SET', current: true, valueLabel: '12,4k' });
+  });
+});
+
+describe('projeção e valor/hora do ano', () => {
+  const year = {
+    months: [
+      { month: '2026-01', expectedTotalCents: 1000000n },
+      { month: '2026-09', expectedTotalCents: 1245000n },
+      { month: '2026-11', expectedTotalCents: 500000n },
+    ],
+    totalCents: 2745000n,
+    historicalMonthCount: 2,
+    historicalAverageCents: 1289700n,
+  };
+
+  it('previsto até o mês atual mais a média nos meses que faltam', () => {
+    const projection = projectYear(year, 2026, '2026-09-26');
+    expect(projection).toMatchObject({
+      realizedCents: 2245000n,
+      remainingMonths: 3,
+      remainingCents: 3869100n,
+      totalCents: 6114100n,
+      currentIndex: 8,
+    });
+    expect(projection?.points).toHaveLength(9);
+    expect(projection?.points[1]).toBeNull();
+  });
+
+  it('sem média ou fora do ano corrente não há projeção', () => {
+    expect(projectYear({ ...year, historicalAverageCents: null }, 2026, '2026-09-26')).toBeNull();
+    expect(projectYear(year, 2025, '2026-09-26')).toBeNull();
+  });
+
+  it('meses usados no valor/hora do ano', () => {
+    expect(monthsForYearWork(2026, '2026-09-26')).toHaveLength(9);
+    expect(monthsForYearWork(2025, '2026-09-26')).toHaveLength(12);
+    expect(monthsForYearWork(2027, '2026-09-26')).toEqual([]);
   });
 });

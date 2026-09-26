@@ -148,3 +148,55 @@ export function yearBars(data: FinanceYear, year: number, today: LocalDate): Cha
     };
   });
 }
+
+export type Projection = {
+  /** Previsto de janeiro até o mês atual (inclusive). */
+  realizedCents: bigint;
+  /** Meses depois do atual, estimados pela média. */
+  remainingMonths: number;
+  remainingCents: bigint;
+  totalCents: bigint;
+  averageCents: bigint;
+  /** Valor de cada mês até o atual (`null` sem dado) para a linha realizada. */
+  points: (number | null)[];
+  currentIndex: number;
+};
+
+/**
+ * Projeção até dezembro (Premium): o que está previsto até o mês atual mais a média mensal
+ * nos meses restantes. Só existe no ano corrente e com média (≥ 2 meses de histórico).
+ */
+export function projectYear(data: FinanceYear, year: number, today: LocalDate): Projection | null {
+  if (Number(today.slice(0, 4)) !== year || data.historicalAverageCents === null) return null;
+  const currentIndex = Number(today.slice(5, 7)) - 1;
+  const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
+  const points: (number | null)[] = [];
+  let realized = 0n;
+  for (let index = 0; index <= currentIndex; index++) {
+    const cents = byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`);
+    points.push(cents === undefined ? null : Number(cents));
+    realized += cents ?? 0n;
+  }
+  const remainingMonths = 11 - currentIndex;
+  const remaining = data.historicalAverageCents * BigInt(remainingMonths);
+  return {
+    realizedCents: realized,
+    remainingMonths,
+    remainingCents: remaining,
+    totalCents: realized + remaining,
+    averageCents: data.historicalAverageCents,
+    points,
+    currentIndex,
+  };
+}
+
+/** Meses do ano que já têm valor/hora possível: até o atual no ano corrente, todos no passado. */
+export function monthsForYearWork(year: number, today: LocalDate): LocalMonth[] {
+  const currentYear = Number(today.slice(0, 4));
+  if (year > currentYear) return [];
+  const last = year < currentYear ? 12 : Number(today.slice(5, 7));
+  return Array.from(
+    { length: last },
+    (_, index) => `${year}-${String(index + 1).padStart(2, '0')}`,
+  );
+}

@@ -26,6 +26,7 @@ let mockNext: Query<unknown> = ok(null);
 let mockUndated: Query<unknown> = ok([]);
 let mockYear: Query<unknown> = ok(undefined);
 let mockYearOrigins: Query<unknown> = ok([]);
+let mockYearWork: Query<unknown> = ok({ hourlyValueCents: null, hourlyEvolutionPercent: null });
 const mockRefetch = jest.fn();
 
 jest.mock('@/features/billing/entitlement', () => ({ usePremium: () => mockPremium }));
@@ -37,6 +38,7 @@ jest.mock('./finance-data', () => ({
   useUndatedPreviews: () => mockUndated,
   useFinanceYear: () => ({ ...mockYear, refetch: mockRefetch, isFetching: false }),
   useYearOrigins: () => mockYearOrigins,
+  useYearWork: () => mockYearWork,
 }));
 
 const today = todayInTimezone(deviceTimezone());
@@ -81,6 +83,7 @@ beforeEach(() => {
     historicalAverageCents: null,
   });
   mockYearOrigins = ok([]);
+  mockYearWork = ok({ hourlyValueCents: null, hourlyEvolutionPercent: null });
 });
 
 describe('Finanças — mês', () => {
@@ -214,6 +217,49 @@ describe('Finanças — mês', () => {
   });
 });
 
+describe('Finanças — topo e explicações', () => {
+  it('topo tem só a troca de mês e o seletor, sem "SUAS FINANÇAS"', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.queryByText('SUAS FINANÇAS')).toBeNull();
+    expect(screen.getByTestId('finances-month-title')).toBeTruthy();
+    expect(screen.getByTestId('finances-mode-year')).toBeTruthy();
+  });
+
+  it('o i do topo e os blocos abrem a explicação com o valor do mês', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-info-expected'));
+    });
+    expect(screen.getByText('PREVISTO PARA ENTRAR')).toBeTruthy();
+    expect(screen.getByTestId('finance-info-value').props.children).toMatch(/12\.450/);
+    expect(screen.getByText('EXEMPLO')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-awaiting'));
+    });
+    // O bloco e a folha dizem "A RECEBER"; a folha traz o valor do bloco.
+    expect(screen.getAllByText('A RECEBER')).toHaveLength(2);
+    expect(screen.getByTestId('finance-info-value').props.children).toMatch(/4\.100/);
+  });
+
+  it('revisão necessária sem o texto de apoio', async () => {
+    mockMonth = ok(month({ undatedCount: 1, undatedTotalCents: 85000n }));
+    mockUndated = ok([
+      {
+        workId: 'w9',
+        type: 'shift',
+        locationName: 'Ubs Xpto',
+        description: null,
+        colorToken: 'sage',
+        amountCents: 85000n,
+      },
+    ]);
+    await renderWithProviders(<FinancesScreen />);
+    expect(screen.getByTestId('finances-review')).toBeTruthy();
+    expect(screen.queryByText('Estes valores não entram no total do mês.')).toBeNull();
+  });
+});
+
 describe('Finanças — ano', () => {
   async function openYear() {
     await renderWithProviders(<FinancesScreen />);
@@ -275,5 +321,40 @@ describe('Finanças — ano', () => {
     await openYear();
     expect(screen.getByTestId('finances-year-empty')).toBeTruthy();
     expect(screen.queryByTestId('finances-year-chart')).toBeNull();
+  });
+
+  it('Premium: valor/hora no ano, evolução e projeção até dezembro, sem selos', async () => {
+    mockPremium = ok(true);
+    const y = current.slice(0, 4);
+    mockYear = ok({
+      months: [
+        { month: `${y}-01`, expectedTotalCents: 1000000n },
+        { month: `${y}-02`, expectedTotalCents: 1200000n },
+        { month: current, expectedTotalCents: 1245000n },
+      ],
+      totalCents: 3445000n,
+      historicalMonthCount: 2,
+      historicalAverageCents: 1100000n,
+    });
+    mockYearWork = ok({ hourlyValueCents: 15800n, hourlyEvolutionPercent: 24 });
+    await renderWithProviders(<FinancesScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-mode-year'));
+    });
+    expect(screen.getByText('+24%')).toBeTruthy();
+    expect(screen.getByText('valor/hora médio no ano')).toBeTruthy();
+    expect(screen.getByTestId('finances-projection-chart')).toBeTruthy();
+    expect(screen.queryByTestId('finances-year-projection-premium')).toBeNull();
+    expect(screen.queryByText('PREMIUM')).toBeNull();
+  });
+
+  it('Free: valor/hora, evolução e projeção ocultos com selo', async () => {
+    await renderWithProviders(<FinancesScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-mode-year'));
+    });
+    expect(screen.getByText('+••%')).toBeTruthy();
+    expect(screen.getByTestId('finances-year-projection-premium')).toBeTruthy();
+    expect(screen.queryByTestId('finances-projection-chart')).toBeNull();
   });
 });

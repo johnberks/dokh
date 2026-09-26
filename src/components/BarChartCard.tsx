@@ -24,6 +24,8 @@ export type BarChartCardProps = {
   /** Conteúdo abaixo do gráfico (média, aviso de histórico curto). */
   footer?: ReactNode;
   accessibilityLabel: string;
+  /** `card`: superfície própria. `plain`: direto sobre o fundo bege, como em Finanças 03. */
+  surface?: 'card' | 'plain';
   testID?: string;
 };
 
@@ -40,13 +42,14 @@ export function BarChartCard({
   bars,
   footer,
   accessibilityLabel,
+  surface = 'card',
   testID,
 }: BarChartCardProps) {
   const type = useBrandTypography();
   const max = Math.max(0, ...bars.map((bar) => bar.value ?? 0));
 
   return (
-    <View style={styles.card} testID={testID}>
+    <View style={surface === 'card' ? styles.card : styles.plain} testID={testID}>
       <View style={styles.header}>
         <AppText variant="technical" style={styles.eyebrow}>
           {eyebrow}
@@ -125,6 +128,7 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 8,
   },
+  plain: { gap: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   legend: { flexDirection: 'row', alignItems: 'center', gap: 6 },

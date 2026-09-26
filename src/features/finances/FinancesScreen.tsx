@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { PremiumBadge } from '@/components/PremiumBadge';
+import { ProjectionChart } from '@/components/ProjectionChart';
 import { ReviewCard } from '@/components/ReviewCard';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { formatDayMonth, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
@@ -23,6 +24,7 @@ import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
+import { FinanceInfoSheet, InfoButton, type InfoRequest } from './FinanceInfo';
 import {
   type FinanceMonth,
   type FinanceYear,
@@ -34,15 +36,19 @@ import {
   useNextEntry,
   useUndatedPreviews,
   useYearOrigins,
+  useYearWork,
+  type YearWork,
 } from './finance-data';
 import {
   heroCaption,
   hoursLabel,
   isEmptyMonth,
   type MonthTense,
+  monthsForYearWork,
   monthTense,
   noNextEntryReason,
   originShares,
+  projectYear,
   receivedPercent,
   relativeDay,
   splitCaption,
@@ -79,6 +85,7 @@ export function FinancesScreen() {
   const [mode, setMode] = useState<'month' | 'year'>('month');
   const [year, setYear] = useState(() => Number(today.slice(0, 4)));
   const openedChild = useRef(false);
+  const [info, setInfo] = useState<InfoRequest | null>(null);
 
   // Como a Agenda: entrar na aba sempre abre o mês atual.
   useFocusEffect(
@@ -110,6 +117,8 @@ export function FinancesScreen() {
   const yearData = useFinanceYear(year, mode === 'year');
   const yearMonths = (yearData.data?.months ?? []).map((item) => item.month);
   const yearOrigins = useYearOrigins(year, yearMonths, mode === 'year' && yearMonths.length > 0);
+  // Valor/hora do ano só vem do servidor com Premium; no Free nem é pedido.
+  const yearWork = useYearWork(year, monthsForYearWork(year, today), mode === 'year' && isPremium);
 
   function openChild(path: () => void) {
     openedChild.current = true;
@@ -118,19 +127,33 @@ export function FinancesScreen() {
 
   const inYear = mode === 'year';
   const hero = (
-    <View
-      style={[
-        styles.hero,
-        (inYear ? (yearData.data?.months.length ?? 0) > 0 : hasEntries) && styles.heroWithOverlap,
-      ]}
-    >
+    <View style={styles.hero}>
       <StatusBar style="light" />
       <AgendaHeroBackdrop />
       <View style={styles.heroContent}>
         <View style={styles.heroTop}>
-          <AppText variant="technical" style={styles.heroEyebrow}>
-            {t('eyebrow')}
-          </AppText>
+          {inYear ? (
+            <PeriodSwitcher
+              size="compact"
+              title={String(year)}
+              previousLabel={t('previousYear')}
+              nextLabel={t('nextYear')}
+              onPrevious={() => setYear(year - 1)}
+              onNext={() => setYear(year + 1)}
+              testID="finances-year"
+            />
+          ) : (
+            <PeriodSwitcher
+              size="compact"
+              title={name}
+              secondary={month.slice(0, 4)}
+              previousLabel={t('previousMonth')}
+              nextLabel={t('nextMonth')}
+              onPrevious={() => setMonth(shiftMonth(month, -1))}
+              onNext={() => setMonth(shiftMonth(month, 1))}
+              testID="finances-month"
+            />
+          )}
           <PeriodToggle
             mode={mode}
             onChange={setMode}
@@ -138,35 +161,23 @@ export function FinancesScreen() {
             yearLabel={t('mode.year')}
           />
         </View>
-        {inYear ? (
-          <PeriodSwitcher
-            title={String(year)}
-            previousLabel={t('previousYear')}
-            nextLabel={t('nextYear')}
-            onPrevious={() => setYear(year - 1)}
-            onNext={() => setYear(year + 1)}
-            testID="finances-year"
-          />
-        ) : (
-          <PeriodSwitcher
-            title={name}
-            secondary={month.slice(0, 4)}
-            previousLabel={t('previousMonth')}
-            nextLabel={t('nextMonth')}
-            onPrevious={() => setMonth(shiftMonth(month, -1))}
-            onNext={() => setMonth(shiftMonth(month, 1))}
-            testID="finances-month"
-          />
-        )}
         {inYear
           ? yearData.data && (
               <YearHeroAmount
                 total={yearData.data.totalCents}
                 year={year}
                 hasData={yearData.data.months.length > 0}
+                onInfo={() => setInfo({ key: 'yearTotal', value: money(yearData.data.totalCents) })}
               />
             )
-          : data && <HeroAmount data={data} tense={tense} name={name} />}
+          : data && (
+              <HeroAmount
+                data={data}
+                tense={tense}
+                name={name}
+                onInfo={(value) => setInfo({ key: 'expected', value })}
+              />
+            )}
       </View>
     </View>
   );
@@ -180,8 +191,11 @@ export function FinancesScreen() {
           today={today}
           isPremium={isPremium}
           origins={yearOrigins.data}
+          work={yearWork.data}
+          onInfo={setInfo}
           onAddWork={() => openChild(() => router.push('/work/new'))}
         />
+        <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
       </TwoToneScrollScreen>
     );
   }
@@ -211,7 +225,7 @@ export function FinancesScreen() {
         </View>
       ) : (
         <View style={styles.sections}>
-          {hasEntries && <ReceivedSplit data={data} tense={tense} />}
+          {hasEntries && <ReceivedSplit data={data} tense={tense} onInfo={setInfo} />}
 
           {tense !== 'past' && next.data ? (
             <NextEntryCard entry={next.data} today={today} />
@@ -235,7 +249,6 @@ export function FinancesScreen() {
               iconTone="bronze"
               value={money(data.undatedTotalCents)}
               qualifier={t('review.qualifier')}
-              hint={t('review.hint')}
               previews={undated.data.map((item) => ({
                 id: item.workId,
                 type: t(`workType.${item.type}` as 'workType.shift'),
@@ -271,10 +284,11 @@ export function FinancesScreen() {
           )}
 
           {data.workCount > 0 && (
-            <WorkGeneratedCard data={data} name={name} isPremium={isPremium} />
+            <WorkGeneratedCard data={data} name={name} isPremium={isPremium} onInfo={setInfo} />
           )}
         </View>
       )}
+      <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
     </TwoToneScrollScreen>
   );
 }
@@ -319,10 +333,12 @@ function YearHeroAmount({
   total,
   year,
   hasData,
+  onInfo,
 }: {
   total: bigint;
   year: number;
   hasData: boolean;
+  onInfo: () => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
@@ -331,9 +347,19 @@ function YearHeroAmount({
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
         {hasData ? money(total) : t('hero.empty')}
       </AppText>
-      <AppText style={styles.heroCaption}>
-        {hasData ? t('year.caption', { year }) : t('hero.nothingYet')}
-      </AppText>
+      <View style={styles.captionRow}>
+        <AppText style={styles.heroCaption}>
+          {hasData ? t('year.caption', { year }) : t('hero.nothingYet')}
+        </AppText>
+        {hasData && (
+          <InfoButton
+            tone="dark"
+            label={t('info.yearTotal.title')}
+            onPress={onInfo}
+            testID="finances-info-yearTotal"
+          />
+        )}
+      </View>
     </View>
   );
 }
@@ -345,6 +371,8 @@ function YearBody({
   today,
   isPremium,
   origins,
+  work,
+  onInfo,
   onAddWork,
 }: {
   query: {
@@ -358,6 +386,8 @@ function YearBody({
   today: string;
   isPremium: boolean;
   origins: OriginAmount[] | undefined;
+  work: YearWork | undefined;
+  onInfo: (request: InfoRequest) => void;
   onAddWork: () => void;
 }) {
   const { t } = useTranslation('finances');
@@ -395,8 +425,9 @@ function YearBody({
   const isCurrentYear = Number(today.slice(0, 4)) === year;
   return (
     <View style={styles.sections}>
-      <View style={styles.chartWrap}>
+      <View>
         <BarChartCard
+          surface="plain"
           eyebrow={t('year.range')}
           legend={isCurrentYear ? t('year.currentMonth') : undefined}
           bars={yearBars(data, year, today)}
@@ -408,6 +439,13 @@ function YearBody({
                   {money(data.historicalAverageCents)}
                 </AppText>
                 <AppText style={styles.averageLabel}>{t('year.average')}</AppText>
+                <InfoButton
+                  label={t('info.average.title')}
+                  onPress={() =>
+                    onInfo({ key: 'average', value: money(data.historicalAverageCents ?? 0n) })
+                  }
+                  testID="finances-info-average"
+                />
               </View>
             ) : (
               <View style={styles.historyStart} testID="finances-year-history-start">
@@ -428,7 +466,173 @@ function YearBody({
         origins={origins}
         testID="finances-year-origin"
       />
+      <YearHourly isPremium={isPremium} work={work} onInfo={onInfo} />
+      {isCurrentYear && (
+        <YearProjection
+          data={data}
+          year={year}
+          today={today}
+          isPremium={isPremium}
+          onInfo={onInfo}
+        />
+      )}
     </View>
+  );
+}
+
+/** Valor/hora médio no ano e evolução (Finanças 03). Sem base, nada de tendência inventada. */
+function YearHourly({
+  isPremium,
+  work,
+  onInfo,
+}: {
+  isPremium: boolean;
+  work: YearWork | undefined;
+  onInfo: (request: InfoRequest) => void;
+}) {
+  const { t } = useTranslation('finances');
+  const type = useBrandTypography();
+  const hourly = work?.hourlyValueCents ?? null;
+  const evolution = work?.hourlyEvolutionPercent ?? null;
+  // Premium sem nenhum trabalho com duração no ano: não há o que mostrar.
+  if (isPremium && hourly === null) return null;
+  return (
+    <View style={styles.yearHourly} testID="finances-year-hourly">
+      <View style={styles.yearHourlyItem}>
+        <AppText style={[type.heading1, styles.yearHourlyValue, !isPremium && styles.maskedValue]}>
+          {isPremium && hourly !== null ? money(hourly) : 'R$ •••'}
+          <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
+        </AppText>
+        <View style={styles.hourlyLabelRow}>
+          {!isPremium && <PremiumBadge size="short" />}
+          <AppText style={styles.metricLabel}>{t('year.hourly')}</AppText>
+          <InfoButton
+            label={t('info.yearHourly.title')}
+            onPress={() =>
+              onInfo({
+                key: 'yearHourly',
+                value:
+                  isPremium && hourly !== null
+                    ? `${money(hourly)}${t('work.perHour')}`
+                    : `R$ •••${t('work.perHour')}`,
+              })
+            }
+            testID="finances-info-yearHourly"
+          />
+        </View>
+      </View>
+      {(!isPremium || evolution !== null) && (
+        <View style={styles.yearHourlyItem} testID="finances-year-evolution">
+          <AppText
+            style={[
+              type.heading1,
+              styles.yearHourlyValue,
+              isPremium ? styles.evolutionValue : styles.maskedValue,
+            ]}
+          >
+            {isPremium && evolution !== null ? `${evolution > 0 ? '+' : ''}${evolution}%` : '+••%'}
+          </AppText>
+          <AppText style={styles.metricLabel}>{t('year.evolution')}</AppText>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const MONTH_AXIS = [
+  'JAN',
+  'FEV',
+  'MAR',
+  'ABR',
+  'MAI',
+  'JUN',
+  'JUL',
+  'AGO',
+  'SET',
+  'OUT',
+  'NOV',
+  'DEZ',
+];
+const MONTH_LONG = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
+
+/** Projeção até dezembro (Finanças 03): só no ano corrente e com média calculável. */
+function YearProjection({
+  data,
+  year,
+  today,
+  isPremium,
+  onInfo,
+}: {
+  data: FinanceYear;
+  year: number;
+  today: string;
+  isPremium: boolean;
+  onInfo: (request: InfoRequest) => void;
+}) {
+  const { t } = useTranslation('finances');
+  const type = useBrandTypography();
+  const projection = projectYear(data, year, today);
+  if (isPremium && projection === null) return null;
+  const nextMonth =
+    projection && projection.currentIndex < 11
+      ? MONTH_LONG.format(new Date(year, projection.currentIndex + 1, 15))
+      : '';
+  return (
+    <SectionCard
+      icon={null}
+      eyebrow={t('year.projectionEyebrow', { year })}
+      premiumBadge={!isPremium}
+      testID="finances-year-projection"
+    >
+      <View style={styles.projectionHead}>
+        <AppText style={[type.heading1, styles.projectionValue, !isPremium && styles.maskedValue]}>
+          {isPremium && projection ? money(projection.totalCents) : 'R$ •••.•••'}
+        </AppText>
+        <View style={styles.captionRowLight}>
+          <AppText style={styles.metricLabel}>{t('year.projectionCaption')}</AppText>
+          <InfoButton
+            label={t('info.projection.title')}
+            onPress={() =>
+              onInfo({
+                key: 'projection',
+                value: isPremium && projection ? money(projection.totalCents) : 'R$ •••.•••',
+              })
+            }
+            testID="finances-info-projection"
+          />
+        </View>
+      </View>
+      {isPremium && projection ? (
+        <>
+          <ProjectionChart
+            points={projection.points}
+            currentIndex={projection.currentIndex}
+            average={Number(projection.averageCents)}
+            monthLabels={MONTH_AXIS}
+            realizedLabel={t('year.projectionRealized')}
+            projectedLabel={t('year.projectionEstimated')}
+            accessibilityLabel={t('year.chartProjectionLabel', { year })}
+            testID="finances-projection-chart"
+          />
+          {projection.remainingMonths > 0 && (
+            <AppText style={styles.lockedHint}>
+              {projection.remainingMonths === 1
+                ? t('year.projectionTextOne', {
+                    average: money(projection.averageCents),
+                    remaining: money(projection.remainingCents),
+                  })
+                : t('year.projectionText', {
+                    average: money(projection.averageCents),
+                    from: nextMonth,
+                    remaining: money(projection.remainingCents),
+                  })}
+            </AppText>
+          )}
+        </>
+      ) : (
+        <AppText style={styles.lockedHint}>{t('year.projectionLocked')}</AppText>
+      )}
+    </SectionCard>
   );
 }
 
@@ -508,10 +712,12 @@ function HeroAmount({
   data,
   tense,
   name,
+  onInfo,
 }: {
   data: FinanceMonth;
   tense: MonthTense;
   name: string;
+  onInfo: (value: string) => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
@@ -521,22 +727,46 @@ function HeroAmount({
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
         {amount === null ? t('hero.empty') : money(amount)}
       </AppText>
-      <AppText style={styles.heroCaption}>{caption}</AppText>
+      <View style={styles.captionRow}>
+        <AppText style={styles.heroCaption}>{caption}</AppText>
+        {amount !== null && (
+          <InfoButton
+            tone="dark"
+            label={t('info.expected.title')}
+            onPress={() => onInfo(money(data.expectedTotalCents))}
+            testID="finances-info-expected"
+          />
+        )}
+      </View>
     </View>
   );
 }
 
 /** Recebido × A receber: objeto principal do mês, sobre a divisa do topo escuro. */
-function ReceivedSplit({ data, tense }: { data: FinanceMonth; tense: MonthTense }) {
+function ReceivedSplit({
+  data,
+  tense,
+  onInfo,
+}: {
+  data: FinanceMonth;
+  tense: MonthTense;
+  onInfo: (request: InfoRequest) => void;
+}) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
   const percent = receivedPercent(data);
   return (
     <View style={styles.split}>
       <View style={styles.splitRow}>
-        <View
-          style={[styles.splitBlock, styles.receivedBlock]}
-          accessible
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t('split.received')}, ${money(data.receivedCents)}`}
+          onPress={() => onInfo({ key: 'received', value: money(data.receivedCents) })}
+          style={({ pressed }) => [
+            styles.splitBlock,
+            styles.receivedBlock,
+            pressed && styles.pressed,
+          ]}
           testID="finances-received"
         >
           <View style={styles.splitLabel}>
@@ -554,10 +784,16 @@ function ReceivedSplit({ data, tense }: { data: FinanceMonth; tense: MonthTense 
           >
             {money(data.receivedCents)}
           </AppText>
-        </View>
-        <View
-          style={[styles.splitBlock, styles.awaitingBlock]}
-          accessible
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t('split.awaiting')}, ${money(data.awaitingCents)}`}
+          onPress={() => onInfo({ key: 'awaiting', value: money(data.awaitingCents) })}
+          style={({ pressed }) => [
+            styles.splitBlock,
+            styles.awaitingBlock,
+            pressed && styles.pressed,
+          ]}
           testID="finances-awaiting"
         >
           <View style={styles.splitLabel}>
@@ -575,7 +811,7 @@ function ReceivedSplit({ data, tense }: { data: FinanceMonth; tense: MonthTense 
           >
             {money(data.awaitingCents)}
           </AppText>
-        </View>
+        </Pressable>
       </View>
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${percent}%` }]} />
@@ -623,10 +859,12 @@ function WorkGeneratedCard({
   data,
   name,
   isPremium,
+  onInfo,
 }: {
   data: FinanceMonth;
   name: string;
   isPremium: boolean;
+  onInfo: (request: InfoRequest) => void;
 }) {
   const { t } = useTranslation('finances');
   const type = useBrandTypography();
@@ -641,6 +879,11 @@ function WorkGeneratedCard({
           {money(data.workGeneratedCents)}
         </AppText>
         <AppText style={styles.generatedLabel}>{t('work.generated')}</AppText>
+        <InfoButton
+          label={t('info.generated.title')}
+          onPress={() => onInfo({ key: 'generated', value: money(data.workGeneratedCents) })}
+          testID="finances-info-generated"
+        />
       </View>
       <View style={styles.metrics}>
         <Metric
@@ -668,11 +911,34 @@ function WorkGeneratedCard({
                   <AppText style={styles.metricUnit}>{t('work.perHour')}</AppText>
                 </AppText>
               )}
-              {isPremium ? (
-                <AppText style={styles.metricLabel}>{t('work.hourly')}</AppText>
-              ) : (
-                <PremiumBadge size="short" />
-              )}
+              <View style={styles.hourlyLabelRow}>
+                {isPremium ? (
+                  <AppText style={styles.metricLabel}>{t('work.hourly')}</AppText>
+                ) : (
+                  <PremiumBadge size="short" />
+                )}
+                <InfoButton
+                  label={t('info.hourly.title')}
+                  onPress={() =>
+                    onInfo({
+                      key: 'hourly',
+                      value:
+                        isPremium && data.hourlyValueCents !== null
+                          ? `${money(data.hourlyValueCents)}${t('work.perHour')}`
+                          : `R$ •••${t('work.perHour')}`,
+                      example:
+                        isPremium && data.hourlyValueCents !== null
+                          ? t('info.hourlyExample', {
+                              generated: money(data.workGeneratedCents),
+                              hours: hoursLabel(data.workDurationMinutes),
+                              hourly: money(data.hourlyValueCents),
+                            })
+                          : undefined,
+                    })
+                  }
+                  testID="finances-info-hourly"
+                />
+              </View>
             </View>
           </>
         )}
@@ -709,7 +975,7 @@ function SectionCard({
     <View style={styles.card} testID={testID}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitle}>
-          <View style={styles.sectionIcon}>{icon}</View>
+          {icon ? <View style={styles.sectionIcon}>{icon}</View> : null}
           <AppText variant="technical" style={styles.eyebrow}>
             {eyebrow}
           </AppText>
@@ -721,15 +987,15 @@ function SectionCard({
   );
 }
 
-const SPLIT_OVERLAP = 56;
-
 const styles = StyleSheet.create({
   hero: { paddingBottom: 44, overflow: 'hidden' },
-  // Os blocos Recebido × A receber sobem sobre o topo escuro, como o calendário da Agenda.
-  heroWithOverlap: { paddingBottom: 44 + SPLIT_OVERLAP },
   heroContent: { paddingTop: 22, paddingHorizontal: 24, gap: 14 },
-  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  heroEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  heroTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
   toggle: {
     flexDirection: 'row',
     backgroundColor: 'rgba(237,234,224,0.1)',
@@ -748,20 +1014,35 @@ const styles = StyleSheet.create({
   toggleOn: { backgroundColor: palette.cream },
   toggleText: { fontSize: 13, lineHeight: 16, letterSpacing: 0, color: palette.sage },
   toggleTextOn: { color: palette.base },
-  chartWrap: { marginTop: -SPLIT_OVERLAP },
   averageRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' },
   averageValue: { fontSize: 24, lineHeight: 28, letterSpacing: -0.72, color: colors.textPrimary },
   averageLabel: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
   historyStart: { gap: 4 },
   historyTitle: { fontSize: 16, lineHeight: 20, letterSpacing: -0.16, color: colors.textPrimary },
   historyText: { fontSize: 13, lineHeight: 19, color: palette.mutedCopy },
+  captionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  captionRowLight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  hourlyLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  yearHourly: { flexDirection: 'row', gap: 16 },
+  yearHourlyItem: { flex: 1, gap: 4 },
+  yearHourlyValue: {
+    fontSize: 24,
+    lineHeight: 28,
+    letterSpacing: -0.72,
+    color: colors.textPrimary,
+  },
+  evolutionValue: { color: palette.structure },
+  projectionHead: { gap: 4 },
+  projectionValue: { fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: colors.textPrimary },
+  pressed: { opacity: 0.72 },
   heroAmount: { gap: 8 },
   heroValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.84, color: palette.cream },
   heroCaption: { fontSize: 15, lineHeight: 20, color: '#B9BFB2' },
-  body: { paddingHorizontal: 20, paddingBottom: 32 },
-  padded: { paddingTop: 24 },
+  // Passagem reta do verde para o bege (sem cantos arredondados), conteúdo no fundo bege.
+  body: { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 32 },
+  padded: {},
   sections: { gap: 22 },
-  split: { marginTop: -SPLIT_OVERLAP, gap: 10 },
+  split: { gap: 10 },
   splitRow: { flexDirection: 'row', gap: 12 },
   splitBlock: {
     flex: 1,
@@ -777,8 +1058,7 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 6,
   },
-  // Sobre o topo escuro o bloco precisa ser opaco: o verde translúcido do HTML vira tom sólido.
-  receivedBlock: { backgroundColor: '#DCDDD1', borderColor: 'rgba(43,58,36,0.28)' },
+  receivedBlock: { backgroundColor: 'rgba(43,58,36,0.10)', borderColor: 'rgba(43,58,36,0.28)' },
   awaitingBlock: { backgroundColor: '#F8F6EF', borderColor: 'rgba(16,22,15,0.16)' },
   splitLabel: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   receivedIcon: {
