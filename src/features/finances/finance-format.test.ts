@@ -134,6 +134,8 @@ describe('gráfico anual', () => {
     expect(bars[0]).toMatchObject({ label: 'JAN', value: null, valueLabel: undefined });
     expect(bars[7]).toMatchObject({ label: 'AGO', value: 1632000, valueLabel: '16,3k' });
     expect(bars[8]).toMatchObject({ label: 'SET', current: true, valueLabel: '12,4k' });
+    expect(bars[7]).toMatchObject({ current: false, future: false });
+    expect(bars[10]).toMatchObject({ future: true, value: 1500000 });
   });
 
   it('melhor mês já vivido: um mês futuro maior não conta', () => {

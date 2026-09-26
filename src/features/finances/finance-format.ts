@@ -152,6 +152,7 @@ export function yearBars(data: FinanceYear, year: number, today: LocalDate): Cha
       value: has ? Number(cents) : null,
       valueLabel: has ? compactReais(cents) : undefined,
       current: month === currentMonth,
+      future: month > currentMonth,
     };
   });
 }

@@ -460,7 +460,14 @@ describe('Finanças — ano', () => {
     // Sem barra nem valores de recebido/a receber no topo.
     expect(screen.queryByTestId('finances-year-split')).toBeNull();
     expect(screen.getByTestId('finances-year-chart')).toBeTruthy();
-    expect(screen.getByText('mês atual')).toBeTruthy();
+    // Título da seção fora do card; legenda com os três tipos de barra.
+    expect(screen.getByText(`Ganhos de ${y}`)).toBeTruthy();
+    expect(screen.getByText('Consolidado')).toBeTruthy();
+    expect(screen.getByText('Mês atual')).toBeTruthy();
+    expect(screen.getByText('Previsto')).toBeTruthy();
+    expect(screen.getByText('Origem das entradas')).toBeTruthy();
+    expect(screen.getByText('Seu ano')).toBeTruthy();
+    expect(screen.getByText(`Projeção para ${y}`)).toBeTruthy();
     expect(screen.getByTestId('finances-year-history-start')).toBeTruthy();
     expect(screen.queryByTestId('finances-year-average')).toBeNull();
   });
