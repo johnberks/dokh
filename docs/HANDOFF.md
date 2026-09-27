@@ -402,3 +402,10 @@ Excluir recorrente (2026-09-26, mesma branch), pedido do usuário:
 - A segunda opção chama a nova RPC `delete_work_series_from` (migration `20260926010000_work_series_delete_forward.sql`, já aplicada no local). Ela encerra a série e remove esse dia e os seguintes não recebidos; os anteriores ficam.
 - Testes: `3_10` descartável e caminho real cobertos; 63 suítes e 425 testes.
 
+Deslize em Finanças (2026-09-26, branch `codex/9-finances-motion`), pedido do usuário:
+- `SlideIn` no topo e no corpo da tela principal.
+- Mês → Ano entra pela direita e Ano → Mês pela esquerda.
+- Ao voltar de uma tela interna, o conteúdo entra pela esquerda.
+- As telas internas usam `slide_from_right` explícito.
+- Testes: 63 suítes e 427 testes.
+

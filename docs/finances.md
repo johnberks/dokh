@@ -79,3 +79,15 @@ Pedido do usuário (2026-09-26): o rótulo técnico dos cards (Plex 10 pt, regul
 ## Contagem do valor do topo
 
 O valor do topo (Mês e Ano) conta rápido até o total ao entrar na aba, trocar Mês/Ano ou mudar o período (`useCountUp`, `motion.countUp` = 650 ms; "Reduzir movimento" mostra direto). Pedido do usuário, 2026-09-26.
+
+## Deslize entre visões (2026-09-26)
+
+- `SlideIn` (`src/components/SlideIn.tsx`, `motion.slide` = 300 ms) desliza 32 pt e faz o conteúdo aparecer: o valor do topo e o corpo da tela principal de Finanças.
+- Direções:
+  - Mês → Ano: o conteúdo entra pela direita;
+  - Ano → Mês: entra pela esquerda;
+  - ao voltar de Entradas, da análise de valor/hora ou de um Trabalho aberto por Finanças: entra pela esquerda.
+- Entrar na aba não desliza.
+- "Reduzir movimento" troca na hora.
+- As rotas `finances/entries` e `finances/hourly` usam `animation: 'slide_from_right'` explícito, inclusive no Android, que por padrão não desliza.
+
