@@ -16,6 +16,7 @@ import { PremiumBadge } from '@/components/PremiumBadge';
 import { ProjectionChart } from '@/components/ProjectionChart';
 import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
 import { ReviewCard } from '@/components/ReviewCard';
+import { type SlideFrom, SlideIn } from '@/components/SlideIn';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
@@ -96,6 +97,9 @@ export function FinancesScreen() {
   // Cada entrada na aba (ou troca de Mês/Ano) recomeça a contagem do valor do topo.
   const [enterKey, setEnterKey] = useState(0);
   const [info, setInfo] = useState<InfoRequest | null>(null);
+  // Mês → Ano entra pela direita, Ano → Mês pela esquerda; voltar de uma tela interna
+  // (Entradas, valor/hora) traz o conteúdo pela esquerda. Entrar na aba não desliza.
+  const [slide, setSlide] = useState<{ key: number; from: SlideFrom }>({ key: 0, from: null });
 
   // Como a Agenda: entrar na aba sempre abre o mês atual.
   useFocusEffect(
@@ -103,8 +107,10 @@ export function FinancesScreen() {
       setEnterKey((key) => key + 1);
       if (openedChild.current) {
         openedChild.current = false;
+        setSlide((current) => ({ key: current.key + 1, from: 'left' }));
         return;
       }
+      setSlide((current) => ({ key: current.key + 1, from: null }));
       const now = todayInTimezone(deviceTimezone());
       setToday(now);
       setMonth(monthOf(now));
@@ -177,31 +183,40 @@ export function FinancesScreen() {
           <PeriodToggle
             mode={mode}
             onChange={(next) => {
+              if (next === mode) return;
               setMode(next);
               setEnterKey((key) => key + 1);
+              setSlide((current) => ({
+                key: current.key + 1,
+                from: next === 'year' ? 'right' : 'left',
+              }));
             }}
             monthLabel={t('mode.month')}
             yearLabel={t('mode.year')}
           />
         </View>
-        {inYear
-          ? yearData.data && (
-              <YearHeroAmount
-                data={yearData.data}
-                year={year}
-                enterKey={enterKey}
-                onInfo={() => setInfo({ key: 'yearTotal', value: money(yearData.data.totalCents) })}
-              />
-            )
-          : data && (
-              <HeroAmount
-                data={data}
-                tense={tense}
-                name={name}
-                enterKey={enterKey}
-                onInfo={(value) => setInfo({ key: 'expected', value })}
-              />
-            )}
+        <SlideIn slideKey={slide.key} from={slide.from} testID="finances-hero-slide">
+          {inYear
+            ? yearData.data && (
+                <YearHeroAmount
+                  data={yearData.data}
+                  year={year}
+                  enterKey={enterKey}
+                  onInfo={() =>
+                    setInfo({ key: 'yearTotal', value: money(yearData.data.totalCents) })
+                  }
+                />
+              )
+            : data && (
+                <HeroAmount
+                  data={data}
+                  tense={tense}
+                  name={name}
+                  enterKey={enterKey}
+                  onInfo={(value) => setInfo({ key: 'expected', value })}
+                />
+              )}
+        </SlideIn>
       </View>
     </View>
   );
@@ -215,16 +230,18 @@ export function FinancesScreen() {
         bodyStyle={styles.body}
         testID="finances-screen"
       >
-        <YearBody
-          query={yearData}
-          year={year}
-          today={today}
-          isPremium={isPremium}
-          origins={yearOrigins.data}
-          work={yearWork.data}
-          onInfo={setInfo}
-          onAddWork={() => openChild(() => router.push('/work/new'))}
-        />
+        <SlideIn slideKey={slide.key} from={slide.from} testID="finances-body-slide">
+          <YearBody
+            query={yearData}
+            year={year}
+            today={today}
+            isPremium={isPremium}
+            origins={yearOrigins.data}
+            work={yearWork.data}
+            onInfo={setInfo}
+            onAddWork={() => openChild(() => router.push('/work/new'))}
+          />
+        </SlideIn>
         <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
       </TwoToneScrollScreen>
     );
@@ -238,118 +255,120 @@ export function FinancesScreen() {
       bodyStyle={styles.body}
       testID="finances-screen"
     >
-      {finance.isPending ? (
-        <View style={styles.padded}>
-          <Skeleton layout="summary" testID="finances-loading" />
-        </View>
-      ) : finance.isError || !data ? (
-        // Falha de leitura nunca vira mês vazio nem `R$ —`.
-        <View style={styles.padded}>
-          <LoadError
-            onRetry={() => void finance.refetch()}
-            retrying={finance.isFetching}
-            testID="finances-error"
-          />
-        </View>
-      ) : isEmptyMonth(data) ? (
-        <View style={styles.padded}>
-          <EmptyState
-            variant="financesNoWork"
-            onPrimaryPress={() => openChild(() => router.push('/work/new'))}
-            testID="finances-empty"
-          />
-        </View>
-      ) : (
-        <View style={styles.sections}>
-          {hasEntries && (
-            <View style={styles.chartOverlap} testID="finances-split-wrap">
-              <ReceivedSplit data={data} tense={tense} onInfo={setInfo} />
-            </View>
-          )}
-
-          {tense !== 'past' && next.data ? (
-            <NextEntryCard
-              entry={next.data}
-              today={today}
-              showFollowing={tense === 'current'}
-              onOpen={openEntries}
+      <SlideIn slideKey={slide.key} from={slide.from} testID="finances-body-slide">
+        {finance.isPending ? (
+          <View style={styles.padded}>
+            <Skeleton layout="summary" testID="finances-loading" />
+          </View>
+        ) : finance.isError || !data ? (
+          // Falha de leitura nunca vira mês vazio nem `R$ —`.
+          <View style={styles.padded}>
+            <LoadError
+              onRetry={() => void finance.refetch()}
+              retrying={finance.isFetching}
+              testID="finances-error"
             />
-          ) : tense === 'past' || next.isSuccess || !hasEntries ? (
+          </View>
+        ) : isEmptyMonth(data) ? (
+          <View style={styles.padded}>
             <EmptyState
-              variant="financesNextEntry"
-              description={noNextEntryReason(data, tense, name, t)}
-              onPrimaryPress={hasEntries ? openEntries : undefined}
-              testID="finances-no-next"
+              variant="financesNoWork"
+              onPrimaryPress={() => openChild(() => router.push('/work/new'))}
+              testID="finances-empty"
             />
-          ) : null}
+          </View>
+        ) : (
+          <View style={styles.sections}>
+            {hasEntries && (
+              <View style={styles.chartOverlap} testID="finances-split-wrap">
+                <ReceivedSplit data={data} tense={tense} onInfo={setInfo} />
+              </View>
+            )}
 
-          {showReview && undated.data && (
-            <ReviewCard
-              size="detailed"
-              eyebrow={
-                data.undatedCount === 1
-                  ? t('review.eyebrowOne')
-                  : t('review.eyebrowMany', { count: data.undatedCount })
-              }
-              icon={<CalendarClock color={palette.bronzeDeep} size={18} strokeWidth={1.7} />}
-              iconTone="bronze"
-              value={money(data.undatedTotalCents)}
-              qualifier={t('review.qualifier')}
-              previews={undated.data.map((item) => ({
-                id: item.workId,
-                type: t(`workType.${item.type}` as 'workType.shift'),
-                title: item.description
-                  ? `${item.description} · ${item.locationName}`
-                  : item.locationName,
-                value: money(item.amountCents),
-                state: t('review.undated'),
-                accent: item.type === 'shift' ? 'structure' : 'bronze',
-              }))}
-              totalItems={data.undatedCount}
-              action={{ label: t('review.action'), kind: 'arrow' }}
-              onPress={() => {
-                const first = undated.data?.[0];
-                if (first) {
-                  openChild(() =>
-                    router.push({ pathname: '/work/edit/[id]', params: { id: first.workId } }),
-                  );
+            {tense !== 'past' && next.data ? (
+              <NextEntryCard
+                entry={next.data}
+                today={today}
+                showFollowing={tense === 'current'}
+                onOpen={openEntries}
+              />
+            ) : tense === 'past' || next.isSuccess || !hasEntries ? (
+              <EmptyState
+                variant="financesNextEntry"
+                description={noNextEntryReason(data, tense, name, t)}
+                onPrimaryPress={hasEntries ? openEntries : undefined}
+                testID="finances-no-next"
+              />
+            ) : null}
+
+            {showReview && undated.data && (
+              <ReviewCard
+                size="detailed"
+                eyebrow={
+                  data.undatedCount === 1
+                    ? t('review.eyebrowOne')
+                    : t('review.eyebrowMany', { count: data.undatedCount })
                 }
-              }}
-              testID="finances-review"
-            />
-          )}
+                icon={<CalendarClock color={palette.bronzeDeep} size={18} strokeWidth={1.7} />}
+                iconTone="bronze"
+                value={money(data.undatedTotalCents)}
+                qualifier={t('review.qualifier')}
+                previews={undated.data.map((item) => ({
+                  id: item.workId,
+                  type: t(`workType.${item.type}` as 'workType.shift'),
+                  title: item.description
+                    ? `${item.description} · ${item.locationName}`
+                    : item.locationName,
+                  value: money(item.amountCents),
+                  state: t('review.undated'),
+                  accent: item.type === 'shift' ? 'structure' : 'bronze',
+                }))}
+                totalItems={data.undatedCount}
+                action={{ label: t('review.action'), kind: 'arrow' }}
+                onPress={() => {
+                  const first = undated.data?.[0];
+                  if (first) {
+                    openChild(() =>
+                      router.push({ pathname: '/work/edit/[id]', params: { id: first.workId } }),
+                    );
+                  }
+                }}
+                testID="finances-review"
+              />
+            )}
 
-          {hasEntries && (
-            <OriginCard
-              eyebrow={t('origin.eyebrow')}
-              hint={t('origin.lockedHint')}
-              isPremium={isPremium}
-              origins={origins.data}
-              testID="finances-origin"
-            />
-          )}
+            {hasEntries && (
+              <OriginCard
+                eyebrow={t('origin.eyebrow')}
+                hint={t('origin.lockedHint')}
+                isPremium={isPremium}
+                origins={origins.data}
+                testID="finances-origin"
+              />
+            )}
 
-          {data.workCount > 0 && (
-            <WorkGeneratedCard data={data} name={name} isPremium={isPremium} onInfo={setInfo} />
-          )}
+            {data.workCount > 0 && (
+              <WorkGeneratedCard data={data} name={name} isPremium={isPremium} onInfo={setInfo} />
+            )}
 
-          {insight && (
-            <InsightCard
-              insight={insight}
-              isPremium={isPremium}
-              // Análise completa é 100% Premium; o Free vai ao fluxo de benefícios (5.5).
-              onOpenAnalysis={
-                isPremium
-                  ? () =>
-                      openChild(() =>
-                        router.push({ pathname: '/finances/hourly', params: { month } }),
-                      )
-                  : undefined
-              }
-            />
-          )}
-        </View>
-      )}
+            {insight && (
+              <InsightCard
+                insight={insight}
+                isPremium={isPremium}
+                // Análise completa é 100% Premium; o Free vai ao fluxo de benefícios (5.5).
+                onOpenAnalysis={
+                  isPremium
+                    ? () =>
+                        openChild(() =>
+                          router.push({ pathname: '/finances/hourly', params: { month } }),
+                        )
+                    : undefined
+                }
+              />
+            )}
+          </View>
+        )}
+      </SlideIn>
       <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
     </TwoToneScrollScreen>
   );

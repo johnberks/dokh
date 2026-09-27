@@ -626,6 +626,8 @@ export const motion = {
   reviewRemoval: 200,
   /** Valor do topo da Início contando até o total ao entrar na tela. */
   countUp: 650,
+  /** Conteúdo que desliza ao trocar de visão (Mês ↔ Ano) ou ao voltar de uma tela interna. */
+  slide: 300,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */
