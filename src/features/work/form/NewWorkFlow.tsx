@@ -6,7 +6,8 @@ import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { NavigationControl } from '@/components/NavigationControl';
 import { WorkTypeSelector } from '@/components/WorkTypeSelector';
-import type { WorkType } from '@/domain/work-type';
+import { requiresSchedule, type WorkType } from '@/domain/work-type';
+import { useWorkPreferences } from '@/features/profile/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, navigationMetrics, palette } from '@/theme/tokens';
 import { useNewWorkDraft } from '../work-draft';
@@ -48,9 +49,20 @@ export function NewWorkFlow({ onClose }: { onClose: () => void }) {
     return () => subscription.remove();
   }, [step.kind]);
 
+  // Preferências de trabalho (Perfil 06) são sugestões: preenchem o novo Trabalho e podem
+  // ser trocadas nele. Horário e duração padrão valem para Plantão; o prazo, para todos.
+  const preferences = useWorkPreferences();
+
   function startNew(workType: WorkType) {
+    const defaults = preferences.data;
     useNewWorkDraft.getState().reset();
-    useNewWorkDraft.getState().update({ type: workType });
+    useNewWorkDraft.getState().update({
+      type: workType,
+      ...(defaults && requiresSchedule(workType)
+        ? { startTime: defaults.startTime, durationMinutes: defaults.durationMinutes }
+        : {}),
+      plannedTermDays: defaults?.paymentTermDays ?? null,
+    });
     setChoosingType(false);
     setStep({ kind: 'form', initialSheet: null });
   }

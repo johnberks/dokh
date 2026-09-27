@@ -1,0 +1,326 @@
+import '@/i18n';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { router } from 'expo-router';
+import {
+  archiveWorkLocation,
+  createWorkLocation,
+  updateWorkLocation,
+} from '@/features/locations/locations-data';
+import { renderWithProviders } from '@/test/render';
+import { EditProfileScreen, parseGraduationYear } from './EditProfileScreen';
+import { LocationFormScreen, LocationsScreen } from './LocationsScreens';
+import { ProfileScreen } from './ProfileScreen';
+import { initialsOf } from './profile-data';
+import { ResidencyFormScreen, ResidencyScreen } from './ResidencyScreens';
+import { AccountScreen, AppearanceScreen, HelpScreen, PreferencesScreen } from './SettingsScreens';
+
+jest.mock('expo-router', () => ({
+  router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
+}));
+const mockSignOut = jest.fn(async () => {});
+jest.mock('@/features/auth/AuthSessionProvider', () => ({
+  AuthSessionProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuthSession: () => ({ status: 'signedIn', userId: 'user-1', signOut: mockSignOut }),
+}));
+let mockPremium = false;
+jest.mock('@/features/billing/entitlement', () => ({
+  usePremium: () => ({ isSuccess: true, data: mockPremium }),
+}));
+
+type Query = { isPending: boolean; isError: boolean; isSuccess: boolean; data?: unknown };
+const ok = (data: unknown): Query => ({ isPending: false, isError: false, isSuccess: true, data });
+let mockLocations: unknown[] = [];
+jest.mock('@/features/locations/locations-data', () => ({
+  ...jest.requireActual('@/features/locations/locations-data'),
+  useWorkLocations: () => ({ ...ok(mockLocations), refetch: jest.fn(), isFetching: false }),
+  createWorkLocation: jest.fn(async () => ({})),
+  updateWorkLocation: jest.fn(async () => ({})),
+  archiveWorkLocation: jest.fn(async () => {}),
+}));
+
+const annaProfile = {
+  displayName: 'Anna Cunha',
+  graduationYear: 2024,
+  status: 'resident',
+  specialty: 'Clínica Médica',
+  city: 'São Paulo, SP',
+  avatarPath: null,
+  avatarUrl: null,
+};
+const residency = {
+  id: 'res-1',
+  specialty: 'Clínica Médica',
+  institution: 'Hospital São Lucas',
+  levelLabel: 'R2',
+  startsOn: '2025-03-01',
+  expectedEndsOn: '2027-02-01',
+  monthlyAmountCents: 410609n,
+  paymentDay: 5,
+};
+let mockProfile: unknown = annaProfile;
+let mockResidency: unknown = residency;
+let mockPreferences: unknown = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 30 };
+const mockUpdate = jest.fn();
+const mockSaveResidency = jest.fn();
+const mockEndResidency = jest.fn();
+const mockSavePreferences = jest.fn();
+const mutation = (fn: jest.Mock) => ({
+  mutate: (input: unknown, options?: { onSuccess?: () => void }) => {
+    fn(input);
+    options?.onSuccess?.();
+  },
+  isPending: false,
+  isError: false,
+});
+jest.mock('./profile-data', () => ({
+  ...jest.requireActual('./profile-data'),
+  useProfile: () => ({ ...ok(mockProfile), refetch: jest.fn(), isFetching: false }),
+  useActiveResidency: () => ({ ...ok(mockResidency), refetch: jest.fn(), isFetching: false }),
+  useWorkPreferences: () => ({ ...ok(mockPreferences), refetch: jest.fn(), isFetching: false }),
+  useLocationWorkCounts: () => ok({ 'loc-1': 12, 'loc-2': 1 }),
+  useAccountEmail: () => ok('anna@example.com'),
+  useUpdateProfile: () => mutation(mockUpdate),
+  useReplaceAvatar: () => mutation(jest.fn()),
+  useRemoveAvatar: () => mutation(jest.fn()),
+  useSaveResidency: () => mutation(mockSaveResidency),
+  useEndResidency: () => mutation(mockEndResidency),
+  useSaveWorkPreferences: () => mutation(mockSavePreferences),
+}));
+
+const hospital = {
+  id: 'loc-1',
+  name: 'Hospital São Lucas',
+  city: null,
+  colorToken: 'sage',
+  colorSource: 'automatic',
+  archivedAt: null,
+};
+const clinic = { ...hospital, id: 'loc-2', name: 'Clínica Central', colorToken: 'bronze' };
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockPremium = false;
+  mockLocations = [hospital, clinic];
+  mockProfile = annaProfile;
+  mockResidency = residency;
+  mockPreferences = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 30 };
+});
+
+async function press(testID: string) {
+  await act(async () => {
+    await fireEvent.press(screen.getByTestId(testID));
+  });
+}
+
+describe('Perfil principal (01/18)', () => {
+  it('Free: identidade, card Premium sem compra e grupos de configuração', async () => {
+    await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByRole('header', { name: 'Anna Cunha' })).toBeTruthy();
+    expect(screen.getByText('Residente de Clínica Médica')).toBeTruthy();
+    expect(screen.getByText('São Paulo, SP')).toBeTruthy();
+    expect(screen.getByTestId('profile-avatar-initials')).toBeTruthy();
+    expect(screen.getByText('AC')).toBeTruthy();
+    expect(screen.getByTestId('profile-premium-card')).toBeTruthy();
+    expect(screen.queryByTestId('profile-premium-active')).toBeNull();
+    expect(screen.getByTestId('profile-row-locations').props.accessibilityLabel).toBe(
+      'Locais de trabalho, 2',
+    );
+    expect(screen.getByTestId('profile-row-residency').props.accessibilityLabel).toBe(
+      'Residência, Clínica Médica',
+    );
+    await press('profile-row-locations');
+    expect(router.push).toHaveBeenCalledWith('/profile/locations');
+    await press('profile-edit');
+    expect(router.push).toHaveBeenCalledWith('/profile/edit');
+  });
+
+  it('Premium ativo: linha compacta, sem card de venda', async () => {
+    mockPremium = true;
+    await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByTestId('profile-premium-active')).toBeTruthy();
+    expect(screen.queryByTestId('profile-premium-card')).toBeNull();
+    expect(screen.getByText('Gerenciar assinatura')).toBeTruthy();
+  });
+
+  it('iniciais usam o primeiro e o último nome', () => {
+    expect(initialsOf('Anna Beatriz Cunha')).toBe('AC');
+    expect(initialsOf('joão')).toBe('J');
+  });
+});
+
+describe('Editar perfil (02)', () => {
+  it('ano de graduação vazio ou plausível', () => {
+    expect(parseGraduationYear('', 2026)).toBeNull();
+    expect(parseGraduationYear('2024', 2026)).toBe(2024);
+    expect(parseGraduationYear('2030', 2026)).toBe('invalid');
+    expect(parseGraduationYear('24', 2026)).toBe('invalid');
+  });
+
+  it('especialidade só com Residência; Generalista grava sem especialidade', async () => {
+    await renderWithProviders(<EditProfileScreen />);
+    expect(screen.getByTestId('profile-edit-specialty')).toBeTruthy();
+    await press('profile-edit-status-general_practitioner');
+    expect(screen.queryByTestId('profile-edit-specialty')).toBeNull();
+    await press('profile-edit-save');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ displayName: 'Anna Cunha', status: 'general_practitioner' }),
+    );
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it('nome vazio bloqueia salvar', async () => {
+    await renderWithProviders(<EditProfileScreen />);
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('profile-edit-name'), '  ');
+    });
+    expect(screen.getByTestId('profile-edit-save').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+  });
+});
+
+describe('Locais (03/04)', () => {
+  it('lista com contagem e sem valores; vazio tipográfico', async () => {
+    await renderWithProviders(<LocationsScreen />);
+    expect(screen.getByText('12 trabalhos registrados')).toBeTruthy();
+    expect(screen.getByText('1 trabalho registrado')).toBeTruthy();
+    expect(screen.queryByText(/R\$/)).toBeNull();
+    await press('location-loc-1');
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/profile/locations/[id]',
+      params: { id: 'loc-1' },
+    });
+  });
+
+  it('sem locais mostra o vazio com o primeiro local', async () => {
+    mockLocations = [];
+    await renderWithProviders(<LocationsScreen />);
+    expect(screen.getByText('Onde você trabalha?')).toBeTruthy();
+  });
+
+  it('novo local: nome obrigatório, nome repetido bloqueia e Free não usa a paleta ampliada', async () => {
+    await renderWithProviders(<LocationFormScreen />);
+    expect(screen.getByTestId('location-save').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('location-name'), 'hospital são lucas');
+    });
+    expect(screen.getByTestId('location-duplicate')).toBeTruthy();
+    expect(screen.getByTestId('location-color-petrol').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    expect(screen.getByText('PREMIUM')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('location-name'), 'UBS Centro');
+    });
+    await press('location-color-blue');
+    await press('location-save');
+    await waitFor(() => expect(createWorkLocation).toHaveBeenCalled());
+    expect(jest.mocked(createWorkLocation).mock.calls[0][0]).toMatchObject({
+      name: 'UBS Centro',
+      colorToken: 'blue',
+      colorSource: 'free_palette',
+    });
+  });
+
+  it('Premium escolhe a paleta ampliada sem selo; editar e remover com confirmação', async () => {
+    mockPremium = true;
+    await renderWithProviders(<LocationFormScreen locationId="loc-1" />);
+    expect(screen.queryByText('PREMIUM')).toBeNull();
+    await press('location-color-petrol');
+    await press('location-save');
+    await waitFor(() => expect(updateWorkLocation).toHaveBeenCalled());
+    expect(jest.mocked(updateWorkLocation).mock.calls[0][1]).toMatchObject({
+      colorToken: 'petrol',
+      colorSource: 'premium_palette',
+    });
+
+    await press('location-remove');
+    expect(screen.getByText('Remover Hospital São Lucas?')).toBeTruthy();
+    expect(archiveWorkLocation).not.toHaveBeenCalled();
+    await press('location-remove-confirm');
+    await waitFor(() => expect(archiveWorkLocation).toHaveBeenCalledWith('loc-1'));
+  });
+});
+
+describe('Residência (05)', () => {
+  it('mostra a bolsa como configuração da fonte recorrente', async () => {
+    await renderWithProviders(<ResidencyScreen />);
+    expect(screen.getByText('RESIDÊNCIA ATIVA')).toBeTruthy();
+    expect(screen.getByText('R2')).toBeTruthy();
+    expect(screen.getByText('Mar 2025')).toBeTruthy();
+    expect(screen.getByText('Fev 2027')).toBeTruthy();
+    expect(screen.getByText('Dia 05')).toBeTruthy();
+  });
+
+  it('sem residência: vazio neutro com saída para quem não faz', async () => {
+    mockResidency = null;
+    await renderWithProviders(<ResidencyScreen />);
+    expect(screen.getByText('Você está em residência?')).toBeTruthy();
+    expect(screen.getByText('Não faz residência? Nada muda para você.')).toBeTruthy();
+  });
+
+  it('edição grava pela RPC e encerrar pede confirmação', async () => {
+    await renderWithProviders(<ResidencyFormScreen />);
+    await press('residency-day');
+    await press('residency-day-10');
+    await press('residency-day-confirm');
+    await press('residency-save');
+    expect(mockSaveResidency).toHaveBeenCalledWith({
+      id: 'res-1',
+      input: expect.objectContaining({
+        specialty: 'Clínica Médica',
+        paymentDay: 10,
+        monthlyAmountCents: 410609n,
+        startsOn: '2025-03-01',
+      }),
+    });
+
+    await press('residency-end');
+    expect(screen.getByText('Encerrar residência?')).toBeTruthy();
+    await press('residency-end-confirm');
+    expect(mockEndResidency).toHaveBeenCalledWith('res-1');
+  });
+});
+
+describe('Preferências, aparência, conta e ajuda (06/15/16/17)', () => {
+  it('preferências gravam duração, horário e prazo', async () => {
+    await renderWithProviders(<PreferencesScreen />);
+    await press('preferences-duration-24');
+    await press('preferences-term-60');
+    await press('preferences-save');
+    expect(mockSavePreferences).toHaveBeenCalledWith({
+      durationMinutes: 1440,
+      startTime: '19:00',
+      paymentTermDays: 60,
+    });
+  });
+
+  it('aparência: só o claro existe; sistema e escuro em breve', async () => {
+    await renderWithProviders(<AppearanceScreen />);
+    expect(screen.getByTestId('appearance-light').props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+    expect(screen.getByTestId('appearance-dark').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+  });
+
+  it('conta: e-mail, plano Free e sair', async () => {
+    await renderWithProviders(<AccountScreen />);
+    expect(screen.getByText('anna@example.com')).toBeTruthy();
+    expect(screen.getByText('Free')).toBeTruthy();
+    await press('account-sign-out');
+    expect(mockSignOut).toHaveBeenCalled();
+    await press('account-delete');
+    expect(screen.getByText(/ainda não está disponível/)).toBeTruthy();
+  });
+
+  it('ajuda: destinos sem definição aparecem como em breve', async () => {
+    await renderWithProviders(<HelpScreen />);
+    expect(screen.getAllByText('EM BREVE').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByText('Ajude a construir a DOKH.')).toBeTruthy();
+  });
+});

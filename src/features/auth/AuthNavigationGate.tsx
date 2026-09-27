@@ -62,6 +62,21 @@ export function AuthNavigationGate() {
         <Stack.Screen name="work/edit/[id]" />
         <Stack.Screen name="finances/entries" />
         <Stack.Screen name="finances/hourly" />
+        {/* Telas internas do Perfil (11.x). */}
+        {[
+          'profile/edit',
+          'profile/locations/index',
+          'profile/locations/new',
+          'profile/locations/[id]',
+          'profile/residency/index',
+          'profile/residency/edit',
+          'profile/preferences',
+          'profile/appearance',
+          'profile/account',
+          'profile/help',
+        ].map((name) => (
+          <Stack.Screen key={name} name={name} options={{ animation: 'slide_from_right' }} />
+        ))}
         <Stack.Screen name="dev/primitives" options={{ gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Screen name="auth-callback" />

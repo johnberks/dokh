@@ -677,6 +677,133 @@ try {
   );
   assert.deepEqual(remaining, []);
 
+  // Perfil (11.1–11.5): edição direta do próprio perfil e das preferências (RLS do dono),
+  // residência pela RPC Free e foto no bucket privado com URL assinada.
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { graduation_year: 2024, city: 'São Paulo, SP' },
+    }),
+    'owner edits profile',
+  );
+  const strangerEdit = await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+    method: 'PATCH',
+    token: stranger.token,
+    prefer: 'return=representation',
+    body: { city: 'Invasão' },
+  });
+  assert.deepEqual(strangerEdit.data, [], 'other user must not edit the profile');
+  success(
+    await call('/rest/v1/work_preferences?on_conflict=user_id', {
+      method: 'POST',
+      token: owner.token,
+      prefer: 'resolution=merge-duplicates',
+      body: {
+        user_id: owner.id,
+        default_duration_minutes: 720,
+        default_start_time: '19:00',
+        default_payment_term_days: 30,
+      },
+    }),
+    'owner saves work preferences',
+  );
+  const preferences = success(
+    await call(
+      '/rest/v1/work_preferences?select=default_duration_minutes,default_start_time,default_payment_term_days',
+      { token: owner.token },
+    ),
+    'owner reads work preferences',
+  );
+  assert.deepEqual(preferences, [
+    {
+      default_duration_minutes: 720,
+      default_start_time: '19:00:00',
+      default_payment_term_days: 30,
+    },
+  ]);
+  const [savedResidency] = success(
+    await call('/rest/v1/rpc/create_or_update_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_residency_id: null,
+        p_specialty: 'Clínica Médica',
+        p_institution: 'Hospital São Lucas',
+        p_level_label: 'R2',
+        p_starts_on: '2026-03-01',
+        p_expected_ends_on: '2028-02-01',
+        p_monthly_amount_cents: 410609,
+        p_payment_day: 5,
+      },
+    }),
+    'owner creates residency from profile',
+  );
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { professional_status: 'resident', specialty: 'Clínica Médica' },
+    }),
+    'owner becomes resident',
+  );
+  success(
+    await call('/rest/v1/rpc/deactivate_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_residency_id: savedResidency.residency_id },
+    }),
+    'owner ends residency',
+  );
+  const activeResidency = success(
+    await call('/rest/v1/residencies?select=id&active=eq.true', { token: owner.token }),
+    'owner reads active residency',
+  );
+  assert.deepEqual(activeResidency, []);
+  const avatarPath = `${owner.id}/avatar-${randomUUID()}.png`;
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64',
+  );
+  const upload = await fetch(new URL(`/storage/v1/object/avatars/${avatarPath}`, apiUrl), {
+    method: 'POST',
+    headers: {
+      apikey: anonKey,
+      authorization: `Bearer ${owner.token}`,
+      'content-type': 'image/png',
+    },
+    body: png,
+  });
+  assert.ok(upload.ok, `owner uploads avatar: HTTP ${upload.status}`);
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { avatar_path: avatarPath },
+    }),
+    'owner points profile to avatar',
+  );
+  const signed = success(
+    await call(`/storage/v1/object/sign/avatars/${avatarPath}`, {
+      method: 'POST',
+      token: owner.token,
+      body: { expiresIn: 3600 },
+    }),
+    'owner signs avatar URL',
+  );
+  assert.ok(signed.signedURL, 'signed avatar URL');
+  const strangerSign = await call(`/storage/v1/object/sign/avatars/${avatarPath}`, {
+    method: 'POST',
+    token: stranger.token,
+    body: { expiresIn: 3600 },
+  });
+  assert.ok(!strangerSign.response.ok, 'other user must not sign the avatar');
+  const removed = await fetch(new URL(`/storage/v1/object/avatars/${avatarPath}`, apiUrl), {
+    method: 'DELETE',
+    headers: { apikey: anonKey, authorization: `Bearer ${owner.token}` },
+  });
+  assert.ok(removed.ok, `owner removes avatar: HTTP ${removed.status}`);
+
   success(
     await call('/rest/v1/rpc/archive_work_location', {
       method: 'POST',
@@ -686,7 +813,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, Premium recurrence (stop and delete forward), palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, Premium recurrence (stop and delete forward), profile, preferences, residency and avatar, palette and ownership passed',
   );
 } finally {
   for (const id of users) {
