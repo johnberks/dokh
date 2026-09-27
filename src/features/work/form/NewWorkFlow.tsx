@@ -22,7 +22,14 @@ type Step = { kind: 'entry' } | { kind: 'form'; initialSheet: WorkFormSheet };
  * histórico, mostra "Usar novamente" (templates) e "Criar novo trabalho" (pedido do usuário,
  * 2026-09-25).
  */
-export function NewWorkFlow({ onClose }: { onClose: () => void }) {
+export function NewWorkFlow({
+  onClose,
+  onSaved = onClose,
+}: {
+  onClose: () => void;
+  /** Depois da animação de sucesso, com a data do Trabalho salvo (padrão: fechar). */
+  onSaved?: (workDate: string) => void;
+}) {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
   const templates = useWorkTemplates();
@@ -69,7 +76,7 @@ export function NewWorkFlow({ onClose }: { onClose: () => void }) {
           useNewWorkDraft.getState().reset();
           setStep({ kind: 'entry' });
         }}
-        onSaved={onClose}
+        onSaved={onSaved}
       />
     );
   }

@@ -44,3 +44,18 @@ A tela rola como um todo (sem barra visível), com campo e botão acima do tecla
 - O calendário da folha 08 começa no domingo, como no design; o início de semana configurável é da 8.1.
 - O design não desenha escolha de Local em lista; o campo digitado com sugestões segue o padrão já aprovado no onboarding.
 - Após salvar, o modal fecha; a lista do dia na Agenda chega na 8.1/8.2.
+
+## Salvar com animação (2026-09-26)
+
+O botão `SaveWorkButton` (`src/features/work/form/SaveWorkButton.tsx`) troca de estado dentro de si mesmo, como no Shazam ([Mobbin](https://mobbin.com/flows/dbd172a1-5cf5-4f4d-85a3-2f9027430989)):
+- **Toque:** o botão afunda levemente com mola.
+- **Gravando:** o texto sobe e dá lugar a `Salvando…` com spinner.
+- **Gravado:** o botão fica verde DOKH (`structure`), o check é desenhado dentro de um círculo creme, aparece `Trabalho salvo` (`Alterações salvas` na edição) e há um pulso curto.
+- **Habilitar:** a troca de desabilitado para habilitado também é animada.
+
+Depois do sucesso, **nada para tocar** (pedido do usuário):
+- depois de cerca de 1,2 s (`saveMorph` + `saveCheck` + `saveHold`), o `+` vai sozinho para a Agenda no dia do Trabalho salvo (`router.dismissTo('/agenda?date=…')`, e a Agenda limpa o parâmetro);
+- a edição volta para o detalhe.
+
+Com "Reduzir movimento", o botão troca de estado na hora e a tela segue sem espera. Não há vibração.
+

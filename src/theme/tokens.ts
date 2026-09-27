@@ -626,6 +626,12 @@ export const motion = {
   reviewRemoval: 200,
   /** Valor do topo da Início contando até o total ao entrar na tela. */
   countUp: 650,
+  /** Botão Salvar trabalho: troca de estado (texto ↔ spinner ↔ check). */
+  saveMorph: 220,
+  /** Traço do check desenhado no sucesso. */
+  saveCheck: 360,
+  /** Quanto o "Trabalho salvo" fica visível antes de ir para a Agenda. */
+  saveHold: 650,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

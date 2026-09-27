@@ -18,8 +18,10 @@ import {
 } from './agenda-format';
 import { WorkDetailScreen } from './WorkDetailScreen';
 
+let mockSearchParams: { date?: string } = {};
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
+  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), setParams: jest.fn() },
+  useLocalSearchParams: () => mockSearchParams,
   // Foco da tela = montagem, suficiente para o comportamento de abrir no mês atual.
   useFocusEffect: (effect: () => undefined) => jest.requireActual('react').useEffect(effect, []),
 }));
@@ -161,6 +163,18 @@ describe('regras de apresentação da Agenda', () => {
 });
 
 describe('Agenda (01–05)', () => {
+  it('depois de salvar um Trabalho, abre no dia dele e limpa o parâmetro', async () => {
+    const saved = `${shiftMonth(month, 1)}-12`;
+    mockSearchParams = { date: saved };
+    mockMonth.data = [];
+    await renderWithProviders(<AgendaScreen />);
+    expect(screen.getByTestId('agenda-day-label').props.children).toMatch(
+      new RegExp(`^${formatDayMonth(saved)}`),
+    );
+    expect(router.setParams).toHaveBeenCalledWith({ date: undefined });
+    mockSearchParams = {};
+  });
+
   it('começa em hoje e mostra os trabalhos do dia; tocar abre o detalhe', async () => {
     mockMonth.data = [
       work({}),

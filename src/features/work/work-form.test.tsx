@@ -167,7 +167,8 @@ describe('fluxo do + (Agenda 06–10)', () => {
     });
 
     await press('work-save');
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    // A tela segue depois da animação de sucesso do botão.
+    await waitFor(() => expect(onClose).toHaveBeenCalled(), { timeout: 3000 });
     expect(mockedCreateLocation).toHaveBeenCalledWith({ name: 'Clínica Nova' }, []);
     expect(mockedCreateWork).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -302,7 +303,8 @@ describe('fluxo do + (Agenda 06–10)', () => {
     });
 
     await press('work-save');
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    // A tela segue depois da animação de sucesso do botão.
+    await waitFor(() => expect(onClose).toHaveBeenCalled(), { timeout: 3000 });
     expect(mockedCreateLocation).not.toHaveBeenCalled();
     expect(mockedCreateWork.mock.calls[0][0]).toMatchObject({
       locationId: 'loc-hsl',
@@ -431,6 +433,33 @@ describe('Repetir e Cor do local (8.5/8.6)', () => {
     expect(mockedUpdateLocation).toHaveBeenCalledWith(hospital, {
       colorToken: 'petrol',
       colorSource: 'premium_palette',
+    });
+  });
+});
+
+describe('Salvar trabalho (animação de sucesso)', () => {
+  it('mostra "Trabalho salvo" e segue sozinho para a Agenda com a data salva', async () => {
+    const onClose = jest.fn();
+    const onSaved = jest.fn();
+    await renderWithProviders(<NewWorkFlow onClose={onClose} onSaved={onSaved} />);
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Procedimento' }));
+    });
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('work-location-input'), 'Clínica Nova');
+    });
+    await pickDate();
+    await act(async () => {
+      await fireEvent.changeText(screen.getByLabelText('QUANTO VOCÊ VAI RECEBER?'), '500');
+    });
+    expect(screen.getByTestId('work-save').props.accessibilityLabel).toBe('Salvar trabalho');
+    await press('work-save');
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(workDate), { timeout: 3000 });
+    expect(screen.getByTestId('work-save').props.accessibilityLabel).toBe('Trabalho salvo');
+    // Nenhum toque extra: salvar não fecha pelo "fechar".
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId('work-save').props.accessibilityState).toMatchObject({
+      disabled: true,
     });
   });
 });

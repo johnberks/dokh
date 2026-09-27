@@ -402,3 +402,9 @@ Excluir recorrente (2026-09-26, mesma branch), pedido do usuário:
 - A segunda opção chama a nova RPC `delete_work_series_from` (migration `20260926010000_work_series_delete_forward.sql`, já aplicada no local). Ela encerra a série e remove esse dia e os seguintes não recebidos; os anteriores ficam.
 - Testes: `3_10` descartável e caminho real cobertos; 63 suítes e 425 testes.
 
+Botão Salvar trabalho animado (2026-09-26, branch `codex/work-save-motion`), com referência Shazam na Mobbin:
+- O botão passa por três estados: `Salvar trabalho`, `Salvando…` com spinner e `Trabalho salvo` com check desenhado e fundo verde.
+- Depois do sucesso não há nenhum toque: o app vai sozinho para a Agenda no dia salvo.
+- Sem vibração, a pedido do usuário.
+- Testes: 63 suítes e 427 testes.
+

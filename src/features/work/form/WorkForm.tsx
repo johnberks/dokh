@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Keyboard,
@@ -24,14 +24,17 @@ import { useWorkLocations } from '@/features/locations/locations-data';
 import { KEYBOARD_CTA_GAP } from '@/features/onboarding/OnboardingCta';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { motionDuration } from '@/theme/motion';
 import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
+import { useReducedMotion } from '@/theme/useReducedMotion';
 import { useSaveWork } from '../use-save-work';
 import { useNewWorkDraft, type WorkDraftStore } from '../work-draft';
 import { addDaysToLocalDate, todayInTimezone, workEndDescription } from '../work-schedule';
-import { DarkButton, FieldBox, OptionRow, RepeatIcon } from './FormPieces';
+import { FieldBox, OptionRow, RepeatIcon } from './FormPieces';
 import { findLocationByName, LocationField } from './LocationField';
 import { expectedChoice, PaymentSheet } from './PaymentSheet';
 import { ColorSheet, RepeatSheet } from './PremiumSheets';
+import { SaveWorkButton } from './SaveWorkButton';
 import { DurationSheet, QUICK_DURATION_HOURS, StartTimeSheet } from './ScheduleSheets';
 import { WorkDateSheet } from './WorkDateSheet';
 
@@ -68,7 +71,8 @@ export function WorkForm({
   workId,
 }: {
   onBack: () => void;
-  onSaved: () => void;
+  /** Chamado depois da animação de sucesso, com a data do Trabalho salvo. */
+  onSaved: (workDate: string) => void;
   /** Vindo de um template, o formulário já abre perguntando "quando será?". */
   initialSheet?: Sheet;
   /** Rascunho usado: o do `+` (padrão) ou o da edição. */
@@ -83,6 +87,16 @@ export function WorkForm({
   const save = useSaveWork(store, workId);
   const editing = workId !== undefined;
   const [sheet, setSheet] = useState<Sheet>(initialSheet);
+  // Gravado: o botão mostra o check e a tela segue sozinha, sem outro toque.
+  const [saved, setSaved] = useState(false);
+  const reduced = useReducedMotion();
+  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    },
+    [],
+  );
   const [today] = useState(() => todayInTimezone(deviceTimezone()));
   const premium = usePremium();
   const isPremium = premium.data === true;
@@ -129,8 +143,20 @@ export function WorkForm({
 
   function submit() {
     Keyboard.dismiss();
-    if (!ready) return;
-    save.mutate(undefined, { onSuccess: onSaved });
+    if (!ready || saved) return;
+    const workDate = draft.workDate;
+    save.mutate(undefined, {
+      onSuccess: () => {
+        setSaved(true);
+        const hold =
+          motionDuration('saveMorph', reduced) +
+          motionDuration('saveCheck', reduced) +
+          motionDuration('saveHold', reduced);
+        // "Reduzir movimento": sem espera, segue na hora.
+        if (hold === 0) onSaved(workDate ?? today);
+        else leaveTimer.current = setTimeout(() => onSaved(workDate ?? today), hold);
+      },
+    });
   }
 
   return (
@@ -290,10 +316,12 @@ export function WorkForm({
         </ScrollView>
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-          <DarkButton
+          <SaveWorkButton
             label={editing ? t('form.saveChanges') : t('form.save')}
+            savingLabel={t('form.saving')}
+            savedLabel={editing ? t('form.savedChanges') : t('form.saved')}
+            phase={saved ? 'saved' : save.isPending ? 'saving' : 'idle'}
             disabled={!ready}
-            loading={save.isPending}
             onPress={submit}
             testID="work-save"
           />

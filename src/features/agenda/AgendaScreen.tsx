@@ -1,4 +1,4 @@
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Plus from 'lucide-react-native/icons/plus';
 import { useCallback, useRef, useState } from 'react';
@@ -45,9 +45,20 @@ export function AgendaScreen() {
   // Voltar do detalhe ou do `+` preserva o dia que a pessoa olhava.
   const openedChild = useRef(false);
 
+  // Depois de salvar um Trabalho novo, a Agenda abre no dia dele (`?date=`).
+  const { date: savedDate } = useLocalSearchParams<{ date?: string }>();
+
   // A Agenda sempre abre no mês atual (pedido do usuário, 2026-09-25).
   useFocusEffect(
     useCallback(() => {
+      if (savedDate && /^\d{4}-\d{2}-\d{2}$/.test(savedDate)) {
+        openedChild.current = false;
+        setToday(todayInTimezone(deviceTimezone()));
+        setMonth(monthOf(savedDate));
+        setSelected(savedDate);
+        router.setParams({ date: undefined });
+        return;
+      }
       if (openedChild.current) {
         openedChild.current = false;
         return;
@@ -56,7 +67,7 @@ export function AgendaScreen() {
       setToday(now);
       setMonth(monthOf(now));
       setSelected(now);
-    }, []),
+    }, [savedDate]),
   );
   const agenda = useAgendaMonth(month);
 
