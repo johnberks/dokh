@@ -407,5 +407,10 @@ Deslize em Finanças (2026-09-26, branch `codex/9-finances-motion`), pedido do u
 - Mês → Ano entra pela direita e Ano → Mês pela esquerda.
 - Ao voltar de uma tela interna, o conteúdo entra pela esquerda.
 - As telas internas usam `slide_from_right` explícito.
+
+Botão Salvar trabalho animado (2026-09-26, branch `codex/work-save-motion`), com referência Shazam na Mobbin:
+- O botão passa por três estados: `Salvar trabalho`, `Salvando…` com spinner e `Trabalho salvo` com check desenhado e fundo verde.
+- Depois do sucesso não há nenhum toque: o app vai sozinho para a Agenda no dia salvo.
+- Sem vibração, a pedido do usuário.
 - Testes: 63 suítes e 427 testes.
 
