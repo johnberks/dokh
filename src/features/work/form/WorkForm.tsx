@@ -13,24 +13,29 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { MoneyInput } from '@/components/MoneyInput';
 import { NavigationControl } from '@/components/NavigationControl';
+import { PremiumBadge } from '@/components/PremiumBadge';
 import { MutationError } from '@/components/TechnicalStates';
 import { formatDayMonth } from '@/domain/calendar';
 import { parseBRLToCents } from '@/domain/money';
 import { requiresSchedule } from '@/domain/work-type';
+import { usePremium } from '@/features/billing/entitlement';
+import { nextAutomaticColorToken } from '@/features/locations/location-colors';
+import { useWorkLocations } from '@/features/locations/locations-data';
 import { KEYBOARD_CTA_GAP } from '@/features/onboarding/OnboardingCta';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
-import { colors, palette } from '@/theme/tokens';
+import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
 import { useSaveWork } from '../use-save-work';
 import { useNewWorkDraft, type WorkDraftStore } from '../work-draft';
 import { addDaysToLocalDate, todayInTimezone, workEndDescription } from '../work-schedule';
-import { DarkButton, FieldBox } from './FormPieces';
-import { LocationField } from './LocationField';
+import { DarkButton, FieldBox, OptionRow, RepeatIcon } from './FormPieces';
+import { findLocationByName, LocationField } from './LocationField';
 import { expectedChoice, PaymentSheet } from './PaymentSheet';
+import { ColorSheet, RepeatSheet } from './PremiumSheets';
 import { DurationSheet, QUICK_DURATION_HOURS, StartTimeSheet } from './ScheduleSheets';
 import { WorkDateSheet } from './WorkDateSheet';
 
-export type WorkFormSheet = 'date' | 'start' | 'duration' | 'payment' | null;
+export type WorkFormSheet = 'date' | 'start' | 'duration' | 'payment' | 'repeat' | 'color' | null;
 type Sheet = WorkFormSheet;
 
 /** Pode salvar? Local, data e valor sempre; início e duração só em Plantão (UX Agenda 07). */
@@ -79,6 +84,10 @@ export function WorkForm({
   const editing = workId !== undefined;
   const [sheet, setSheet] = useState<Sheet>(initialSheet);
   const [today] = useState(() => todayInTimezone(deviceTimezone()));
+  const premium = usePremium();
+  const isPremium = premium.data === true;
+  const locations = useWorkLocations();
+  const knownLocations = locations.data ?? [];
 
   const workType = draft.type;
   const scheduleRequired = workType !== null && requiresSchedule(workType);
@@ -86,6 +95,22 @@ export function WorkForm({
   const isQuick = hours !== null && (QUICK_DURATION_HOURS as readonly number[]).includes(hours);
   const end = workEndDescription(draft.workDate, draft.startTime, draft.durationMinutes);
   const ready = canSaveWork(draft);
+
+  // Cor que o Local terá: a escolhida agora, a já salva ou a automática de um Local novo.
+  const match = findLocationByName(knownLocations, draft.locationName);
+  const savedToken = match?.colorToken ?? null;
+  const locationToken: WorkLocationColorToken =
+    draft.colorToken ??
+    (savedToken && savedToken in workLocationColors
+      ? (savedToken as WorkLocationColorToken)
+      : nextAutomaticColorToken(knownLocations.map((location) => location.colorToken)));
+  const colorChosen = draft.colorToken !== null || (match && match.colorSource !== 'automatic');
+  // Premium desbloqueado não mostra selo nem cadeado; enquanto o plano carrega, nenhum dos dois.
+  const premiumAccessory = isPremium ? (
+    <AppText style={styles.chevron}>{'›'}</AppText>
+  ) : premium.isSuccess ? (
+    <PremiumBadge size="short" />
+  ) : null;
 
   function openSheet(next: Sheet) {
     Keyboard.dismiss();
@@ -130,6 +155,7 @@ export function WorkForm({
         >
           <LocationField
             value={draft.locationName}
+            colorToken={draft.colorToken}
             onChange={(locationName) => draft.update({ locationName })}
           />
 
@@ -236,6 +262,30 @@ export function WorkForm({
             testID="work-expected-field"
           />
 
+          <View style={styles.divider} />
+          {!editing && (
+            <OptionRow
+              icon={<RepeatIcon />}
+              label={t('form.repeat')}
+              value={t(`form.repeatLabel.${draft.repeat}`)}
+              accessory={premiumAccessory}
+              onPress={() => openSheet('repeat')}
+              testID="work-repeat-field"
+            />
+          )}
+          <OptionRow
+            icon={
+              <View
+                style={[styles.colorDot, { backgroundColor: workLocationColors[locationToken] }]}
+              />
+            }
+            label={t('form.color')}
+            value={colorChosen ? t(`form.colors.${locationToken}`) : t('form.colorAutomatic')}
+            accessory={premiumAccessory}
+            onPress={() => openSheet('color')}
+            testID="work-color-field"
+          />
+
           {save.isError && <MutationError onRetry={submit} retrying={save.isPending} />}
         </ScrollView>
 
@@ -298,6 +348,30 @@ export function WorkForm({
           setSheet(null);
         }}
       />
+      <RepeatSheet
+        open={sheet === 'repeat'}
+        isPremium={isPremium}
+        start={draft.workDate ?? today}
+        value={draft.repeat}
+        onClose={() => setSheet(null)}
+        onConfirm={(repeat) => {
+          draft.update({ repeat });
+          setSheet(null);
+        }}
+      />
+      <ColorSheet
+        open={sheet === 'color'}
+        isPremium={isPremium}
+        locationName={draft.locationName}
+        value={locationToken}
+        previewDate={draft.workDate ?? today}
+        locations={knownLocations}
+        onClose={() => setSheet(null)}
+        onConfirm={(colorToken) => {
+          draft.update({ colorToken });
+          setSheet(null);
+        }}
+      />
       {draft.workDate !== null && (
         <PaymentSheet
           open={sheet === 'payment'}
@@ -350,6 +424,8 @@ const styles = StyleSheet.create({
   chipTextOn: { color: palette.cream },
   note: { fontSize: 13, lineHeight: 18, color: palette.mutedCopy, paddingLeft: 4 },
   chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
+  divider: { height: 1, backgroundColor: 'rgba(16,22,15,0.1)', marginVertical: 8 },
+  colorDot: { width: 18, height: 18, borderRadius: 9 },
   footer: { paddingHorizontal: 24, paddingTop: 12 },
   pressed: { opacity: 0.72 },
 });

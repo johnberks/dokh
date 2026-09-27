@@ -33,7 +33,7 @@ describe('pontos do mês', () => {
       { work_date: '2026-09-12', color_token: 'blue', start_time: '13:00:00' },
       { work_date: '2026-09-12', color_token: 'green', start_time: '19:00:00' },
       { work_date: '2026-09-12', color_token: 'sage', start_time: '23:00:00' },
-      { work_date: '2026-09-20', color_token: 'petrol', start_time: null },
+      { work_date: '2026-09-20', color_token: 'bronze_deep', start_time: null },
     ]);
     const dots = await listMonthWorkDots('2026-09', fake);
     expect(dots).toEqual({

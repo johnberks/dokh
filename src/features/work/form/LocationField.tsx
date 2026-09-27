@@ -36,9 +36,12 @@ export function findLocationByName(
  */
 export function LocationField({
   value,
+  colorToken = null,
   onChange,
 }: {
   value: string;
+  /** Cor escolhida no formulário (Agenda 13); vence a salva e a automática. */
+  colorToken?: WorkLocationColorToken | null;
   onChange: (name: string) => void;
 }) {
   const { t } = useTranslation('agenda');
@@ -53,11 +56,13 @@ export function LocationField({
         .filter((location) => location !== match && normalize(location.name).includes(query))
         .slice(0, MAX_SUGGESTIONS)
     : [];
-  const dotColor = match
-    ? colorOf(match.colorToken)
-    : value.trim()
-      ? colorOf(nextAutomaticColorToken(all.map((location) => location.colorToken)))
-      : null;
+  const dotColor = colorToken
+    ? colorOf(colorToken)
+    : match
+      ? colorOf(match.colorToken)
+      : value.trim()
+        ? colorOf(nextAutomaticColorToken(all.map((location) => location.colorToken)))
+        : null;
 
   return (
     <View style={styles.block}>

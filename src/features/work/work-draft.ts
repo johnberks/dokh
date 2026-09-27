@@ -1,5 +1,9 @@
 import { create, type StoreApi, type UseBoundStore } from 'zustand';
 import type { WorkType } from '@/domain/work-type';
+import type { WorkLocationColorToken } from '@/theme/tokens';
+
+/** Recorrência Premium (8.5); `custom` aguarda a definição P03. */
+export type RepeatFrequency = 'none' | 'weekly' | 'biweekly' | 'monthly';
 
 export type ExpectedEntry = { kind: 'date'; date: string } | { kind: 'unknown' };
 
@@ -20,6 +24,10 @@ export type WorkDraft = {
   plannedTermDays: number | null;
   /** Descrição já gravada (ex.: "Cirurgia"); o formulário não a edita, mas a edição a preserva. */
   description: string | null;
+  /** Só na criação: com frequência, salvar gera a série no servidor (Premium). */
+  repeat: RepeatFrequency;
+  /** Cor escolhida para o Local (Agenda 13); `null` mantém a atual ou a automática. */
+  colorToken: WorkLocationColorToken | null;
 };
 
 export type WorkDraftState = WorkDraft & {
@@ -38,6 +46,8 @@ const EMPTY: WorkDraft = {
   idempotencyKey: null,
   plannedTermDays: null,
   description: null,
+  repeat: 'none',
+  colorToken: null,
 };
 
 export type WorkDraftStore = UseBoundStore<StoreApi<WorkDraftState>>;

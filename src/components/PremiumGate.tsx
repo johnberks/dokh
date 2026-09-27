@@ -19,8 +19,11 @@ export type PremiumGateProps = {
   fadePreview?: boolean;
   /** Pílula "Disponível no Premium" abaixo da prévia (Agenda 12). */
   showAvailability?: boolean;
-  /** Leva ao fluxo de benefícios (4 slides) — nunca direto ao paywall (D50). */
-  onLearnMore: () => void;
+  /**
+   * Leva ao fluxo de benefícios (4 slides) — nunca direto ao paywall (D50). Enquanto o fluxo
+   * (5.5) não existe, a tela omite e o gate mostra só a explicação e a saída sem custo.
+   */
+  onLearnMore?: () => void;
   /** Saída sem custo, sempre presente: o trabalho básico continua sendo salvo. */
   freeExitLabel: string;
   onContinueFree: () => void;
@@ -87,29 +90,35 @@ export function PremiumGate({
       )}
 
       <View style={styles.actions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('premium.learnMore')}
-          accessibilityHint={t('premium.learnMoreHint')}
-          onPress={onLearnMore}
-          testID={testID ? `${testID}-learn-more` : undefined}
-          style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
-        >
-          <AppText variant="heading1" style={styles.ctaLabel}>
-            {t('premium.learnMore')}
-          </AppText>
-          <AppText accessible={false} variant="heading1" style={styles.ctaArrow}>
-            {'→'}
-          </AppText>
-        </Pressable>
+        {onLearnMore && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('premium.learnMore')}
+            accessibilityHint={t('premium.learnMoreHint')}
+            onPress={onLearnMore}
+            testID={testID ? `${testID}-learn-more` : undefined}
+            style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+          >
+            <AppText variant="heading1" style={styles.ctaLabel}>
+              {t('premium.learnMore')}
+            </AppText>
+            <AppText accessible={false} variant="heading1" style={styles.ctaArrow}>
+              {'→'}
+            </AppText>
+          </Pressable>
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={freeExitLabel}
           onPress={onContinueFree}
           testID={testID ? `${testID}-free` : undefined}
-          style={({ pressed }) => [styles.exit, pressed && styles.pressed]}
+          // Sem o fluxo de benefícios, a saída sem custo vira a ação principal da folha.
+          style={({ pressed }) => [
+            onLearnMore ? styles.exit : styles.cta,
+            pressed && styles.pressed,
+          ]}
         >
-          <AppText variant="heading1" style={styles.exitLabel}>
+          <AppText variant="heading1" style={onLearnMore ? styles.exitLabel : styles.ctaLabel}>
             {freeExitLabel}
           </AppText>
         </Pressable>

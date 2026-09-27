@@ -546,6 +546,137 @@ try {
     }),
     'owner updates location',
   );
+  // Recorrência Premium (3.10/8.5): série semanal pelo caminho do app, cor ampliada no Local,
+  // Free negado e "parar de repetir" tirando as próximas da Agenda.
+  const seriesBody = {
+    p_frequency: 'weekly',
+    p_type: 'appointment',
+    p_location_id: location.id,
+    p_description: null,
+    p_starts_on: '2027-03-01',
+    p_start_time: null,
+    p_duration_minutes: null,
+    p_timezone: 'America/Sao_Paulo',
+    p_amount_cents: 50000,
+    p_expected_offset_days: 30,
+  };
+  const freeSeries = await call('/rest/v1/rpc/create_work_series', {
+    method: 'POST',
+    token: stranger.token,
+    body: { ...seriesBody, p_idempotency_key: randomUUID() },
+  });
+  assert.ok(!freeSeries.response.ok, 'Free account must not create a work series');
+  const seriesKey = randomUUID();
+  const [series] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_idempotency_key: seriesKey },
+    }),
+    'premium creates weekly series',
+  );
+  assert.ok(series.occurrences >= 1, 'series materializes its first occurrence');
+  const [retried] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_idempotency_key: seriesKey },
+    }),
+    'retry returns the same series',
+  );
+  assert.equal(retried.series_id, series.series_id);
+  const firstOccurrence = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_date,expected_on,series_frequency,series_active&work_entry_id=eq.${series.work_id}`,
+      { token: owner.token },
+    ),
+    'owner reads first occurrence',
+  );
+  assert.deepEqual(firstOccurrence, [
+    {
+      work_date: '2027-03-01',
+      expected_on: '2027-03-31',
+      series_frequency: 'weekly',
+      series_active: true,
+    },
+  ]);
+  // "Este e os próximos" (8.5): a partir da 3ª ocorrência a série acaba; as duas primeiras ficam.
+  const [forwardSeries] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_starts_on: '2027-06-07', p_idempotency_key: randomUUID() },
+    }),
+    'premium creates a second weekly series',
+  );
+  const [third] = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id,work_date&series_id=eq.${forwardSeries.series_id}&order=work_date.asc&offset=2&limit=1`,
+      { token: owner.token },
+    ),
+    'owner reads third occurrence',
+  );
+  assert.equal(third.work_date, '2027-06-21');
+  const strangerForward = await call('/rest/v1/rpc/delete_work_series_from', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_work_entry_id: third.work_entry_id },
+  });
+  assert.ok(!strangerForward.response.ok, 'other user must not delete a series forward');
+  const [forward] = success(
+    await call('/rest/v1/rpc/delete_work_series_from', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_work_entry_id: third.work_entry_id },
+    }),
+    'owner deletes this and the following',
+  );
+  assert.equal(forward.removed, forwardSeries.occurrences - 2);
+  const kept = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_date,series_active&series_id=eq.${forwardSeries.series_id}&order=work_date.asc`,
+      { token: owner.token },
+    ),
+    'owner reads what stayed',
+  );
+  assert.deepEqual(kept, [
+    { work_date: '2027-06-07', series_active: false },
+    { work_date: '2027-06-14', series_active: false },
+  ]);
+
+  const petrol = success(
+    await call('/rest/v1/rpc/update_work_location', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_location_id: location.id,
+        p_name: 'Hospital São Lucas',
+        p_city: null,
+        p_color_token: 'petrol',
+        p_color_source: 'premium_palette',
+      },
+    }),
+    'premium saves an expanded color',
+  );
+  assert.equal(petrol.color_token, 'petrol');
+  const [stopped] = success(
+    await call('/rest/v1/rpc/stop_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_series_id: series.series_id },
+    }),
+    'owner stops the series',
+  );
+  assert.equal(stopped.removed, series.occurrences, 'future occurrences leave the agenda');
+  const remaining = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id&series_id=eq.${series.series_id}`,
+      { token: owner.token },
+    ),
+    'owner reads stopped series',
+  );
+  assert.deepEqual(remaining, []);
+
   success(
     await call('/rest/v1/rpc/archive_work_location', {
       method: 'POST',
@@ -555,7 +686,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, Premium recurrence (stop and delete forward), palette and ownership passed',
   );
 } finally {
   for (const id of users) {

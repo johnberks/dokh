@@ -14,3 +14,7 @@ Fontes visuais: `design/agenda.html` — Agenda 12 (recorrência Free) e 14 (cor
 - Catálogo `/dev/primitives`, seção **Premium gate**: abre as folhas de Agenda 12 e 14 dentro do `BottomSheet` e mostra a última ação escolhida.
 
 Os HTMLs de referência não foram alterados. O texto do selo em bronze sobre creme tem contraste de ~3,4:1, mantido do HTML (mesma decisão já registrada para os rótulos do Review Card); confirmar a legibilidade no iPhone.
+
+## `onLearnMore` opcional (2026-09-26)
+
+Enquanto o fluxo de benefícios (5.5) não existe, as telas omitem `onLearnMore`: o gate não mostra `Conhecer DOKH Premium` e a saída sem custo vira o botão principal escuro. Usado pelas folhas de recorrência e cor da Agenda (`src/features/work/form/PremiumSheets.tsx`).

@@ -41,6 +41,17 @@ describe('PremiumGate', () => {
     expect(screen.getByText('Personalize seus locais.')).toBeTruthy();
   });
 
+  it('sem o fluxo de benefícios, não oferece compra e a saída sem custo vira a ação principal', async () => {
+    const onContinueFree = jest.fn();
+    await render(<Gate onLearnMore={undefined} onContinueFree={onContinueFree} />);
+    expect(screen.queryByTestId('gate-learn-more')).toBeNull();
+    expect(screen.getByTestId('gate-free')).toHaveStyle({ backgroundColor: colors.foreground });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('gate-free'));
+    });
+    expect(onContinueFree).toHaveBeenCalled();
+  });
+
   it('a prévia é real, sem interação e resumida para o leitor de tela', async () => {
     await render(<Gate />);
     const preview = screen.getByTestId('gate-preview');

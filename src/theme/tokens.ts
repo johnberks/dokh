@@ -23,6 +23,8 @@ export const palette = {
   workTerra: '#8C6A5A',
   workViolet: '#6E6A8A',
   workBlueDeep: '#4A5F70',
+  workKhaki: '#9A8F6A',
+  workPetrol: '#5E7A72',
   authHeroShade: '#161F14',
 } as const;
 
@@ -106,6 +108,8 @@ export const workLocationColors = {
   green: palette.structure,
   terra: palette.workTerra,
   violet: palette.workViolet,
+  khaki: palette.workKhaki,
+  petrol: palette.workPetrol,
 } as const;
 
 export type WorkLocationColorToken = keyof typeof workLocationColors;
