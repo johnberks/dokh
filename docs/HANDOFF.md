@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-26 · Claude Code · 9.1/9.2/9.5 (Finanças mês e ano) na branch `codex/9.2-finances-month`, com PR para a `main` (inclui os commits da 6.7/8.4 enquanto o #40 não entra). Android adiado. A 3.1 segue pendente da conexão real do app preview.
+Última atualização: 2026-09-26 · Claude Code · 3.10/8.5/8.6 (recorrência Premium e cor do local) na branch `codex/8-agenda-premium`, com PR para a `main`. Início de semana configurável fora do escopo por decisão do usuário. Android adiado. A 3.1 segue pendente da conexão real do app preview.
 
 Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
 
@@ -47,14 +47,16 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.7 RPCs Trabalho + Recebível | ✅ Criar, editar e excluir atomicamente com JWT, idempotência e rollback testados | — |
 | 3.8 Confirmação de Recebível | ✅ RPC explícita, horário de servidor imutável, ownership e concorrência testados | — |
 | 3.9 Residência recorrente Free | ✅ RPCs de criação/edição/desativação, geração mensal e job de extensão; histórico e limites testados | — |
+| 3.10 Recorrência de Trabalho Premium | ✅ Série com modelo do Trabalho, Premium validado antes de qualquer escrita, 12 meses idempotentes (weekly/biweekly/monthly, dia 31 sem escorregar), job diário, parar de repetir; testes descartável e real | — |
 | 3.11 Projeções de Agenda e Finanças | ✅ Views `security_invoker`, métricas de caixa/competência, status e ano testados | — |
 | 3.12 Tipos e seed local | ✅ `generate:types`, três contas sintéticas, estados de Home/Agenda/Finanças, Auth e RLS testados | — |
 | 4.1 Cliente Supabase e sessão segura | 🟡 Cliente tipado, SecureStore em partes, refresh e logout/limpeza implementados | Conferir persistência nativa após reinício e saída/redirecionamento numa tela real; 4.5 ainda pendente |
 | 4.2 E-mail/senha e recuperação | 🟡 Login 05B, cadastro, recuperação e callback implementados; fluxo real local testado | Configurar URLs/SMTP de preview e validar e-mail, reset e logout em aparelho; Android adiado pelo usuário |
 | 6.1 Dados de Locais | 🟡 Lista, criação com cor automática, edição e arquivamento; escritas por RPC (migration `20260925000000`), com teste real pelo PostgREST; criação exercitada no iPhone | Edição e arquivamento pela UI entram na Fase 8/11 |
 | 6.2 Dados de Trabalho/Recebível | 🟡 RPCs atômicas, confirmação de recebimento, idempotência e invalidação; criação exercitada no iPhone pela 7.4 (2026-09-25) | Edição, exclusão e confirmação pela UI entram na 6.7 e na Fase 8 |
-| 6.3–6.6 Formulário de Trabalho e Usar novamente | 🟡 `+` sem histórico abre direto no tipo; com histórico, 06 com templates derivados do histórico + `Criar novo` (06B); formulário (07) com folhas 08–10; template preenche tudo e pergunta a data | Aprovado no iPhone (2026-09-25); `Repetir`/`Cor do local` entram na 8.5/8.6 |
-| 8.1–8.2 Agenda do mês e do dia | 🟡 Calendário em card com pontos por Local; lista do dia com estado do Recebível; dia livre com `Adicionar trabalho`; detalhe com horário em blocos e Excluir com confirmação; aprovada pelo usuário no iPhone (2026-09-25) | Android depois; editar na 6.7/8.4 |
+| 6.3–6.6 Formulário de Trabalho e Usar novamente | 🟡 `+` sem histórico abre direto no tipo; com histórico, 06 com templates derivados do histórico + `Criar novo` (06B); formulário (07) com folhas 08–10; template preenche tudo e pergunta a data | Aprovado no iPhone (2026-09-25); `Repetir`/`Cor do local` na 8.5/8.6 |
+| 8.1–8.2 Agenda do mês e do dia | 🟡 Calendário em card com pontos por Local; lista do dia com estado do Recebível; dia livre com `Adicionar trabalho`; detalhe com horário em blocos e Excluir com confirmação; aprovada pelo usuário no iPhone (2026-09-25) | Android depois. Início de semana configurável fora do escopo (usuário, 2026-09-26) |
+| 8.5/8.6 Recorrência e cor do local | 🟡 `Repetir` e `Cor do local` no formulário (selo só no Free), folhas 11–14, série salva pela RPC, card "Este trabalho se repete" e `Gerenciar` → parar de repetir no detalhe; paleta de 8 cores salva no Local | Validar no iPhone (Premium e Free); `Conhecer DOKH Premium` quando a 5.5 existir; `Personalizar` e edição da série dependem da P03 |
 | 6.7/8.4 Detalhe, edição e exclusão | 🟡 `Editar trabalho` abre o formulário preenchido e grava pela RPC de atualização; exclusão com confirmação; aprovados no iPhone (2026-09-25) | Android depois |
 | 9.1/9.2/9.4/9.5 Finanças (mês e ano) | 🟡 Mês com topo/recebido×a receber/próxima entrada/revisão/origem/trabalho gerado; folhas `i`; ano com `BarChartCard`, média, origem, valor/hora, evolução e projeção; Premium sem selo | Validar no iPhone com Supabase local; extrato (9.3), folhas (9.4) e análises Premium (9.6) depois |
 | 7.4 Primeiro Trabalho | 🟡 Telas de tipo, local, quando e valor, com gravação atômica e idempotente; aprovadas pelo usuário no iPhone (2026-09-25) | Android depois; conclusão dinâmica é a 7.5 |
@@ -373,3 +375,25 @@ Início (2026-09-26, referência do usuário): card do mês denso (valor com `�
 Início: cards do topo voltaram ao modelo 2A anterior (vidro, olho, etiqueta de %), mantendo o verde maior com folga; o card "denso" com linha em degraus foi descartado pelo usuário.
 
 Contagem do valor do topo (2026-09-26): `src/theme/useCountUp.ts` anima de zero ao total em 650 ms ao entrar na Início e em Finanças (Mês e Ano); respeita "Reduzir movimento". 62 suítes/410 testes.
+
+Agenda Premium (2026-09-26, branch `codex/8-agenda-premium`): **3.10** no servidor e **8.5/8.6** no app.
+- A migration `20260926000000_work_recurrence.sql` já foi aplicada no Supabase local com `supabase migration up --local`, e os tipos foram regenerados.
+- Servidor (3.10):
+  - `create_work_series` é Premium-only e recusa o Free antes de escrever qualquer coisa;
+  - é idempotente e gera 12 meses de Trabalho + Recebível;
+  - o job diário `dokh-work-series-extension` estende o horizonte;
+  - cada ocorrência é editada ou excluída sozinha;
+  - `stop_work_series` remove as próximas não recebidas;
+  - a view da Agenda expõe a série.
+- App:
+  - linhas `Repetir` e `Cor do local` no formulário, com as folhas 11 a 14;
+  - `PremiumGate` sem o botão de compra enquanto a 5.5 não existe;
+  - card de recorrência com `Gerenciar` no detalhe;
+  - tokens Cáqui e Petróleo.
+- Início de semana configurável foi retirado do escopo por decisão do usuário.
+- Testes:
+  - `scripts/test-migration-3.10.sh` foi incluído no `test:db`;
+  - o teste real `scripts/test-location-rpcs-6.1.mjs` cobre série, Free negado, cor ampliada e parar de repetir;
+  - 63 suítes e 422 testes. Contrato em [`agenda.md`](agenda.md).
+- Faltam a validação no iPhone e a 8.7 (E2E Maestro).
+

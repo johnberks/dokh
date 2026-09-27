@@ -54,6 +54,21 @@ jest.mock('@/features/work/work-data', () => {
     newIdempotencyKey: () => 'delete-key',
   };
 });
+let mockPremium = false;
+jest.mock('@/features/billing/entitlement', () => ({
+  usePremium: () => ({ isSuccess: true, data: mockPremium }),
+}));
+const mockStop = jest.fn(async (_seriesId: string) => ({ removed: 4 }));
+jest.mock('@/features/work/work-recurrence', () => {
+  const { useMutation } = jest.requireActual('@tanstack/react-query');
+  return {
+    ...jest.requireActual('@/features/work/work-recurrence'),
+    useNextOccurrence: (seriesId: string | null) => ({
+      data: seriesId ? '2026-09-21' : undefined,
+    }),
+    useStopWorkSeries: () => useMutation({ mutationFn: (id: string) => mockStop(id) }),
+  };
+});
 jest.mock('./agenda-data', () => ({
   ...jest.requireActual('./agenda-data'),
   // Os hooks chamam a leitura de dentro do próprio módulo; a tela recebe o estado por eles.
@@ -77,6 +92,9 @@ const work = (patch: Partial<AgendaWork>): AgendaWork => ({
   amountCents: 120000n,
   expectedOn: '2026-10-12',
   receiptStatus: 'scheduled',
+  seriesId: null,
+  seriesFrequency: null,
+  seriesActive: false,
   ...patch,
 });
 
@@ -317,5 +335,63 @@ describe('detalhes do trabalho (Agenda 15, leitura)', () => {
       await fireEvent.press(screen.getByTestId('work-delete-cancel'));
     });
     expect(mockDelete).not.toHaveBeenCalled();
+  });
+});
+
+describe('recorrência no detalhe (Agenda 15 · 8.5)', () => {
+  beforeEach(() => {
+    mockPremium = false;
+    mockStop.mockClear();
+  });
+
+  const occurrence = () =>
+    work({
+      workDate: '2026-09-14',
+      seriesId: 's1',
+      seriesFrequency: 'weekly',
+      seriesActive: true,
+    });
+
+  it('trabalho avulso não mostra recorrência', async () => {
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: work({}) };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.queryByTestId('work-detail-repeat')).toBeNull();
+  });
+
+  it('Premium vê a frequência, a próxima data e para de repetir com confirmação', async () => {
+    mockPremium = true;
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: occurrence() };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.getByText('Este trabalho se repete')).toBeTruthy();
+    expect(screen.getByText('Toda semana · próximo em 21 SET')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-manage'));
+    });
+    expect(screen.getByText('Parar de repetir?')).toBeTruthy();
+    expect(mockStop).not.toHaveBeenCalled();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-series-stop'));
+    });
+    expect(mockStop).toHaveBeenCalledWith('s1');
+  });
+
+  it('sem Premium a recorrência aparece, mas sem Gerenciar', async () => {
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: occurrence() };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.getByText('Este trabalho se repete')).toBeTruthy();
+    expect(screen.queryByTestId('work-detail-manage')).toBeNull();
+  });
+
+  it('série parada não aparece como recorrente', async () => {
+    mockPremium = true;
+    mockDetail = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      data: { ...occurrence(), seriesActive: false },
+    };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.queryByTestId('work-detail-repeat')).toBeNull();
   });
 });

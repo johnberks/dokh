@@ -12,6 +12,9 @@ export const queryKeys = {
   workDetail: (userId: string, workId: string) => ['work', userId, workId] as const,
   /** "Usar novamente": derivado do histórico; prefixo `work`, invalidado a cada escrita. */
   workTemplates: (userId: string) => ['work', userId, 'templates'] as const,
+  /** Próxima ocorrência de uma série (detalhe); prefixo `work`, invalidado a cada escrita. */
+  workSeriesNext: (userId: string, seriesId: string, after: string) =>
+    ['work', userId, 'series', seriesId, after] as const,
   financeMonth: (userId: string, month: string) => ['finance-month', userId, month] as const,
   financeYear: (userId: string, year: number) => ['finance-year', userId, year] as const,
   homeOverview: (userId: string) => ['home-overview', userId] as const,

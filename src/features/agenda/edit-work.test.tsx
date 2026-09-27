@@ -66,6 +66,9 @@ const shift: AgendaWork = {
   amountCents: 120000n,
   expectedOn: '2026-10-28',
   receiptStatus: 'scheduled',
+  seriesId: null,
+  seriesFrequency: null,
+  seriesActive: false,
 };
 
 beforeEach(() => {
@@ -87,6 +90,8 @@ describe('editar trabalho (Agenda 16)', () => {
       idempotencyKey: null,
       plannedTermDays: null,
       description: null,
+      repeat: 'none',
+      colorToken: null,
     });
     expect(
       editDraftFromWork({ ...shift, expectedOn: null, description: 'Cirurgia' }),

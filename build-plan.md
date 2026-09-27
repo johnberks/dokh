@@ -205,7 +205,7 @@
   - Reconciliar somente futuros não recebidos.
   - **DoD:** usuário Free gera meses corretamente, inclusive dia 31/fevereiro; recebidos históricos não mudam; teste garante zero linhas em `work_series`.
 
-- [ ] **3.10 — Implementar recorrência de Trabalho Premium**
+- [x] **3.10 — Implementar recorrência de Trabalho Premium**
   - Dependências: 3.3, 3.5, 5.4.
   - Materialização idempotente por 12 meses e extensão periódica.
   - Validar entitlement no servidor.
@@ -368,7 +368,7 @@ Pré-requisito documental: UX e design de Agenda presentes.
 
 - [ ] **8.1 — Implementar query e calendário mensal**
   - Dependências: 3.11, 6.2, 2.5.
-  - Hoje, seleção, dias passados, pontos por local e início de semana configurável.
+  - Hoje, seleção, dias passados e pontos por local. Início de semana configurável fora do escopo por ora (decisão do usuário, 2026-09-26): a Agenda começa na segunda.
   - **DoD:** mês padrão, um/múltiplos trabalhos, dia livre e recebido correspondem aos estados desenhados.
 
 - [ ] **8.2 — Implementar lista diária e navegação de mês**
