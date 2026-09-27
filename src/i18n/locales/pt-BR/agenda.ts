@@ -106,6 +106,9 @@ export const agenda = {
     expectedTerm: 'Em {{days}} dias · {{date}}',
     expectedUnknown: 'Ainda não sei',
     save: 'Salvar trabalho',
+    saving: 'Salvando…',
+    saved: 'Trabalho salvo',
+    savedChanges: 'Alterações salvas',
     /** Agenda 07 (linhas Premium) e folhas 11–14. */
     repeat: 'Repetir',
     color: 'Cor do local',

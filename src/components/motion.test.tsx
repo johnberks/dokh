@@ -1,10 +1,12 @@
 import '@/i18n';
 import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { View } from 'react-native';
-import { colors } from '@/theme/tokens';
+import { motionDuration } from '@/theme/motion';
+import { colors, motion } from '@/theme/tokens';
 import { HeroCarousel } from './HeroCarousel';
 import { TwoToneScrollScreen } from './Layout';
 import { MotionCatalog } from './MotionCatalog';
+import { SlideIn } from './SlideIn';
 
 const mockReducedMotion = jest.fn(() => false);
 jest.mock('@/theme/useReducedMotion', () => ({
@@ -88,5 +90,33 @@ describe('motion and continuous screen scrolling', () => {
     expect(screen.queryByRole('button', { name: /Remover card de demonstração/ })).toBeNull();
     await fireEvent.press(screen.getByRole('button', { name: 'Restaurar card de demonstração' }));
     expect(screen.getByRole('button', { name: /Remover card de demonstração/ })).toBeTruthy();
+  });
+});
+
+describe('SlideIn (Finanças: Mês ↔ Ano e volta das telas internas)', () => {
+  it('usa a duração de slide e troca na hora com "Reduzir movimento"', () => {
+    expect(motionDuration('slide', false)).toBe(motion.slide);
+    expect(motionDuration('slide', true)).toBe(motion.instant);
+  });
+
+  it('mantém o conteúdo visível e acessível a cada troca de chave e direção', async () => {
+    const { rerender } = await render(
+      <SlideIn slideKey={0} from={null} testID="slide">
+        <View testID="content-month" />
+      </SlideIn>,
+    );
+    expect(screen.getByTestId('content-month')).toBeTruthy();
+    await rerender(
+      <SlideIn slideKey={1} from="right" testID="slide">
+        <View testID="content-year" />
+      </SlideIn>,
+    );
+    expect(screen.getByTestId('content-year')).toBeTruthy();
+    await rerender(
+      <SlideIn slideKey={2} from="left" testID="slide">
+        <View testID="content-month" />
+      </SlideIn>,
+    );
+    expect(screen.getByTestId('content-month')).toBeTruthy();
   });
 });
