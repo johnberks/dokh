@@ -37,6 +37,17 @@ export const agenda = {
     confirmText:
       'O trabalho em {{place}} no dia {{date}} sai da sua Agenda e o valor de {{amount}} deixa de aparecer em Finanças. Essa ação não pode ser desfeita.',
     confirmDelete: 'Excluir trabalho',
+    /** Exclusão de um Trabalho recorrente: só o dia ou deste em diante. */
+    deleteSeries: {
+      title: 'Excluir trabalho recorrente?',
+      text: 'Este trabalho em {{place}} se repete. Escolha o que sai da sua Agenda e de Finanças.',
+      onlyThis: 'Só este dia',
+      onlyThisHint: '{{date}} sai; os outros dias continuam.',
+      forward: 'Este e os próximos',
+      forwardHint: 'A partir de {{date}}, a recorrência termina. Os dias anteriores ficam.',
+      confirmOnlyThis: 'Excluir só este dia',
+      confirmForward: 'Excluir este e os próximos',
+    },
     cancel: 'Cancelar',
     amount: 'Você recebe',
     expected: 'Previsto para entrar',

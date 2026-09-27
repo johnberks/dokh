@@ -753,6 +753,13 @@ export type Database = {
         Args: { p_residency_id: string };
         Returns: string;
       };
+      delete_work_series_from: {
+        Args: { p_work_entry_id: string };
+        Returns: {
+          removed: number;
+          series_id: string;
+        }[];
+      };
       delete_work_with_receivable: {
         Args: { p_idempotency_key: string; p_work_entry_id: string };
         Returns: {

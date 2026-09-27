@@ -59,6 +59,7 @@ jest.mock('@/features/billing/entitlement', () => ({
   usePremium: () => ({ isSuccess: true, data: mockPremium }),
 }));
 const mockStop = jest.fn(async (_seriesId: string) => ({ removed: 4 }));
+const mockDeleteForward = jest.fn(async (_workId: string) => ({ removed: 3 }));
 jest.mock('@/features/work/work-recurrence', () => {
   const { useMutation } = jest.requireActual('@tanstack/react-query');
   return {
@@ -67,6 +68,8 @@ jest.mock('@/features/work/work-recurrence', () => {
       data: seriesId ? '2026-09-21' : undefined,
     }),
     useStopWorkSeries: () => useMutation({ mutationFn: (id: string) => mockStop(id) }),
+    useDeleteWorkSeriesFrom: () =>
+      useMutation({ mutationFn: (id: string) => mockDeleteForward(id) }),
   };
 });
 jest.mock('./agenda-data', () => ({
@@ -393,5 +396,55 @@ describe('recorrência no detalhe (Agenda 15 · 8.5)', () => {
     };
     await renderWithProviders(<WorkDetailScreen workId="w1" />);
     expect(screen.queryByTestId('work-detail-repeat')).toBeNull();
+  });
+
+  it('excluir um recorrente pergunta: só este dia (padrão) ou este e os próximos', async () => {
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: occurrence() };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-delete'));
+    });
+    expect(screen.getByText('Excluir trabalho recorrente?')).toBeTruthy();
+    expect(screen.getByTestId('work-delete-scope-one').props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-delete-confirm'));
+    });
+    expect(mockDelete).toHaveBeenCalledWith('w1', 'delete-key');
+    expect(mockDeleteForward).not.toHaveBeenCalled();
+  });
+
+  it('"Este e os próximos" encerra a série a partir deste dia', async () => {
+    mockDelete.mockClear();
+    mockDeleteForward.mockClear();
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: occurrence() };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-delete'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-delete-scope-forward'));
+    });
+    expect(screen.getByText(/A partir de 14 SET, a recorrência termina/)).toBeTruthy();
+    expect(screen.getByTestId('work-delete-confirm').props.accessibilityLabel).toBe(
+      'Excluir este e os próximos',
+    );
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-delete-confirm'));
+    });
+    expect(mockDeleteForward).toHaveBeenCalledWith('w1');
+    expect(mockDelete).not.toHaveBeenCalled();
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it('trabalho avulso continua com a confirmação simples', async () => {
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: work({}) };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-delete'));
+    });
+    expect(screen.getByText('Excluir este trabalho?')).toBeTruthy();
+    expect(screen.queryByTestId('work-delete-scope-forward')).toBeNull();
   });
 });

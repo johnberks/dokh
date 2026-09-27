@@ -87,6 +87,21 @@ export async function stopWorkSeries(
   return { removed: data?.[0]?.removed ?? 0 };
 }
 
+/**
+ * "Este e os próximos": encerra a série e remove esta data e as seguintes ainda não
+ * recebidas; as anteriores ficam. Repetir não muda nada.
+ */
+export async function deleteWorkSeriesFrom(
+  workEntryId: string,
+  client: AuthClient = supabase,
+): Promise<{ removed: number }> {
+  const { data, error } = await client.rpc('delete_work_series_from', {
+    p_work_entry_id: workEntryId,
+  });
+  if (error) throw error;
+  return { removed: data?.[0]?.removed ?? 0 };
+}
+
 /** Próxima ocorrência da série depois de `after`, para "próximo em 21 SET". */
 export async function readNextOccurrence(
   seriesId: string,
@@ -118,6 +133,14 @@ export function useStopWorkSeries() {
   const invalidate = useWorkInvalidation();
   return useMutation({
     mutationFn: (seriesId: string) => stopWorkSeries(seriesId),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteWorkSeriesFrom() {
+  const invalidate = useWorkInvalidation();
+  return useMutation({
+    mutationFn: (workEntryId: string) => deleteWorkSeriesFrom(workEntryId),
     onSuccess: invalidate,
   });
 }

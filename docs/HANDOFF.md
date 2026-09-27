@@ -397,3 +397,8 @@ Agenda Premium (2026-09-26, branch `codex/8-agenda-premium`): **3.10** no servid
   - 63 suítes e 422 testes. Contrato em [`agenda.md`](agenda.md).
 - Faltam a validação no iPhone e a 8.7 (E2E Maestro).
 
+Excluir recorrente (2026-09-26, mesma branch), pedido do usuário:
+- No detalhe de um Trabalho de série ativa, `Excluir` oferece `Só este dia` (padrão) ou `Este e os próximos`.
+- A segunda opção chama a nova RPC `delete_work_series_from` (migration `20260926010000_work_series_delete_forward.sql`, já aplicada no local). Ela encerra a série e remove esse dia e os seguintes não recebidos; os anteriores ficam.
+- Testes: `3_10` descartável e caminho real cobertos; 63 suítes e 425 testes.
+

@@ -259,10 +259,73 @@ begin
 end $$;
 reset role;
 
+-- "Este e os próximos": a new weekly series; deleting from the 3rd occurrence keeps
+-- the first two, removes the 3rd onwards, ends the series and is idempotent.
+set role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000011', false);
+do $$
+declare
+  v_series record;
+  v_third public.work_entries;
+  v_total integer;
+  v_result record;
+  v_denied boolean := false;
+begin
+  select * into v_series from public.create_work_series(gen_random_uuid(), 'weekly',
+    'appointment', '00000000-0000-0000-0000-00000000a011', null, '2027-01-04', null, null, 'UTC',
+    40000, 0);
+  v_total := v_series.occurrences;
+  select * into v_third from public.work_entries
+  where series_id = v_series.series_id order by work_date offset 2 limit 1;
+  assert v_third.work_date = '2027-01-18', 'third Monday expected';
+
+  select * into v_result from public.delete_work_series_from(v_third.id);
+  assert v_result.series_id = v_series.series_id, 'wrong series';
+  assert v_result.removed = v_total - 2, format('removed %s of %s', v_result.removed, v_total - 2);
+  assert (select array_agg(work_date order by work_date) from public.agenda_work_projection
+    where series_id = v_series.series_id) = array['2027-01-04', '2027-01-11']::date[],
+    'earlier occurrences must stay';
+  assert (select not active from public.work_series where id = v_series.series_id),
+    'series must end';
+  assert (select count(*) = 0 from public.receivable_projection as r
+    join public.work_entries as w on w.id = r.work_entry_id
+    where w.series_id = v_series.series_id and w.work_date >= '2027-01-18'
+      and r.receipt_status <> 'invalidated'), 'removed receivables still active';
+
+  select * into v_result from public.delete_work_series_from(v_third.id);
+  assert v_result.removed = 0, 'repeat changed data';
+
+  -- A single work is not a series.
+  begin
+    perform public.delete_work_series_from((
+      select id from public.work_entries where series_id is null limit 1
+    ));
+  exception when no_data_found then v_denied := true;
+  end;
+  assert v_denied or not exists (select 1 from public.work_entries where series_id is null),
+    'single work accepted as series';
+  perform set_config('test.forward_work', (
+    select id::text from public.work_entries where series_id = v_series.series_id
+    order by work_date limit 1), false);
+end $$;
+
+-- The other user cannot delete someone else's series forward.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000022', false);
+do $$
+declare v_denied boolean := false;
+begin
+  begin
+    perform public.delete_work_series_from(current_setting('test.forward_work')::uuid);
+  exception when no_data_found then v_denied := true;
+  end;
+  assert v_denied, 'other user deleted a series forward';
+end $$;
+reset role;
+
 do $$
 begin
   assert private.extend_all_work_series() = 0, 'stopped series kept extending';
 end $$;
 rollback;
 
-select '3.10 Premium recurrence, idempotency, occurrences, worker and stop passed' as result;
+select '3.10 Premium recurrence, idempotency, occurrences, worker, stop and delete forward passed' as result;

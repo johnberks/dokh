@@ -600,6 +600,50 @@ try {
       series_active: true,
     },
   ]);
+  // "Este e os próximos" (8.5): a partir da 3ª ocorrência a série acaba; as duas primeiras ficam.
+  const [forwardSeries] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_starts_on: '2027-06-07', p_idempotency_key: randomUUID() },
+    }),
+    'premium creates a second weekly series',
+  );
+  const [third] = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id,work_date&series_id=eq.${forwardSeries.series_id}&order=work_date.asc&offset=2&limit=1`,
+      { token: owner.token },
+    ),
+    'owner reads third occurrence',
+  );
+  assert.equal(third.work_date, '2027-06-21');
+  const strangerForward = await call('/rest/v1/rpc/delete_work_series_from', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_work_entry_id: third.work_entry_id },
+  });
+  assert.ok(!strangerForward.response.ok, 'other user must not delete a series forward');
+  const [forward] = success(
+    await call('/rest/v1/rpc/delete_work_series_from', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_work_entry_id: third.work_entry_id },
+    }),
+    'owner deletes this and the following',
+  );
+  assert.equal(forward.removed, forwardSeries.occurrences - 2);
+  const kept = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_date,series_active&series_id=eq.${forwardSeries.series_id}&order=work_date.asc`,
+      { token: owner.token },
+    ),
+    'owner reads what stayed',
+  );
+  assert.deepEqual(kept, [
+    { work_date: '2027-06-07', series_active: false },
+    { work_date: '2027-06-14', series_active: false },
+  ]);
+
   const petrol = success(
     await call('/rest/v1/rpc/update_work_location', {
       method: 'POST',
@@ -642,7 +686,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, Premium recurrence, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, Premium recurrence (stop and delete forward), palette and ownership passed',
   );
 } finally {
   for (const id of users) {

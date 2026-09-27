@@ -46,6 +46,11 @@ O botão `Adicionar trabalho` do dia livre ficou preenchido (escuro, 48 de altur
   - Job diário `dokh-work-series-extension` (03:30) estende o horizonte das séries ativas enquanto o dono tiver Premium; quem perde o Premium mantém o que já foi gerado. Local arquivado para a geração.
   - Cada ocorrência é editada ou excluída sozinha pelas RPCs de Trabalho (agora aceitam `source = recurrence`); a chave da ocorrência fica, então o job nunca recria uma data editada ou excluída.
   - `stop_work_series` (“Parar de repetir”) mantém hoje e o passado, e remove da Agenda e de Finanças as próximas ainda não recebidas. Não exige Premium.
+  - **Excluir um Trabalho recorrente** (pedido do usuário, 2026-09-26) pergunta:
+    - `Só este dia` (padrão): usa a RPC de exclusão normal;
+    - `Este e os próximos`: `delete_work_series_from` (migration `20260926010000`) encerra a série e remove esta data e as seguintes ainda não recebidas, mantendo as anteriores.
+    - Não exige Premium, e repetir a chamada não muda nada.
+    - Trabalho avulso, ou de série já parada, continua com a confirmação simples.
   - `agenda_work_projection` ganhou `series_id`, `series_frequency` e `series_active`.
 - **App**:
   - Formulário (Agenda 07): abaixo do divisor, as linhas `Repetir` e `Cor do local` (componente `OptionRow`). No Free, mostram o selo `PREMIUM`; no Premium, só o `›`, sem cadeado nem selo. `Repetir` só aparece na criação.
