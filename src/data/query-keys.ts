@@ -19,6 +19,12 @@ export const queryKeys = {
   financeYear: (userId: string, year: number) => ['finance-year', userId, year] as const,
   homeOverview: (userId: string) => ['home-overview', userId] as const,
   entitlement: (userId: string) => ['entitlement', userId] as const,
+  /** Perfil (11.x): identidade, residência ativa, preferências e contagem por Local. */
+  profile: (userId: string) => ['profile', userId] as const,
+  profileResidency: (userId: string) => ['profile', userId, 'residency'] as const,
+  workPreferences: (userId: string) => ['profile', userId, 'work-preferences'] as const,
+  locationWorkCounts: (userId: string) => ['work', userId, 'location-counts'] as const,
+  account: (userId: string) => ['profile', userId, 'account'] as const,
   financeNextEntry: (userId: string, month: string) =>
     ['finance-month', userId, month, 'next'] as const,
   financeUndated: (userId: string) => ['finance-month', userId, 'undated'] as const,

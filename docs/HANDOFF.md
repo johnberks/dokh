@@ -414,3 +414,17 @@ Botão Salvar trabalho animado (2026-09-26, branch `codex/work-save-motion`), co
 - Sem vibração, a pedido do usuário.
 - Testes: 63 suítes e 427 testes.
 
+Perfil (2026-09-26, branch `codex/11-profile`), tarefas 11.1–11.5 e 11.8. Importação, calendário, notificações e paywall ficaram de fora por decisão do usuário ou por dependência (5.5 e P01).
+- Telas:
+  - Perfil principal Free e Premium;
+  - Editar perfil com foto (`expo-image-picker`, instalado; plugin com o texto de permissão no `app.json`);
+  - Locais: lista, vazio, novo, editar e remover;
+  - Residência: dados, vazio, formulário e encerrar;
+  - Preferências, que já preenchem o `+`;
+  - Aparência, Conta (com sair) e Ajuda.
+- Rotas `/profile/*` com slide.
+- Links de suporte e legais ficam nulos em `src/config/legal.ts` e aparecem como `EM BREVE`.
+- Sem migration.
+- Testes: 64 suítes e 444 testes. O teste real cobre perfil, preferências, residência e foto. Contrato em [`profile.md`](profile.md).
+- Falta validar no iPhone, principalmente o envio da foto pelo Expo Go.
+

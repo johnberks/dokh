@@ -24,6 +24,10 @@ let mockPremium = false;
 jest.mock('@/features/billing/entitlement', () => ({
   usePremium: () => ({ isSuccess: true, data: mockPremium }),
 }));
+let mockPreferences: unknown;
+jest.mock('@/features/profile/profile-data', () => ({
+  useWorkPreferences: () => ({ data: mockPreferences }),
+}));
 let mockLocations: unknown[] = [];
 jest.mock('@/features/locations/locations-data', () => ({
   ...jest.requireActual('@/features/locations/locations-data'),
@@ -84,6 +88,7 @@ beforeEach(() => {
   mockLocations = [];
   mockTemplates = [];
   mockPremium = false;
+  mockPreferences = undefined;
   mockedList.mockImplementation(async () => mockLocations as never);
   mockedDots.mockResolvedValue({});
 });
@@ -460,6 +465,32 @@ describe('Salvar trabalho (animação de sucesso)', () => {
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByTestId('work-save').props.accessibilityState).toMatchObject({
       disabled: true,
+    });
+  });
+});
+
+describe('Preferências de trabalho no + (11.5)', () => {
+  it('Plantão novo vem com horário, duração e prazo padrão, que podem ser trocados', async () => {
+    mockPreferences = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 30 };
+    await openForm('shift');
+    expect(useNewWorkDraft.getState()).toMatchObject({ startTime: '19:00', durationMinutes: 720 });
+    await pickDate();
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(workDate, 30),
+    });
+    await press('work-duration-6');
+    expect(useNewWorkDraft.getState().durationMinutes).toBe(360);
+  });
+
+  it('Procedimento usa só o prazo padrão', async () => {
+    mockPreferences = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 60 };
+    await openForm('procedure');
+    expect(useNewWorkDraft.getState()).toMatchObject({ startTime: null, durationMinutes: null });
+    await pickDate();
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(workDate, 60),
     });
   });
 });

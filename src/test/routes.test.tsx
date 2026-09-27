@@ -54,7 +54,6 @@ describe('rotas', () => {
   });
 
   it.each([
-    ['/profile', 'Perfil'],
     ['/recover-password', 'Recuperar senha'],
     ['/reset-password', 'Defina uma nova senha.'],
     ['/auth-callback', 'Confirmar conta'],
@@ -136,7 +135,7 @@ describe('rotas', () => {
     expect(router.getPathname()).toBe('/');
   });
 
-  it('Perfil provisório abre o catálogo apenas em desenvolvimento', async () => {
+  it('Perfil abre o catálogo apenas em desenvolvimento', async () => {
     const router = await openAt('/profile');
     await fireEvent.press(screen.getByRole('button', { name: 'Componentes básicos' }));
     expect(router.getPathname()).toBe('/dev/primitives');
@@ -204,9 +203,15 @@ describe('rotas', () => {
     expect(screen.queryByRole('header', { name: 'Vamos organizar sua rotina' })).toBeNull();
   });
 
-  it('ação temporária de sair fica disponível no Perfil provisório', async () => {
-    await openAt('/profile');
-    await fireEvent.press(screen.getByRole('button', { name: 'Sair da conta' }));
+  it('resolve deep link /profile na tela real do Perfil', async () => {
+    const router = await openAt('/profile');
+    expect(router.getPathname()).toBe('/profile');
+    expect(screen.getByTestId('profile-screen')).toBeTruthy();
+  });
+
+  it('sair fica em Perfil › Conta e segurança', async () => {
+    await openAt('/profile/account');
+    await fireEvent.press(screen.getByRole('button', { name: 'Sair da DOKH' }));
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
