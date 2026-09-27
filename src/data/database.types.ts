@@ -513,44 +513,73 @@ export type Database = {
       work_series: {
         Row: {
           active: boolean;
+          amount_cents: number;
           created_at: string;
+          description: string | null;
+          duration_minutes: number | null;
           ends_on: string | null;
+          expected_offset_days: number | null;
           frequency: Database['public']['Enums']['work_series_frequency'];
           id: string;
+          location_id: string;
           materialized_until: string | null;
           rrule: string;
+          start_time: string | null;
           starts_on: string;
           timezone: string;
+          type: Database['public']['Enums']['work_entry_type'];
           updated_at: string;
           user_id: string;
         };
         Insert: {
           active?: boolean;
+          amount_cents: number;
           created_at?: string;
+          description?: string | null;
+          duration_minutes?: number | null;
           ends_on?: string | null;
+          expected_offset_days?: number | null;
           frequency: Database['public']['Enums']['work_series_frequency'];
           id?: string;
+          location_id: string;
           materialized_until?: string | null;
           rrule: string;
+          start_time?: string | null;
           starts_on: string;
           timezone: string;
+          type: Database['public']['Enums']['work_entry_type'];
           updated_at?: string;
           user_id: string;
         };
         Update: {
           active?: boolean;
+          amount_cents?: number;
           created_at?: string;
+          description?: string | null;
+          duration_minutes?: number | null;
           ends_on?: string | null;
+          expected_offset_days?: number | null;
           frequency?: Database['public']['Enums']['work_series_frequency'];
           id?: string;
+          location_id?: string;
           materialized_until?: string | null;
           rrule?: string;
+          start_time?: string | null;
           starts_on?: string;
           timezone?: string;
+          type?: Database['public']['Enums']['work_entry_type'];
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'work_series_location_owner';
+            columns: ['location_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_locations';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
       };
     };
     Views: {
@@ -566,6 +595,9 @@ export type Database = {
           location_name: string | null;
           receipt_status: string | null;
           receivable_id: string | null;
+          series_active: boolean | null;
+          series_frequency: Database['public']['Enums']['work_series_frequency'] | null;
+          series_id: string | null;
           start_time: string | null;
           timezone: string | null;
           type: Database['public']['Enums']['work_entry_type'] | null;
@@ -573,7 +605,15 @@ export type Database = {
           work_date: string | null;
           work_entry_id: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'work_entries_series_id_user_id_fkey';
+            columns: ['series_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'work_series';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
       };
       receivable_projection: {
         Row: {
@@ -671,6 +711,26 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      create_work_series: {
+        Args: {
+          p_amount_cents: number;
+          p_description: string;
+          p_duration_minutes: number;
+          p_expected_offset_days: number;
+          p_frequency: Database['public']['Enums']['work_series_frequency'];
+          p_idempotency_key: string;
+          p_location_id: string;
+          p_start_time: string;
+          p_starts_on: string;
+          p_timezone: string;
+          p_type: Database['public']['Enums']['work_entry_type'];
+        };
+        Returns: {
+          occurrences: number;
+          series_id: string;
+          work_id: string;
+        }[];
+      };
       create_work_with_receivable: {
         Args: {
           p_amount_cents: number;
@@ -738,6 +798,13 @@ export type Database = {
       generate_residency_receivables: {
         Args: { p_residency_id: string };
         Returns: number;
+      };
+      stop_work_series: {
+        Args: { p_series_id: string };
+        Returns: {
+          removed: number;
+          series_id: string;
+        }[];
       };
       update_work_location: {
         Args: {
