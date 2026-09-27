@@ -632,6 +632,8 @@ export const motion = {
   saveCheck: 360,
   /** Quanto o "Trabalho salvo" fica visível antes de ir para a Agenda. */
   saveHold: 650,
+  /** Conteúdo que desliza ao trocar de visão (Mês ↔ Ano) ou ao voltar de uma tela interna. */
+  slide: 300,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

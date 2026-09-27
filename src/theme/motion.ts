@@ -7,7 +7,8 @@ export type MotionEvent =
   | 'countUp'
   | 'saveMorph'
   | 'saveCheck'
-  | 'saveHold';
+  | 'saveHold'
+  | 'slide';
 
 /** D11: every non-essential transition snaps immediately when reduced motion is enabled. */
 export function motionDuration(event: MotionEvent, reduced: boolean): number {
