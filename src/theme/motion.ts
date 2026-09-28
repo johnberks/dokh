@@ -9,7 +9,8 @@ export type MotionEvent =
   | 'saveCheck'
   | 'saveHold'
   | 'slide'
-  | 'dropdown';
+  | 'dropdown'
+  | 'reveal';
 
 /** D11: every non-essential transition snaps immediately when reduced motion is enabled. */
 export function motionDuration(event: MotionEvent, reduced: boolean): number {

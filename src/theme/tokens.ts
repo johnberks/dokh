@@ -530,8 +530,16 @@ export const onboardingIntroMetrics = {
   splashWordmarkDelay: 420,
   splashWordmark: 420,
   splashWordmarkRise: 10,
-  /** Leitura antes de entregar a tela 04: total entre 1,2 s e 1,6 s. */
+  /** Letras de DOKH entram uma a uma, com este intervalo. */
+  splashLetterStagger: 70,
+  /** Escala inicial do símbolo, que cresce enquanto as superfícies se aproximam. */
+  splashSymbolScale: 0.78,
+  /** A interseção bronze "estala" quando as superfícies se encontram. */
+  splashPop: 360,
+  /** Leitura antes de entregar a tela 04. */
   splashHold: 360,
+  /** Saída suave: o splash some e cresce de leve enquanto a tela 04 assume. */
+  splashExit: 240,
   headerPaddingTop: 22,
   horizontalPadding: 32,
   headingPaddingTop: 40,
@@ -650,6 +658,10 @@ export const motion = {
   slide: 300,
   /** Dropdown do Perfil: cartão flutuante abre/fecha e a seta gira. */
   dropdown: 180,
+  /** Entrada de itens do onboarding (fade + subida curta), em cascata. */
+  reveal: 460,
+  /** Intervalo entre itens (e entre palavras de um título) na cascata. */
+  revealStagger: 80,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */
