@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react';
+import { Children, type ReactNode, useEffect } from 'react';
 import { type StyleProp, StyleSheet, type TextStyle, View, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
@@ -72,6 +72,41 @@ export function Reveal({
 /** Atraso do n-ésimo item da cascata, a partir de um início opcional. */
 export function step(index: number, start = 0): number {
   return start + index * motion.revealStagger;
+}
+
+/**
+ * Envolve cada filho (ignorando os vazios) num `Reveal` em cascata, a partir de `start`.
+ * Para reanimar ao reentrar numa aba, troque a `key` do grupo.
+ */
+export function RevealGroup({
+  children,
+  start = 0,
+  rise = 20,
+  style,
+  testID,
+}: {
+  children: ReactNode;
+  /** Passo da cascata em que o primeiro filho entra. */
+  start?: number;
+  rise?: number;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+}) {
+  return (
+    <View style={style} testID={testID}>
+      {Children.toArray(children).map((child, index) => (
+        <Reveal
+          // `toArray` já dá chaves estáveis aos filhos; a posição basta para o wrapper.
+          // biome-ignore lint/suspicious/noArrayIndexKey: a ordem dos blocos é fixa.
+          key={index}
+          delay={step(start + index)}
+          rise={rise}
+        >
+          {child}
+        </Reveal>
+      ))}
+    </View>
+  );
 }
 
 function Word({

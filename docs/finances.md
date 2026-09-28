@@ -91,3 +91,7 @@ O valor do topo (Mês e Ano) conta rápido até o total ao entrar na aba, trocar
 - "Reduzir movimento" troca na hora.
 - As rotas `finances/entries` e `finances/hourly` usam `animation: 'slide_from_right'` explícito, inclusive no Android, que por padrão não desliza.
 
+
+## Entrada da aba (2026-09-28)
+
+Como na Agenda: ao abrir a aba, o topo (troca de mês e Mês/Ano) entra primeiro e os blocos do mês sobem em cascata (`RevealGroup`). Voltar de Entradas ou do valor/hora continua deslizando pela esquerda, e trocar Mês/Ano continua deslizando, sem recascatear. Com "Reduzir movimento", tudo aparece montado.

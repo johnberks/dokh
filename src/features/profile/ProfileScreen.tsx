@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
+import { type Href, router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { type ReactNode, useContext, useState } from 'react';
+import { type ReactNode, useCallback, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import Svg, { Rect } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { CheckIcon } from '@/components/icons/heroicons';
+import { RevealGroup } from '@/components/Reveal';
 import { LoadError } from '@/components/TechnicalStates';
 import { legalUrls, subscriptionManagementUrls, supportUrls } from '@/config/legal';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -81,6 +82,23 @@ export function ProfileScreen() {
   const locations = useWorkLocations();
   const residency = useActiveResidency();
   const [signingOut, setSigningOut] = useState(false);
+  // Entrar na aba cascateia o Perfil (como Agenda e Finanças); voltar de uma subtela não.
+  const [revealKey, setRevealKey] = useState(0);
+  const openedChild = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (openedChild.current) {
+        openedChild.current = false;
+        return;
+      }
+      setRevealKey((key) => key + 1);
+    }, []),
+  );
+
+  function go(href: Href) {
+    openedChild.current = true;
+    router.push(href);
+  }
   const [signOutFailed, setSignOutFailed] = useState(false);
   const isPremium = premium.data === true;
   const version = Constants.expoConfig?.version ?? '1.0';
@@ -178,7 +196,7 @@ export function ProfileScreen() {
       key="account"
       icon={<ProfileIcon name="shield" />}
       label={t('main.account')}
-      onPress={() => router.push('/profile/account')}
+      onPress={() => go('/profile/account')}
       testID="profile-row-account"
     />,
   ];
@@ -188,7 +206,7 @@ export function ProfileScreen() {
         key="help"
         icon={<ProfileIcon name="help" />}
         label={t('main.help')}
-        onPress={() => router.push('/profile/help')}
+        onPress={() => go('/profile/help')}
         testID="profile-row-help"
       />,
     );
@@ -226,147 +244,149 @@ export function ProfileScreen() {
       testID="profile-screen"
     >
       <StatusBar style="dark" />
-      {data ? (
-        <View style={styles.identity} testID="profile-identity">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('main.edit')}
-            hitSlop={6}
-            onPress={() => router.push('/profile/edit')}
-            testID="profile-edit"
-            style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
-          >
-            <ProfileIcon name="pencil" size={18} />
-          </Pressable>
-          <View style={styles.avatarRing}>
-            <Avatar profile={data} size={96} />
-          </View>
-          <AppText
-            accessibilityRole="header"
-            numberOfLines={2}
-            style={[type.heading1, styles.name]}
-          >
-            {data.displayName}
-          </AppText>
-          <View style={styles.tags} testID="profile-tags">
-            <View style={[styles.tag, styles.tagStatus]}>
-              <AppText
-                variant="heading2"
-                numberOfLines={2}
-                style={[styles.tagText, styles.tagStatusText]}
-              >
-                {professionalStatusLabel(data.status, data.specialty, t)}
-              </AppText>
+      <RevealGroup key={revealKey}>
+        {data ? (
+          <View style={styles.identity} testID="profile-identity">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('main.edit')}
+              hitSlop={6}
+              onPress={() => go('/profile/edit')}
+              testID="profile-edit"
+              style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
+            >
+              <ProfileIcon name="pencil" size={18} />
+            </Pressable>
+            <View style={styles.avatarRing}>
+              <Avatar profile={data} size={96} />
             </View>
-            {data.graduationYear !== null && (
-              <View style={styles.tag}>
-                <AppText variant="heading2" style={styles.tagText}>
-                  {t('main.graduatedIn', { year: data.graduationYear })}
+            <AppText
+              accessibilityRole="header"
+              numberOfLines={2}
+              style={[type.heading1, styles.name]}
+            >
+              {data.displayName}
+            </AppText>
+            <View style={styles.tags} testID="profile-tags">
+              <View style={[styles.tag, styles.tagStatus]}>
+                <AppText
+                  variant="heading2"
+                  numberOfLines={2}
+                  style={[styles.tagText, styles.tagStatusText]}
+                >
+                  {professionalStatusLabel(data.status, data.specialty, t)}
                 </AppText>
               </View>
-            )}
-            {data.city ? (
-              <View style={styles.tag}>
-                <AppText variant="heading2" style={styles.tagText}>
-                  {data.city}
-                </AppText>
-              </View>
-            ) : null}
+              {data.graduationYear !== null && (
+                <View style={styles.tag}>
+                  <AppText variant="heading2" style={styles.tagText}>
+                    {t('main.graduatedIn', { year: data.graduationYear })}
+                  </AppText>
+                </View>
+              )}
+              {data.city ? (
+                <View style={styles.tag}>
+                  <AppText variant="heading2" style={styles.tagText}>
+                    {data.city}
+                  </AppText>
+                </View>
+              ) : null}
+            </View>
           </View>
-        </View>
-      ) : profile.isError ? (
-        <LoadError
-          onRetry={() => void profile.refetch()}
-          retrying={profile.isFetching}
-          testID="profile-error"
-        />
-      ) : (
-        <View style={styles.identityPlaceholder} />
-      )}
-
-      {premiumBlock ? <View style={styles.premium}>{premiumBlock}</View> : null}
-
-      <View style={styles.section}>
-        <SectionTitle>{t('main.sectionWork')}</SectionTitle>
-        <InsetList>
-          <InsetRow
-            icon={<ProfileIcon name="pin" />}
-            label={t('main.locations')}
-            value={locations.data ? String(locationCount) : null}
-            onPress={() => router.push('/profile/locations')}
-            testID="profile-row-locations"
+        ) : profile.isError ? (
+          <LoadError
+            onRetry={() => void profile.refetch()}
+            retrying={profile.isFetching}
+            testID="profile-error"
           />
-          {/* Residência é complemento de `Em residência`, nunca pendência de quem não é residente. */}
-          {profile.data?.status === 'resident' && (
-            <InsetRow
-              icon={<ProfileIcon name="residency" />}
-              label={t('main.residency')}
-              value={residency.data?.specialty ?? null}
-              onPress={() => router.push('/profile/residency')}
-              testID="profile-row-residency"
-            />
-          )}
-          <InsetRow
-            icon={<ProfileIcon name="sliders" />}
-            label={t('main.workPreferences')}
-            onPress={() => router.push('/profile/preferences')}
-            last
-            testID="profile-row-preferences"
-          />
-        </InsetList>
-      </View>
+        ) : (
+          <View style={styles.identityPlaceholder} />
+        )}
 
-      <View style={styles.section}>
-        <SectionTitle>{t('main.sectionPreferences')}</SectionTitle>
-        <InsetList>
-          <InsetRow
-            icon={<ProfileIcon name="sun" />}
-            label={t('main.appearance')}
-            value={t('main.appearanceValue')}
-            onPress={() => router.push('/profile/appearance')}
-            last
-            testID="profile-row-appearance"
-          />
-        </InsetList>
-      </View>
+        {premiumBlock ? <View style={styles.premium}>{premiumBlock}</View> : null}
 
-      <View style={styles.section}>
-        <SectionTitle>{t('main.sectionAccount')}</SectionTitle>
-        <InsetList>{accountRows}</InsetList>
-      </View>
-
-      {privacyRows.length > 0 && (
         <View style={styles.section}>
-          <SectionTitle>{t('main.sectionPrivacy')}</SectionTitle>
+          <SectionTitle>{t('main.sectionWork')}</SectionTitle>
           <InsetList>
-            {privacyRows.map(([key, url], index) => (
+            <InsetRow
+              icon={<ProfileIcon name="pin" />}
+              label={t('main.locations')}
+              value={locations.data ? String(locationCount) : null}
+              onPress={() => go('/profile/locations')}
+              testID="profile-row-locations"
+            />
+            {/* Residência é complemento de `Em residência`, nunca pendência de quem não é residente. */}
+            {profile.data?.status === 'resident' && (
               <InsetRow
-                key={key}
-                label={t(`main.${key}`)}
-                onPress={() => openUrl(url)}
-                last={index === privacyRows.length - 1}
-                testID={`profile-${key}`}
+                icon={<ProfileIcon name="residency" />}
+                label={t('main.residency')}
+                value={residency.data?.specialty ?? null}
+                onPress={() => go('/profile/residency')}
+                testID="profile-row-residency"
               />
-            ))}
+            )}
+            <InsetRow
+              icon={<ProfileIcon name="sliders" />}
+              label={t('main.workPreferences')}
+              onPress={() => go('/profile/preferences')}
+              last
+              testID="profile-row-preferences"
+            />
           </InsetList>
         </View>
-      )}
 
-      <AppText variant="technical" style={styles.version}>
-        {t('main.version', { version })}
-      </AppText>
-      {signingOut && <Note>{t('main.signingOut')}</Note>}
-
-      {/* Catálogo de componentes (só em desenvolvimento). */}
-      {__DEV__ && (
-        <View style={styles.devTools}>
-          <Button
-            label={tComponents('catalog.title')}
-            variant="secondary"
-            onPress={() => router.push('/dev/primitives')}
-          />
+        <View style={styles.section}>
+          <SectionTitle>{t('main.sectionPreferences')}</SectionTitle>
+          <InsetList>
+            <InsetRow
+              icon={<ProfileIcon name="sun" />}
+              label={t('main.appearance')}
+              value={t('main.appearanceValue')}
+              onPress={() => go('/profile/appearance')}
+              last
+              testID="profile-row-appearance"
+            />
+          </InsetList>
         </View>
-      )}
+
+        <View style={styles.section}>
+          <SectionTitle>{t('main.sectionAccount')}</SectionTitle>
+          <InsetList>{accountRows}</InsetList>
+        </View>
+
+        {privacyRows.length > 0 && (
+          <View style={styles.section}>
+            <SectionTitle>{t('main.sectionPrivacy')}</SectionTitle>
+            <InsetList>
+              {privacyRows.map(([key, url], index) => (
+                <InsetRow
+                  key={key}
+                  label={t(`main.${key}`)}
+                  onPress={() => openUrl(url)}
+                  last={index === privacyRows.length - 1}
+                  testID={`profile-${key}`}
+                />
+              ))}
+            </InsetList>
+          </View>
+        )}
+
+        <AppText variant="technical" style={styles.version}>
+          {t('main.version', { version })}
+        </AppText>
+        {signingOut && <Note>{t('main.signingOut')}</Note>}
+
+        {/* Catálogo de componentes (só em desenvolvimento). */}
+        {__DEV__ && (
+          <View style={styles.devTools}>
+            <Button
+              label={tComponents('catalog.title')}
+              variant="secondary"
+              onPress={() => go('/dev/primitives')}
+            />
+          </View>
+        )}
+      </RevealGroup>
     </ScrollView>
   );
 }

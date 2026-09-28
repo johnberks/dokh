@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { PlusIcon } from '@/components/icons/heroicons';
 import { TOP_GREEN_HEIGHT, TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
+import { Reveal, step } from '@/components/Reveal';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { WorkCard } from '@/components/WorkCard';
 import { type LocalDate, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
@@ -25,6 +26,9 @@ import {
   workPayment,
   workTimeLabel,
 } from './agenda-format';
+
+/** Janela em que a lista do dia ainda faz parte da cascata de entrada da aba. */
+const ENTRY_WINDOW = 900;
 
 const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
@@ -44,6 +48,10 @@ export function AgendaScreen() {
   const [selected, setSelected] = useState<LocalDate>(today);
   // Voltar do detalhe ou do `+` preserva o dia que a pessoa olhava.
   const openedChild = useRef(false);
+  // Cada entrada na aba remonta a cascata de entrada (topo → calendário → dia → cards).
+  // Voltar de uma tela filha não reanima: a pessoa continua de onde estava.
+  const [enterKey, setEnterKey] = useState(0);
+  const enteredAt = useRef(0);
 
   // Depois de salvar um Trabalho novo, a Agenda abre no dia dele (`?date=`).
   const { date: savedDate } = useLocalSearchParams<{ date?: string }>();
@@ -53,6 +61,8 @@ export function AgendaScreen() {
     useCallback(() => {
       if (savedDate && /^\d{4}-\d{2}-\d{2}$/.test(savedDate)) {
         openedChild.current = false;
+        enteredAt.current = Date.now();
+        setEnterKey((key) => key + 1);
         setToday(todayInTimezone(deviceTimezone()));
         setMonth(monthOf(savedDate));
         setSelected(savedDate);
@@ -63,6 +73,8 @@ export function AgendaScreen() {
         openedChild.current = false;
         return;
       }
+      enteredAt.current = Date.now();
+      setEnterKey((key) => key + 1);
       const now = todayInTimezone(deviceTimezone());
       setToday(now);
       setMonth(monthOf(now));
@@ -74,6 +86,8 @@ export function AgendaScreen() {
   const works = agenda.data ?? [];
   const byDay = worksByDay(works);
   const dayWorks = byDay.get(selected) ?? [];
+  // Na entrada, os cards esperam o calendário; ao trocar de dia, entram na hora.
+  const listStart = Date.now() - enteredAt.current < ENTRY_WINDOW ? 5 : 0;
 
   function goToMonth(next: LocalMonth) {
     setMonth(next);
@@ -96,7 +110,7 @@ export function AgendaScreen() {
     <View style={styles.hero}>
       <StatusBar style="light" />
       <View style={styles.heroRow}>
-        <View style={styles.heroText}>
+        <Reveal key={`text-${enterKey}`} rise={10} style={styles.heroText}>
           <AppText variant="technical" style={styles.eyebrow}>
             {t('eyebrow')}
           </AppText>
@@ -109,16 +123,18 @@ export function AgendaScreen() {
             onNext={() => goToMonth(shiftMonth(month, 1))}
             testID="agenda-month"
           />
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('empty.addWork')}
-          onPress={addWork}
-          testID="agenda-add"
-          style={({ pressed }) => [styles.add, pressed && styles.pressed]}
-        >
-          <PlusIcon color={palette.cream} size={18} />
-        </Pressable>
+        </Reveal>
+        <Reveal key={`add-${enterKey}`} delay={step(1)} scaleFrom={0.8}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('empty.addWork')}
+            onPress={addWork}
+            testID="agenda-add"
+            style={({ pressed }) => [styles.add, pressed && styles.pressed]}
+          >
+            <PlusIcon color={palette.cream} size={18} />
+          </Pressable>
+        </Reveal>
       </View>
     </View>
   );
@@ -131,7 +147,13 @@ export function AgendaScreen() {
       bodyStyle={styles.body}
       testID="agenda-screen"
     >
-      <View style={styles.calendar}>
+      <Reveal
+        key={`calendar-${enterKey}`}
+        delay={step(2)}
+        rise={28}
+        scaleFrom={0.97}
+        style={styles.calendar}
+      >
         <CalendarCard
           month={month}
           today={today}
@@ -140,16 +162,16 @@ export function AgendaScreen() {
           onSelectDate={selectDate}
           testID="agenda-calendar"
         />
-      </View>
+      </Reveal>
 
-      <View style={styles.dayRow}>
+      <Reveal key={`day-${enterKey}`} delay={step(4)} style={styles.dayRow}>
         <AppText variant="technical" style={styles.dayLabel} testID="agenda-day-label">
           {dayLabel(selected, today, t)}
         </AppText>
         {agenda.isSuccess && (
           <AppText style={styles.dayCount}>{dayCountLabel(dayWorks.length, t)}</AppText>
         )}
-      </View>
+      </Reveal>
 
       {agenda.isPending ? (
         <Skeleton layout="list" testID="agenda-loading" />
@@ -161,30 +183,34 @@ export function AgendaScreen() {
           testID="agenda-error"
         />
       ) : dayWorks.length === 0 ? (
-        <EmptyState variant="agendaDay" onPrimaryPress={addWork} testID="agenda-free-day" />
+        <Reveal key={`free-${enterKey}`} delay={step(5)}>
+          <EmptyState variant="agendaDay" onPrimaryPress={addWork} testID="agenda-free-day" />
+        </Reveal>
       ) : (
-        <View style={styles.list}>
-          {dayWorks.map((work) => (
-            <WorkCard
-              key={work.id}
-              variant="agenda"
-              place={work.locationName}
-              locationColor={work.colorToken}
-              time={workTimeLabel(work)}
-              kind={workKindLabel(work, t)}
-              value={
-                work.amountCents === null
-                  ? '—'
-                  : formatCentsToBRL(work.amountCents, { omitZeroCents: true })
-              }
-              payment={workPayment(work, t)}
-              onPress={() => {
-                openedChild.current = true;
-                router.push({ pathname: '/work/[id]', params: { id: work.id } });
-              }}
-              accessibilityHint={t('card.hint')}
-              testID={`agenda-work-${work.id}`}
-            />
+        <View key={`list-${enterKey}`} style={styles.list}>
+          {/* Cards do dia em cascata: na entrada da aba e ao trocar de dia. */}
+          {dayWorks.map((work, index) => (
+            <Reveal key={`${selected}-${work.id}`} delay={step(listStart + index)} rise={20}>
+              <WorkCard
+                variant="agenda"
+                place={work.locationName}
+                locationColor={work.colorToken}
+                time={workTimeLabel(work)}
+                kind={workKindLabel(work, t)}
+                value={
+                  work.amountCents === null
+                    ? '—'
+                    : formatCentsToBRL(work.amountCents, { omitZeroCents: true })
+                }
+                payment={workPayment(work, t)}
+                onPress={() => {
+                  openedChild.current = true;
+                  router.push({ pathname: '/work/[id]', params: { id: work.id } });
+                }}
+                accessibilityHint={t('card.hint')}
+                testID={`agenda-work-${work.id}`}
+              />
+            </Reveal>
           ))}
         </View>
       )}

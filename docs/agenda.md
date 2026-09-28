@@ -83,3 +83,7 @@ Enquanto a 5.5 (benefícios/paywall) não existe, as folhas Free não mostram `C
 
 Quando a 5.5 entrar, basta passar `onLearnMore` nas duas folhas (`src/features/work/form/PremiumSheets.tsx`).
 
+
+## Entrada da aba (2026-09-28)
+
+Cada vez que a aba Agenda é aberta, a tela entra em cascata com `Reveal` (o mesmo do onboarding): topo (mês e troca de mês) → botão `+` → card do calendário, que sobe e assenta com leve escala → linha do dia → cards do dia, um a um. Voltar do detalhe de um trabalho ou do `+` não reanima. Ao trocar de dia, os cards novos entram em cascata na hora, sem esperar o calendário. Com "Reduzir movimento", tudo aparece montado (D11).

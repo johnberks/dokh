@@ -18,6 +18,7 @@ import { AccountScreen, AppearanceScreen, HelpScreen, PreferencesScreen } from '
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() },
+  useFocusEffect: (effect: () => undefined) => jest.requireActual('react').useEffect(effect, []),
 }));
 const mockSignOut = jest.fn(async () => {});
 jest.mock('@/features/auth/AuthSessionProvider', () => ({
