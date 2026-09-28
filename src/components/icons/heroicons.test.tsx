@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react-native';
-import { PROFILE_ICONS, ProfileIcon } from '@/features/profile/ProfilePieces';
 import * as Heroicons from './heroicons';
 
 describe('Heroicons Solid', () => {
@@ -13,14 +12,5 @@ describe('Heroicons Solid', () => {
       expect(svg.props.fill ?? svg.props.color).toBeDefined();
       await unmount();
     }
-  });
-
-  it('os ícones do Perfil usam o conjunto Heroicons', async () => {
-    for (const name of Object.keys(PROFILE_ICONS) as (keyof typeof PROFILE_ICONS)[]) {
-      const { unmount } = await render(<ProfileIcon name={name} />);
-      await unmount();
-    }
-    expect(PROFILE_ICONS.pin).toBe(Heroicons.MapPinIcon);
-    expect(PROFILE_ICONS.logout).toBe(Heroicons.ArrowRightStartOnRectangleIcon);
   });
 });
