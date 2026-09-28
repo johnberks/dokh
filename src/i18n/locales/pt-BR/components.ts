@@ -75,6 +75,8 @@ export const components = {
     loading: 'Carregando conteúdo',
     loadErrorTitle: 'Não foi possível carregar',
     loadErrorMessage: 'Confira sua conexão e tente novamente.',
+    offlineTitle: 'Sem conexão',
+    offlineMessage: 'Assim que a internet voltar, a DOKH atualiza esta tela.',
     mutationErrorMessage: 'Não foi possível salvar. Seus dados foram mantidos.',
     retry: 'Tentar novamente',
     offline: 'Sem conexão. Não é possível atualizar agora.',

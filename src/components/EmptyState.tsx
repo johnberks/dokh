@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { colors, emptyStateMetrics, shadow } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { CardLabel } from './CardLabel';
+import { Illustration } from './Illustration';
 
 type CommonProps = { testID?: string };
 type PrimaryProps = CommonProps & { onPrimaryPress: () => void };
@@ -14,12 +15,13 @@ export type EmptyStateProps =
   | (PrimaryProps & {
       variant:
         | 'homeEntries'
-        | 'homeWork'
         | 'agendaDay'
         | 'financesNoWork'
         | 'profileLocations'
         | 'profileResidency';
     })
+  // `firstWork`: ninguém registrou nada ainda — a ilustração convida à primeira entrada.
+  | (PrimaryProps & { variant: 'homeWork'; firstWork?: boolean })
   | (CommonProps & { variant: 'entriesMonth'; periodLabel: string })
   // `onPrimaryPress` opcional: o atalho para o extrato só aparece quando o extrato existe.
   | (CommonProps & {
@@ -134,15 +136,27 @@ export function EmptyState(props: EmptyStateProps) {
         style={({ pressed }) => [styles.homeWork, shadow.raised, pressed && styles.pressed]}
       >
         <CardLabel>{t('home:empty.nextWorkEyebrow')}</CardLabel>
-        <AppText accessibilityRole="header" variant="heading1" style={styles.homeWorkTitle}>
-          {t('home:empty.noWorkTitle')}
-        </AppText>
-        <AppText style={styles.homeWorkDescription}>{t('home:empty.noWorkDescription')}</AppText>
-        <View accessible={false} style={styles.homeWorkAction}>
-          <AppText variant="heading1" style={styles.homeWorkActionText}>
-            {t('home:empty.addWork')}
-          </AppText>
-          <ArrowRight color={colors.textPrimary} size={16} strokeWidth={1.8} />
+        {/* Card com ilustração à esquerda (`DOKH Ilustracoes`, "Uso card"). */}
+        <View style={styles.illustratedRow}>
+          <Illustration
+            name={props.firstWork ? 'firstEntry' : 'nextShift'}
+            width={88}
+            ground={false}
+          />
+          <View style={styles.illustratedCopy}>
+            <AppText accessibilityRole="header" variant="heading1" style={styles.homeWorkTitle}>
+              {t('home:empty.noWorkTitle')}
+            </AppText>
+            <AppText style={styles.homeWorkDescription}>
+              {t('home:empty.noWorkDescription')}
+            </AppText>
+            <View accessible={false} style={styles.homeWorkAction}>
+              <AppText variant="heading1" style={styles.homeWorkActionText}>
+                {t('home:empty.addWork')}
+              </AppText>
+              <ArrowRight color={colors.textPrimary} size={16} strokeWidth={1.8} />
+            </View>
+          </View>
         </View>
       </Pressable>
     );
@@ -151,11 +165,16 @@ export function EmptyState(props: EmptyStateProps) {
   if (props.variant === 'agendaDay') {
     return (
       <View testID={props.testID} style={styles.agendaDay}>
-        <View style={styles.agendaCopy}>
-          <AppText accessibilityRole="header" variant="heading1" style={styles.agendaTitle}>
-            {t('agenda:empty.freeDayTitle')}
-          </AppText>
-          <AppText style={styles.agendaDescription}>{t('agenda:empty.freeDayDescription')}</AppText>
+        <View style={styles.illustratedRow}>
+          <View style={[styles.agendaCopy, styles.illustratedCopy]}>
+            <AppText accessibilityRole="header" variant="heading1" style={styles.agendaTitle}>
+              {t('agenda:empty.freeDayTitle')}
+            </AppText>
+            <AppText style={styles.agendaDescription}>
+              {t('agenda:empty.freeDayDescription')}
+            </AppText>
+          </View>
+          <Illustration name="emptyAgenda" width={88} ground={false} />
         </View>
         <EmptyAction
           label={t('agenda:empty.addWork')}
@@ -173,6 +192,7 @@ export function EmptyState(props: EmptyStateProps) {
     return (
       <View testID={props.testID} style={styles.financeNoWork}>
         <View style={styles.financeIntro}>
+          <Illustration name="emptyWallet" width={150} />
           <AppText accessibilityRole="header" variant="heading1" style={styles.financeTitle}>
             {t('finances:empty.noWorkTitle')}
           </AppText>
@@ -207,13 +227,19 @@ export function EmptyState(props: EmptyStateProps) {
   if (props.variant === 'entriesMonth') {
     return (
       <View testID={props.testID} style={styles.entriesMonth}>
+        {/* Vazio centrado com ilustração (`DOKH Ilustracoes`, "Uso vazio"). */}
         <AppText variant="technical" style={styles.eyebrow}>
           {props.periodLabel}
         </AppText>
-        <AppText accessibilityRole="header" variant="heading1" style={styles.centeredTitle}>
+        <Illustration name="emptyStatement" width={180} />
+        <AppText
+          accessibilityRole="header"
+          variant="heading1"
+          style={[styles.centeredTitle, styles.textCenter]}
+        >
           {t('finances:empty.entriesTitle')}
         </AppText>
-        <AppText style={styles.centeredDescription}>
+        <AppText style={[styles.centeredDescription, styles.textCenter]}>
           {t('finances:empty.entriesDescription')}
         </AppText>
       </View>
@@ -223,15 +249,18 @@ export function EmptyState(props: EmptyStateProps) {
   if (props.variant === 'financesNextEntry') {
     return (
       <View testID={props.testID} style={styles.nextEntry}>
-        <View style={styles.nextEntryCopy}>
-          <CardLabel>{t('finances:empty.nextEntryEyebrow')}</CardLabel>
-          <View style={styles.nextEntryTitleLine}>
-            <View accessible={false} style={styles.nextEntryDot} />
-            <AppText accessibilityRole="header" variant="heading1" style={styles.nextEntryTitle}>
-              {t('finances:empty.nextEntryTitle')}
-            </AppText>
+        <View style={styles.illustratedRow}>
+          <View style={[styles.nextEntryCopy, styles.illustratedCopy]}>
+            <CardLabel>{t('finances:empty.nextEntryEyebrow')}</CardLabel>
+            <View style={styles.nextEntryTitleLine}>
+              <View accessible={false} style={styles.nextEntryDot} />
+              <AppText accessibilityRole="header" variant="heading1" style={styles.nextEntryTitle}>
+                {t('finances:empty.nextEntryTitle')}
+              </AppText>
+            </View>
+            <AppText style={styles.nextEntryDescription}>{props.description}</AppText>
           </View>
-          <AppText style={styles.nextEntryDescription}>{props.description}</AppText>
+          <Illustration name="allClear" width={80} ground={false} />
         </View>
         {props.onPrimaryPress ? (
           <EmptyAction
@@ -380,6 +409,10 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     gap: 12,
   },
+  // Ilustração ao lado do texto nos cards (88×66, sem sombra no chão).
+  illustratedRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  illustratedCopy: { flex: 1, minWidth: 0 },
+  textCenter: { textAlign: 'center' },
   homeWorkTitle: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4 },
   homeWorkDescription: { fontSize: 14, lineHeight: 21, color: colors.textMuted },
   homeWorkAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingTop: 2 },
@@ -416,6 +449,7 @@ const styles = StyleSheet.create({
   teaserText: { fontSize: 15, lineHeight: 22 },
   entriesMonth: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: emptyStateMetrics.entriesHorizontalInset,
     paddingBottom: emptyStateMetrics.profileBottomInset,

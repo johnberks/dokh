@@ -569,6 +569,20 @@ export const radius = {
   pill: 999,
 } as const;
 
+/**
+ * Ilustrações (design `DOKH Ilustracoes.dc.html`, V1): traço em tinta, papel, papel escuro e um
+ * único toque de ouro, num quadro de 160×120 usado de 64 a 200 px.
+ */
+export const illustration = {
+  ink: palette.base,
+  paper: palette.cream,
+  shade: '#D9D5C7',
+  gold: palette.bronze,
+  stroke: 2.5,
+  viewBoxWidth: 160,
+  viewBoxHeight: 120,
+} as const;
+
 /** Neutral-only shadows; RN cannot reproduce the HTML's inset highlight. */
 export const shadow = {
   none: {

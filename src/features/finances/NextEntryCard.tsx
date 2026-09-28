@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { CardLabel } from '@/components/CardLabel';
+import { Illustration } from '@/components/Illustration';
 import { formatCentsToBRL } from '@/domain/money';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate } from '@/features/work/work-schedule';
@@ -72,11 +73,15 @@ export function NextEntryCard({
           </View>
         </View>
 
-        <View style={styles.when}>
-          <AppText style={[type.heading1, styles.headline]} testID="finances-next-when">
-            {headline}
-          </AppText>
-          <AppText style={styles.date}>{date}</AppText>
+        <View style={styles.whenRow}>
+          <View style={styles.when}>
+            <AppText style={[type.heading1, styles.headline]} testID="finances-next-when">
+              {headline}
+            </AppText>
+            <AppText style={styles.date}>{date}</AppText>
+          </View>
+          {/* Pagamento pendente (`DOKH Ilustracoes` 07): a entrada chegou e espera confirmação. */}
+          {isToday ? <Illustration name="paymentPending" width={72} ground={false} /> : null}
         </View>
 
         <View style={styles.originRow}>
@@ -191,7 +196,8 @@ const styles = StyleSheet.create({
   tagToday: { borderColor: 'transparent', backgroundColor: 'rgba(169,138,84,0.18)' },
   tagText: { fontSize: 12, lineHeight: 16, letterSpacing: 0, color: palette.mutedCopy },
   tagTextToday: { color: palette.bronzeDeep },
-  when: { gap: 2 },
+  whenRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  when: { flex: 1, gap: 2 },
   headline: { fontSize: 30, lineHeight: 34, letterSpacing: -0.9, color: colors.textPrimary },
   date: { fontSize: 13, lineHeight: 18, color: palette.mutedCopy },
   originRow: {

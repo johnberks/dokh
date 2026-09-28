@@ -10,6 +10,7 @@ import { AppText } from '@/components/AppText';
 import { BarChartCard } from '@/components/BarChartCard';
 import { CardLabel } from '@/components/CardLabel';
 import { EmptyState } from '@/components/EmptyState';
+import { Illustration } from '@/components/Illustration';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { PremiumBadge } from '@/components/PremiumBadge';
@@ -881,17 +882,11 @@ function OriginCard({
           ))}
         </View>
       ) : (
-        <View style={styles.originList} testID={`${testID}-locked`}>
-          {[0, 1, 2].map((row) => (
-            <View key={row} accessible={false} style={styles.originRow}>
-              <View style={styles.originLine}>
-                <AppText style={styles.masked}>{'••••••••'}</AppText>
-                <AppText style={styles.masked}>{'R$ ••••'}</AppText>
-              </View>
-              <View style={styles.originTrack} />
-            </View>
-          ))}
-          <AppText style={styles.lockedHint}>{hint}</AppText>
+        // Recurso Premium (`DOKH Ilustracoes`, "Uso card"): o gráfico mascarado com cadeado
+        // substitui as linhas escondidas; nenhum número real aparece.
+        <View style={styles.lockedRow} testID={`${testID}-locked`}>
+          <Illustration name="premium" width={88} ground={false} />
+          <AppText style={[styles.lockedHint, styles.lockedHintFlex]}>{hint}</AppText>
         </View>
       )}
     </SectionCard>
@@ -1163,8 +1158,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     color: palette.mutedCopy,
   },
-  masked: { fontSize: 15, lineHeight: 19, color: 'rgba(16,22,15,0.28)', letterSpacing: 1 },
   lockedHint: { fontSize: 13, lineHeight: 19, color: palette.mutedCopy },
+  lockedRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  lockedHintFlex: { flex: 1 },
   generatedRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   generatedValue: { fontSize: 22, lineHeight: 26, letterSpacing: -0.66, color: colors.textPrimary },
   generatedLabel: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
