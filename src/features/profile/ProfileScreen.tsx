@@ -251,7 +251,11 @@ export function ProfileScreen() {
           </AppText>
           <View style={styles.tags} testID="profile-tags">
             <View style={[styles.tag, styles.tagStatus]}>
-              <AppText variant="heading2" style={[styles.tagText, styles.tagStatusText]}>
+              <AppText
+                variant="heading2"
+                numberOfLines={2}
+                style={[styles.tagText, styles.tagStatusText]}
+              >
                 {professionalStatusLabel(data.status, data.specialty, t)}
               </AppText>
             </View>
@@ -425,15 +429,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
+  // Raio 14 = pílula numa linha; nomes longos ("Especialista em Traumatologia
+  // Bucomaxilofacial") quebram em duas linhas e a tag vira um retângulo arredondado.
   tag: {
     minHeight: 28,
+    maxWidth: '100%',
     paddingHorizontal: 11,
-    borderRadius: 999,
+    paddingVertical: 5,
+    borderRadius: 14,
     backgroundColor: 'rgba(16,22,15,0.06)',
     justifyContent: 'center',
   },
   tagStatus: { backgroundColor: 'rgba(43,58,36,0.12)' },
-  tagText: { fontSize: 13, lineHeight: 17, letterSpacing: 0, color: palette.mutedCopy },
+  tagText: {
+    fontSize: 13,
+    lineHeight: 17,
+    letterSpacing: 0,
+    color: palette.mutedCopy,
+    textAlign: 'center',
+  },
   tagStatusText: { color: palette.structure },
   premium: { marginTop: 28 },
   section: { marginTop: 32 },

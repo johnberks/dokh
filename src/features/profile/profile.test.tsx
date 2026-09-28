@@ -437,6 +437,19 @@ describe('card do topo (referência Lyft)', () => {
     expect(screen.queryByTestId('profile-row-residency')).toBeNull();
   });
 
+  it('nome longo na tag quebra em até duas linhas em vez de estourar o card', async () => {
+    mockProfile = {
+      ...annaProfile,
+      status: 'specialist',
+      specialty: 'Traumatologia Bucomaxilofacial',
+    };
+    mockResidency = null;
+    await renderWithProviders(<ProfileScreen />);
+    const tag = screen.getByText('Especialista em Traumatologia Bucomaxilofacial');
+    expect(tag.props.numberOfLines).toBe(2);
+    expect(tag).toHaveStyle({ textAlign: 'center' });
+  });
+
   it('Especialista mostra "Especialista em X" e não mostra Residência', async () => {
     mockProfile = { ...annaProfile, status: 'specialist', specialty: 'Cardiologia' };
     mockResidency = null;
