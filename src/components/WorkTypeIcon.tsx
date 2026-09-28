@@ -1,6 +1,6 @@
 import type { WorkType } from '@/domain/work-type';
 import { colors, palette, workTypeSelectorMetrics } from '@/theme/tokens';
-import { ClipboardDocumentListIcon, ClockIcon, ScissorsIcon } from './icons/heroicons';
+import { ClipboardDocumentListIcon, ClockIcon, EyeDropperIcon } from './icons/heroicons';
 
 /** Cores de Onboarding 06 / Agenda 06B; o desenho vem da Heroicons Solid. */
 export const workTypeTone: Record<WorkType, { stroke: string; tile: string }> = {
@@ -14,7 +14,7 @@ type Props = { type: WorkType; size?: number };
 /** Ícone decorativo (Heroicons Solid): o nome do tipo sempre acompanha em texto. */
 const ICONS = {
   shift: ClockIcon,
-  procedure: ScissorsIcon,
+  procedure: EyeDropperIcon,
   appointment: ClipboardDocumentListIcon,
 } as const;
 

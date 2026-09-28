@@ -42,7 +42,7 @@ const NAMES = [
   'pencil',
   'plus',
   'question-mark-circle',
-  'scissors',
+  'eye-dropper',
   'shield-check',
   'star',
   'sun',
