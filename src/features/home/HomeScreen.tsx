@@ -124,7 +124,12 @@ export function HomeScreen() {
             {data.upcomingWorks[0] ? (
               <NextWork work={data.upcomingWorks[0]} today={today} onPress={openWork} />
             ) : (
-              <EmptyState variant="homeWork" onPrimaryPress={addWork} testID="home-no-work" />
+              <EmptyState
+                variant="homeWork"
+                firstWork={data.totalWorks === 0}
+                onPrimaryPress={addWork}
+                testID="home-no-work"
+              />
             )}
           </View>
 

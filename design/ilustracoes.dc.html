@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#10160F}a{color:#A98A54}a:hover{color:#EDEAE0}</style>
+</helmet>
+<div style="min-height:100vh;background:#10160F;color:#EDEAE0;font-family:'Archivo',sans-serif;padding:64px 56px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:56px">
+  <div style="display:flex;flex-direction:column;gap:14px;max-width:760px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-family:'Unbounded',sans-serif;font-weight:600;font-size:18px;letter-spacing:0.02em">DOKH</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.18em;color:#7F8A76">ILUSTRAÇÕES · V1</div>
+    </div>
+    <h1 style="margin:0;font-size:40px;font-weight:600;letter-spacing:-0.03em;line-height:1.05">Ilustrações para cards, telas vazias e erros</h1>
+    <p style="margin:0;font-size:15px;line-height:1.6;color:#9AA391;text-wrap:pretty">Todas usam o mesmo traço em tinta, preenchimento em papel escuro e um único toque de ouro. Ficam num quadro de 160×120 e podem ser usadas de 64 a 200px.</p>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.16em;color:#9AA391">
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#A98A54"></div>CARD</div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;border:1px dashed #9AA391;box-sizing:border-box"></div>VAZIO</div>
+      <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#C2654A"></div>ERRO</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:28px 20px">
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <rect x="42" y="32" width="72" height="64" rx="9" fill="#EDEAE0"></rect>
+          <path d="M42 50 h72"></path>
+          <path d="M60 26 v12 M96 26 v12"></path>
+          <rect x="54" y="60" width="10" height="10" rx="2.5" stroke-dasharray="3 3" stroke-width="1.5"></rect>
+          <rect x="73" y="60" width="10" height="10" rx="2.5" stroke-dasharray="3 3" stroke-width="1.5"></rect>
+          <rect x="92" y="60" width="10" height="10" rx="2.5" stroke-dasharray="3 3" stroke-width="1.5"></rect>
+          <rect x="54" y="76" width="10" height="10" rx="2.5" stroke-dasharray="3 3" stroke-width="1.5"></rect>
+          <rect x="73" y="76" width="10" height="10" rx="2.5" stroke-dasharray="3 3" stroke-width="1.5"></rect>
+          <circle cx="116" cy="32" r="13" fill="#A98A54"></circle>
+          <circle cx="122" cy="27" r="10" fill="#EDEAE0" stroke="none"></circle>
+          <path d="M34 30 v6 M31 33 h6" stroke="#A98A54"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">01</div><div style="color:#7F8A76">MEDICINA · VAZIO</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Agenda sem plantões</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Agenda sem plantões na semana ou no mês.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <path d="M44 22 v20 a15 15 0 0 0 30 0 v-20"></path>
+          <circle cx="44" cy="20" r="3" fill="#10160F"></circle>
+          <circle cx="74" cy="20" r="3" fill="#10160F"></circle>
+          <path d="M59 57 v14 a16 16 0 0 0 16 16 h5"></path>
+          <circle cx="104" cy="74" r="24" fill="#A98A54"></circle>
+          <circle cx="104" cy="74" r="16" stroke-width="1.5"></circle>
+          <path d="M104 66 v16 M96 74 h16"></path>
+          <path d="M128 38 l3 -7 M134 46 l7 -3" stroke="#A98A54"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">02</div><div style="color:#7F8A76">MEDICINA · CARD</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Primeira entrada</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Card na Home convidando a registrar o primeiro recebimento.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <path d="M44 44 l52 -14 l6 14" fill="#D9D5C7"></path>
+          <rect x="36" y="44" width="88" height="54" rx="10" fill="#EDEAE0"></rect>
+          <rect x="94" y="60" width="34" height="22" rx="7" fill="#D9D5C7"></rect>
+          <circle cx="106" cy="71" r="3.5" fill="#10160F"></circle>
+          <circle cx="66" cy="24" r="9" stroke="#A98A54" stroke-dasharray="3 3.5"></circle>
+          <path d="M52 62 h22" stroke-width="1.5" stroke-dasharray="3 4"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">03</div><div style="color:#7F8A76">FINANÇAS · VAZIO</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Carteira vazia</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Finanças sem nenhuma fonte de renda cadastrada.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <rect x="44" y="36" width="60" height="62" rx="4" fill="#EDEAE0"></rect>
+          <rect x="54" y="50" width="10" height="9" rx="2" fill="#D9D5C7" stroke-width="1.5"></rect>
+          <rect x="70" y="50" width="10" height="9" rx="2" fill="#D9D5C7" stroke-width="1.5"></rect>
+          <rect x="54" y="66" width="10" height="9" rx="2" fill="#D9D5C7" stroke-width="1.5"></rect>
+          <rect x="70" y="66" width="10" height="9" rx="2" fill="#D9D5C7" stroke-width="1.5"></rect>
+          <path d="M66 98 v-14 h16 v14"></path>
+          <circle cx="74" cy="36" r="11" fill="#A98A54"></circle>
+          <path d="M74 31 v10 M69 36 h10"></path>
+          <circle cx="112" cy="70" r="16" fill="#EDEAE0"></circle>
+          <path d="M112 61 v9 l6 4"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">04</div><div style="color:#7F8A76">MEDICINA · CARD</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Próximo plantão</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Destaque do próximo turno, com local e horário.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <path d="M48 16 h58 v80 l-7.25 -6 l-7.25 6 l-7.25 -6 l-7.25 6 l-7.25 -6 l-7.25 6 l-7.25 -6 l-7.25 6 z" fill="#EDEAE0"></path>
+          <path d="M58 32 h24" stroke-width="1.5"></path>
+          <path d="M58 46 h38 M58 58 h38 M58 70 h26" stroke-width="1.5" stroke-dasharray="3 4"></path>
+          <circle cx="106" cy="72" r="13" fill="#EDEAE0" stroke="#A98A54" stroke-width="4"></circle>
+          <path d="M115.5 81.5 l10 10" stroke="#A98A54" stroke-width="5"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">05</div><div style="color:#7F8A76">FINANÇAS · VAZIO</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Extrato sem lançamentos</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Mês navegado sem entradas, ou busca sem resultado.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <rect x="46" y="24" width="68" height="76" rx="9" fill="#EDEAE0"></rect>
+          <rect x="66" y="17" width="28" height="13" rx="4" fill="#10160F"></rect>
+          <rect x="57" y="42" width="10" height="10" rx="3"></rect>
+          <path d="M59.5 47 l2 2 l4 -4.5" stroke-width="1.8"></path>
+          <path d="M74 47 h28" stroke-width="1.5"></path>
+          <rect x="57" y="60" width="10" height="10" rx="3"></rect>
+          <path d="M59.5 65 l2 2 l4 -4.5" stroke-width="1.8"></path>
+          <path d="M74 65 h22" stroke-width="1.5"></path>
+          <rect x="57" y="78" width="10" height="10" rx="3" fill="#A98A54"></rect>
+          <path d="M59.5 83 l2 2 l4 -4.5" stroke-width="1.8"></path>
+          <path d="M74 83 h26" stroke-width="1.5"></path>
+          <path d="M124 30 v8 M120 34 h8 M34 64 v6 M31 67 h6" stroke="#A98A54"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">06</div><div style="color:#7F8A76">PRODUTIVIDADE · CARD</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Tudo em dia</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Quando não há pendências nem confirmações a fazer.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <path d="M62 24 c0 22 18 26 18 36 c0 10 -18 14 -18 36 h36 c0 -22 -18 -26 -18 -36 c0 -10 18 -14 18 -36 z" fill="#EDEAE0"></path>
+          <path d="M69 34 h22 l-11 15 z" fill="#A98A54" stroke="none"></path>
+          <path d="M80 54 v22" stroke="#A98A54" stroke-width="2" stroke-dasharray="2 4"></path>
+          <path d="M67 94 c4 -9 9 -13 13 -13 c4 0 9 4 13 13 z" fill="#A98A54" stroke="none"></path>
+          <path d="M54 22 h52 M54 98 h52"></path>
+          <circle cx="118" cy="44" r="10" fill="#EDEAE0"></circle>
+          <path d="M118 39 v6 M118 49 v0.5"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">07</div><div style="color:#7F8A76">FINANÇAS · CARD</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Pagamento pendente</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Alerta de entrada atrasada ou aguardando confirmação.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="56" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <path d="M18 76 c10 0 14 -6 28 -6"></path>
+          <rect x="46" y="58" width="22" height="24" rx="6" fill="#EDEAE0"></rect>
+          <path d="M68 64 h9 M68 76 h9"></path>
+          <rect x="94" y="56" width="24" height="28" rx="6" fill="#D9D5C7"></rect>
+          <path d="M100 64 h3 M100 76 h3" stroke-width="3"></path>
+          <path d="M118 70 c10 0 14 8 26 8"></path>
+          <path d="M88 36 l-6 11 h9 l-6 11" stroke="#A98A54" stroke-width="3"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">08</div><div style="color:#7F8A76">PRODUTIVIDADE · ERRO</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Sem conexão</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Offline ou falha de sincronização com o servidor.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <rect x="38" y="28" width="84" height="64" rx="9" fill="#EDEAE0"></rect>
+          <path d="M38 42 h84"></path>
+          <circle cx="47" cy="35" r="1.5" fill="#10160F"></circle>
+          <circle cx="54" cy="35" r="1.5" fill="#10160F"></circle>
+          <path d="M88 42 l-8 14 l10 9 l-8 13 l5 14" stroke-width="1.8"></path>
+          <g transform="rotate(-28 80 67)">
+            <rect x="52" y="58" width="56" height="18" rx="9" fill="#A98A54"></rect>
+            <rect x="70" y="58" width="20" height="18" fill="#EDEAE0"></rect>
+            <circle cx="60" cy="67" r="1.2" fill="#10160F" stroke="none"></circle>
+            <circle cx="100" cy="67" r="1.2" fill="#10160F" stroke="none"></circle>
+          </g>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">09</div><div style="color:#7F8A76">MEDICINA · ERRO</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Algo deu errado</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Erro inesperado: a tela quebrou e o app faz o curativo.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="aspect-ratio:4/3;border-radius:20px;background:#EDEAE0;padding:18px;box-sizing:border-box">
+        <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+          <rect x="30" y="24" width="84" height="64" rx="9" fill="#EDEAE0"></rect>
+          <path d="M42 38 h28" stroke-width="1.5"></path>
+          <rect x="44" y="58" width="10" height="20" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <rect x="60" y="50" width="10" height="28" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <rect x="76" y="62" width="10" height="16" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <rect x="92" y="44" width="10" height="34" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <path d="M104 64 v-9 a12 12 0 0 1 24 0 v9"></path>
+          <rect x="96" y="62" width="40" height="34" rx="9" fill="#A98A54"></rect>
+          <circle cx="116" cy="76" r="4" fill="#10160F"></circle>
+          <path d="M116 79 v7" stroke-width="3"></path>
+          <path d="M134 22 v10 M129 27 h10" stroke="#A98A54"></path>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em"><div style="color:#A98A54">10</div><div style="color:#7F8A76">FINANÇAS · CARD</div></div>
+        <div style="font-size:17px;font-weight:600;letter-spacing:-0.01em">Recurso Premium</div>
+        <div style="font-size:13px;line-height:1.5;color:#9AA391;text-wrap:pretty">Conteúdo mascarado com cadeado, como em Origem das Entradas.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="height:1px;background:#2B3A24"></div>
+
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.16em;color:#A98A54">EM USO · CARD · VAZIO · ERRO</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:stretch">
+
+      <div data-screen-label="Uso card" style="width:360px;max-width:100%;border-radius:28px;background:#EDEAE0;color:#10160F;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#7F8A76">HOME · CARD</div>
+        <div style="display:flex;align-items:center;gap:14px;background:#F6F4EE;border:1px solid #DCD8CB;border-radius:18px;padding:14px 16px">
+          <div style="width:88px;height:66px;flex-shrink:0">
+            <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M44 22 v20 a15 15 0 0 0 30 0 v-20"></path>
+              <circle cx="44" cy="20" r="3" fill="#10160F"></circle>
+              <circle cx="74" cy="20" r="3" fill="#10160F"></circle>
+              <path d="M59 57 v14 a16 16 0 0 0 16 16 h5"></path>
+              <circle cx="104" cy="74" r="24" fill="#A98A54"></circle>
+              <circle cx="104" cy="74" r="16" stroke-width="1.5"></circle>
+              <path d="M104 66 v16 M96 74 h16"></path>
+            </svg>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+            <div style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Registre sua primeira entrada</div>
+            <div style="font-size:13px;line-height:1.4;color:#5E6857">Veja quanto vai receber este mês, Anna.</div>
+            <div style="font-size:13px;font-weight:600;color:#2B3A24">Adicionar entrada →</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;background:#F6F4EE;border:1px solid #DCD8CB;border-radius:18px;padding:14px 16px">
+          <div style="width:88px;height:66px;flex-shrink:0">
+            <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="30" y="24" width="84" height="64" rx="9" fill="#EDEAE0"></rect>
+          <path d="M42 38 h28" stroke-width="1.5"></path>
+          <rect x="44" y="58" width="10" height="20" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <rect x="60" y="50" width="10" height="28" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <rect x="76" y="62" width="10" height="16" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <rect x="92" y="44" width="10" height="34" rx="2" fill="#D9D5C7" stroke="none"></rect>
+          <path d="M104 64 v-9 a12 12 0 0 1 24 0 v9"></path>
+          <rect x="96" y="62" width="40" height="34" rx="9" fill="#A98A54"></rect>
+          <circle cx="116" cy="76" r="4" fill="#10160F"></circle>
+          <path d="M116 79 v7" stroke-width="3"></path>
+          <path d="M134 22 v10 M129 27 h10" stroke="#A98A54"></path>
+            </svg>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+            <div style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Origem das Entradas</div>
+            <div style="font-size:13px;line-height:1.4;color:#5E6857">Veja de onde vem cada real.</div>
+            <div style="font-size:13px;font-weight:600;color:#A98A54">Desbloquear com Premium →</div>
+          </div>
+        </div>
+      </div>
+
+      <div data-screen-label="Uso vazio" style="width:360px;max-width:100%;border-radius:28px;background:#EDEAE0;color:#10160F;padding:20px 24px 28px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#7F8A76">EXTRATO · SETEMBRO 2026</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding-top:8px">
+          <div style="width:180px;height:135px">
+            <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="80" cy="104" rx="50" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+              <path d="M48 16 h58 v80 l-7.25 -6 l-7.25 6 l-7.25 -6 l-7.25 6 l-7.25 -6 l-7.25 6 l-7.25 -6 l-7.25 6 z" fill="#EDEAE0"></path>
+              <path d="M58 32 h24" stroke-width="1.5"></path>
+              <path d="M58 46 h38 M58 58 h38 M58 70 h26" stroke-width="1.5" stroke-dasharray="3 4"></path>
+              <circle cx="106" cy="72" r="13" fill="#EDEAE0" stroke="#A98A54" stroke-width="4"></circle>
+              <path d="M115.5 81.5 l10 10" stroke="#A98A54" stroke-width="5"></path>
+            </svg>
+          </div>
+          <div style="font-size:19px;font-weight:600;letter-spacing:-0.02em">Nenhum lançamento em setembro</div>
+          <div style="font-size:14px;line-height:1.5;color:#5E6857;max-width:30ch;text-wrap:pretty">Quando um plantão for pago, ele aparece aqui.</div>
+          <div style="margin-top:6px;border:1.5px dashed #7F8A76;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:600;color:#2B3A24">Adicionar entrada</div>
+        </div>
+      </div>
+
+      <div data-screen-label="Uso erro" style="width:360px;max-width:100%;border-radius:28px;background:#EDEAE0;color:#10160F;padding:20px 24px 28px;box-sizing:border-box;display:flex;flex-direction:column;gap:12px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.16em;color:#C2654A">ERRO · SINCRONIZAÇÃO</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding-top:8px">
+          <div style="width:180px;height:135px">
+            <svg viewBox="0 0 160 120" width="100%" height="100%" fill="none" stroke="#10160F" stroke-width="{{ sw }}" stroke-linecap="round" stroke-linejoin="round">
+              <ellipse cx="80" cy="104" rx="56" ry="5" fill="#D9D5C7" stroke="none"></ellipse>
+              <path d="M18 76 c10 0 14 -6 28 -6"></path>
+              <rect x="46" y="58" width="22" height="24" rx="6" fill="#EDEAE0"></rect>
+              <path d="M68 64 h9 M68 76 h9"></path>
+              <rect x="94" y="56" width="24" height="28" rx="6" fill="#D9D5C7"></rect>
+              <path d="M100 64 h3 M100 76 h3" stroke-width="3"></path>
+              <path d="M118 70 c10 0 14 8 26 8"></path>
+              <path d="M88 36 l-6 11 h9 l-6 11" stroke="#A98A54" stroke-width="3"></path>
+            </svg>
+          </div>
+          <div style="font-size:19px;font-weight:600;letter-spacing:-0.02em">Sem conexão</div>
+          <div style="font-size:14px;line-height:1.5;color:#5E6857;max-width:30ch;text-wrap:pretty">Seus dados estão salvos no aparelho. Vamos sincronizar assim que a internet voltar.</div>
+          <div style="margin-top:6px;background:#10160F;color:#EDEAE0;border-radius:14px;padding:13px 22px;font-size:14px;font-weight:600">Tentar novamente</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;traco&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:2.5,&quot;min&quot;:1.5,&quot;max&quot;:3.5,&quot;step&quot;:0.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Ilustrações&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return { sw: this.props.traco ?? 2.5 };
+  }
+}
+</script>
+</body>
+</html>
