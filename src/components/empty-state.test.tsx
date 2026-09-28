@@ -101,8 +101,8 @@ describe('EmptyState visual placements', () => {
     await rerender(
       <EmptyState variant="profileResidency" onPrimaryPress={onPrimaryPress} testID="profile" />,
     );
-    expect(screen.getByText('Você está em residência?')).toBeTruthy();
-    expect(screen.getByText('Não faz residência? Nada muda para você.')).toBeTruthy();
+    expect(screen.getByText('Complete os dados da sua residência.')).toBeTruthy();
+    expect(screen.getByText('Você pode fazer isso depois, quando quiser.')).toBeTruthy();
     expect(screen.queryByText('Onde você trabalha?')).toBeNull();
   });
 

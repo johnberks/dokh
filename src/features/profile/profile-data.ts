@@ -5,7 +5,36 @@ import { supabase } from '@/data/supabase-client';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import type { AuthClient } from '@/features/auth/session';
 
-export type ProfessionalStatus = 'general_practitioner' | 'resident';
+/**
+ * Situação profissional explícita (11.10). Nunca é inferida da residência:
+ * sem residência ≠ generalista. `resident` e `specialist` exigem especialidade.
+ */
+export type ProfessionalStatus = 'general_practitioner' | 'resident' | 'specialist';
+
+export function needsSpecialty(status: ProfessionalStatus): boolean {
+  return status !== 'general_practitioner';
+}
+
+type StatusLabelKey =
+  | 'status.resident'
+  | 'status.residentNoSpecialty'
+  | 'status.generalist'
+  | 'status.specialist'
+  | 'status.specialistNoSpecialty';
+
+/** "Residente de Clínica Médica", "Generalista" ou "Especialista em Cardiologia". */
+export function professionalStatusLabel(
+  status: ProfessionalStatus,
+  specialty: string | null,
+  t: (key: StatusLabelKey, options?: { specialty: string }) => string,
+): string {
+  const name = specialty?.trim() ?? '';
+  if (status === 'general_practitioner') return t('status.generalist');
+  if (status === 'resident') {
+    return name ? t('status.resident', { specialty: name }) : t('status.residentNoSpecialty');
+  }
+  return name ? t('status.specialist', { specialty: name }) : t('status.specialistNoSpecialty');
+}
 
 export type Profile = {
   displayName: string;
@@ -68,7 +97,10 @@ export type ProfilePatch = {
   city: string | null;
 };
 
-/** Generalista não tem especialidade — o banco recusa o contrário. */
+/**
+ * Generalista não tem especialidade — o banco recusa o contrário. Sair de `resident`
+ * encerra a residência ativa no servidor (trigger da 11.10): a bolsa futura sai de Finanças.
+ */
 export async function updateProfile(
   userId: string,
   patch: ProfilePatch,
@@ -80,7 +112,7 @@ export async function updateProfile(
       display_name: patch.displayName.trim(),
       graduation_year: patch.graduationYear,
       professional_status: patch.status,
-      specialty: patch.status === 'resident' ? patch.specialty?.trim() || null : null,
+      specialty: needsSpecialty(patch.status) ? patch.specialty?.trim() || null : null,
       city: patch.city?.trim() || null,
     })
     .eq('id', userId);
@@ -162,8 +194,8 @@ export async function readActiveResidency(
 export type ResidencyInput = Omit<Residency, 'id'>;
 
 /**
- * Cria ou edita a bolsa pela RPC Free da 3.9 (reconcilia só os meses futuros). Quem cadastra
- * residência passa a ser residente no perfil, com o programa como especialidade.
+ * Cria ou edita a bolsa pela RPC Free da 3.9 (reconcilia só os meses futuros). Só existe para
+ * quem é residente (a RPC recusa o contrário, 11.10); o programa vira a especialidade do perfil.
  */
 export async function saveResidency(
   userId: string,
@@ -171,6 +203,11 @@ export async function saveResidency(
   input: ResidencyInput,
   client: AuthClient = supabase,
 ): Promise<void> {
+  const { error: profileError } = await client
+    .from('profiles')
+    .update({ professional_status: 'resident', specialty: input.specialty.trim() })
+    .eq('id', userId);
+  if (profileError) throw profileError;
   const { error } = await client.rpc('create_or_update_residency', {
     p_residency_id: residencyId as unknown as string,
     p_specialty: input.specialty.trim(),
@@ -182,11 +219,6 @@ export async function saveResidency(
     p_payment_day: input.paymentDay,
   });
   if (error) throw error;
-  const { error: profileError } = await client
-    .from('profiles')
-    .update({ professional_status: 'resident', specialty: input.specialty.trim() })
-    .eq('id', userId);
-  if (profileError) throw profileError;
 }
 
 /** Encerra a bolsa: recebidos ficam, meses futuros saem de Finanças (RPC da 3.9). */

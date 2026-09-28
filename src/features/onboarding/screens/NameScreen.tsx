@@ -27,7 +27,7 @@ export function NameScreen() {
     setTouched(true);
     if (trimmed.length === 0) return;
     update({ displayName: trimmed });
-    router.push('/residency');
+    router.push('/professional-status');
   }
 
   return (

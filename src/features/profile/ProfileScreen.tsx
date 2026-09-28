@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import type { TFunction } from 'i18next';
 import { type ReactNode, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -17,7 +16,13 @@ import { useWorkLocations } from '@/features/locations/locations-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { InsetList, InsetRow, Note, ProfileIcon, SectionTitle } from './ProfilePieces';
-import { initialsOf, type Profile, useActiveResidency, useProfile } from './profile-data';
+import {
+  initialsOf,
+  type Profile,
+  professionalStatusLabel,
+  useActiveResidency,
+  useProfile,
+} from './profile-data';
 
 const HERO_SECONDARY = '#B9BFB2';
 
@@ -52,13 +57,6 @@ export function Avatar({ profile, size }: { profile: Profile; size: number }) {
       </AppText>
     </View>
   );
-}
-
-function statusLine(profile: Profile, t: TFunction<'profile'>): string {
-  if (profile.status === 'general_practitioner') return t('main.generalist');
-  return profile.specialty
-    ? t('main.resident', { specialty: profile.specialty })
-    : t('main.residentNoSpecialty');
 }
 
 function openUrl(url: string | null) {
@@ -253,8 +251,12 @@ export function ProfileScreen() {
           </AppText>
           <View style={styles.tags} testID="profile-tags">
             <View style={[styles.tag, styles.tagStatus]}>
-              <AppText variant="heading2" style={[styles.tagText, styles.tagStatusText]}>
-                {statusLine(data, t)}
+              <AppText
+                variant="heading2"
+                numberOfLines={2}
+                style={[styles.tagText, styles.tagStatusText]}
+              >
+                {professionalStatusLabel(data.status, data.specialty, t)}
               </AppText>
             </View>
             {data.graduationYear !== null && (
@@ -295,13 +297,16 @@ export function ProfileScreen() {
             onPress={() => router.push('/profile/locations')}
             testID="profile-row-locations"
           />
-          <InsetRow
-            icon={<ProfileIcon name="residency" />}
-            label={t('main.residency')}
-            value={residency.data?.specialty ?? null}
-            onPress={() => router.push('/profile/residency')}
-            testID="profile-row-residency"
-          />
+          {/* Residência é complemento de `Em residência`, nunca pendência de quem não é residente. */}
+          {profile.data?.status === 'resident' && (
+            <InsetRow
+              icon={<ProfileIcon name="residency" />}
+              label={t('main.residency')}
+              value={residency.data?.specialty ?? null}
+              onPress={() => router.push('/profile/residency')}
+              testID="profile-row-residency"
+            />
+          )}
           <InsetRow
             icon={<ProfileIcon name="sliders" />}
             label={t('main.workPreferences')}
@@ -424,15 +429,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
+  // Raio 14 = pílula numa linha; nomes longos ("Especialista em Traumatologia
+  // Bucomaxilofacial") quebram em duas linhas e a tag vira um retângulo arredondado.
   tag: {
     minHeight: 28,
+    maxWidth: '100%',
     paddingHorizontal: 11,
-    borderRadius: 999,
+    paddingVertical: 5,
+    borderRadius: 14,
     backgroundColor: 'rgba(16,22,15,0.06)',
     justifyContent: 'center',
   },
   tagStatus: { backgroundColor: 'rgba(43,58,36,0.12)' },
-  tagText: { fontSize: 13, lineHeight: 17, letterSpacing: 0, color: palette.mutedCopy },
+  tagText: {
+    fontSize: 13,
+    lineHeight: 17,
+    letterSpacing: 0,
+    color: palette.mutedCopy,
+    textAlign: 'center',
+  },
   tagStatusText: { color: palette.structure },
   premium: { marginTop: 28 },
   section: { marginTop: 32 },

@@ -1,5 +1,7 @@
 # Perfil — tarefas 11.1 a 11.5 e 11.8
 
+> Situação profissional (Em residência / Generalista / Especialista) segue `docs/professional-status.md` (11.10), que substitui o par Generalista/Residência descrito abaixo.
+
 Telas de `design/perfil.html` (01–06, 15–18) e regras de `docs/screens/perfil.md`. Importação (11.6/11.7), calendário e notificações (Fase 12) e benefícios/paywall (5.5, depende de P01) ficam fora por decisão do usuário (2026-09-26).
 
 ## Perfil principal (01/18) — `src/features/profile/ProfileScreen.tsx`

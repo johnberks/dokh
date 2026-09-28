@@ -158,7 +158,32 @@ describe('Perfil principal (01/18)', () => {
   });
 });
 
+/** Situação profissional fica num dropdown: abre o menu e escolhe a opção. */
+async function chooseStatus(value: string) {
+  await press('profile-edit-status');
+  await press(`profile-edit-status-${value}`);
+}
+
 describe('Editar perfil (02)', () => {
+  it('situação profissional em dropdown com descrição e check na opção atual', async () => {
+    await renderWithProviders(<EditProfileScreen />);
+    const field = screen.getByTestId('profile-edit-status');
+    expect(field.props.accessibilityValue).toEqual({ text: 'Em residência' });
+    expect(screen.queryByTestId('profile-edit-status-menu')).toBeNull();
+
+    await press('profile-edit-status');
+    expect(screen.getByTestId('profile-edit-status-menu')).toBeTruthy();
+    expect(screen.getByText('Já concluí minha especialização.')).toBeTruthy();
+    expect(
+      screen.getByTestId('profile-edit-status-resident').props.accessibilityState,
+    ).toMatchObject({ selected: true });
+
+    await press('profile-edit-status-specialist');
+    expect(screen.getByTestId('profile-edit-status').props.accessibilityValue).toEqual({
+      text: 'Especialista',
+    });
+  });
+
   it('ano de graduação vazio ou plausível', () => {
     expect(parseGraduationYear('', 2026)).toBeNull();
     expect(parseGraduationYear('2024', 2026)).toBe(2024);
@@ -166,16 +191,68 @@ describe('Editar perfil (02)', () => {
     expect(parseGraduationYear('24', 2026)).toBe('invalid');
   });
 
-  it('especialidade só com Residência; Generalista grava sem especialidade', async () => {
+  it('três situações: residente e especialista pedem especialidade, generalista não', async () => {
+    mockProfile = { ...annaProfile, status: 'general_practitioner', specialty: null };
+    mockResidency = null;
+    await renderWithProviders(<EditProfileScreen />);
+    expect(screen.getByText('Generalista')).toBeTruthy();
+    await press('profile-edit-status');
+    expect(screen.getByText('Em residência')).toBeTruthy();
+    expect(screen.getByText('Especialista')).toBeTruthy();
+    // Toque fora fecha sem mudar a escolha.
+    await press('profile-edit-status-backdrop');
+    await waitFor(() => expect(screen.queryByTestId('profile-edit-status-menu')).toBeNull());
+    expect(screen.queryByTestId('profile-edit-specialty')).toBeNull();
+
+    await chooseStatus('resident');
+    expect(screen.getByText('Especialidade ou programa da residência')).toBeTruthy();
+    await chooseStatus('specialist');
+    expect(screen.getByText('Especialidade')).toBeTruthy();
+    // Especialista sem especialidade não salva.
+    expect(screen.getByTestId('profile-edit-save').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+    // Mesma lista de especialidades do onboarding.
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('profile-edit-specialty'), 'cardio');
+    });
+    await press('profile-edit-specialty-option-Cardiologia');
+    expect(screen.queryByTestId('profile-edit-specialty-suggestions')).toBeNull();
+    await press('profile-edit-save');
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'specialist', specialty: 'Cardiologia' }),
+    );
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it('residente com bolsa: dados da residência à mão e sair da residência pede confirmação', async () => {
     await renderWithProviders(<EditProfileScreen />);
     expect(screen.getByTestId('profile-edit-specialty')).toBeTruthy();
-    await press('profile-edit-status-general_practitioner');
+    await press('profile-edit-residency-data');
+    expect(router.push).toHaveBeenCalledWith('/profile/residency');
+
+    await chooseStatus('general_practitioner');
     expect(screen.queryByTestId('profile-edit-specialty')).toBeNull();
+    expect(screen.queryByTestId('profile-edit-residency-data')).toBeNull();
     await press('profile-edit-save');
+    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(screen.getByText('Sair da residência?')).toBeTruthy();
+    await press('profile-edit-leave-confirm');
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ displayName: 'Anna Cunha', status: 'general_practitioner' }),
     );
     expect(router.back).toHaveBeenCalled();
+  });
+
+  it('residente sem bolsa troca de situação sem confirmação', async () => {
+    mockResidency = null;
+    await renderWithProviders(<EditProfileScreen />);
+    await chooseStatus('general_practitioner');
+    await press('profile-edit-save');
+    expect(screen.queryByText('Sair da residência?')).toBeNull();
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'general_practitioner' }),
+    );
   });
 
   it('nome vazio bloqueia salvar', async () => {
@@ -265,11 +342,19 @@ describe('Residência (05)', () => {
     expect(screen.getByText('Dia 05')).toBeTruthy();
   });
 
-  it('sem residência: vazio neutro com saída para quem não faz', async () => {
+  it('residente sem bolsa: convite para completar os dados da residência', async () => {
     mockResidency = null;
     await renderWithProviders(<ResidencyScreen />);
-    expect(screen.getByText('Você está em residência?')).toBeTruthy();
-    expect(screen.getByText('Não faz residência? Nada muda para você.')).toBeTruthy();
+    expect(screen.getByText('Complete os dados da sua residência.')).toBeTruthy();
+    expect(screen.getByText('Você pode fazer isso depois, quando quiser.')).toBeTruthy();
+  });
+
+  it('quem não é residente não vê residência como pendência', async () => {
+    mockProfile = { ...annaProfile, status: 'specialist', specialty: 'Cardiologia' };
+    mockResidency = null;
+    await renderWithProviders(<ResidencyScreen />);
+    expect(screen.getByTestId('residency-not-resident')).toBeTruthy();
+    expect(screen.queryByText('Complete os dados da sua residência.')).toBeNull();
   });
 
   it('edição grava pela RPC e encerrar pede confirmação', async () => {
@@ -348,5 +433,28 @@ describe('card do topo (referência Lyft)', () => {
     expect(screen.getByText('Generalista')).toBeTruthy();
     expect(screen.queryByText(/Turma de/)).toBeNull();
     expect(screen.getByTestId('profile-tags').props.children.filter(Boolean)).toHaveLength(1);
+    // Sem residência é estado válido: nada de linha Residência como pendência.
+    expect(screen.queryByTestId('profile-row-residency')).toBeNull();
+  });
+
+  it('nome longo na tag quebra em até duas linhas em vez de estourar o card', async () => {
+    mockProfile = {
+      ...annaProfile,
+      status: 'specialist',
+      specialty: 'Traumatologia Bucomaxilofacial',
+    };
+    mockResidency = null;
+    await renderWithProviders(<ProfileScreen />);
+    const tag = screen.getByText('Especialista em Traumatologia Bucomaxilofacial');
+    expect(tag.props.numberOfLines).toBe(2);
+    expect(tag).toHaveStyle({ textAlign: 'center' });
+  });
+
+  it('Especialista mostra "Especialista em X" e não mostra Residência', async () => {
+    mockProfile = { ...annaProfile, status: 'specialist', specialty: 'Cardiologia' };
+    mockResidency = null;
+    await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByText('Especialista em Cardiologia')).toBeTruthy();
+    expect(screen.queryByTestId('profile-row-residency')).toBeNull();
   });
 });

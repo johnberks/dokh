@@ -8,6 +8,7 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
 import { formatCentsToBRL, parseBRLToCents } from '@/domain/money';
+import { professionalStatusLabel } from '@/features/profile/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import {
   onboardingIntroMetrics as intro,
@@ -19,14 +20,22 @@ import { useProfileDraft } from '../profile-draft';
 
 /**
  * Tela 12: perfil construído. Não existe `Pular` — a única saída é registrar o primeiro
- * trabalho, conforme decisão do usuário (2026-09-25). Mostra só o que foi cadastrado.
+ * trabalho, conforme decisão do usuário (2026-09-25). Mostra só o que foi cadastrado:
+ * residente vê "Residente de X" com a bolsa; generalista e especialista veem só a situação
+ * ("Generalista", "Especialista em X"), sem card de residência (11.10).
  */
 export function ProfileReadyScreen() {
   const { t } = useTranslation('onboarding');
+  const { t: tProfile } = useTranslation('profile');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const { isResident, residencyProgram, monthlyAmount, paymentDay } = useProfileDraft();
-  const resident = isResident === true;
+  const { status, specialty, monthlyAmount, paymentDay } = useProfileDraft();
+  const resident = status === 'resident';
+  const statusLabel = professionalStatusLabel(
+    status ?? 'general_practitioner',
+    specialty,
+    tProfile,
+  );
   const amountCents = parseBRLToCents(monthlyAmount);
 
   return (
@@ -55,7 +64,7 @@ export function ProfileReadyScreen() {
               </AppText>
             </View>
             <View style={styles.cardBody}>
-              <AppText style={[type.heading1, styles.program]}>{residencyProgram}</AppText>
+              <AppText style={[type.heading1, styles.program]}>{statusLabel}</AppText>
               {amountCents !== null && (
                 <AppText style={[type.heading1, styles.amount]}>
                   {formatCentsToBRL(amountCents)}
@@ -69,18 +78,14 @@ export function ProfileReadyScreen() {
             </View>
           </BlurView>
         ) : (
-          <BlurView
-            intensity={36}
-            tint="dark"
-            style={styles.card}
-            testID="profile-ready-generalist"
-          >
+          <BlurView intensity={36} tint="dark" style={styles.card} testID="profile-ready-status">
             <View style={styles.badge}>
               <View style={styles.badgeDot} />
               <AppText variant="technical" style={styles.badgeLabel}>
-                {t('profile.ready.generalistBadge')}
+                {t('profile.ready.professionalBadge')}
               </AppText>
             </View>
+            <AppText style={[type.heading1, styles.program]}>{statusLabel}</AppText>
           </BlurView>
         )}
       </View>

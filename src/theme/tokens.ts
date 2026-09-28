@@ -634,6 +634,8 @@ export const motion = {
   saveHold: 650,
   /** Conteúdo que desliza ao trocar de visão (Mês ↔ Ano) ou ao voltar de uma tela interna. */
   slide: 300,
+  /** Dropdown do Perfil: cartão flutuante abre/fecha e a seta gira. */
+  dropdown: 180,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */
