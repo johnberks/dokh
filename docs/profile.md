@@ -134,3 +134,7 @@ Pedido do usuário: as letras estavam finas e sumiam no fundo claro.
 - **Textos de apoio** em 14 a 15 pt.
 - Os rótulos do namespace `profile` passaram de CAIXA ALTA para caixa normal. As folhas mantêm o sobretítulo técnico em maiúsculas.
 
+
+## Entrada da aba (2026-09-28)
+
+Ao abrir a aba, o card do topo, o bloco Premium e as seções entram em cascata (`RevealGroup`), como na Agenda e em Finanças. Voltar de uma subtela não reanima (`openedChild`). Com "Reduzir movimento", tudo aparece montado.

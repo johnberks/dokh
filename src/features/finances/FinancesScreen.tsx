@@ -14,6 +14,7 @@ import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { ProjectionChart } from '@/components/ProjectionChart';
 import { ReceiptProgressCard } from '@/components/ReceiptProgressCard';
+import { Reveal, RevealGroup } from '@/components/Reveal';
 import { ReviewCard } from '@/components/ReviewCard';
 import { type SlideFrom, SlideIn } from '@/components/SlideIn';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
@@ -99,6 +100,9 @@ export function FinancesScreen() {
   // Mês → Ano entra pela direita, Ano → Mês pela esquerda; voltar de uma tela interna
   // (Entradas, valor/hora) traz o conteúdo pela esquerda. Entrar na aba não desliza.
   const [slide, setSlide] = useState<{ key: number; from: SlideFrom }>({ key: 0, from: null });
+  // Entrada na aba: os blocos do mês sobem em cascata (como a Agenda). Voltar de uma tela
+  // interna ou trocar Mês/Ano não recascateia — o deslize já cuida disso.
+  const [revealKey, setRevealKey] = useState(0);
 
   // Como a Agenda: entrar na aba sempre abre o mês atual.
   useFocusEffect(
@@ -110,6 +114,7 @@ export function FinancesScreen() {
         return;
       }
       setSlide((current) => ({ key: current.key + 1, from: null }));
+      setRevealKey((key) => key + 1);
       const now = todayInTimezone(deviceTimezone());
       setToday(now);
       setMonth(monthOf(now));
@@ -156,7 +161,7 @@ export function FinancesScreen() {
     <View style={[styles.hero, chartOverlap && styles.heroBehindChart]}>
       <StatusBar style="light" />
       <View style={styles.heroContent}>
-        <View style={styles.heroTop}>
+        <Reveal key={`top-${revealKey}`} rise={10} style={styles.heroTop}>
           {inYear ? (
             <PeriodSwitcher
               size="compact"
@@ -193,7 +198,7 @@ export function FinancesScreen() {
             monthLabel={t('mode.month')}
             yearLabel={t('mode.year')}
           />
-        </View>
+        </Reveal>
         <SlideIn slideKey={slide.key} from={slide.from} testID="finances-hero-slide">
           {inYear
             ? yearData.data && (
@@ -269,15 +274,15 @@ export function FinancesScreen() {
             />
           </View>
         ) : isEmptyMonth(data) ? (
-          <View style={styles.padded}>
+          <Reveal key={revealKey} rise={20} style={styles.padded}>
             <EmptyState
               variant="financesNoWork"
               onPrimaryPress={() => openChild(() => router.push('/work/new'))}
               testID="finances-empty"
             />
-          </View>
+          </Reveal>
         ) : (
-          <View style={styles.sections}>
+          <RevealGroup key={revealKey} style={styles.sections}>
             {hasEntries && (
               <View style={styles.chartOverlap} testID="finances-split-wrap">
                 <ReceivedSplit data={data} tense={tense} onInfo={setInfo} />
@@ -365,7 +370,7 @@ export function FinancesScreen() {
                 }
               />
             )}
-          </View>
+          </RevealGroup>
         )}
       </SlideIn>
       <FinanceInfoSheet request={info} onClose={() => setInfo(null)} />
