@@ -107,3 +107,15 @@ Pedido do usuário: o Perfil estava com cara de template de IA. O bloco Premium 
   - Aparência mantém `EM BREVE` em Sistema e Escuro, como o HTML pede.
 - **Residência:** em vez do card, `● Residência ativa · R2`, o programa em 28 pt e a lista plana dos dados.
 
+### Card do topo (2026-09-27, referência Lyft na Mobbin)
+
+- A identidade virou um card claro com borda, como o "Looking good" do Lyft:
+  - foto centralizada de 96, com anel e sombra leve;
+  - nome em 28 pt centralizado;
+  - lápis em círculo no canto superior direito, que leva a Editar perfil.
+- Tags embaixo do nome, cada uma só quando o dado existe:
+  - situação (`Residente de {programa}` ou `Generalista`), em verde;
+  - `Turma de {ano}`;
+  - cidade.
+- As contagens (locais e trabalhos do mês) e o selo de câmera saíram, a pedido do usuário.
+

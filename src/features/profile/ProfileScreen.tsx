@@ -11,20 +11,15 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { LoadError } from '@/components/TechnicalStates';
 import { legalUrls, subscriptionManagementUrls, supportUrls } from '@/config/legal';
-import { monthOf } from '@/domain/calendar';
-import { useAgendaMonth } from '@/features/agenda/agenda-data';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { usePremium } from '@/features/billing/entitlement';
 import { useWorkLocations } from '@/features/locations/locations-data';
-import { deviceTimezone } from '@/features/onboarding/profile-data';
-import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { InsetList, InsetRow, Note, ProfileIcon, SectionTitle } from './ProfilePieces';
 import { initialsOf, type Profile, useActiveResidency, useProfile } from './profile-data';
 
 const HERO_SECONDARY = '#B9BFB2';
-const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
 /** Símbolo DOKH do card Premium (quadrados sobrepostos, acento bronze). */
 function PremiumMark({ size }: { size: number }) {
@@ -86,8 +81,6 @@ export function ProfileScreen() {
   const premium = usePremium();
   const locations = useWorkLocations();
   const residency = useActiveResidency();
-  const [today] = useState(() => todayInTimezone(deviceTimezone()));
-  const month = useAgendaMonth(monthOf(today));
   const [signingOut, setSigningOut] = useState(false);
   const [signOutFailed, setSignOutFailed] = useState(false);
   const isPremium = premium.data === true;
@@ -106,23 +99,7 @@ export function ProfileScreen() {
     }
   }
 
-  // Números da pessoa, só quando existem (nada de "0 locais" inventado como conquista).
   const locationCount = locations.data?.length ?? 0;
-  const worksThisMonth = month.data?.length ?? 0;
-  const monthLabel = MONTH_NAME.format(localDateToDate(today));
-  const stats = [
-    locationCount > 0
-      ? locationCount === 1
-        ? t('main.statsLocationsOne')
-        : t('main.statsLocationsMany', { count: locationCount })
-      : null,
-    worksThisMonth > 0
-      ? worksThisMonth === 1
-        ? t('main.statsWorksOne', { month: monthLabel })
-        : t('main.statsWorksMany', { count: worksThisMonth, month: monthLabel })
-      : null,
-    residency.data?.levelLabel ?? null,
-  ].filter((item): item is string => item !== null);
 
   let premiumBlock: ReactNode = null;
   if (premium.isSuccess && isPremium) {
@@ -253,41 +230,48 @@ export function ProfileScreen() {
     >
       <StatusBar style="dark" />
       {data ? (
-        <View style={styles.identity}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('edit.changePhoto')}
-            onPress={() => router.push('/profile/edit')}
-            testID="profile-avatar"
-            style={({ pressed }) => pressed && styles.pressed}
-          >
-            <Avatar profile={data} size={76} />
-            <View style={styles.cameraBadge}>
-              <ProfileIcon name="camera" size={14} color={palette.cream} />
-            </View>
-          </Pressable>
-          <AppText accessibilityRole="header" style={[type.heading1, styles.name]}>
-            {data.displayName}
-          </AppText>
-          <AppText style={styles.subtitle}>
-            {[statusLine(data, t), data.city].filter(Boolean).join(' · ')}
-          </AppText>
-          {stats.length > 0 && (
-            <AppText style={styles.stats} testID="profile-stats">
-              {stats.join(' · ')}
-            </AppText>
-          )}
+        <View style={styles.identity} testID="profile-identity">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('main.edit')}
+            hitSlop={6}
             onPress={() => router.push('/profile/edit')}
             testID="profile-edit"
-            style={({ pressed }) => [styles.editPill, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
           >
-            <AppText variant="heading2" style={styles.editPillText}>
-              {t('main.edit')}
-            </AppText>
+            <ProfileIcon name="pencil" size={18} />
           </Pressable>
+          <View style={styles.avatarRing}>
+            <Avatar profile={data} size={96} />
+          </View>
+          <AppText
+            accessibilityRole="header"
+            numberOfLines={2}
+            style={[type.heading1, styles.name]}
+          >
+            {data.displayName}
+          </AppText>
+          <View style={styles.tags} testID="profile-tags">
+            <View style={[styles.tag, styles.tagStatus]}>
+              <AppText variant="heading2" style={[styles.tagText, styles.tagStatusText]}>
+                {statusLine(data, t)}
+              </AppText>
+            </View>
+            {data.graduationYear !== null && (
+              <View style={styles.tag}>
+                <AppText variant="heading2" style={styles.tagText}>
+                  {t('main.graduatedIn', { year: data.graduationYear })}
+                </AppText>
+              </View>
+            )}
+            {data.city ? (
+              <View style={styles.tag}>
+                <AppText variant="heading2" style={styles.tagText}>
+                  {data.city}
+                </AppText>
+              </View>
+            ) : null}
+          </View>
         </View>
       ) : profile.isError ? (
         <LoadError
@@ -386,8 +370,38 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   content: { paddingHorizontal: 24, paddingBottom: 48 },
-  identity: { alignItems: 'flex-start', gap: 6 },
-  identityPlaceholder: { height: 180 },
+  identity: {
+    alignItems: 'center',
+    backgroundColor: palette.paper,
+    borderWidth: 1,
+    borderColor: 'rgba(16,22,15,0.12)',
+    borderRadius: 24,
+    paddingTop: 28,
+    paddingBottom: 22,
+    paddingHorizontal: 20,
+  },
+  identityPlaceholder: { height: 240 },
+  editButton: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(16,22,15,0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarRing: {
+    padding: 4,
+    borderRadius: 999,
+    backgroundColor: palette.previewPaper,
+    shadowColor: palette.base,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 3,
+  },
   avatar: {
     backgroundColor: palette.structure,
     alignItems: 'center',
@@ -395,38 +409,31 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   initials: { letterSpacing: -0.4, color: palette.cream },
-  cameraBadge: {
-    position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.foreground,
-    borderWidth: 2,
-    borderColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   name: {
-    marginTop: 12,
-    fontSize: 30,
-    lineHeight: 34,
-    letterSpacing: -0.9,
+    marginTop: 14,
+    fontSize: 28,
+    lineHeight: 32,
+    letterSpacing: -0.84,
     color: colors.textPrimary,
+    textAlign: 'center',
   },
-  subtitle: { fontSize: 15, lineHeight: 21, color: palette.mutedCopy },
-  stats: { fontSize: 13, lineHeight: 18, color: palette.sage },
-  editPill: {
-    marginTop: 10,
-    minHeight: 36,
-    paddingHorizontal: 16,
+  tags: {
+    marginTop: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  tag: {
+    minHeight: 28,
+    paddingHorizontal: 11,
     borderRadius: 999,
-    backgroundColor: 'rgba(16,22,15,0.07)',
-    alignItems: 'center',
+    backgroundColor: 'rgba(16,22,15,0.06)',
     justifyContent: 'center',
   },
-  editPillText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  tagStatus: { backgroundColor: 'rgba(43,58,36,0.12)' },
+  tagText: { fontSize: 13, lineHeight: 17, letterSpacing: 0, color: palette.mutedCopy },
+  tagStatusText: { color: palette.structure },
   premium: { marginTop: 28 },
   section: { marginTop: 32 },
   version: {

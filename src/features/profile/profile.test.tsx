@@ -23,9 +23,7 @@ jest.mock('@/features/auth/AuthSessionProvider', () => ({
   useAuthSession: () => ({ status: 'signedIn', userId: 'user-1', signOut: mockSignOut }),
 }));
 let mockPremium = false;
-jest.mock('@/features/agenda/agenda-data', () => ({
-  useAgendaMonth: () => ({ data: [{}, {}, {}] }),
-}));
+
 jest.mock('@/features/billing/entitlement', () => ({
   usePremium: () => ({ isSuccess: true, data: mockPremium }),
 }));
@@ -119,11 +117,11 @@ describe('Perfil principal (01/18)', () => {
   it('Free: identidade, card Premium sem compra e grupos de configuração', async () => {
     await renderWithProviders(<ProfileScreen />);
     expect(screen.getByRole('header', { name: 'Anna Cunha' })).toBeTruthy();
-    expect(screen.getByText('Residente de Clínica Médica · São Paulo, SP')).toBeTruthy();
-    // Números reais da pessoa embaixo do nome.
-    expect(screen.getByTestId('profile-stats').props.children).toMatch(
-      /^2 locais · 3 trabalhos em \p{L}+ · R2$/u,
-    );
+    // Situação, turma e cidade como tags no card do topo; nada de contagens inventadas.
+    expect(screen.getByText('Residente de Clínica Médica')).toBeTruthy();
+    expect(screen.getByText('Turma de 2024')).toBeTruthy();
+    expect(screen.getByText('São Paulo, SP')).toBeTruthy();
+    expect(screen.queryByText(/trabalhos em/)).toBeNull();
     expect(screen.getByTestId('profile-avatar-initials')).toBeTruthy();
     expect(screen.getByText('AC')).toBeTruthy();
     expect(screen.getByTestId('profile-premium-card')).toBeTruthy();
@@ -334,5 +332,21 @@ describe('Preferências, aparência, conta e ajuda (06/15/16/17)', () => {
     expect(screen.queryByTestId('help-helpCenter')).toBeNull();
     expect(screen.queryByText('EM BREVE')).toBeNull();
     expect(screen.getByText('Ajude a construir a DOKH.')).toBeTruthy();
+  });
+});
+
+describe('card do topo (referência Lyft)', () => {
+  it('Generalista sem turma e sem cidade mostra só a tag da situação', async () => {
+    mockProfile = {
+      ...annaProfile,
+      status: 'general_practitioner',
+      specialty: null,
+      graduationYear: null,
+      city: null,
+    };
+    await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByText('Generalista')).toBeTruthy();
+    expect(screen.queryByText(/Turma de/)).toBeNull();
+    expect(screen.getByTestId('profile-tags').props.children.filter(Boolean)).toHaveLength(1);
   });
 });
