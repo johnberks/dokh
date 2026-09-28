@@ -6,9 +6,8 @@ import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { subscriptionManagementUrls, supportUrls } from '@/config/legal';
-import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { usePremium } from '@/features/billing/entitlement';
-import { DarkButton, FieldBox } from '@/features/work/form/FormPieces';
+import { DarkButton } from '@/features/work/form/FormPieces';
 import { DurationSheet, StartTimeSheet } from '@/features/work/form/ScheduleSheets';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
@@ -18,8 +17,10 @@ import {
   InsetList,
   InsetRow,
   Note,
+  PickerField,
   type PROFILE_ICONS,
   ProfileIcon,
+  SectionTitle,
   SoonBadge,
   SubScreen,
 } from './ProfilePieces';
@@ -100,7 +101,7 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
                   pressed && styles.pressed,
                 ]}
               >
-                <AppText style={[on && type.heading1, styles.chipText, on && styles.chipTextOn]}>
+                <AppText style={[type.heading1, styles.chipText, on && styles.chipTextOn]}>
                   {t('preferences.hours', { hours: option })}
                 </AppText>
               </Pressable>
@@ -120,7 +121,7 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
           >
             <AppText
               style={[
-                hours !== null && !quick && type.heading1,
+                type.heading1,
                 styles.chipText,
                 hours !== null && !quick && styles.chipTextOn,
               ]}
@@ -135,12 +136,11 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
 
       <View style={styles.section}>
         <FieldLabel>{t('preferences.time')}</FieldLabel>
-        <FieldBox
+        <PickerField
           label={t('preferences.start')}
           value={value.startTime}
           placeholder={t('preferences.noTime')}
           onPress={() => setSheet('start')}
-          accessory={<AppText style={styles.chevron}>{'›'}</AppText>}
           testID="preferences-start"
         />
       </View>
@@ -192,6 +192,7 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
 /** Perfil 15: só o tema claro existe; Sistema e Escuro aparecem como "Em breve". */
 export function AppearanceScreen() {
   const { t } = useTranslation('profile');
+  const type = useBrandTypography();
   const options = [
     { key: 'system', label: t('appearance.system'), available: false },
     { key: 'light', label: t('appearance.light'), available: true },
@@ -203,11 +204,9 @@ export function AppearanceScreen() {
       onBack={() => router.back()}
       testID="appearance-screen"
     >
-      <AppText variant="technical" style={styles.groupTitle}>
-        {t('appearance.theme')}
-      </AppText>
+      <SectionTitle>{t('appearance.themeTitle')}</SectionTitle>
       <View accessibilityRole="radiogroup">
-        <InsetList>
+        <InsetList grouped>
           {options.map((option, index) => (
             <View
               key={option.key}
@@ -219,8 +218,7 @@ export function AppearanceScreen() {
               testID={`appearance-${option.key}`}
             >
               <AppText
-                variant="heading2"
-                style={[styles.themeLabel, !option.available && styles.muted]}
+                style={[type.heading1, styles.themeLabel, !option.available && styles.muted]}
               >
                 {option.label}
               </AppText>
@@ -244,40 +242,20 @@ export function AppearanceScreen() {
 export function AccountScreen() {
   const { t } = useTranslation('profile');
   const type = useBrandTypography();
-  const { signOut } = useAuthSession();
   const email = useAccountEmail();
   const premium = usePremium();
   const isPremium = premium.data === true;
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutFailed, setSignOutFailed] = useState(false);
   const [deleteInfo, setDeleteInfo] = useState(false);
-
-  async function leave() {
-    if (signingOut) return;
-    setSigningOut(true);
-    setSignOutFailed(false);
-    try {
-      await signOut();
-    } catch {
-      setSignOutFailed(true);
-      setSigningOut(false);
-    }
-  }
 
   return (
     <SubScreen title={t('account.title')} onBack={() => router.back()} testID="account-screen">
-      <AppText variant="technical" style={styles.groupTitle}>
-        {t('account.access')}
-      </AppText>
-      <InsetList>
-        <View style={[styles.emailRow, styles.themeDivider]} accessible testID="account-email">
-          <AppText variant="technical" style={styles.emailLabel}>
-            {t('account.email')}
-          </AppText>
-          <AppText variant="heading2" numberOfLines={1} style={styles.emailValue}>
-            {email.data ?? '—'}
-          </AppText>
-        </View>
+      <SectionTitle>{t('account.accessTitle')}</SectionTitle>
+      <InsetList grouped>
+        <InsetRow
+          label={t('account.emailLabel')}
+          subtitle={email.data ?? '—'}
+          testID="account-email"
+        />
         <InsetRow
           label={t('account.changePassword')}
           onPress={() => router.push('/recover-password')}
@@ -292,10 +270,10 @@ export function AccountScreen() {
         />
       </InsetList>
 
-      <AppText variant="technical" style={[styles.groupTitle, styles.groupSpacing]}>
-        {t('account.subscription')}
-      </AppText>
-      <InsetList>
+      <View style={styles.groupSpacing}>
+        <SectionTitle>{t('account.subscriptionTitle')}</SectionTitle>
+      </View>
+      <InsetList grouped>
         <InsetRow
           label={t('account.manage')}
           value={premium.isSuccess ? (isPremium ? t('account.premium') : t('account.free')) : null}
@@ -316,19 +294,6 @@ export function AccountScreen() {
       </InsetList>
 
       <View style={styles.accountActions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('account.signOut')}
-          accessibilityState={{ busy: signingOut, disabled: signingOut }}
-          disabled={signingOut}
-          onPress={() => void leave()}
-          testID="account-sign-out"
-          style={({ pressed }) => [styles.textAction, pressed && styles.pressed]}
-        >
-          {signingOut ? <ActivityIndicator color={palette.sage} /> : null}
-          <AppText style={[type.heading1, styles.signOut]}>{t('account.signOut')}</AppText>
-        </Pressable>
-        {signOutFailed && <Note>{t('account.signOutError')}</Note>}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('account.delete')}
@@ -369,32 +334,28 @@ export function HelpScreen() {
       { key: 'feedback', icon: 'star', label: t('help.feedback') },
       { key: 'problem', icon: 'flag', label: t('help.problem') },
     ];
+  // Só o que tem destino aparece; o resto entra sozinho quando o link for configurado.
+  const available = rows.flatMap((row) => {
+    const url = supportUrls[row.key];
+    return url ? [{ ...row, url }] : [];
+  });
   const feedback = supportUrls.feedback;
   return (
     <SubScreen title={t('help.title')} onBack={() => router.back()} testID="help-screen">
-      <InsetList>
-        {rows.map((row, index) => {
-          const url = supportUrls[row.key];
-          return (
+      {available.length > 0 && (
+        <InsetList grouped>
+          {available.map((row, index) => (
             <InsetRow
               key={row.key}
-              icon={
-                <ProfileIcon
-                  name={row.icon}
-                  size={20}
-                  color={url ? colors.foreground : palette.sage}
-                />
-              }
+              icon={<ProfileIcon name={row.icon} size={20} />}
               label={row.label}
-              muted={url === null}
-              accessory={url === null ? <SoonBadge /> : undefined}
-              onPress={url ? () => void Linking.openURL(url) : undefined}
-              last={index === rows.length - 1}
+              onPress={() => void Linking.openURL(row.url)}
+              last={index === available.length - 1}
               testID={`help-${row.key}`}
             />
-          );
-        })}
-      </InsetList>
+          ))}
+        </InsetList>
+      )}
 
       <Pressable
         accessibilityRole="button"
@@ -410,18 +371,12 @@ export function HelpScreen() {
         </AppText>
         <AppText style={[type.heading1, styles.inviteTitle]}>{t('help.inviteTitle')}</AppText>
         <AppText style={styles.inviteText}>{t('help.inviteText')}</AppText>
-        <View style={styles.inviteCta}>
-          <AppText style={[type.heading1, styles.inviteCtaText]}>{t('help.feedback')}</AppText>
-          {feedback === null ? (
-            <View style={styles.darkSoon}>
-              <AppText variant="technical" style={styles.darkSoonText}>
-                {t('soon')}
-              </AppText>
-            </View>
-          ) : (
+        {feedback !== null && (
+          <View style={styles.inviteCta}>
+            <AppText style={[type.heading1, styles.inviteCtaText]}>{t('help.feedback')}</AppText>
             <AppText style={[type.heading1, styles.inviteArrow]}>{'→'}</AppText>
-          )}
-        </View>
+          </View>
+        )}
       </Pressable>
     </SubScreen>
   );
@@ -429,37 +384,28 @@ export function HelpScreen() {
 
 const styles = StyleSheet.create({
   loading: { marginTop: 32 },
-  lead: { fontSize: 14, lineHeight: 21, color: palette.mutedCopy },
+  lead: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },
   section: { marginTop: 22, gap: 10 },
   chips: { flexDirection: 'row', gap: 8 },
   chip: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chipOn: { borderColor: colors.foreground, backgroundColor: colors.foreground },
-  chipOff: { borderColor: 'rgba(16,22,15,0.2)' },
-  chipText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  chipOff: { borderColor: 'rgba(16,22,15,0.12)', backgroundColor: palette.previewPaper },
+  chipText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   chipTextOn: { color: palette.cream },
-  chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
-  groupTitle: {
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: palette.sage,
-    paddingHorizontal: 4,
-    paddingBottom: 10,
-  },
   groupSpacing: { marginTop: 30 },
   themeRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 14 },
   themeDivider: { borderBottomWidth: 1, borderBottomColor: 'rgba(16,22,15,0.08)' },
   themeLabel: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 21,
     letterSpacing: 0,
     color: colors.textPrimary,
   },
@@ -473,9 +419,6 @@ const styles = StyleSheet.create({
   },
   radioOn: { borderWidth: 7, borderColor: colors.foreground },
   noteGap: { marginTop: 14 },
-  emailRow: { minHeight: 60, paddingVertical: 8, justifyContent: 'center', gap: 2 },
-  emailLabel: { fontSize: 9, lineHeight: 12, letterSpacing: 1.62, color: palette.sage },
-  emailValue: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   accountActions: { marginTop: 48, alignItems: 'center', gap: 10 },
   textAction: {
     minHeight: 44,
@@ -485,7 +428,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  signOut: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   deleteText: { fontSize: 13, lineHeight: 17, color: palette.sage },
   sheetCopy: { gap: 8, paddingTop: 6 },
   sheetTitle: { fontSize: 22, lineHeight: 26, letterSpacing: -0.44, color: colors.textPrimary },
@@ -505,13 +447,5 @@ const styles = StyleSheet.create({
   inviteCta: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 4 },
   inviteCtaText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.cream },
   inviteArrow: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.bronze },
-  darkSoon: {
-    borderWidth: 1,
-    borderColor: 'rgba(237,234,224,0.24)',
-    borderRadius: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-  },
-  darkSoonText: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: '#B9BFB2' },
   pressed: { opacity: 0.72 },
 });

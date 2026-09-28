@@ -428,3 +428,11 @@ Perfil (2026-09-26, branch `codex/11-profile`), tarefas 11.1–11.5 e 11.8. Impo
 - Testes: 64 suítes e 444 testes. O teste real cobre perfil, preferências, residência e foto. Contrato em [`profile.md`](profile.md).
 - Falta validar no iPhone, principalmente o envio da foto pelo Expo Go.
 
+Revisão visual do Perfil (2026-09-27, branch `codex/11-profile-refresh`), com referências da Mobbin e a pedido do usuário. O bloco Premium ficou como estava, por decisão dele.
+- Topo claro com avatar, câmera, números reais e `Editar perfil` em pílula.
+- Listas de um nível com títulos em texto normal.
+- `Sair` no fim da lista principal.
+- Itens sem destino são escondidos, em vez de mostrados como "em breve".
+- Residência em lista plana.
+- Testes: 64 suítes e 448 testes. Detalhes em [`profile.md`](profile.md).
+

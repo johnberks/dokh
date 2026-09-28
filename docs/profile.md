@@ -90,3 +90,45 @@ Telas de `design/perfil.html` (01–06, 15–18) e regras de `docs/screens/perfi
   - upsert de preferências;
   - residência criada e encerrada;
   - envio da foto e URL assinada, e outra conta não assina.
+
+## Revisão visual (2026-09-27, referências Mobbin: Cash App, Wise, GoHenry, Marcus, Wispr Flow)
+
+Pedido do usuário: o Perfil estava com cara de template de IA. O bloco Premium (card no Free e linha no Premium) **não mudou**, por decisão do usuário.
+- **Topo claro e pessoal**, sem o verde com manchas:
+  - avatar de 76 com selo de câmera, que leva a Editar perfil;
+  - nome em 30 pt e a linha `Residente de … · Cidade`;
+  - números reais: locais, trabalhos no mês e nível da residência, cada um só quando existe;
+  - `Editar perfil` em pílula.
+- **Listas de um nível** (`InsetList`/`InsetRow`): ícone, texto, valor ou subtítulo, `›` e divisória fina, sem cartão em volta. Títulos de seção em texto normal (`SectionTitle`), não em letra técnica maiúscula. Vale para a principal, Locais, Residência, Conta e Aparência.
+- **`Sair da DOKH`** passou a ser a última linha da lista principal e saiu de Conta e segurança.
+- **Só o que funciona aparece:**
+  - Avaliar, Termos, Privacidade e a Ajuda somem enquanto `supportUrls` e `legalUrls` forem nulos, e voltam sozinhos quando configurados;
+  - o convite da Ajuda só mostra o botão com destino;
+  - Aparência mantém `EM BREVE` em Sistema e Escuro, como o HTML pede.
+- **Residência:** em vez do card, `● Residência ativa · R2`, o programa em 28 pt e a lista plana dos dados.
+
+### Card do topo (2026-09-27, referência Lyft na Mobbin)
+
+- A identidade virou um card claro com borda, como o "Looking good" do Lyft:
+  - foto centralizada de 96, com anel e sombra leve;
+  - nome em 28 pt centralizado;
+  - lápis em círculo no canto superior direito, que leva a Editar perfil.
+- Tags embaixo do nome, cada uma só quando o dado existe:
+  - situação (`Residente de {programa}` ou `Generalista`), em verde;
+  - `Turma de {ano}`;
+  - cidade.
+- As contagens (locais e trabalhos do mês) e o selo de câmera saíram, a pedido do usuário.
+
+### Subtelas mais robustas (2026-09-27; referências Todoist, Zocdoc, Box Box Club, Subway e Fresha na Mobbin)
+
+Pedido do usuário: as letras estavam finas e sumiam no fundo claro.
+- **Listas das subtelas** (`InsetList grouped`) em grupo claro (`previewPaper`) com borda sutil e cantos de 18 sobre o creme. Rótulos em Archivo SemiBold 16 e valores em 15 `mutedCopy`. A lista da tela principal continua plana.
+- **Campos preenchidos** (`TextField` e o novo `PickerField`) em superfície clara:
+  - rótulo legível de 13 pt em cima, em caixa normal, no lugar da letra técnica de 9 pt;
+  - valor em SemiBold 17;
+  - a bolsa virou campo com prefixo `R$` no mesmo padrão.
+- **Chips** de 48 com texto sempre em SemiBold e fundo claro quando não selecionados.
+- **Títulos de seção** dos formulários (`FieldLabel`) em SemiBold 15, na cor do texto principal.
+- **Textos de apoio** em 14 a 15 pt.
+- Os rótulos do namespace `profile` passaram de CAIXA ALTA para caixa normal. As folhas mantêm o sobretítulo técnico em maiúsculas.
+

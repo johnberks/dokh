@@ -23,6 +23,7 @@ jest.mock('@/features/auth/AuthSessionProvider', () => ({
   useAuthSession: () => ({ status: 'signedIn', userId: 'user-1', signOut: mockSignOut }),
 }));
 let mockPremium = false;
+
 jest.mock('@/features/billing/entitlement', () => ({
   usePremium: () => ({ isSuccess: true, data: mockPremium }),
 }));
@@ -116,8 +117,11 @@ describe('Perfil principal (01/18)', () => {
   it('Free: identidade, card Premium sem compra e grupos de configuração', async () => {
     await renderWithProviders(<ProfileScreen />);
     expect(screen.getByRole('header', { name: 'Anna Cunha' })).toBeTruthy();
+    // Situação, turma e cidade como tags no card do topo; nada de contagens inventadas.
     expect(screen.getByText('Residente de Clínica Médica')).toBeTruthy();
+    expect(screen.getByText('Turma de 2024')).toBeTruthy();
     expect(screen.getByText('São Paulo, SP')).toBeTruthy();
+    expect(screen.queryByText(/trabalhos em/)).toBeNull();
     expect(screen.getByTestId('profile-avatar-initials')).toBeTruthy();
     expect(screen.getByText('AC')).toBeTruthy();
     expect(screen.getByTestId('profile-premium-card')).toBeTruthy();
@@ -132,6 +136,12 @@ describe('Perfil principal (01/18)', () => {
     expect(router.push).toHaveBeenCalledWith('/profile/locations');
     await press('profile-edit');
     expect(router.push).toHaveBeenCalledWith('/profile/edit');
+    // Sem destino configurado, avaliar, ajuda e termos não aparecem (nada de "em breve").
+    expect(screen.queryByTestId('profile-row-rate')).toBeNull();
+    expect(screen.queryByTestId('profile-row-help')).toBeNull();
+    expect(screen.queryByTestId('profile-terms')).toBeNull();
+    await press('profile-sign-out');
+    expect(mockSignOut).toHaveBeenCalled();
   });
 
   it('Premium ativo: linha compacta, sem card de venda', async () => {
@@ -248,7 +258,7 @@ describe('Locais (03/04)', () => {
 describe('Residência (05)', () => {
   it('mostra a bolsa como configuração da fonte recorrente', async () => {
     await renderWithProviders(<ResidencyScreen />);
-    expect(screen.getByText('RESIDÊNCIA ATIVA')).toBeTruthy();
+    expect(screen.getByText('Residência ativa')).toBeTruthy();
     expect(screen.getByText('R2')).toBeTruthy();
     expect(screen.getByText('Mar 2025')).toBeTruthy();
     expect(screen.getByText('Fev 2027')).toBeTruthy();
@@ -308,19 +318,35 @@ describe('Preferências, aparência, conta e ajuda (06/15/16/17)', () => {
     });
   });
 
-  it('conta: e-mail, plano Free e sair', async () => {
+  it('conta: e-mail e plano Free; sair fica na tela principal', async () => {
     await renderWithProviders(<AccountScreen />);
     expect(screen.getByText('anna@example.com')).toBeTruthy();
     expect(screen.getByText('Free')).toBeTruthy();
-    await press('account-sign-out');
-    expect(mockSignOut).toHaveBeenCalled();
+    expect(screen.queryByTestId('account-sign-out')).toBeNull();
     await press('account-delete');
     expect(screen.getByText(/ainda não está disponível/)).toBeTruthy();
   });
 
-  it('ajuda: destinos sem definição aparecem como em breve', async () => {
+  it('ajuda: destinos sem definição não aparecem', async () => {
     await renderWithProviders(<HelpScreen />);
-    expect(screen.getAllByText('EM BREVE').length).toBeGreaterThanOrEqual(4);
+    expect(screen.queryByTestId('help-helpCenter')).toBeNull();
+    expect(screen.queryByText('EM BREVE')).toBeNull();
     expect(screen.getByText('Ajude a construir a DOKH.')).toBeTruthy();
+  });
+});
+
+describe('card do topo (referência Lyft)', () => {
+  it('Generalista sem turma e sem cidade mostra só a tag da situação', async () => {
+    mockProfile = {
+      ...annaProfile,
+      status: 'general_practitioner',
+      specialty: null,
+      graduationYear: null,
+      city: null,
+    };
+    await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByText('Generalista')).toBeTruthy();
+    expect(screen.queryByText(/Turma de/)).toBeNull();
+    expect(screen.getByTestId('profile-tags').props.children.filter(Boolean)).toHaveLength(1);
   });
 });
