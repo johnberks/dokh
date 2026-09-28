@@ -1,13 +1,15 @@
 import { router, useFocusEffect } from 'expo-router';
-import Banknote from 'lucide-react-native/icons/banknote';
-import CalendarClock from 'lucide-react-native/icons/calendar-clock';
-import CalendarDays from 'lucide-react-native/icons/calendar-days';
-import Wallet from 'lucide-react-native/icons/wallet';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { EmptyState } from '@/components/EmptyState';
+import {
+  BanknotesIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  WalletIcon,
+} from '@/components/icons/heroicons';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { ProgressCard } from '@/components/ProgressCard';
 import { type ReviewCardEntry, ReviewCardStack } from '@/components/ReviewCard';
@@ -151,7 +153,7 @@ export function HomeScreen() {
 
           {data.upcomingEntries.length > 0 ? (
             <HomeListCard
-              icon={<Wallet color={palette.bronzeDeep} size={16} strokeWidth={1.7} />}
+              icon={<WalletIcon color={palette.bronzeDeep} size={16} />}
               iconTone="bronze"
               title={t('entries.eyebrow')}
               action={t('entries.seeAll')}
@@ -177,7 +179,7 @@ export function HomeScreen() {
 
           {data.upcomingWorks.length > 1 ? (
             <HomeListCard
-              icon={<CalendarDays color={palette.structure} size={16} strokeWidth={1.7} />}
+              icon={<CalendarDaysIcon color={palette.structure} size={16} />}
               iconTone="sage"
               title={t('works.eyebrow')}
               action={t('works.seeAgenda')}
@@ -282,7 +284,7 @@ function reviewCards(
       id: `today-${due.receivableId}`,
       tone: 'attention',
       eyebrow: t('review.todayEyebrow'),
-      icon: <Banknote color={palette.bronzeDeep} size={18} strokeWidth={1.7} />,
+      icon: <BanknotesIcon color={palette.bronzeDeep} size={18} />,
       iconTone: 'bronze',
       value: money(due.amountCents),
       qualifier: originName(due, t('entries.residency')),
@@ -299,7 +301,7 @@ function reviewCards(
       id: `late-${late.receivableId}`,
       tone: 'neutral',
       eyebrow: t('review.overdueEyebrow', { date: formatDayMonth(late.expectedOn) }),
-      icon: <CalendarClock color={palette.bronzeDeep} size={18} strokeWidth={1.7} />,
+      icon: <ClockIcon color={palette.bronzeDeep} size={18} />,
       iconTone: 'bronze',
       value: money(late.amountCents),
       qualifier: originName(late, t('entries.residency')),
@@ -316,7 +318,7 @@ function reviewCards(
       id: 'undated',
       tone: 'neutral',
       size: 'compact',
-      icon: <CalendarClock color={palette.bronzeDeep} size={18} strokeWidth={1.7} />,
+      icon: <ClockIcon color={palette.bronzeDeep} size={18} />,
       iconTone: 'bronze',
       value: t('review.undatedValue', { value: money(body.undatedTotalCents) }),
       qualifier:

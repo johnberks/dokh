@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
 import { colors, premiumGateMetrics as m, palette } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { LockClosedIcon } from './icons/heroicons';
 
-/** Cadeado de Agenda 12/14 e Finanças (viewBox 10×12, traço 1,4). */
+/** Cadeado de Agenda 12/14 e Finanças (Heroicons Solid `lock-closed`). */
 export function PremiumLockIcon({
   color = palette.bronzeDeep,
   size = 10,
@@ -12,12 +12,8 @@ export function PremiumLockIcon({
   color?: string;
   size?: number;
 }) {
-  return (
-    <Svg width={size * 0.9} height={size} viewBox="0 0 10 12" fill="none" accessible={false}>
-      <Rect x={1} y={5} width={8} height={6.3} rx={1.5} stroke={color} strokeWidth={1.4} />
-      <Path d="M3 5V3.5a2 2 0 0 1 4 0V5" stroke={color} strokeWidth={1.4} />
-    </Svg>
-  );
+  // O desenho da Heroicons tem folga interna: um pouco maior para ocupar o mesmo espaço.
+  return <LockClosedIcon size={Math.round(size * 1.2)} color={color} />;
 }
 
 type Props = {

@@ -1,6 +1,5 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Check from 'lucide-react-native/icons/check';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { ArrowRightIcon, CheckIcon } from '@/components/icons/heroicons';
 import {
   colors,
   shadow,
@@ -58,7 +57,7 @@ function ActionArrow({ placement }: { placement: 'agenda' | 'featured' }) {
       accessible={false}
       style={[styles.arrow, placement === 'agenda' ? styles.agendaArrow : styles.featuredArrow]}
     >
-      <ArrowRight color={colors.accent} size={16} strokeWidth={1.8} />
+      <ArrowRightIcon color={colors.accent} size={16} />
     </View>
   );
 }
@@ -119,7 +118,7 @@ export function WorkCard(props: WorkCardProps) {
           </AppText>
           <View testID={testID ? `${testID}-status` : undefined} style={styles.statusLine}>
             {props.payment.state === 'received' ? (
-              <Check color={colors.textSecondary} size={12} strokeWidth={2} />
+              <CheckIcon color={colors.textSecondary} size={12} />
             ) : null}
             <AppText
               numberOfLines={1}

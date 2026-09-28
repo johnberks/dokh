@@ -5,9 +5,10 @@ import { type ReactNode, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
-import Svg, { Polyline, Rect } from 'react-native-svg';
+import Svg, { Rect } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
+import { CheckIcon } from '@/components/icons/heroicons';
 import { LoadError } from '@/components/TechnicalStates';
 import { legalUrls, subscriptionManagementUrls, supportUrls } from '@/config/legal';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -122,9 +123,7 @@ export function ProfileScreen() {
               {t('main.premiumEyebrow')}
             </AppText>
             <View style={styles.activeTag}>
-              <Svg width={9} height={7} viewBox="0 0 12 10" fill="none" accessible={false}>
-                <Polyline points="1,5 4.5,8.5 11,1.5" stroke={palette.bronze} strokeWidth={2} />
-              </Svg>
+              <CheckIcon size={11} color={palette.bronze} />
               <AppText variant="technical" style={styles.activeText}>
                 {t('main.premiumActive')}
               </AppText>

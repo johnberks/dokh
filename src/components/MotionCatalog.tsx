@@ -1,7 +1,7 @@
-import CircleCheck from 'lucide-react-native/icons/circle-check';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
+import { CheckCircleIcon } from '@/components/icons/heroicons';
 import { colors, spacing } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { AppText } from './AppText';
@@ -66,7 +66,7 @@ export function MotionCatalog() {
             ? [
                 {
                   id: 'motion-demo',
-                  icon: <CircleCheck color={colors.reviewBronzeText} size={16} />,
+                  icon: <CheckCircleIcon color={colors.reviewBronzeText} size={16} />,
                   value: t('catalog.motionCard'),
                   action: { label: t('catalog.motionRemove'), kind: 'check' },
                   onPress: () => setShowCard(false),

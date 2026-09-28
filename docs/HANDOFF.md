@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-27 · Claude Code · Animações do onboarding (`docs/onboarding-motion.md`) na branch `codex/7-onboarding-motion`, empilhada sobre `codex/illustrations` (PR #53) → #52 → #51. Ordem de merge: 51 → 52 → 53 → este. Antes: ilustrações V1 (`docs/illustrations.md`) e 11.10 situação profissional (`docs/professional-status.md`). Pipeline completo passou (66 suítes/467 testes, export iOS). Falta validar no iPhone.
+Última atualização: 2026-09-28 · Claude Code · Ícones trocados por Heroicons Solid (D10 revista; `scripts/generate-heroicons.mjs`), branch `codex/heroicons` empilhada sobre `codex/7-onboarding-motion` (#54) → #53 → #52 → #51. Ordem de merge: 51 → 52 → 53 → 54 → este. Pipeline completo passou. Falta validar no iPhone.
 
 Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
 
@@ -215,7 +215,7 @@ npm_config_cache=/private/tmp/dokh-npm-cache fnm exec --using=22 npx expo-doctor
 - `renderRouter` não aguarda o render; usar o helper `openAt` de `src/test/routes.test.tsx`.
 - QueryClient de teste precisa de `gcTime: Infinity` em queries e mutations, senão o Jest não encerra.
 - Não usar `new URL().hostname` no app: a implementação de URL do React Native é incompleta.
-- `lucide-react-native` é mapeado para o build CJS só no Jest (`package.json` > `jest.moduleNameMapper`).
+- Ícones: Heroicons Solid gerados em `src/components/icons/heroicons.tsx` (`node scripts/generate-heroicons.mjs`); `lucide-react-native` foi removido em 2026-09-28 (D10).
 - Reanimated 4 no Jest: `src/test/native-mocks.setup.ts` mocka `react-native-worklets` e chama `setUpTests()`. Os testes de rota usam o mock do Expo Router, que **não tem** `useReducedMotion`; use o hook próprio `src/theme/useReducedMotion.ts`.
 - Use `useContext(SafeAreaInsetsContext)` com fallback em componentes que também aparecem em testes sem `SafeAreaProvider`.
 - `npx expo-doctor` pode falhar se o cache global npm não for gravável. Neste ambiente, `npm_config_cache=/private/tmp/dokh-npm-cache npx expo-doctor` executou 21/21 checks.

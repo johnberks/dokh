@@ -1,5 +1,4 @@
 import { BlurTargetView, BlurView } from 'expo-blur';
-import { Eye, EyeOff } from 'lucide-react-native';
 import { type ReactNode, type Ref, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,6 +13,7 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
+import { EyeIcon, EyeSlashIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 
@@ -187,9 +187,9 @@ export function AuthField({
             style={styles.passwordToggle}
           >
             {passwordVisible ? (
-              <EyeOff size={20} color={palette.sage} />
+              <EyeSlashIcon size={20} color={palette.sage} />
             ) : (
-              <Eye size={20} color={palette.sage} />
+              <EyeIcon size={20} color={palette.sage} />
             )}
           </Pressable>
         ) : null}

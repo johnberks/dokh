@@ -1,6 +1,6 @@
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { ChevronLeftIcon } from '@/components/icons/heroicons';
 import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 
 type Props = {
@@ -25,7 +25,7 @@ export function OnboardingHeader({ step, onBack, testID }: Props) {
         testID={testID ? `${testID}-back` : undefined}
         style={({ pressed }) => [styles.back, pressed && styles.pressed]}
       >
-        <ChevronLeft color={colors.foreground} size={m.backIcon} strokeWidth={1.8} />
+        <ChevronLeftIcon color={colors.foreground} size={m.backIcon} />
       </Pressable>
       <View
         accessible

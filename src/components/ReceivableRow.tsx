@@ -1,8 +1,7 @@
-import Check from 'lucide-react-native/icons/check';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { CheckIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import { colors, receivableRowMetrics } from '@/theme/tokens';
 import { AppText } from './AppText';
 
@@ -106,7 +105,7 @@ export function ReceivableRow(props: ReceivableRowProps) {
                     : styles.expectedStatus,
               ]}
             >
-              {received ? <Check color={colors.textSecondary} size={12} strokeWidth={2} /> : null}
+              {received ? <CheckIcon color={colors.textSecondary} size={12} /> : null}
               <AppText
                 variant="heading1"
                 style={[
@@ -124,7 +123,7 @@ export function ReceivableRow(props: ReceivableRowProps) {
           </View>
           {tappable ? (
             <View testID={testID ? `${testID}-chevron` : undefined}>
-              <ChevronRight color={colors.darkTextSecondary} size={18} strokeWidth={1.8} />
+              <ChevronRightIcon color={colors.darkTextSecondary} size={18} />
             </View>
           ) : null}
         </Pressable>
@@ -149,7 +148,7 @@ export function ReceivableRow(props: ReceivableRowProps) {
               {confirming ? (
                 <ActivityIndicator color={colors.accent} size="small" />
               ) : (
-                <Check color={colors.accent} size={13} strokeWidth={2} />
+                <CheckIcon color={colors.accent} size={13} />
               )}
             </View>
           </Pressable>

@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { ChevronLeftIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { palette } from '@/theme/tokens';
 
@@ -41,7 +41,7 @@ export function FinanceSubHero({
             testID={`${testID}-back`}
             style={({ pressed }) => [styles.back, pressed && styles.pressed]}
           >
-            <ChevronLeft color={palette.cream} size={20} />
+            <ChevronLeftIcon color={palette.cream} size={20} />
           </Pressable>
           <View style={styles.center}>{center}</View>
           <View style={styles.spacer} />

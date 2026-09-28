@@ -1,11 +1,10 @@
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { CalendarGrid } from '@/components/CalendarGrid';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import {
   formatDayMonth,
   type LocalDate,
@@ -80,7 +79,7 @@ export function WorkDateSheet({
             testID="work-date-previous-month"
             style={({ pressed }) => [styles.navButton, pressed && styles.pressed]}
           >
-            <ChevronLeft color={colors.foreground} size={18} />
+            <ChevronLeftIcon color={colors.foreground} size={18} />
           </Pressable>
           <Pressable
             accessibilityRole="button"
@@ -89,7 +88,7 @@ export function WorkDateSheet({
             testID="work-date-next-month"
             style={({ pressed }) => [styles.navButton, pressed && styles.pressed]}
           >
-            <ChevronRight color={colors.foreground} size={18} />
+            <ChevronRightIcon color={colors.foreground} size={18} />
           </Pressable>
         </View>
       </View>

@@ -1,8 +1,8 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { CardLabel } from '@/components/CardLabel';
+import { ArrowRightIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
 
@@ -45,7 +45,7 @@ export function HomeListCard({
       >
         <AppText style={[type.heading1, styles.footerText]}>{action}</AppText>
         <View style={styles.arrow}>
-          <ArrowRight color={colors.accent} size={15} strokeWidth={1.8} />
+          <ArrowRightIcon color={colors.accent} size={15} />
         </View>
       </Pressable>
     </View>

@@ -1,6 +1,4 @@
 import { StatusBar } from 'expo-status-bar';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,11 +10,16 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
 import { EmptyState } from '@/components/EmptyState';
 import { HeroBar } from '@/components/HeroBar';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EyeIcon,
+  EyeSlashIcon,
+} from '@/components/icons/heroicons';
 import { type LocalMonth, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { compactReais } from '@/features/finances/finance-format';
@@ -130,30 +133,11 @@ export function HomeHeroCards({
                 style={styles.eye}
                 testID="home-hero-eye"
               >
-                <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                  <Path
-                    d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z"
-                    stroke={palette.secondaryText}
-                    strokeWidth={1.7}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <Circle
-                    cx={12}
-                    cy={12}
-                    r={2.8}
-                    stroke={palette.secondaryText}
-                    strokeWidth={1.7}
-                  />
-                  {hidden ? (
-                    <Path
-                      d="M4 20 20 4"
-                      stroke={palette.secondaryText}
-                      strokeWidth={1.7}
-                      strokeLinecap="round"
-                    />
-                  ) : null}
-                </Svg>
+                {hidden ? (
+                  <EyeSlashIcon size={16} color={palette.secondaryText} />
+                ) : (
+                  <EyeIcon size={16} color={palette.secondaryText} />
+                )}
               </Pressable>
             </View>
             <AppText numberOfLines={1} style={styles.cardSub}>
@@ -292,7 +276,7 @@ export function HomeHeroCards({
             testID="home-month-previous"
             style={styles.stepperButton}
           >
-            <ChevronLeft color={palette.secondaryText} size={18} />
+            <ChevronLeftIcon color={palette.secondaryText} size={18} />
           </Pressable>
           <AppText variant="technical" style={styles.stepperLabel} testID="home-month-title">
             {`${SHORT[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`}
@@ -305,7 +289,7 @@ export function HomeHeroCards({
             testID="home-month-next"
             style={styles.stepperButton}
           >
-            <ChevronRight color={palette.secondaryText} size={18} />
+            <ChevronRightIcon color={palette.secondaryText} size={18} />
           </Pressable>
         </View>
       </View>

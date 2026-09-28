@@ -1,12 +1,12 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Plus from 'lucide-react-native/icons/plus';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { CalendarCard } from '@/components/CalendarCard';
 import { EmptyState } from '@/components/EmptyState';
+import { PlusIcon } from '@/components/icons/heroicons';
 import { TOP_GREEN_HEIGHT, TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
@@ -117,7 +117,7 @@ export function AgendaScreen() {
           testID="agenda-add"
           style={({ pressed }) => [styles.add, pressed && styles.pressed]}
         >
-          <Plus color={palette.cream} size={18} strokeWidth={2} />
+          <PlusIcon color={palette.cream} size={18} />
         </Pressable>
       </View>
     </View>

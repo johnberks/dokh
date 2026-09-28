@@ -1,8 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import CalendarClock from 'lucide-react-native/icons/calendar-clock';
-import CalendarRange from 'lucide-react-native/icons/calendar-range';
-import ChartPie from 'lucide-react-native/icons/chart-pie';
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -11,6 +8,7 @@ import { BarChartCard } from '@/components/BarChartCard';
 import { CardLabel } from '@/components/CardLabel';
 import { EmptyState } from '@/components/EmptyState';
 import { Illustration } from '@/components/Illustration';
+import { CalendarDateRangeIcon, ChartPieIcon, ClockIcon } from '@/components/icons/heroicons';
 import { TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { PremiumBadge } from '@/components/PremiumBadge';
@@ -310,7 +308,7 @@ export function FinancesScreen() {
                     ? t('review.eyebrowOne')
                     : t('review.eyebrowMany', { count: data.undatedCount })
                 }
-                icon={<CalendarClock color={palette.bronzeDeep} size={18} strokeWidth={1.7} />}
+                icon={<ClockIcon color={palette.bronzeDeep} size={18} />}
                 iconTone="bronze"
                 value={money(data.undatedTotalCents)}
                 qualifier={t('review.qualifier')}
@@ -599,7 +597,7 @@ function YourYear({
   const { t } = useTranslation('finances');
   return (
     <SectionCard
-      icon={<CalendarRange color={colors.textPrimary} size={16} strokeWidth={1.7} />}
+      icon={<CalendarDateRangeIcon color={colors.textPrimary} size={16} />}
       eyebrow={t('year.yourYear')}
       testID="finances-your-year"
     >
@@ -845,7 +843,7 @@ function OriginCard({
   const type = useBrandTypography();
   return (
     <SectionCard
-      icon={<ChartPie color={colors.textPrimary} size={16} strokeWidth={1.7} />}
+      icon={<ChartPieIcon color={colors.textPrimary} size={16} />}
       eyebrow={eyebrow}
       premiumBadge={!isPremium}
       testID={testID}

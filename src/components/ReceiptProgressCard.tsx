@@ -1,5 +1,5 @@
-import Check from 'lucide-react-native/icons/check';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { CheckIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { AppText } from './AppText';
@@ -50,7 +50,7 @@ export function ReceiptProgressCard({
         >
           <View style={styles.label}>
             <View style={styles.receivedIcon}>
-              <Check color={palette.cream} size={11} strokeWidth={3} />
+              <CheckIcon color={palette.cream} size={11} />
             </View>
             <CardLabel tone="structure">{receivedLabel}</CardLabel>
           </View>

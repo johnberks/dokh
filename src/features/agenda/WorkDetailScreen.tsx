@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import { type ReactNode, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
+import { ChevronLeftIcon } from '@/components/icons/heroicons';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { formatDayMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
@@ -107,7 +107,7 @@ function DetailFrame({
               testID="work-detail-back"
               style={({ pressed }) => [styles.back, pressed && styles.pressed]}
             >
-              <ChevronLeft color={palette.cream} size={20} />
+              <ChevronLeftIcon color={palette.cream} size={20} />
             </Pressable>
             <AppText variant="technical" style={styles.eyebrow}>
               {t('detail.eyebrow')}

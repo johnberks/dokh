@@ -1,7 +1,5 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Check from 'lucide-react-native/icons/check';
-import Search from 'lucide-react-native/icons/search';
 import { useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { CheckIcon, MagnifyingGlassIcon } from '@/components/icons/heroicons';
 import { MutationError } from '@/components/TechnicalStates';
 import { searchResidencyPrograms } from '@/domain/medical-specialties';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -148,7 +147,7 @@ export function ProfessionalStatusScreen() {
                       </AppText>
                     </View>
                     <View style={selected ? styles.radioOn : styles.radioOff}>
-                      {selected && <Check color={palette.base} size={12} strokeWidth={2.5} />}
+                      {selected && <CheckIcon color={palette.base} size={12} />}
                     </View>
                   </Pressable>
                 );
@@ -163,7 +162,7 @@ export function ProfessionalStatusScreen() {
                     : t('profile.status.specialtyQuestion')}
                 </AppText>
                 <View style={[styles.field, missingSpecialty && touched && styles.fieldError]}>
-                  <Search color={palette.sage} size={18} strokeWidth={1.8} />
+                  <MagnifyingGlassIcon color={palette.sage} size={18} />
                   <TextInput
                     accessibilityLabel={
                       status === 'resident'
