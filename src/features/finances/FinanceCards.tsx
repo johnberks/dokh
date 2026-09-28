@@ -1,10 +1,9 @@
-import GraduationCap from 'lucide-react-native/icons/graduation-cap';
-import Stethoscope from 'lucide-react-native/icons/stethoscope';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { CardLabel } from '@/components/CardLabel';
+import { AcademicCapIcon, BriefcaseIcon } from '@/components/icons/heroicons';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { WorkTypeIcon, workTypeTone } from '@/components/WorkTypeIcon';
 import { formatCentsToBRL } from '@/domain/money';
@@ -35,7 +34,7 @@ export function WorkGeneratedCard({
   const type = useBrandTypography();
   return (
     <SectionCard
-      icon={<Stethoscope color={colors.textPrimary} size={16} strokeWidth={1.7} />}
+      icon={<BriefcaseIcon color={colors.textPrimary} size={16} />}
       eyebrow={t('work.eyebrow', { month: name.toUpperCase() })}
       testID="finances-work"
     >
@@ -222,7 +221,7 @@ export function OriginTile({ origin }: { origin: EntryOrigin }) {
       ]}
     >
       {origin === 'residency' ? (
-        <GraduationCap color={palette.workSage} size={16} strokeWidth={1.8} />
+        <AcademicCapIcon color={palette.workSage} size={16} />
       ) : (
         <WorkTypeIcon type={origin} size={16} />
       )}

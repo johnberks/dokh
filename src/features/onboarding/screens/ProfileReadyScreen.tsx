@@ -1,13 +1,13 @@
 import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Check from 'lucide-react-native/icons/check';
 import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
+import { CheckIcon } from '@/components/icons/heroicons';
 import { Reveal, step, WordReveal } from '@/components/Reveal';
 import { formatCentsToBRL, parseBRLToCents } from '@/domain/money';
 import { professionalStatusLabel } from '@/features/profile/profile-data';
@@ -112,7 +112,7 @@ export function ProfileReadyScreen() {
                 {TRACK_KEYS.map((key, index) => (
                   <Reveal key={key} delay={step(5 + index)} rise={10} style={styles.trackRow}>
                     <View style={styles.trackCheck}>
-                      <Check color={palette.base} size={11} strokeWidth={3} />
+                      <CheckIcon color={palette.base} size={11} />
                     </View>
                     <AppText style={styles.trackText}>{t(`profile.ready.${key}`)}</AppText>
                   </Reveal>

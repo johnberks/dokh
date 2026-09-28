@@ -1,6 +1,7 @@
 import '@/i18n';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import * as Heroicons from '@/components/icons/heroicons';
 import {
   archiveWorkLocation,
   createWorkLocation,
@@ -9,6 +10,7 @@ import {
 import { renderWithProviders } from '@/test/render';
 import { EditProfileScreen, parseGraduationYear } from './EditProfileScreen';
 import { LocationFormScreen, LocationsScreen } from './LocationsScreens';
+import { PROFILE_ICONS, ProfileIcon } from './ProfilePieces';
 import { ProfileScreen } from './ProfileScreen';
 import { initialsOf } from './profile-data';
 import { ResidencyFormScreen, ResidencyScreen } from './ResidencyScreens';
@@ -456,5 +458,16 @@ describe('card do topo (referência Lyft)', () => {
     await renderWithProviders(<ProfileScreen />);
     expect(screen.getByText('Especialista em Cardiologia')).toBeTruthy();
     expect(screen.queryByTestId('profile-row-residency')).toBeNull();
+  });
+});
+
+describe('ícones do Perfil', () => {
+  it('usam o conjunto Heroicons Solid', async () => {
+    for (const name of Object.keys(PROFILE_ICONS) as (keyof typeof PROFILE_ICONS)[]) {
+      const { unmount } = await renderWithProviders(<ProfileIcon name={name} />);
+      await unmount();
+    }
+    expect(PROFILE_ICONS.pin).toBe(Heroicons.MapPinIcon);
+    expect(PROFILE_ICONS.logout).toBe(Heroicons.ArrowRightStartOnRectangleIcon);
   });
 });

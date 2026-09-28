@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
+import { ArrowPathIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 
@@ -57,7 +57,7 @@ export function FieldBox({
   );
 }
 
-/** Ícone de "Repetir" do HTML (Agenda 07 e 15). */
+/** Ícone de "Repetir" (Agenda 07 e 15): Heroicons Solid `arrow-path`. */
 export function RepeatIcon({
   color = colors.foreground,
   size = 18,
@@ -65,17 +65,7 @@ export function RepeatIcon({
   color?: string;
   size?: number;
 }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" accessible={false}>
-      <Path
-        d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+  return <ArrowPathIcon size={size} color={color} />;
 }
 
 /**

@@ -1,8 +1,6 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Plus from 'lucide-react-native/icons/plus';
-import ReceiptText from 'lucide-react-native/icons/receipt-text';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { ArrowRightIcon, DocumentTextIcon, PlusIcon } from '@/components/icons/heroicons';
 import { colors, emptyStateMetrics, shadow } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { CardLabel } from './CardLabel';
@@ -59,9 +57,7 @@ function EmptyAction({
       style={({ pressed }) => [styles.action, styles[appearance], pressed && styles.pressed]}
     >
       <View style={styles.actionLabelRow}>
-        {appearance === 'darkSmall' ? (
-          <ReceiptText color={colors.accent} size={16} strokeWidth={1.6} />
-        ) : null}
+        {appearance === 'darkSmall' ? <DocumentTextIcon color={colors.accent} size={16} /> : null}
         <AppText
           variant="heading1"
           style={[
@@ -78,17 +74,15 @@ function EmptyAction({
         </AppText>
       </View>
       {glyph === 'plus' ? (
-        <Plus
+        <PlusIcon
           color={dark ? colors.accent : colors.textPrimary}
           size={appearance === 'outline' ? 16 : 20}
-          strokeWidth={1.8}
         />
       ) : null}
       {glyph === 'arrow' ? (
-        <ArrowRight
+        <ArrowRightIcon
           color={dark || appearance === 'bronzeLink' ? colors.accent : colors.textPrimary}
           size={appearance === 'bronzeLink' ? 14 : 16}
-          strokeWidth={1.8}
         />
       ) : null}
     </Pressable>
@@ -154,7 +148,7 @@ export function EmptyState(props: EmptyStateProps) {
               <AppText variant="heading1" style={styles.homeWorkActionText}>
                 {t('home:empty.addWork')}
               </AppText>
-              <ArrowRight color={colors.textPrimary} size={16} strokeWidth={1.8} />
+              <ArrowRightIcon color={colors.textPrimary} size={16} />
             </View>
           </View>
         </View>

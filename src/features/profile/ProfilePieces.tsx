@@ -19,56 +19,65 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
+import {
+  AcademicCapIcon,
+  AdjustmentsHorizontalIcon,
+  ArrowRightStartOnRectangleIcon,
+  BookOpenIcon,
+  BriefcaseIcon,
+  CameraIcon,
+  ChatBubbleLeftRightIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  FlagIcon,
+  MapPinIcon,
+  PencilIcon,
+  PlusIcon,
+  QuestionMarkCircleIcon,
+  ShieldCheckIcon,
+  StarIcon,
+  SunIcon,
+  UserCircleIcon,
+} from '@/components/icons/heroicons';
 import { NavigationControl } from '@/components/NavigationControl';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { motionDuration } from '@/theme/motion';
 import { colors, palette, shadow } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 
-/** Ícones de linha do HTML do Perfil (viewBox 24, traço 1,7). */
+/** Ícones do Perfil: Heroicons Solid (heroicons.com), no lugar dos traços do HTML (2026-09-28). */
 export const PROFILE_ICONS = {
-  pin: 'M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10zm0-8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
-  residency: 'M4 21V8l8-5 8 5v13H4zm4 0v-6h8v6M12 9v4M10 11h4',
-  sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4',
-  sun: 'M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
-  shield: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6zM9.5 12l2 2 3.5-4',
-  help: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17h0',
-  star: 'M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.9l-5.3 2.8 1.1-5.9L3.5 9.7l5.9-.8z',
-  chat: 'M4 5h16v11H9l-5 4z',
-  flag: 'M5 21V4h13l-2 4 2 4H5',
-  book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 19a2 2 0 0 1 2-2h13',
-  briefcase:
-    'M3.5 9.5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2zM9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5',
-  person: 'M12 12.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zM5.5 20a6.5 6.5 0 0 1 13 0',
-  logout: 'M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10',
-  camera:
-    'M4 8.5a2 2 0 0 1 2-2h2l1.5-2h5L16 6.5h2a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
-  plus: 'M12 5v14M5 12h14',
-  pencil: 'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4',
+  pin: MapPinIcon,
+  residency: AcademicCapIcon,
+  sliders: AdjustmentsHorizontalIcon,
+  sun: SunIcon,
+  shield: ShieldCheckIcon,
+  help: QuestionMarkCircleIcon,
+  star: StarIcon,
+  chat: ChatBubbleLeftRightIcon,
+  flag: FlagIcon,
+  book: BookOpenIcon,
+  briefcase: BriefcaseIcon,
+  person: UserCircleIcon,
+  logout: ArrowRightStartOnRectangleIcon,
+  camera: CameraIcon,
+  plus: PlusIcon,
+  pencil: PencilIcon,
 } as const;
 
 export function ProfileIcon({
   name,
-  size = 19,
+  size = 20,
   color = colors.foreground,
 }: {
   name: keyof typeof PROFILE_ICONS;
   size?: number;
   color?: string;
 }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" accessible={false}>
-      <Path
-        d={PROFILE_ICONS[name]}
-        stroke={color}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
+  const Icon = PROFILE_ICONS[name];
+  return <Icon size={size} color={color} />;
 }
 
 /**
@@ -200,7 +209,7 @@ export function PickerField({
           {value ?? placeholder}
         </AppText>
       </View>
-      <AppText style={styles.chevron}>{'›'}</AppText>
+      <ChevronRightIcon size={16} color={palette.sage} />
     </Pressable>
   );
 }
@@ -317,15 +326,7 @@ export function DropdownField<T extends string>({
           </AppText>
         </View>
         <Animated.View style={chevronStyle}>
-          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Path
-              d="M6 9l6 6 6-6"
-              stroke={colors.textPrimary}
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </Svg>
+          <ChevronDownIcon size={20} color={colors.textPrimary} />
         </Animated.View>
       </Pressable>
       <Modal
@@ -386,17 +387,7 @@ export function DropdownField<T extends string>({
                     ) : null}
                   </View>
                   <View style={on ? styles.dropdownCheckOn : styles.dropdownCheckOff}>
-                    {on && (
-                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-                        <Path
-                          d="M5 12.5l4.5 4.5L19 7.5"
-                          stroke={palette.cream}
-                          strokeWidth={3}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </Svg>
-                    )}
+                    {on && <CheckIcon size={13} color={palette.cream} />}
                   </View>
                 </Pressable>
               );
@@ -534,7 +525,7 @@ export function InsetRow({
             {value}
           </AppText>
         ) : null}
-        {accessory ?? (onPress ? <AppText style={styles.chevron}>{'›'}</AppText> : null)}
+        {accessory ?? (onPress ? <ChevronRightIcon size={16} color={palette.sage} /> : null)}
       </View>
     </>
   );
@@ -729,7 +720,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: palette.mutedCopy,
   },
-  chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
   soon: {
     borderWidth: 1,
     borderColor: 'rgba(16,22,15,0.15)',

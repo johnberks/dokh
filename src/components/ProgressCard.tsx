@@ -1,7 +1,6 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ArrowRightIcon, CheckIcon } from '@/components/icons/heroicons';
 import { colors, progressCardMetrics } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { CardLabel } from './CardLabel';
@@ -64,7 +63,7 @@ export function ProgressCard({
         {completed.map((step) => (
           <View key={step.id} style={styles.completedRow}>
             <View accessible={false} style={styles.completedCircle}>
-              <Check color={colors.darkTextPrimary} size={10} strokeWidth={2} />
+              <CheckIcon color={colors.darkTextPrimary} size={10} />
             </View>
             <AppText style={styles.completedText}>{step.label}</AppText>
           </View>
@@ -87,7 +86,7 @@ export function ProgressCard({
             {busy ? (
               <ActivityIndicator color={colors.accent} size="small" />
             ) : (
-              <ArrowRight color={colors.accent} size={13} strokeWidth={1.8} />
+              <ArrowRightIcon color={colors.accent} size={13} />
             )}
           </View>
         </Pressable>

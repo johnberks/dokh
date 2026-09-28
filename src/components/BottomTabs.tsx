@@ -1,13 +1,15 @@
 import { router, type Tabs } from 'expo-router';
-import CalendarDays from 'lucide-react-native/icons/calendar-days';
-import ChartNoAxesColumn from 'lucide-react-native/icons/chart-no-axes-column';
-import House from 'lucide-react-native/icons/house';
-import Plus from 'lucide-react-native/icons/plus';
-import UserRound from 'lucide-react-native/icons/user-round';
 import type { ComponentProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  CalendarDaysIcon,
+  ChartBarIcon,
+  HomeIcon,
+  PlusIcon,
+  UserCircleIcon,
+} from '@/components/icons/heroicons';
 import { colors, navigationMetrics, shadow } from '@/theme/tokens';
 import { AppText } from './AppText';
 
@@ -15,10 +17,10 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>
 type MainTab = 'index' | 'agenda' | 'finances' | 'profile';
 
 const tabIcons = {
-  index: House,
-  agenda: CalendarDays,
-  finances: ChartNoAxesColumn,
-  profile: UserRound,
+  index: HomeIcon,
+  agenda: CalendarDaysIcon,
+  finances: ChartBarIcon,
+  profile: UserCircleIcon,
 } as const;
 
 const tabLabels = {
@@ -66,7 +68,6 @@ export function BottomTabs({ state, navigation }: TabBarProps) {
           <Icon
             color={focused ? colors.foreground : colors.darkTextSecondary}
             size={navigationMetrics.tabIconSize}
-            strokeWidth={navigationMetrics.tabIconStroke}
           />
         </View>
         <AppText
@@ -96,11 +97,7 @@ export function BottomTabs({ state, navigation }: TabBarProps) {
           style={styles.create}
           testID="tab-create"
         >
-          <Plus
-            color={colors.accent}
-            size={navigationMetrics.createIconSize}
-            strokeWidth={navigationMetrics.createIconStroke}
-          />
+          <PlusIcon color={colors.accent} size={navigationMetrics.createIconSize} />
         </Pressable>
         {tab('finances')}
         {tab('profile')}

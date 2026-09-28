@@ -1,7 +1,6 @@
-import Check from 'lucide-react-native/icons/check';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { CheckIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import { WORK_TYPES, type WorkType } from '@/domain/work-type';
 import { colors, workTypeSelectorMetrics as m, palette, shadow } from '@/theme/tokens';
 import { AppText } from './AppText';
@@ -85,10 +84,10 @@ export function WorkTypeSelector(props: WorkTypeSelectorProps) {
                 testID={testID ? `${testID}-${type}-indicator` : undefined}
                 style={selected ? styles.radioSelected : styles.radioIdle}
               >
-                {selected && <Check color={palette.base} size={12} strokeWidth={2.5} />}
+                {selected && <CheckIcon color={palette.base} size={12} />}
               </View>
             ) : (
-              <ChevronRight color={palette.sage} size={16} strokeWidth={1.7} />
+              <ChevronRightIcon color={palette.sage} size={16} />
             )}
           </Pressable>
         );

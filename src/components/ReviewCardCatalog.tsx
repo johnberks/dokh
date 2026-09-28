@@ -1,9 +1,6 @@
-import CalendarDays from 'lucide-react-native/icons/calendar-days';
-import Check from 'lucide-react-native/icons/check';
-import Clock3 from 'lucide-react-native/icons/clock-3';
-import Plus from 'lucide-react-native/icons/plus';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
+import { CalendarDaysIcon, CheckIcon, ClockIcon, PlusIcon } from '@/components/icons/heroicons';
 import { colors } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { ReviewCard } from './ReviewCard';
@@ -41,7 +38,7 @@ export function ReviewCardCatalog() {
       <ReviewCard
         size="compact"
         iconTone="sage"
-        icon={<Plus color={colors.textSecondary} size={17} strokeWidth={1.7} />}
+        icon={<PlusIcon color={colors.textSecondary} size={17} />}
         value={t('catalog.completeFirstWork')}
         qualifier={t('catalog.missingAmount')}
         action={{ label: t('catalog.completeFirstWork'), kind: 'arrow' }}
@@ -51,7 +48,7 @@ export function ReviewCardCatalog() {
       <AppText variant="technical">{t('catalog.reviewStandard')}</AppText>
       <ReviewCard
         size="standard"
-        icon={<Clock3 color={colors.reviewBronzeText} size={16} strokeWidth={1.7} />}
+        icon={<ClockIcon color={colors.reviewBronzeText} size={16} />}
         eyebrow={t('catalog.awaitingConfirmation')}
         value={t('catalog.standardValue')}
         qualifier={t('catalog.clinic')}
@@ -62,7 +59,7 @@ export function ReviewCardCatalog() {
       <AppText variant="technical">{t('catalog.reviewDetailed')}</AppText>
       <ReviewCard
         size="detailed"
-        icon={<CalendarDays color={colors.reviewBronzeText} size={17} strokeWidth={1.7} />}
+        icon={<CalendarDaysIcon color={colors.reviewBronzeText} size={17} />}
         eyebrow={t('catalog.reviewNeeded')}
         value={t('catalog.detailedValue')}
         qualifier={t('catalog.missingDate')}
@@ -76,7 +73,7 @@ export function ReviewCardCatalog() {
       <AppText variant="technical">{t('catalog.reviewAttention')}</AppText>
       <ReviewCard
         tone="attention"
-        icon={<Check color={colors.reviewBronzeText} size={16} strokeWidth={1.8} />}
+        icon={<CheckIcon color={colors.reviewBronzeText} size={16} />}
         eyebrow={t('catalog.todayExpected')}
         value={t('catalog.attentionValue')}
         qualifier={t('catalog.hospital')}

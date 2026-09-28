@@ -1,11 +1,10 @@
-import Check from 'lucide-react-native/icons/check';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { CardLabel } from '@/components/CardLabel';
 import { Illustration } from '@/components/Illustration';
+import { CheckIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import { formatCentsToBRL } from '@/domain/money';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate } from '@/features/work/work-schedule';
@@ -132,7 +131,7 @@ export function NextEntryCard({
               {confirm.isPending ? (
                 <ActivityIndicator color={palette.bronze} size="small" />
               ) : (
-                <Check color={palette.bronze} size={14} strokeWidth={2.2} />
+                <CheckIcon color={palette.bronze} size={14} />
               )}
             </View>
           </Pressable>
@@ -151,7 +150,7 @@ export function NextEntryCard({
         style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
       >
         <AppText style={[type.heading1, styles.ctaText]}>{t('next.seeEntries')}</AppText>
-        <ChevronRight color={palette.bronze} size={18} strokeWidth={2} />
+        <ChevronRightIcon color={palette.bronze} size={18} />
       </Pressable>
     </View>
   );

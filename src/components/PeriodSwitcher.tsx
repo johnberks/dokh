@@ -1,6 +1,5 @@
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { palette } from '@/theme/tokens';
 import { AppText } from './AppText';
@@ -48,7 +47,7 @@ export function PeriodSwitcher({
         testID={`${testID}-previous`}
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
       >
-        <ChevronLeft color={palette.sage} size={22} />
+        <ChevronLeftIcon color={palette.sage} size={22} />
       </Pressable>
       <AppText
         accessibilityRole="header"
@@ -68,7 +67,7 @@ export function PeriodSwitcher({
         testID={`${testID}-next`}
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
       >
-        <ChevronRight color={palette.cream} size={22} />
+        <ChevronRightIcon color={palette.cream} size={22} />
       </Pressable>
     </View>
   );
