@@ -37,6 +37,6 @@ Pedido do usuário (2026-09-27): "não faz residência" não pode significar "Ge
 
 - Cabeçalho: tag derivada por `professionalStatusLabel` (`Residente de X`, `Generalista`, `Especialista em X`).
 - Seu trabalho: a linha **Residência** só aparece para residentes.
-- Editar perfil: chips `Em residência / Generalista / Especialista`; especialidade com sugestões da mesma lista; para residente, atalho "Dados da residência".
+- Editar perfil: **dropdown** `Situação profissional` (`DropdownField`, referência Lyft no Mobbin): campo preenchido com seta que gira e cartão flutuante com título, descrição e check; abre acima se não couber embaixo, toque fora fecha, `Reduzir movimento` troca na hora (token `motion.dropdown` 180 ms); especialidade com sugestões da mesma lista; para residente, atalho "Dados da residência".
 - Trocar de `Em residência` para outra situação com bolsa ativa pede confirmação ("Sair da residência?") antes de salvar.
 - Tela Residência: o vazio agora fala só com residentes ("Complete os dados da sua residência."); aberta por quem não é residente, mostra só uma nota, sem convite para adicionar.

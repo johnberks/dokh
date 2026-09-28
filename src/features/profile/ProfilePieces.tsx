@@ -1,7 +1,8 @@
-import { type ReactNode, useContext } from 'react';
+import { type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -10,12 +11,21 @@ import {
   type TextInputProps,
   View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { NavigationControl } from '@/components/NavigationControl';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
-import { colors, palette } from '@/theme/tokens';
+import { motionDuration } from '@/theme/motion';
+import { colors, palette, shadow } from '@/theme/tokens';
+import { useReducedMotion } from '@/theme/useReducedMotion';
 
 /** Ícones de linha do HTML do Perfil (viewBox 24, traço 1,7). */
 export const PROFILE_ICONS = {
@@ -192,6 +202,209 @@ export function PickerField({
       </View>
       <AppText style={styles.chevron}>{'›'}</AppText>
     </Pressable>
+  );
+}
+
+type DropdownOption<T extends string> = { value: T; label: string; description?: string };
+
+/** Espaço entre o campo e o cartão, e margem mínima até as bordas da tela. */
+const DROPDOWN_GAP = 8;
+const DROPDOWN_EDGE = 16;
+
+/**
+ * Campo com menu suspenso (referência Lyft, Mobbin 2026-09-27): o campo preenchido do Perfil
+ * com a seta para baixo e um cartão flutuante logo abaixo, com título, descrição e check na
+ * opção escolhida. Abre acima quando não cabe embaixo. Toque fora fecha. O cartão surge com
+ * fade e leve escala, e a seta gira; com "Reduzir movimento" tudo troca na hora (D11).
+ */
+export function DropdownField<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  testID,
+}: {
+  label: string;
+  options: readonly DropdownOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+  testID?: string;
+}) {
+  const type = useBrandTypography();
+  const reduced = useReducedMotion();
+  const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
+  const anchor = useRef<View>(null);
+  const [open, setOpen] = useState(false);
+  const [frame, setFrame] = useState<{ x: number; y: number; width: number; height: number }>();
+  const [menuHeight, setMenuHeight] = useState(0);
+  const [windowHeight, setWindowHeight] = useState(0);
+  const progress = useSharedValue(0);
+  const selected = options.find((option) => option.value === value);
+
+  useEffect(() => {
+    if (open) {
+      progress.value = withTiming(1, {
+        duration: motionDuration('dropdown', reduced),
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+  }, [open, progress, reduced]);
+
+  function show() {
+    // measureInWindow dá a posição real do campo, mesmo dentro da rolagem.
+    anchor.current?.measureInWindow((x, y, width, height) => setFrame({ x, y, width, height }));
+    setOpen(true);
+  }
+
+  function hide() {
+    progress.value = withTiming(
+      0,
+      { duration: motionDuration('dropdown', reduced), easing: Easing.in(Easing.cubic) },
+      (finished) => {
+        if (finished) runOnJS(setOpen)(false);
+      },
+    );
+  }
+
+  function choose(next: T) {
+    onChange(next);
+    hide();
+  }
+
+  const below = frame ? frame.y + frame.height + DROPDOWN_GAP : 0;
+  const fitsBelow =
+    !frame ||
+    windowHeight === 0 ||
+    below + menuHeight <= windowHeight - insets.bottom - DROPDOWN_EDGE;
+  const menuTop = frame
+    ? fitsBelow
+      ? below
+      : Math.max(insets.top + DROPDOWN_EDGE, frame.y - DROPDOWN_GAP - menuHeight)
+    : insets.top + DROPDOWN_EDGE;
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${progress.value * 180}deg` }],
+  }));
+  const menuStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [
+      { translateY: (1 - progress.value) * (fitsBelow ? -6 : 6) },
+      { scale: 0.97 + progress.value * 0.03 },
+    ],
+  }));
+
+  return (
+    <>
+      <Pressable
+        ref={anchor}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityValue={{ text: selected?.label ?? '' }}
+        accessibilityState={{ expanded: open }}
+        onPress={open ? hide : show}
+        testID={testID}
+        style={({ pressed }) => [
+          styles.field,
+          styles.pickerField,
+          open && styles.dropdownFieldOpen,
+          pressed && styles.rowPressed,
+        ]}
+      >
+        <View style={styles.pickerText}>
+          <AppText style={[type.heading1, styles.fieldTitle]}>{label}</AppText>
+          <AppText numberOfLines={1} style={[type.heading1, styles.input]}>
+            {selected?.label ?? ''}
+          </AppText>
+        </View>
+        <Animated.View style={chevronStyle}>
+          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M6 9l6 6 6-6"
+              stroke={colors.textPrimary}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </Animated.View>
+      </Pressable>
+      <Modal
+        transparent
+        visible={open}
+        animationType="none"
+        onRequestClose={hide}
+        statusBarTranslucent
+      >
+        <View
+          style={styles.dropdownLayer}
+          onLayout={(event) => setWindowHeight(event.nativeEvent.layout.height)}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            onPress={hide}
+            style={StyleSheet.absoluteFill}
+            testID={testID ? `${testID}-backdrop` : undefined}
+          />
+          <Animated.View
+            accessibilityRole="menu"
+            onLayout={(event) => setMenuHeight(event.nativeEvent.layout.height)}
+            style={[
+              styles.dropdownMenu,
+              {
+                top: menuTop,
+                left: frame?.x ?? DROPDOWN_EDGE,
+                width: frame?.width,
+                right: frame ? undefined : DROPDOWN_EDGE,
+              },
+              menuStyle,
+            ]}
+            testID={testID ? `${testID}-menu` : undefined}
+          >
+            {options.map((option, index) => {
+              const on = option.value === value;
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="menuitem"
+                  accessibilityLabel={option.label}
+                  accessibilityHint={option.description}
+                  accessibilityState={{ selected: on }}
+                  onPress={() => choose(option.value)}
+                  testID={testID ? `${testID}-${option.value}` : undefined}
+                  style={({ pressed }) => [
+                    styles.dropdownOption,
+                    index > 0 && styles.dropdownSpaced,
+                    on && styles.dropdownOptionOn,
+                    pressed && styles.dropdownPressed,
+                  ]}
+                >
+                  <View style={styles.dropdownText}>
+                    <AppText style={[type.heading1, styles.dropdownLabel]}>{option.label}</AppText>
+                    {option.description ? (
+                      <AppText style={styles.dropdownDescription}>{option.description}</AppText>
+                    ) : null}
+                  </View>
+                  <View style={on ? styles.dropdownCheckOn : styles.dropdownCheckOff}>
+                    {on && (
+                      <Svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+                        <Path
+                          d="M5 12.5l4.5 4.5L19 7.5"
+                          stroke={palette.cream}
+                          strokeWidth={3}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </Svg>
+                    )}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </Animated.View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -410,6 +623,47 @@ const styles = StyleSheet.create({
   prefix: { fontSize: 17, lineHeight: 22, letterSpacing: 0, color: palette.mutedCopy },
   pickerField: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   pickerText: { flex: 1, gap: 4 },
+  dropdownFieldOpen: { borderColor: colors.foreground },
+  dropdownLayer: { flex: 1 },
+  dropdownMenu: {
+    position: 'absolute',
+    backgroundColor: palette.previewPaper,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(16,22,15,0.1)',
+    padding: 6,
+    ...shadow.raised,
+  },
+  dropdownOption: {
+    minHeight: 56,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dropdownSpaced: { marginTop: 2 },
+  dropdownOptionOn: { backgroundColor: 'rgba(43,58,36,0.08)' },
+  dropdownPressed: { backgroundColor: 'rgba(16,22,15,0.06)' },
+  dropdownText: { flex: 1, gap: 2 },
+  dropdownLabel: { fontSize: 16, lineHeight: 20, letterSpacing: -0.16, color: colors.textPrimary },
+  dropdownDescription: { fontSize: 13, lineHeight: 18, color: palette.mutedCopy },
+  dropdownCheckOn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.foreground,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dropdownCheckOff: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: 'rgba(16,22,15,0.2)',
+  },
   placeholder: { color: 'rgba(16,22,15,0.38)' },
   fieldTitle: { fontSize: 13, lineHeight: 17, letterSpacing: 0, color: palette.mutedCopy },
   input: {

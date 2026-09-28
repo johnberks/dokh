@@ -11,8 +11,7 @@ import { DarkButton } from '@/features/work/form/FormPieces';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import {
-  ChoiceChips,
-  FieldLabel,
+  DropdownField,
   InsetList,
   InsetRow,
   Note,
@@ -223,20 +222,25 @@ function EditProfileForm({ profile }: { profile: Profile }) {
             {t('edit.graduationInvalid', { year: currentYear })}
           </Note>
         )}
-        <View style={styles.statusBlock}>
-          <FieldLabel>{t('edit.status')}</FieldLabel>
-          <ChoiceChips
-            label={t('edit.status')}
-            options={[
-              { value: 'resident', label: t('edit.resident') },
-              { value: 'general_practitioner', label: t('edit.generalist') },
-              { value: 'specialist', label: t('edit.specialist') },
-            ]}
-            value={status}
-            onChange={setStatus}
-            testID="profile-edit-status"
-          />
-        </View>
+        <DropdownField
+          label={t('edit.status')}
+          options={[
+            { value: 'resident', label: t('edit.resident'), description: t('edit.residentHint') },
+            {
+              value: 'general_practitioner',
+              label: t('edit.generalist'),
+              description: t('edit.generalistHint'),
+            },
+            {
+              value: 'specialist',
+              label: t('edit.specialist'),
+              description: t('edit.specialistHint'),
+            },
+          ]}
+          value={status}
+          onChange={setStatus}
+          testID="profile-edit-status"
+        />
         {needsSpecialty(status) && (
           <TextField
             label={status === 'resident' ? t('edit.residencyProgram') : t('edit.specialty')}
@@ -337,7 +341,6 @@ const styles = StyleSheet.create({
   photoAction: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
   photoRemove: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
   fields: { marginTop: 28, gap: 10 },
-  statusBlock: { gap: 10, paddingTop: 6, paddingBottom: 6 },
   sheetCopy: { gap: 8, paddingTop: 6 },
   sheetTitle: { fontSize: 22, lineHeight: 26, letterSpacing: -0.44, color: colors.textPrimary },
   sheetText: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },

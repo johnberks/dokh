@@ -158,7 +158,32 @@ describe('Perfil principal (01/18)', () => {
   });
 });
 
+/** Situação profissional fica num dropdown: abre o menu e escolhe a opção. */
+async function chooseStatus(value: string) {
+  await press('profile-edit-status');
+  await press(`profile-edit-status-${value}`);
+}
+
 describe('Editar perfil (02)', () => {
+  it('situação profissional em dropdown com descrição e check na opção atual', async () => {
+    await renderWithProviders(<EditProfileScreen />);
+    const field = screen.getByTestId('profile-edit-status');
+    expect(field.props.accessibilityValue).toEqual({ text: 'Em residência' });
+    expect(screen.queryByTestId('profile-edit-status-menu')).toBeNull();
+
+    await press('profile-edit-status');
+    expect(screen.getByTestId('profile-edit-status-menu')).toBeTruthy();
+    expect(screen.getByText('Já concluí minha especialização.')).toBeTruthy();
+    expect(
+      screen.getByTestId('profile-edit-status-resident').props.accessibilityState,
+    ).toMatchObject({ selected: true });
+
+    await press('profile-edit-status-specialist');
+    expect(screen.getByTestId('profile-edit-status').props.accessibilityValue).toEqual({
+      text: 'Especialista',
+    });
+  });
+
   it('ano de graduação vazio ou plausível', () => {
     expect(parseGraduationYear('', 2026)).toBeNull();
     expect(parseGraduationYear('2024', 2026)).toBe(2024);
@@ -170,14 +195,18 @@ describe('Editar perfil (02)', () => {
     mockProfile = { ...annaProfile, status: 'general_practitioner', specialty: null };
     mockResidency = null;
     await renderWithProviders(<EditProfileScreen />);
-    expect(screen.getByText('Em residência')).toBeTruthy();
     expect(screen.getByText('Generalista')).toBeTruthy();
+    await press('profile-edit-status');
+    expect(screen.getByText('Em residência')).toBeTruthy();
     expect(screen.getByText('Especialista')).toBeTruthy();
+    // Toque fora fecha sem mudar a escolha.
+    await press('profile-edit-status-backdrop');
+    await waitFor(() => expect(screen.queryByTestId('profile-edit-status-menu')).toBeNull());
     expect(screen.queryByTestId('profile-edit-specialty')).toBeNull();
 
-    await press('profile-edit-status-resident');
+    await chooseStatus('resident');
     expect(screen.getByText('Especialidade ou programa da residência')).toBeTruthy();
-    await press('profile-edit-status-specialist');
+    await chooseStatus('specialist');
     expect(screen.getByText('Especialidade')).toBeTruthy();
     // Especialista sem especialidade não salva.
     expect(screen.getByTestId('profile-edit-save').props.accessibilityState).toMatchObject({
@@ -202,7 +231,7 @@ describe('Editar perfil (02)', () => {
     await press('profile-edit-residency-data');
     expect(router.push).toHaveBeenCalledWith('/profile/residency');
 
-    await press('profile-edit-status-general_practitioner');
+    await chooseStatus('general_practitioner');
     expect(screen.queryByTestId('profile-edit-specialty')).toBeNull();
     expect(screen.queryByTestId('profile-edit-residency-data')).toBeNull();
     await press('profile-edit-save');
@@ -218,7 +247,7 @@ describe('Editar perfil (02)', () => {
   it('residente sem bolsa troca de situação sem confirmação', async () => {
     mockResidency = null;
     await renderWithProviders(<EditProfileScreen />);
-    await press('profile-edit-status-general_practitioner');
+    await chooseStatus('general_practitioner');
     await press('profile-edit-save');
     expect(screen.queryByText('Sair da residência?')).toBeNull();
     expect(mockUpdate).toHaveBeenCalledWith(
