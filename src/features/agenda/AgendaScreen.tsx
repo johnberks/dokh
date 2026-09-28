@@ -52,10 +52,6 @@ export function AgendaScreen() {
   // Voltar de uma tela filha não reanima: a pessoa continua de onde estava.
   const [enterKey, setEnterKey] = useState(0);
   const enteredAt = useRef(0);
-  function enter() {
-    enteredAt.current = Date.now();
-    setEnterKey((key) => key + 1);
-  }
 
   // Depois de salvar um Trabalho novo, a Agenda abre no dia dele (`?date=`).
   const { date: savedDate } = useLocalSearchParams<{ date?: string }>();
@@ -65,7 +61,8 @@ export function AgendaScreen() {
     useCallback(() => {
       if (savedDate && /^\d{4}-\d{2}-\d{2}$/.test(savedDate)) {
         openedChild.current = false;
-        enter();
+        enteredAt.current = Date.now();
+        setEnterKey((key) => key + 1);
         setToday(todayInTimezone(deviceTimezone()));
         setMonth(monthOf(savedDate));
         setSelected(savedDate);
@@ -76,7 +73,8 @@ export function AgendaScreen() {
         openedChild.current = false;
         return;
       }
-      enter();
+      enteredAt.current = Date.now();
+      setEnterKey((key) => key + 1);
       const now = todayInTimezone(deviceTimezone());
       setToday(now);
       setMonth(monthOf(now));
