@@ -90,3 +90,20 @@ Telas de `design/perfil.html` (01–06, 15–18) e regras de `docs/screens/perfi
   - upsert de preferências;
   - residência criada e encerrada;
   - envio da foto e URL assinada, e outra conta não assina.
+
+## Revisão visual (2026-09-27, referências Mobbin: Cash App, Wise, GoHenry, Marcus, Wispr Flow)
+
+Pedido do usuário: o Perfil estava com cara de template de IA. O bloco Premium (card no Free e linha no Premium) **não mudou**, por decisão do usuário.
+- **Topo claro e pessoal**, sem o verde com manchas:
+  - avatar de 76 com selo de câmera, que leva a Editar perfil;
+  - nome em 30 pt e a linha `Residente de … · Cidade`;
+  - números reais: locais, trabalhos no mês e nível da residência, cada um só quando existe;
+  - `Editar perfil` em pílula.
+- **Listas de um nível** (`InsetList`/`InsetRow`): ícone, texto, valor ou subtítulo, `›` e divisória fina, sem cartão em volta. Títulos de seção em texto normal (`SectionTitle`), não em letra técnica maiúscula. Vale para a principal, Locais, Residência, Conta e Aparência.
+- **`Sair da DOKH`** passou a ser a última linha da lista principal e saiu de Conta e segurança.
+- **Só o que funciona aparece:**
+  - Avaliar, Termos, Privacidade e a Ajuda somem enquanto `supportUrls` e `legalUrls` forem nulos, e voltam sozinhos quando configurados;
+  - o convite da Ajuda só mostra o botão com destino;
+  - Aparência mantém `EM BREVE` em Sistema e Escuro, como o HTML pede.
+- **Residência:** em vez do card, `● Residência ativa · R2`, o programa em 28 pt e a lista plana dos dados.
+

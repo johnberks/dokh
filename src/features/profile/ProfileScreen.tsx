@@ -2,24 +2,29 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import type { TFunction } from 'i18next';
-import type { ReactNode } from 'react';
+import { type ReactNode, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import Svg, { Polyline, Rect } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
-import { TwoToneScrollScreen } from '@/components/Layout';
 import { LoadError } from '@/components/TechnicalStates';
 import { legalUrls, subscriptionManagementUrls, supportUrls } from '@/config/legal';
-import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
+import { monthOf } from '@/domain/calendar';
+import { useAgendaMonth } from '@/features/agenda/agenda-data';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { usePremium } from '@/features/billing/entitlement';
 import { useWorkLocations } from '@/features/locations/locations-data';
+import { deviceTimezone } from '@/features/onboarding/profile-data';
+import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
-import { type PROFILE_ICONS, ProfileIcon, SoonBadge } from './ProfilePieces';
+import { InsetList, InsetRow, Note, ProfileIcon, SectionTitle } from './ProfilePieces';
 import { initialsOf, type Profile, useActiveResidency, useProfile } from './profile-data';
 
 const HERO_SECONDARY = '#B9BFB2';
+const MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' });
 
 /** Símbolo DOKH do card Premium (quadrados sobrepostos, acento bronze). */
 function PremiumMark({ size }: { size: number }) {
@@ -61,134 +66,63 @@ function statusLine(profile: Profile, t: TFunction<'profile'>): string {
     : t('main.residentNoSpecialty');
 }
 
-type Row = {
-  icon: keyof typeof PROFILE_ICONS;
-  label: string;
-  value?: string | null;
-  onPress?: () => void;
-  soon?: boolean;
-  testID: string;
-};
-
-/** Grupo do Perfil 01: cartão claro com ícone e rótulo, e uma bandeja de linhas. */
-function Group({
-  icon,
-  title,
-  rows,
-}: {
-  icon: keyof typeof PROFILE_ICONS;
-  title: string;
-  rows: Row[];
-}) {
-  const type = useBrandTypography();
-  return (
-    <View style={styles.group}>
-      <View style={styles.groupHeader}>
-        <View style={styles.groupIcon}>
-          <ProfileIcon name={icon} size={16} color={palette.structure} />
-        </View>
-        <AppText variant="technical" style={styles.groupTitle}>
-          {title}
-        </AppText>
-      </View>
-      <View style={styles.tray}>
-        {rows.map((row) => (
-          <Pressable
-            key={row.testID}
-            accessibilityRole="button"
-            accessibilityLabel={row.value ? `${row.label}, ${row.value}` : row.label}
-            accessibilityState={{ disabled: row.soon === true }}
-            disabled={row.soon === true || !row.onPress}
-            onPress={row.onPress}
-            testID={row.testID}
-            style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-          >
-            <ProfileIcon name={row.icon} color={row.soon ? palette.sage : colors.foreground} />
-            <AppText
-              numberOfLines={1}
-              style={[type.heading1, styles.rowLabel, row.soon && styles.rowMuted]}
-            >
-              {row.label}
-            </AppText>
-            {row.value ? (
-              <AppText numberOfLines={1} style={styles.rowValue}>
-                {row.value}
-              </AppText>
-            ) : null}
-            {row.soon ? <SoonBadge /> : <AppText style={styles.chevron}>{'›'}</AppText>}
-          </Pressable>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 function openUrl(url: string | null) {
   if (url) void Linking.openURL(url);
 }
 
 /**
- * Perfil 01 (Free) e 18 (Premium ativo): identidade no topo escuro, Premium (card de
- * descoberta no Free, linha compacta para quem assina — sem venda), grupos de configuração,
- * privacidade e versão. Importação, calendário e notificações entram quando existirem.
+ * Perfil 01/18, revisto com referências da Mobbin (Cash App, Wise, GoHenry — 2026-09-27):
+ * topo claro e pessoal (avatar com câmera, nome, situação e números reais), listas de um nível
+ * com títulos em texto normal, `Sair da DOKH` no fim e só o que já funciona. O bloco Premium
+ * (card no Free, linha no Premium) segue o HTML.
  */
 export function ProfileScreen() {
   const { t } = useTranslation('profile');
   const { t: tComponents } = useTranslation('components');
   const type = useBrandTypography();
+  const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
+  const { signOut } = useAuthSession();
   const profile = useProfile();
   const premium = usePremium();
   const locations = useWorkLocations();
   const residency = useActiveResidency();
+  const [today] = useState(() => todayInTimezone(deviceTimezone()));
+  const month = useAgendaMonth(monthOf(today));
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutFailed, setSignOutFailed] = useState(false);
   const isPremium = premium.data === true;
   const version = Constants.expoConfig?.version ?? '1.0';
-
   const data = profile.data;
-  const hero = (
-    <View style={styles.hero}>
-      <StatusBar style="light" />
-      <AppText variant="technical" style={styles.eyebrow}>
-        {t('main.eyebrow')}
-      </AppText>
-      {data ? (
-        <>
-          <View style={styles.identity}>
-            <Avatar profile={data} size={64} />
-            <View style={styles.identityText}>
-              <AppText
-                accessibilityRole="header"
-                numberOfLines={2}
-                style={[type.heading1, styles.name]}
-              >
-                {data.displayName}
-              </AppText>
-              <AppText numberOfLines={1} style={styles.status}>
-                {statusLine(data, t)}
-              </AppText>
-              {data.city ? (
-                <AppText numberOfLines={1} style={styles.city}>
-                  {data.city}
-                </AppText>
-              ) : null}
-            </View>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('main.edit')}
-            hitSlop={8}
-            onPress={() => router.push('/profile/edit')}
-            testID="profile-edit"
-            style={({ pressed }) => [styles.editLink, pressed && styles.pressed]}
-          >
-            <AppText style={[type.heading1, styles.editText]}>{t('main.edit')}</AppText>
-            <AppText style={[type.heading1, styles.editArrow]}>{'→'}</AppText>
-          </Pressable>
-        </>
-      ) : (
-        <View style={styles.identityPlaceholder} />
-      )}
-    </View>
-  );
+
+  async function leave() {
+    if (signingOut) return;
+    setSigningOut(true);
+    setSignOutFailed(false);
+    try {
+      await signOut();
+    } catch {
+      setSignOutFailed(true);
+      setSigningOut(false);
+    }
+  }
+
+  // Números da pessoa, só quando existem (nada de "0 locais" inventado como conquista).
+  const locationCount = locations.data?.length ?? 0;
+  const worksThisMonth = month.data?.length ?? 0;
+  const monthLabel = MONTH_NAME.format(localDateToDate(today));
+  const stats = [
+    locationCount > 0
+      ? locationCount === 1
+        ? t('main.statsLocationsOne')
+        : t('main.statsLocationsMany', { count: locationCount })
+      : null,
+    worksThisMonth > 0
+      ? worksThisMonth === 1
+        ? t('main.statsWorksOne', { month: monthLabel })
+        : t('main.statsWorksMany', { count: worksThisMonth, month: monthLabel })
+      : null,
+    residency.data?.levelLabel ?? null,
+  ].filter((item): item is string => item !== null);
 
   let premiumBlock: ReactNode = null;
   if (premium.isSuccess && isPremium) {
@@ -257,123 +191,184 @@ export function ProfileScreen() {
     );
   }
 
-  const locationCount = locations.data?.length;
-  const groups = (
-    <>
-      <Group
-        icon="briefcase"
-        title={t('main.groupWork')}
-        rows={[
-          {
-            icon: 'pin',
-            label: t('main.locations'),
-            value: locationCount === undefined ? null : String(locationCount),
-            onPress: () => router.push('/profile/locations'),
-            testID: 'profile-row-locations',
-          },
-          {
-            icon: 'residency',
-            label: t('main.residency'),
-            value: residency.data?.specialty ?? null,
-            onPress: () => router.push('/profile/residency'),
-            testID: 'profile-row-residency',
-          },
-          {
-            icon: 'sliders',
-            label: t('main.workPreferences'),
-            onPress: () => router.push('/profile/preferences'),
-            testID: 'profile-row-preferences',
-          },
-        ]}
-      />
-      <Group
-        icon="sliders"
-        title={t('main.groupPreferences')}
-        rows={[
-          {
-            icon: 'sun',
-            label: t('main.appearance'),
-            value: t('main.appearanceValue'),
-            onPress: () => router.push('/profile/appearance'),
-            testID: 'profile-row-appearance',
-          },
-        ]}
-      />
-      <Group
-        icon="person"
-        title={t('main.groupAccount')}
-        rows={[
-          {
-            icon: 'shield',
-            label: t('main.account'),
-            onPress: () => router.push('/profile/account'),
-            testID: 'profile-row-account',
-          },
-          {
-            icon: 'help',
-            label: t('main.help'),
-            onPress: () => router.push('/profile/help'),
-            testID: 'profile-row-help',
-          },
-          {
-            icon: 'star',
-            label: t('main.rate'),
-            soon: supportUrls.rate === null,
-            onPress: () => openUrl(supportUrls.rate),
-            testID: 'profile-row-rate',
-          },
-        ]}
-      />
-    </>
+  const helpAvailable = Object.values(supportUrls).some((url) => url !== null);
+  const privacyRows = (
+    [
+      ['terms', legalUrls.terms],
+      ['privacy', legalUrls.privacy],
+    ] as const
+  ).filter(([, url]) => url !== null);
+
+  const accountRows: ReactNode[] = [
+    <InsetRow
+      key="account"
+      icon={<ProfileIcon name="shield" />}
+      label={t('main.account')}
+      onPress={() => router.push('/profile/account')}
+      testID="profile-row-account"
+    />,
+  ];
+  if (helpAvailable) {
+    accountRows.push(
+      <InsetRow
+        key="help"
+        icon={<ProfileIcon name="help" />}
+        label={t('main.help')}
+        onPress={() => router.push('/profile/help')}
+        testID="profile-row-help"
+      />,
+    );
+  }
+  if (supportUrls.rate) {
+    const rate = supportUrls.rate;
+    accountRows.push(
+      <InsetRow
+        key="rate"
+        icon={<ProfileIcon name="star" />}
+        label={t('main.rate')}
+        onPress={() => openUrl(rate)}
+        testID="profile-row-rate"
+      />,
+    );
+  }
+  accountRows.push(
+    <InsetRow
+      key="sign-out"
+      icon={<ProfileIcon name="logout" />}
+      label={t('main.signOut')}
+      subtitle={signOutFailed ? t('account.signOutError') : null}
+      onPress={() => void leave()}
+      accessory={<View />}
+      last
+      testID="profile-sign-out"
+    />,
   );
 
   return (
-    <TwoToneScrollScreen
-      heroBackground={<AgendaHeroBackdrop />}
-      hero={hero}
-      bodyStyle={styles.body}
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
+      showsVerticalScrollIndicator={false}
       testID="profile-screen"
     >
-      {profile.isError ? (
+      <StatusBar style="dark" />
+      {data ? (
+        <View style={styles.identity}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('edit.changePhoto')}
+            onPress={() => router.push('/profile/edit')}
+            testID="profile-avatar"
+            style={({ pressed }) => pressed && styles.pressed}
+          >
+            <Avatar profile={data} size={76} />
+            <View style={styles.cameraBadge}>
+              <ProfileIcon name="camera" size={14} color={palette.cream} />
+            </View>
+          </Pressable>
+          <AppText accessibilityRole="header" style={[type.heading1, styles.name]}>
+            {data.displayName}
+          </AppText>
+          <AppText style={styles.subtitle}>
+            {[statusLine(data, t), data.city].filter(Boolean).join(' · ')}
+          </AppText>
+          {stats.length > 0 && (
+            <AppText style={styles.stats} testID="profile-stats">
+              {stats.join(' · ')}
+            </AppText>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('main.edit')}
+            onPress={() => router.push('/profile/edit')}
+            testID="profile-edit"
+            style={({ pressed }) => [styles.editPill, pressed && styles.pressed]}
+          >
+            <AppText variant="heading2" style={styles.editPillText}>
+              {t('main.edit')}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : profile.isError ? (
         <LoadError
           onRetry={() => void profile.refetch()}
           retrying={profile.isFetching}
           testID="profile-error"
         />
       ) : (
-        <View style={styles.sections}>
-          {premiumBlock}
-          {groups}
-          <View>
-            <AppText variant="technical" style={styles.privacyTitle}>
-              {t('main.groupPrivacy')}
-            </AppText>
-            {(
-              [
-                ['terms', legalUrls.terms],
-                ['privacy', legalUrls.privacy],
-              ] as const
-            ).map(([key, url]) => (
-              <Pressable
+        <View style={styles.identityPlaceholder} />
+      )}
+
+      {premiumBlock ? <View style={styles.premium}>{premiumBlock}</View> : null}
+
+      <View style={styles.section}>
+        <SectionTitle>{t('main.sectionWork')}</SectionTitle>
+        <InsetList>
+          <InsetRow
+            icon={<ProfileIcon name="pin" />}
+            label={t('main.locations')}
+            value={locations.data ? String(locationCount) : null}
+            onPress={() => router.push('/profile/locations')}
+            testID="profile-row-locations"
+          />
+          <InsetRow
+            icon={<ProfileIcon name="residency" />}
+            label={t('main.residency')}
+            value={residency.data?.specialty ?? null}
+            onPress={() => router.push('/profile/residency')}
+            testID="profile-row-residency"
+          />
+          <InsetRow
+            icon={<ProfileIcon name="sliders" />}
+            label={t('main.workPreferences')}
+            onPress={() => router.push('/profile/preferences')}
+            last
+            testID="profile-row-preferences"
+          />
+        </InsetList>
+      </View>
+
+      <View style={styles.section}>
+        <SectionTitle>{t('main.sectionPreferences')}</SectionTitle>
+        <InsetList>
+          <InsetRow
+            icon={<ProfileIcon name="sun" />}
+            label={t('main.appearance')}
+            value={t('main.appearanceValue')}
+            onPress={() => router.push('/profile/appearance')}
+            last
+            testID="profile-row-appearance"
+          />
+        </InsetList>
+      </View>
+
+      <View style={styles.section}>
+        <SectionTitle>{t('main.sectionAccount')}</SectionTitle>
+        <InsetList>{accountRows}</InsetList>
+      </View>
+
+      {privacyRows.length > 0 && (
+        <View style={styles.section}>
+          <SectionTitle>{t('main.sectionPrivacy')}</SectionTitle>
+          <InsetList>
+            {privacyRows.map(([key, url], index) => (
+              <InsetRow
                 key={key}
-                accessibilityRole="link"
-                accessibilityLabel={t(`main.${key}`)}
-                accessibilityState={{ disabled: url === null }}
-                disabled={url === null}
+                label={t(`main.${key}`)}
                 onPress={() => openUrl(url)}
+                last={index === privacyRows.length - 1}
                 testID={`profile-${key}`}
-                style={({ pressed }) => [styles.privacyRow, pressed && styles.pressed]}
-              >
-                <AppText style={styles.privacyLabel}>{t(`main.${key}`)}</AppText>
-                {url === null ? <SoonBadge /> : <AppText style={styles.chevron}>{'›'}</AppText>}
-              </Pressable>
+              />
             ))}
-          </View>
-          <AppText variant="technical" style={styles.version}>
-            {t('main.version', { version })}
-          </AppText>
+          </InsetList>
         </View>
       )}
+
+      <AppText variant="technical" style={styles.version}>
+        {t('main.version', { version })}
+      </AppText>
+      {signingOut && <Note>{t('main.signingOut')}</Note>}
+
       {/* Catálogo de componentes (só em desenvolvimento). */}
       {__DEV__ && (
         <View style={styles.devTools}>
@@ -384,40 +379,65 @@ export function ProfileScreen() {
           />
         </View>
       )}
-    </TwoToneScrollScreen>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { paddingTop: 22, paddingHorizontal: 24, paddingBottom: 44, gap: 22 },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  identityPlaceholder: { height: 64 },
-  identityText: { flex: 1, minWidth: 0, gap: 4 },
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { paddingHorizontal: 24, paddingBottom: 48 },
+  identity: { alignItems: 'flex-start', gap: 6 },
+  identityPlaceholder: { height: 180 },
   avatar: {
     backgroundColor: palette.structure,
-    borderWidth: 1,
-    borderColor: 'rgba(237,234,224,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   initials: { letterSpacing: -0.4, color: palette.cream },
-  name: { fontSize: 22, lineHeight: 25, letterSpacing: -0.44, color: palette.cream },
-  status: { fontSize: 14, lineHeight: 18, color: HERO_SECONDARY },
-  city: { fontSize: 13, lineHeight: 17, color: palette.sage },
-  editLink: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6 },
-  editText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.cream },
-  editArrow: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.bronze },
-  body: {
-    marginTop: -28,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingTop: 26,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+  cameraBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.foreground,
+    borderWidth: 2,
+    borderColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sections: { gap: 30 },
+  name: {
+    marginTop: 12,
+    fontSize: 30,
+    lineHeight: 34,
+    letterSpacing: -0.9,
+    color: colors.textPrimary,
+  },
+  subtitle: { fontSize: 15, lineHeight: 21, color: palette.mutedCopy },
+  stats: { fontSize: 13, lineHeight: 18, color: palette.sage },
+  editPill: {
+    marginTop: 10,
+    minHeight: 36,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: 'rgba(16,22,15,0.07)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editPillText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  premium: { marginTop: 28 },
+  section: { marginTop: 32 },
+  version: {
+    marginTop: 32,
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: 1.44,
+    color: palette.sage,
+    textAlign: 'center',
+  },
+  devTools: { marginTop: 24 },
   premiumCard: {
     overflow: 'hidden',
     backgroundColor: palette.base,
@@ -482,76 +502,6 @@ const styles = StyleSheet.create({
   activeText: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: palette.cream },
   premiumRowLabel: { fontSize: 14, lineHeight: 18, letterSpacing: -0.14, color: palette.cream },
   premiumChevron: { fontSize: 18, lineHeight: 22, color: palette.bronze },
-  group: {
-    backgroundColor: palette.paper,
-    borderWidth: 1,
-    borderColor: 'rgba(16,22,15,0.16)',
-    borderRadius: 22,
-    padding: 14,
-    gap: 10,
-    shadowColor: palette.base,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 2,
-  },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  groupIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    backgroundColor: 'rgba(16,22,15,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  groupTitle: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  tray: { backgroundColor: 'rgba(16,22,15,0.045)', borderRadius: 16, padding: 6, gap: 4 },
-  row: {
-    minHeight: 48,
-    backgroundColor: palette.previewPaper,
-    borderWidth: 1,
-    borderColor: 'rgba(16,22,15,0.08)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  rowLabel: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 18,
-    letterSpacing: -0.14,
-    color: colors.textPrimary,
-  },
-  rowMuted: { color: palette.sage },
-  rowValue: { maxWidth: 140, fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
-  chevron: { fontSize: 16, lineHeight: 20, color: palette.sage },
-  privacyTitle: {
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: palette.sage,
-    paddingHorizontal: 4,
-    paddingBottom: 10,
-  },
-  privacyRow: {
-    minHeight: 44,
-    paddingHorizontal: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  privacyLabel: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
-  version: {
-    fontSize: 9,
-    lineHeight: 12,
-    letterSpacing: 1.44,
-    color: palette.sage,
-    textAlign: 'center',
-    marginTop: -10,
-  },
-  devTools: { marginTop: 24 },
   pressed: { opacity: 0.72 },
   pressedDown: { transform: [{ translateY: 1 }] },
 });

@@ -32,6 +32,10 @@ export const PROFILE_ICONS = {
   briefcase:
     'M3.5 9.5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2zM9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5',
   person: 'M12 12.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zM5.5 20a6.5 6.5 0 0 1 13 0',
+  logout: 'M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10',
+  camera:
+    'M4 8.5a2 2 0 0 1 2-2h2l1.5-2h5L16 6.5h2a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM12 16a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  plus: 'M12 5v14M5 12h14',
 } as const;
 
 export function ProfileIcon({
@@ -193,7 +197,24 @@ export function ChoiceChips<T extends string | number>({
   );
 }
 
-/** Lista agrupada clara (Perfil 15–17): linhas de 56 com divisor. */
+/**
+ * Título de seção em texto normal (não em letra técnica maiúscula): as listas do Perfil são de
+ * um nível só, como nos apps de referência (Wise, GoHenry, Marcus — Mobbin, 2026-09-27).
+ */
+export function SectionTitle({ children, testID }: { children: string; testID?: string }) {
+  const type = useBrandTypography();
+  return (
+    <AppText
+      accessibilityRole="header"
+      style={[type.heading1, styles.sectionTitle]}
+      testID={testID}
+    >
+      {children}
+    </AppText>
+  );
+}
+
+/** Lista de um nível: linhas com divisória fina, sem cartão em volta. */
 export function InsetList({ children }: { children: ReactNode }) {
   return <View style={styles.inset}>{children}</View>;
 }
@@ -201,6 +222,7 @@ export function InsetList({ children }: { children: ReactNode }) {
 export function InsetRow({
   label,
   value,
+  subtitle,
   icon,
   accessory,
   onPress,
@@ -210,6 +232,7 @@ export function InsetRow({
 }: {
   label: string;
   value?: string | null;
+  subtitle?: string | null;
   icon?: ReactNode;
   accessory?: ReactNode;
   onPress?: () => void;
@@ -219,27 +242,31 @@ export function InsetRow({
 }) {
   const content = (
     <>
-      {icon}
-      <AppText variant="heading2" style={[styles.insetLabel, muted && styles.insetMuted]}>
-        {label}
-      </AppText>
-      {value ? (
-        <AppText numberOfLines={1} style={styles.insetValue}>
-          {value}
-        </AppText>
-      ) : null}
-      {accessory ?? (onPress ? <AppText style={styles.chevron}>{'›'}</AppText> : null)}
+      {icon ? <View style={styles.insetIcon}>{icon}</View> : null}
+      <View style={[styles.insetBody, !last && styles.insetDivider]}>
+        <View style={styles.insetText}>
+          <AppText variant="heading2" style={[styles.insetLabel, muted && styles.insetMuted]}>
+            {label}
+          </AppText>
+          {subtitle ? (
+            <AppText numberOfLines={1} style={styles.insetSubtitle}>
+              {subtitle}
+            </AppText>
+          ) : null}
+        </View>
+        {value ? (
+          <AppText numberOfLines={1} style={styles.insetValue}>
+            {value}
+          </AppText>
+        ) : null}
+        {accessory ?? (onPress ? <AppText style={styles.chevron}>{'›'}</AppText> : null)}
+      </View>
     </>
   );
-  const style = [styles.insetRow, !last && styles.insetDivider];
+  const label11y = [label, subtitle, value].filter(Boolean).join(', ');
   if (!onPress) {
     return (
-      <View
-        accessible
-        accessibilityLabel={value ? `${label}, ${value}` : label}
-        style={style}
-        testID={testID}
-      >
+      <View accessible accessibilityLabel={label11y} style={styles.insetRow} testID={testID}>
         {content}
       </View>
     );
@@ -247,10 +274,10 @@ export function InsetRow({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={value ? `${label}, ${value}` : label}
+      accessibilityLabel={label11y}
       onPress={onPress}
       testID={testID}
-      style={({ pressed }) => [...style, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.insetRow, pressed && styles.rowPressed]}
     >
       {content}
     </Pressable>
@@ -333,18 +360,40 @@ const styles = StyleSheet.create({
   chipOff: { borderColor: 'rgba(16,22,15,0.2)' },
   chipText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
   chipTextOn: { color: palette.cream },
-  inset: { backgroundColor: 'rgba(16,22,15,0.04)', borderRadius: 18, paddingHorizontal: 16 },
-  insetRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  insetDivider: { borderBottomWidth: 1, borderBottomColor: 'rgba(16,22,15,0.08)' },
-  insetLabel: {
-    flex: 1,
-    fontSize: 15,
-    lineHeight: 19,
-    letterSpacing: 0,
+  sectionTitle: {
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: -0.17,
     color: colors.textPrimary,
+    paddingBottom: 4,
   },
+  inset: {},
+  insetRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  rowPressed: { opacity: 0.6 },
+  insetIcon: { width: 22, alignItems: 'center' },
+  insetBody: {
+    flex: 1,
+    minHeight: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+  },
+  insetDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(16,22,15,0.18)',
+  },
+  insetText: { flex: 1, gap: 2 },
+  insetLabel: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary },
   insetMuted: { color: palette.sage },
-  insetValue: { flexShrink: 1, fontSize: 13, lineHeight: 17, color: palette.sage },
+  insetSubtitle: { fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
+  insetValue: {
+    flexShrink: 1,
+    maxWidth: 160,
+    fontSize: 14,
+    lineHeight: 18,
+    color: palette.mutedCopy,
+  },
   chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
   soon: {
     borderWidth: 1,

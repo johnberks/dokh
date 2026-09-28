@@ -3,7 +3,6 @@ export const profile = {
   soon: 'EM BREVE',
   /** Perfil 01/18. */
   main: {
-    eyebrow: 'PERFIL',
     edit: 'Editar perfil',
     resident: 'Residente de {{specialty}}',
     residentNoSpecialty: 'Residente',
@@ -14,10 +13,16 @@ export const profile = {
     premiumCta: 'Conhecer Premium',
     premiumActive: 'ATIVO',
     manageSubscription: 'Gerenciar assinatura',
-    groupWork: 'SEU TRABALHO',
-    groupPreferences: 'PREFERÊNCIAS',
-    groupAccount: 'CONTA E SUPORTE',
-    groupPrivacy: 'PRIVACIDADE',
+    sectionWork: 'Seu trabalho',
+    sectionPreferences: 'Preferências',
+    sectionAccount: 'Conta e suporte',
+    sectionPrivacy: 'Privacidade',
+    signOut: 'Sair da DOKH',
+    signingOut: 'Saindo…',
+    statsLocationsOne: '1 local',
+    statsLocationsMany: '{{count}} locais',
+    statsWorksOne: '1 trabalho em {{month}}',
+    statsWorksMany: '{{count}} trabalhos em {{month}}',
     locations: 'Locais de trabalho',
     residency: 'Residência',
     workPreferences: 'Preferências de trabalho',
@@ -82,7 +87,7 @@ export const profile = {
   /** Perfil 05/05b e formulário da residência. */
   residency: {
     title: 'Residência',
-    active: 'RESIDÊNCIA ATIVA',
+    activeLabel: 'Residência ativa',
     institution: 'Instituição',
     start: 'Início',
     end: 'Previsão de término',
@@ -140,7 +145,7 @@ export const profile = {
   /** Perfil 15. */
   appearance: {
     title: 'Aparência',
-    theme: 'TEMA',
+    themeTitle: 'Tema',
     system: 'Sistema',
     light: 'Claro',
     dark: 'Escuro',
@@ -149,16 +154,15 @@ export const profile = {
   /** Perfil 16. */
   account: {
     title: 'Conta e segurança',
-    access: 'ACESSO',
-    email: 'E-MAIL',
+    accessTitle: 'Acesso',
+    emailLabel: 'E-mail',
     changePassword: 'Alterar senha',
     method: 'Método de acesso',
     methodEmail: 'E-mail',
-    subscription: 'ASSINATURA',
+    subscriptionTitle: 'Assinatura',
     manage: 'Gerenciar assinatura',
     free: 'Free',
     premium: 'Premium',
-    signOut: 'Sair da DOKH',
     signOutError: 'Não foi possível sair. Tente de novo.',
     delete: 'Excluir conta',
     deleteText:

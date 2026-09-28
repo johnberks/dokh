@@ -6,7 +6,6 @@ import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { subscriptionManagementUrls, supportUrls } from '@/config/legal';
-import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { usePremium } from '@/features/billing/entitlement';
 import { DarkButton, FieldBox } from '@/features/work/form/FormPieces';
 import { DurationSheet, StartTimeSheet } from '@/features/work/form/ScheduleSheets';
@@ -20,6 +19,7 @@ import {
   Note,
   type PROFILE_ICONS,
   ProfileIcon,
+  SectionTitle,
   SoonBadge,
   SubScreen,
 } from './ProfilePieces';
@@ -203,9 +203,7 @@ export function AppearanceScreen() {
       onBack={() => router.back()}
       testID="appearance-screen"
     >
-      <AppText variant="technical" style={styles.groupTitle}>
-        {t('appearance.theme')}
-      </AppText>
+      <SectionTitle>{t('appearance.themeTitle')}</SectionTitle>
       <View accessibilityRole="radiogroup">
         <InsetList>
           {options.map((option, index) => (
@@ -244,40 +242,20 @@ export function AppearanceScreen() {
 export function AccountScreen() {
   const { t } = useTranslation('profile');
   const type = useBrandTypography();
-  const { signOut } = useAuthSession();
   const email = useAccountEmail();
   const premium = usePremium();
   const isPremium = premium.data === true;
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutFailed, setSignOutFailed] = useState(false);
   const [deleteInfo, setDeleteInfo] = useState(false);
-
-  async function leave() {
-    if (signingOut) return;
-    setSigningOut(true);
-    setSignOutFailed(false);
-    try {
-      await signOut();
-    } catch {
-      setSignOutFailed(true);
-      setSigningOut(false);
-    }
-  }
 
   return (
     <SubScreen title={t('account.title')} onBack={() => router.back()} testID="account-screen">
-      <AppText variant="technical" style={styles.groupTitle}>
-        {t('account.access')}
-      </AppText>
+      <SectionTitle>{t('account.accessTitle')}</SectionTitle>
       <InsetList>
-        <View style={[styles.emailRow, styles.themeDivider]} accessible testID="account-email">
-          <AppText variant="technical" style={styles.emailLabel}>
-            {t('account.email')}
-          </AppText>
-          <AppText variant="heading2" numberOfLines={1} style={styles.emailValue}>
-            {email.data ?? '—'}
-          </AppText>
-        </View>
+        <InsetRow
+          label={t('account.emailLabel')}
+          subtitle={email.data ?? '—'}
+          testID="account-email"
+        />
         <InsetRow
           label={t('account.changePassword')}
           onPress={() => router.push('/recover-password')}
@@ -292,9 +270,9 @@ export function AccountScreen() {
         />
       </InsetList>
 
-      <AppText variant="technical" style={[styles.groupTitle, styles.groupSpacing]}>
-        {t('account.subscription')}
-      </AppText>
+      <View style={styles.groupSpacing}>
+        <SectionTitle>{t('account.subscriptionTitle')}</SectionTitle>
+      </View>
       <InsetList>
         <InsetRow
           label={t('account.manage')}
@@ -316,19 +294,6 @@ export function AccountScreen() {
       </InsetList>
 
       <View style={styles.accountActions}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('account.signOut')}
-          accessibilityState={{ busy: signingOut, disabled: signingOut }}
-          disabled={signingOut}
-          onPress={() => void leave()}
-          testID="account-sign-out"
-          style={({ pressed }) => [styles.textAction, pressed && styles.pressed]}
-        >
-          {signingOut ? <ActivityIndicator color={palette.sage} /> : null}
-          <AppText style={[type.heading1, styles.signOut]}>{t('account.signOut')}</AppText>
-        </Pressable>
-        {signOutFailed && <Note>{t('account.signOutError')}</Note>}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('account.delete')}
@@ -369,32 +334,28 @@ export function HelpScreen() {
       { key: 'feedback', icon: 'star', label: t('help.feedback') },
       { key: 'problem', icon: 'flag', label: t('help.problem') },
     ];
+  // Só o que tem destino aparece; o resto entra sozinho quando o link for configurado.
+  const available = rows.flatMap((row) => {
+    const url = supportUrls[row.key];
+    return url ? [{ ...row, url }] : [];
+  });
   const feedback = supportUrls.feedback;
   return (
     <SubScreen title={t('help.title')} onBack={() => router.back()} testID="help-screen">
-      <InsetList>
-        {rows.map((row, index) => {
-          const url = supportUrls[row.key];
-          return (
+      {available.length > 0 && (
+        <InsetList>
+          {available.map((row, index) => (
             <InsetRow
               key={row.key}
-              icon={
-                <ProfileIcon
-                  name={row.icon}
-                  size={20}
-                  color={url ? colors.foreground : palette.sage}
-                />
-              }
+              icon={<ProfileIcon name={row.icon} size={20} />}
               label={row.label}
-              muted={url === null}
-              accessory={url === null ? <SoonBadge /> : undefined}
-              onPress={url ? () => void Linking.openURL(url) : undefined}
-              last={index === rows.length - 1}
+              onPress={() => void Linking.openURL(row.url)}
+              last={index === available.length - 1}
               testID={`help-${row.key}`}
             />
-          );
-        })}
-      </InsetList>
+          ))}
+        </InsetList>
+      )}
 
       <Pressable
         accessibilityRole="button"
@@ -410,18 +371,12 @@ export function HelpScreen() {
         </AppText>
         <AppText style={[type.heading1, styles.inviteTitle]}>{t('help.inviteTitle')}</AppText>
         <AppText style={styles.inviteText}>{t('help.inviteText')}</AppText>
-        <View style={styles.inviteCta}>
-          <AppText style={[type.heading1, styles.inviteCtaText]}>{t('help.feedback')}</AppText>
-          {feedback === null ? (
-            <View style={styles.darkSoon}>
-              <AppText variant="technical" style={styles.darkSoonText}>
-                {t('soon')}
-              </AppText>
-            </View>
-          ) : (
+        {feedback !== null && (
+          <View style={styles.inviteCta}>
+            <AppText style={[type.heading1, styles.inviteCtaText]}>{t('help.feedback')}</AppText>
             <AppText style={[type.heading1, styles.inviteArrow]}>{'→'}</AppText>
-          )}
-        </View>
+          </View>
+        )}
       </Pressable>
     </SubScreen>
   );
@@ -445,14 +400,6 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
   chipTextOn: { color: palette.cream },
   chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
-  groupTitle: {
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: palette.sage,
-    paddingHorizontal: 4,
-    paddingBottom: 10,
-  },
   groupSpacing: { marginTop: 30 },
   themeRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 14 },
   themeDivider: { borderBottomWidth: 1, borderBottomColor: 'rgba(16,22,15,0.08)' },
@@ -473,9 +420,6 @@ const styles = StyleSheet.create({
   },
   radioOn: { borderWidth: 7, borderColor: colors.foreground },
   noteGap: { marginTop: 14 },
-  emailRow: { minHeight: 60, paddingVertical: 8, justifyContent: 'center', gap: 2 },
-  emailLabel: { fontSize: 9, lineHeight: 12, letterSpacing: 1.62, color: palette.sage },
-  emailValue: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   accountActions: { marginTop: 48, alignItems: 'center', gap: 10 },
   textAction: {
     minHeight: 44,
@@ -485,7 +429,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  signOut: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   deleteText: { fontSize: 13, lineHeight: 17, color: palette.sage },
   sheetCopy: { gap: 8, paddingTop: 6 },
   sheetTitle: { fontSize: 22, lineHeight: 26, letterSpacing: -0.44, color: colors.textPrimary },
@@ -505,13 +448,5 @@ const styles = StyleSheet.create({
   inviteCta: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 4 },
   inviteCtaText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.cream },
   inviteArrow: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.bronze },
-  darkSoon: {
-    borderWidth: 1,
-    borderColor: 'rgba(237,234,224,0.24)',
-    borderRadius: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-  },
-  darkSoonText: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: '#B9BFB2' },
   pressed: { opacity: 0.72 },
 });

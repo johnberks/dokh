@@ -209,9 +209,9 @@ describe('rotas', () => {
     expect(screen.getByTestId('profile-screen')).toBeTruthy();
   });
 
-  it('sair fica em Perfil › Conta e segurança', async () => {
-    await openAt('/profile/account');
-    await fireEvent.press(screen.getByRole('button', { name: 'Sair da DOKH' }));
+  it('sair fica no fim da lista do Perfil', async () => {
+    await openAt('/profile');
+    await fireEvent.press(screen.getByTestId('profile-sign-out'));
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 

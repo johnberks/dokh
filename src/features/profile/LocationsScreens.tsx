@@ -29,7 +29,15 @@ import { DarkButton } from '@/features/work/form/FormPieces';
 import { findLocationByName } from '@/features/work/form/LocationField';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
-import { FieldLabel, Note, SubScreen, TextField } from './ProfilePieces';
+import {
+  FieldLabel,
+  InsetList,
+  InsetRow,
+  Note,
+  ProfileIcon,
+  SubScreen,
+  TextField,
+} from './ProfilePieces';
 import { useLocationWorkCounts } from './profile-data';
 
 const EXTENDED_TOKENS: readonly WorkLocationColorToken[] = PREMIUM_COLOR_TOKENS.filter(
@@ -58,7 +66,6 @@ function AddButton({ onPress, label }: { onPress: () => void; label: string }) {
 /** Perfil 03 (lista com ponto, nome e contagem — nunca valores) e 03b (vazio tipográfico). */
 export function LocationsScreen() {
   const { t } = useTranslation('profile');
-  const type = useBrandTypography();
   const locations = useWorkLocations();
   const counts = useLocationWorkCounts();
   const list = locations.data ?? [];
@@ -94,39 +101,30 @@ export function LocationsScreen() {
       ) : (
         <View style={styles.listBlock}>
           <AppText style={styles.description}>{t('locations.description')}</AppText>
-          <View style={styles.list}>
+          <InsetList>
             {list.map((location) => (
-              <Pressable
+              <InsetRow
                 key={location.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${location.name}, ${countLabel(location.id)}`}
+                icon={
+                  <View style={[styles.dot, { backgroundColor: colorOf(location.colorToken) }]} />
+                }
+                label={location.name}
+                subtitle={countLabel(location.id)}
                 onPress={() =>
                   router.push({ pathname: '/profile/locations/[id]', params: { id: location.id } })
                 }
                 testID={`location-${location.id}`}
-                style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-              >
-                <View style={[styles.dot, { backgroundColor: colorOf(location.colorToken) }]} />
-                <View style={styles.cardText}>
-                  <AppText numberOfLines={1} style={[type.heading1, styles.cardName]}>
-                    {location.name}
-                  </AppText>
-                  <AppText style={styles.cardCount}>{countLabel(location.id)}</AppText>
-                </View>
-                <AppText style={styles.chevron}>{'›'}</AppText>
-              </Pressable>
+              />
             ))}
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('locations.add')}
-            onPress={openNew}
-            testID="locations-add"
-            style={({ pressed }) => [styles.dashed, pressed && styles.pressed]}
-          >
-            <AppText style={[type.heading1, styles.dashedText]}>{t('locations.add')}</AppText>
-            <AppText style={[type.heading1, styles.dashedPlus]}>{'+'}</AppText>
-          </Pressable>
+            <InsetRow
+              icon={<ProfileIcon name="plus" size={18} />}
+              label={t('locations.add')}
+              onPress={openNew}
+              accessory={<View />}
+              last
+              testID="locations-add"
+            />
+          </InsetList>
         </View>
       )}
     </SubScreen>
@@ -408,42 +406,7 @@ const styles = StyleSheet.create({
   empty: { flex: 1, justifyContent: 'center', paddingBottom: 80 },
   listBlock: { gap: 22 },
   description: { fontSize: 14, lineHeight: 21, color: palette.mutedCopy },
-  list: { gap: 10 },
-  card: {
-    backgroundColor: palette.paper,
-    borderWidth: 1,
-    borderColor: 'rgba(16,22,15,0.16)',
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    shadowColor: palette.base,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 2,
-  },
-  cardPressed: { transform: [{ translateY: 1 }], backgroundColor: '#F3F0E7' },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  cardText: { flex: 1, gap: 2 },
-  cardName: { fontSize: 16, lineHeight: 20, letterSpacing: -0.16, color: colors.textPrimary },
-  cardCount: { fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
-  chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
-  dashed: {
-    minHeight: 52,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(16,22,15,0.25)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  dashedText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
-  dashedPlus: { fontSize: 18, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary },
+  dot: { width: 12, height: 12, borderRadius: 6 },
   addCircle: {
     width: 40,
     height: 40,

@@ -14,7 +14,7 @@ import { DarkButton, FieldBox, SheetHeading } from '@/features/work/form/FormPie
 import { todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
-import { Note, SubScreen, TextField } from './ProfilePieces';
+import { InsetList, InsetRow, Note, SubScreen, TextField } from './ProfilePieces';
 import {
   type Residency,
   useActiveResidency,
@@ -33,18 +33,6 @@ export function monthYearLabel(date: string): string {
 
 function currentMonthStart(): string {
   return `${todayInTimezone(deviceTimezone()).slice(0, 7)}-01`;
-}
-
-function Line({ label, value, last = false }: { label: string; value: string; last?: boolean }) {
-  const type = useBrandTypography();
-  return (
-    <View style={[styles.line, !last && styles.lineRule]}>
-      <AppText style={styles.lineLabel}>{label}</AppText>
-      <AppText numberOfLines={1} style={[type.heading1, styles.lineValue]}>
-        {value}
-      </AppText>
-    </View>
-  );
 }
 
 /**
@@ -74,36 +62,27 @@ export function ResidencyScreen() {
         </View>
       ) : (
         <View style={styles.block}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`${t('residency.active')}, ${data.specialty}`}
-            onPress={openForm}
-            testID="residency-card"
-            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-          >
-            <View style={styles.accent} />
-            <View style={styles.cardTop}>
-              <View style={styles.cardTopStart}>
-                <AppText variant="technical" style={styles.eyebrow}>
-                  {t('residency.active')}
-                </AppText>
-                {data.levelLabel ? (
-                  <View style={styles.levelTag}>
-                    <AppText style={[type.heading1, styles.levelText]}>{data.levelLabel}</AppText>
-                  </View>
-                ) : null}
-              </View>
-              <View style={styles.arrow}>
-                <AppText style={[type.heading1, styles.arrowText]}>{'→'}</AppText>
-              </View>
+          <View style={styles.head} testID="residency-card">
+            <View style={styles.statusRow}>
+              <View style={styles.statusDot} />
+              <AppText style={styles.statusText}>{t('residency.activeLabel')}</AppText>
+              {data.levelLabel ? (
+                <View style={styles.levelTag}>
+                  <AppText style={[type.heading1, styles.levelText]}>{data.levelLabel}</AppText>
+                </View>
+              ) : null}
             </View>
-            <AppText style={[type.heading1, styles.program]}>{data.specialty}</AppText>
-            <Line
+            <AppText accessibilityRole="header" style={[type.heading1, styles.program]}>
+              {data.specialty}
+            </AppText>
+          </View>
+          <InsetList>
+            <InsetRow
               label={t('residency.institution')}
               value={data.institution ?? t('residency.notInformed')}
             />
-            <Line label={t('residency.start')} value={monthYearLabel(data.startsOn)} />
-            <Line
+            <InsetRow label={t('residency.start')} value={monthYearLabel(data.startsOn)} />
+            <InsetRow
               label={t('residency.end')}
               value={
                 data.expectedEndsOn
@@ -111,15 +90,18 @@ export function ResidencyScreen() {
                   : t('residency.notInformed')
               }
             />
-            <Line label={t('residency.amount')} value={formatCentsToBRL(data.monthlyAmountCents)} />
-            <Line
+            <InsetRow
+              label={t('residency.amount')}
+              value={formatCentsToBRL(data.monthlyAmountCents)}
+            />
+            <InsetRow
               label={t('residency.paymentDay')}
               value={t('residency.paymentDayValue', {
                 day: String(data.paymentDay).padStart(2, '0'),
               })}
               last
             />
-          </Pressable>
+          </InsetList>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('residency.edit')}
@@ -531,40 +513,10 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   empty: { flex: 1, justifyContent: 'center', paddingBottom: 80 },
   block: { gap: 16 },
-  card: {
-    overflow: 'hidden',
-    backgroundColor: palette.paper,
-    borderWidth: 1,
-    borderColor: 'rgba(16,22,15,0.16)',
-    borderRadius: 22,
-    paddingTop: 18,
-    paddingHorizontal: 20,
-    paddingBottom: 6,
-    shadowColor: palette.base,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
-    elevation: 2,
-  },
-  cardPressed: { transform: [{ translateY: 1 }], backgroundColor: '#F3F0E7' },
-  accent: {
-    position: 'absolute',
-    left: 0,
-    top: 18,
-    bottom: 18,
-    width: 4,
-    borderTopRightRadius: 3,
-    borderBottomRightRadius: 3,
-    backgroundColor: palette.workSage,
-  },
-  cardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 8,
-  },
-  cardTopStart: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  head: { gap: 8, paddingBottom: 4 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: palette.structure },
+  statusText: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
   levelTag: {
     backgroundColor: 'rgba(43,58,36,0.10)',
     borderRadius: 999,
@@ -572,38 +524,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
   },
   levelText: { fontSize: 11, lineHeight: 14, letterSpacing: 0, color: palette.structure },
-  arrow: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.foreground,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowText: { fontSize: 14, lineHeight: 16, letterSpacing: 0, color: palette.bronze },
   program: {
-    fontSize: 22,
-    lineHeight: 25,
-    letterSpacing: -0.44,
+    fontSize: 28,
+    lineHeight: 32,
+    letterSpacing: -0.84,
     color: colors.textPrimary,
     paddingBottom: 6,
-  },
-  line: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    gap: 12,
-    paddingVertical: 14,
-  },
-  lineRule: { borderBottomWidth: 1, borderBottomColor: 'rgba(16,22,15,0.08)' },
-  lineLabel: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
-  lineValue: {
-    flexShrink: 1,
-    fontSize: 15,
-    lineHeight: 19,
-    letterSpacing: 0,
-    color: colors.textPrimary,
-    textAlign: 'right',
   },
   outline: {
     minHeight: 52,
