@@ -101,7 +101,7 @@ export function LocationsScreen() {
       ) : (
         <View style={styles.listBlock}>
           <AppText style={styles.description}>{t('locations.description')}</AppText>
-          <InsetList>
+          <InsetList grouped>
             {list.map((location) => (
               <InsetRow
                 key={location.id}
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   loading: { marginTop: 32 },
   empty: { flex: 1, justifyContent: 'center', paddingBottom: 80 },
   listBlock: { gap: 22 },
-  description: { fontSize: 14, lineHeight: 21, color: palette.mutedCopy },
+  description: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },
   dot: { width: 12, height: 12, borderRadius: 6 },
   addCircle: {
     width: 40,

@@ -119,3 +119,16 @@ Pedido do usuário: o Perfil estava com cara de template de IA. O bloco Premium 
   - cidade.
 - As contagens (locais e trabalhos do mês) e o selo de câmera saíram, a pedido do usuário.
 
+### Subtelas mais robustas (2026-09-27; referências Todoist, Zocdoc, Box Box Club, Subway e Fresha na Mobbin)
+
+Pedido do usuário: as letras estavam finas e sumiam no fundo claro.
+- **Listas das subtelas** (`InsetList grouped`) em grupo claro (`previewPaper`) com borda sutil e cantos de 18 sobre o creme. Rótulos em Archivo SemiBold 16 e valores em 15 `mutedCopy`. A lista da tela principal continua plana.
+- **Campos preenchidos** (`TextField` e o novo `PickerField`) em superfície clara:
+  - rótulo legível de 13 pt em cima, em caixa normal, no lugar da letra técnica de 9 pt;
+  - valor em SemiBold 17;
+  - a bolsa virou campo com prefixo `R$` no mesmo padrão.
+- **Chips** de 48 com texto sempre em SemiBold e fundo claro quando não selecionados.
+- **Títulos de seção** dos formulários (`FieldLabel`) em SemiBold 15, na cor do texto principal.
+- **Textos de apoio** em 14 a 15 pt.
+- Os rótulos do namespace `profile` passaram de CAIXA ALTA para caixa normal. As folhas mantêm o sobretítulo técnico em maiúsculas.
+

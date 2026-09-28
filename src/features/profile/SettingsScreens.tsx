@@ -7,7 +7,7 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { subscriptionManagementUrls, supportUrls } from '@/config/legal';
 import { usePremium } from '@/features/billing/entitlement';
-import { DarkButton, FieldBox } from '@/features/work/form/FormPieces';
+import { DarkButton } from '@/features/work/form/FormPieces';
 import { DurationSheet, StartTimeSheet } from '@/features/work/form/ScheduleSheets';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
@@ -17,6 +17,7 @@ import {
   InsetList,
   InsetRow,
   Note,
+  PickerField,
   type PROFILE_ICONS,
   ProfileIcon,
   SectionTitle,
@@ -100,7 +101,7 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
                   pressed && styles.pressed,
                 ]}
               >
-                <AppText style={[on && type.heading1, styles.chipText, on && styles.chipTextOn]}>
+                <AppText style={[type.heading1, styles.chipText, on && styles.chipTextOn]}>
                   {t('preferences.hours', { hours: option })}
                 </AppText>
               </Pressable>
@@ -120,7 +121,7 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
           >
             <AppText
               style={[
-                hours !== null && !quick && type.heading1,
+                type.heading1,
                 styles.chipText,
                 hours !== null && !quick && styles.chipTextOn,
               ]}
@@ -135,12 +136,11 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
 
       <View style={styles.section}>
         <FieldLabel>{t('preferences.time')}</FieldLabel>
-        <FieldBox
+        <PickerField
           label={t('preferences.start')}
           value={value.startTime}
           placeholder={t('preferences.noTime')}
           onPress={() => setSheet('start')}
-          accessory={<AppText style={styles.chevron}>{'›'}</AppText>}
           testID="preferences-start"
         />
       </View>
@@ -192,6 +192,7 @@ function PreferencesForm({ initial }: { initial: WorkPreferences }) {
 /** Perfil 15: só o tema claro existe; Sistema e Escuro aparecem como "Em breve". */
 export function AppearanceScreen() {
   const { t } = useTranslation('profile');
+  const type = useBrandTypography();
   const options = [
     { key: 'system', label: t('appearance.system'), available: false },
     { key: 'light', label: t('appearance.light'), available: true },
@@ -205,7 +206,7 @@ export function AppearanceScreen() {
     >
       <SectionTitle>{t('appearance.themeTitle')}</SectionTitle>
       <View accessibilityRole="radiogroup">
-        <InsetList>
+        <InsetList grouped>
           {options.map((option, index) => (
             <View
               key={option.key}
@@ -217,8 +218,7 @@ export function AppearanceScreen() {
               testID={`appearance-${option.key}`}
             >
               <AppText
-                variant="heading2"
-                style={[styles.themeLabel, !option.available && styles.muted]}
+                style={[type.heading1, styles.themeLabel, !option.available && styles.muted]}
               >
                 {option.label}
               </AppText>
@@ -250,7 +250,7 @@ export function AccountScreen() {
   return (
     <SubScreen title={t('account.title')} onBack={() => router.back()} testID="account-screen">
       <SectionTitle>{t('account.accessTitle')}</SectionTitle>
-      <InsetList>
+      <InsetList grouped>
         <InsetRow
           label={t('account.emailLabel')}
           subtitle={email.data ?? '—'}
@@ -273,7 +273,7 @@ export function AccountScreen() {
       <View style={styles.groupSpacing}>
         <SectionTitle>{t('account.subscriptionTitle')}</SectionTitle>
       </View>
-      <InsetList>
+      <InsetList grouped>
         <InsetRow
           label={t('account.manage')}
           value={premium.isSuccess ? (isPremium ? t('account.premium') : t('account.free')) : null}
@@ -343,7 +343,7 @@ export function HelpScreen() {
   return (
     <SubScreen title={t('help.title')} onBack={() => router.back()} testID="help-screen">
       {available.length > 0 && (
-        <InsetList>
+        <InsetList grouped>
           {available.map((row, index) => (
             <InsetRow
               key={row.key}
@@ -384,29 +384,28 @@ export function HelpScreen() {
 
 const styles = StyleSheet.create({
   loading: { marginTop: 32 },
-  lead: { fontSize: 14, lineHeight: 21, color: palette.mutedCopy },
+  lead: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },
   section: { marginTop: 22, gap: 10 },
   chips: { flexDirection: 'row', gap: 8 },
   chip: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chipOn: { borderColor: colors.foreground, backgroundColor: colors.foreground },
-  chipOff: { borderColor: 'rgba(16,22,15,0.2)' },
-  chipText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  chipOff: { borderColor: 'rgba(16,22,15,0.12)', backgroundColor: palette.previewPaper },
+  chipText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   chipTextOn: { color: palette.cream },
-  chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
   groupSpacing: { marginTop: 30 },
   themeRow: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 14 },
   themeDivider: { borderBottomWidth: 1, borderBottomColor: 'rgba(16,22,15,0.08)' },
   themeLabel: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 19,
+    fontSize: 16,
+    lineHeight: 21,
     letterSpacing: 0,
     color: colors.textPrimary,
   },

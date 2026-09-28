@@ -5,16 +5,15 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { EmptyState } from '@/components/EmptyState';
-import { MoneyInput } from '@/components/MoneyInput';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { formatCentsToBRL, parseBRLToCents } from '@/domain/money';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
-import { DarkButton, FieldBox, SheetHeading } from '@/features/work/form/FormPieces';
+import { DarkButton, SheetHeading } from '@/features/work/form/FormPieces';
 import { todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
-import { InsetList, InsetRow, Note, SubScreen, TextField } from './ProfilePieces';
+import { InsetList, InsetRow, Note, PickerField, SubScreen, TextField } from './ProfilePieces';
 import {
   type Residency,
   useActiveResidency,
@@ -76,7 +75,7 @@ export function ResidencyScreen() {
               {data.specialty}
             </AppText>
           </View>
-          <InsetList>
+          <InsetList grouped>
             <InsetRow
               label={t('residency.institution')}
               value={data.institution ?? t('residency.notInformed')}
@@ -152,7 +151,7 @@ function MonthSheet({
       accessibilityLabel={title}
       testID="residency-month-sheet"
     >
-      <SheetHeading eyebrow={title} title={monthYearLabel(chosen)} />
+      <SheetHeading eyebrow={title.toUpperCase()} title={monthYearLabel(chosen)} />
       <PeriodSwitcher
         size="compact"
         title={String(year)}
@@ -233,7 +232,7 @@ function DaySheet({
       testID="residency-day-sheet"
     >
       <SheetHeading
-        eyebrow={t('residency.dayField')}
+        eyebrow={t('residency.dayField').toUpperCase()}
         title={t('residency.dayValue', { day: String(day).padStart(2, '0') })}
       />
       <View accessibilityRole="radiogroup" style={styles.dayGrid}>
@@ -405,7 +404,7 @@ function ResidencyForm({
             />
           </View>
           <View style={styles.flex}>
-            <FieldBox
+            <PickerField
               label={t('residency.startField')}
               value={monthYearLabel(startsOn)}
               placeholder=""
@@ -422,28 +421,27 @@ function ResidencyForm({
           autoCapitalize="words"
           testID="residency-institution"
         />
-        <FieldBox
+        <PickerField
           label={t('residency.endField')}
           value={endsOn ? monthYearLabel(endsOn) : null}
           placeholder={t('residency.endNone')}
           onPress={() => setSheet('end')}
-          accessory={<AppText style={styles.chevron}>{'›'}</AppText>}
           testID="residency-end-field"
         />
-        <View style={styles.amount}>
-          <MoneyInput
-            label={t('residency.amountField')}
-            value={amount}
-            onChangeText={setAmount}
-            testID="residency-amount"
-          />
-        </View>
-        <FieldBox
+        <TextField
+          label={t('residency.amountField')}
+          prefix="R$"
+          value={amount}
+          onChangeText={setAmount}
+          placeholder="0,00"
+          keyboardType="decimal-pad"
+          testID="residency-amount"
+        />
+        <PickerField
           label={t('residency.dayField')}
           value={t('residency.dayValue', { day: String(day).padStart(2, '0') })}
           placeholder=""
           onPress={() => setSheet('day')}
-          accessory={<AppText style={styles.chevron}>{'›'}</AppText>}
           testID="residency-day"
         />
         <View style={styles.formNote}>
@@ -542,14 +540,12 @@ const styles = StyleSheet.create({
   outlineText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   fields: { gap: 10 },
   row: { flexDirection: 'row', gap: 10 },
-  amount: { paddingTop: 6 },
   formNote: { paddingTop: 6 },
-  chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
   monthGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   monthChip: {
     width: '23%',
     flexGrow: 1,
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
@@ -566,8 +562,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipOn: { borderColor: colors.foreground, backgroundColor: colors.foreground },
-  chipOff: { borderColor: 'rgba(16,22,15,0.2)' },
-  chipText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  chipOff: { borderColor: 'rgba(16,22,15,0.12)', backgroundColor: palette.previewPaper },
+  chipText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   chipTextOn: { color: palette.cream },
   textButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   textButtonLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },

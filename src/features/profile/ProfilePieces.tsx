@@ -119,36 +119,79 @@ export function SubScreen({
   );
 }
 
-/** Rótulo técnico de seção (9 pt) usado nos formulários do Perfil. */
+/** Rótulo de seção dos formulários: texto normal e forte, legível sobre o creme. */
 export function FieldLabel({ children }: { children: string }) {
+  const type = useBrandTypography();
+  return <AppText style={[type.heading1, styles.fieldLabel]}>{children}</AppText>;
+}
+
+/**
+ * Campo preenchido das subtelas do Perfil (referências Subway/Fresha — Mobbin, 2026-09-27):
+ * superfície clara sobre o creme, rótulo legível em cima e valor em negrito.
+ */
+export function TextField({
+  label,
+  prefix,
+  testID,
+  ...input
+}: Omit<TextInputProps, 'style' | 'accessibilityLabel'> & {
+  label: string;
+  prefix?: string;
+  testID?: string;
+}) {
+  const type = useBrandTypography();
   return (
-    <AppText variant="technical" style={styles.fieldLabel}>
-      {children}
-    </AppText>
+    <View style={styles.field}>
+      <AppText style={[type.heading1, styles.fieldTitle]}>{label}</AppText>
+      <View style={styles.fieldInputRow}>
+        {prefix ? <AppText style={[type.heading1, styles.prefix]}>{prefix}</AppText> : null}
+        <TextInput
+          {...input}
+          accessibilityLabel={label}
+          placeholderTextColor="rgba(16,22,15,0.38)"
+          style={[type.heading1, styles.input]}
+          testID={testID}
+        />
+      </View>
+    </View>
   );
 }
 
-/** Campo de 60 com rótulo técnico e texto digitado (Perfil 02/04/06). */
-export function TextField({
+/** Mesmo campo, mas abre uma folha (mês, dia, horário). */
+export function PickerField({
   label,
+  value,
+  placeholder,
+  onPress,
   testID,
-  ...input
-}: Omit<TextInputProps, 'style' | 'accessibilityLabel'> & { label: string; testID?: string }) {
+}: {
+  label: string;
+  value: string | null;
+  placeholder: string;
+  onPress: () => void;
+  testID?: string;
+}) {
   const type = useBrandTypography();
-  const filled = typeof input.value === 'string' && input.value.trim() !== '';
   return (
-    <View style={[styles.field, filled && styles.fieldFilled]}>
-      <AppText variant="technical" style={styles.fieldTitle}>
-        {label}
-      </AppText>
-      <TextInput
-        {...input}
-        accessibilityLabel={label}
-        placeholderTextColor={palette.sage}
-        style={[type.heading1, styles.input]}
-        testID={testID}
-      />
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: value ?? placeholder }}
+      onPress={onPress}
+      testID={testID}
+      style={({ pressed }) => [styles.field, styles.pickerField, pressed && styles.rowPressed]}
+    >
+      <View style={styles.pickerText}>
+        <AppText style={[type.heading1, styles.fieldTitle]}>{label}</AppText>
+        <AppText
+          numberOfLines={1}
+          style={[type.heading1, styles.input, value === null && styles.placeholder]}
+        >
+          {value ?? placeholder}
+        </AppText>
+      </View>
+      <AppText style={styles.chevron}>{'›'}</AppText>
+    </Pressable>
   );
 }
 
@@ -187,7 +230,7 @@ export function ChoiceChips<T extends string | number>({
           >
             <AppText
               numberOfLines={1}
-              style={[on ? type.heading1 : null, styles.chipText, on && styles.chipTextOn]}
+              style={[type.heading1, styles.chipText, on && styles.chipTextOn]}
             >
               {option.label}
             </AppText>
@@ -215,9 +258,18 @@ export function SectionTitle({ children, testID }: { children: string; testID?: 
   );
 }
 
-/** Lista de um nível: linhas com divisória fina, sem cartão em volta. */
-export function InsetList({ children }: { children: ReactNode }) {
-  return <View style={styles.inset}>{children}</View>;
+/**
+ * Lista de um nível. Na tela principal é plana; nas subtelas (`grouped`) fica num grupo claro
+ * arredondado sobre o creme, como os ajustes do Todoist/Zocdoc (Mobbin, 2026-09-27).
+ */
+export function InsetList({
+  children,
+  grouped = false,
+}: {
+  children: ReactNode;
+  grouped?: boolean;
+}) {
+  return <View style={grouped ? styles.grouped : styles.inset}>{children}</View>;
 }
 
 export function InsetRow({
@@ -241,12 +293,13 @@ export function InsetRow({
   muted?: boolean;
   testID?: string;
 }) {
+  const type = useBrandTypography();
   const content = (
     <>
       {icon ? <View style={styles.insetIcon}>{icon}</View> : null}
       <View style={[styles.insetBody, !last && styles.insetDivider]}>
         <View style={styles.insetText}>
-          <AppText variant="heading2" style={[styles.insetLabel, muted && styles.insetMuted]}>
+          <AppText style={[type.heading1, styles.insetLabel, muted && styles.insetMuted]}>
             {label}
           </AppText>
           {subtitle ? (
@@ -328,29 +381,41 @@ const styles = StyleSheet.create({
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 },
   footer: { paddingHorizontal: 24, paddingTop: 12, gap: 6 },
   fieldLabel: {
-    fontSize: 9,
-    lineHeight: 12,
-    letterSpacing: 1.62,
-    color: palette.sage,
-    paddingLeft: 4,
+    fontSize: 15,
+    lineHeight: 20,
+    letterSpacing: -0.15,
+    color: colors.textPrimary,
+    paddingLeft: 2,
   },
   field: {
-    minHeight: 60,
+    minHeight: 64,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(16,22,15,0.2)',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    borderColor: 'rgba(16,22,15,0.12)',
+    backgroundColor: palette.previewPaper,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
     justifyContent: 'center',
-    gap: 3,
+    gap: 4,
   },
-  fieldFilled: { borderColor: colors.foreground },
-  fieldTitle: { fontSize: 9, lineHeight: 12, letterSpacing: 1.62, color: palette.sage },
-  input: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary, padding: 0 },
+  fieldInputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  prefix: { fontSize: 17, lineHeight: 22, letterSpacing: 0, color: palette.mutedCopy },
+  pickerField: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  pickerText: { flex: 1, gap: 4 },
+  placeholder: { color: 'rgba(16,22,15,0.38)' },
+  fieldTitle: { fontSize: 13, lineHeight: 17, letterSpacing: 0, color: palette.mutedCopy },
+  input: {
+    flex: 1,
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: -0.17,
+    color: colors.textPrimary,
+    padding: 0,
+  },
   chips: { flexDirection: 'row', gap: 8 },
   chip: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: 6,
     borderRadius: 12,
     borderWidth: 1,
@@ -358,8 +423,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipOn: { borderColor: colors.foreground, backgroundColor: colors.foreground },
-  chipOff: { borderColor: 'rgba(16,22,15,0.2)' },
-  chipText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  chipOff: { borderColor: 'rgba(16,22,15,0.12)', backgroundColor: palette.previewPaper },
+  chipText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   chipTextOn: { color: palette.cream },
   sectionTitle: {
     fontSize: 17,
@@ -369,6 +434,13 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   inset: {},
+  grouped: {
+    backgroundColor: palette.previewPaper,
+    borderWidth: 1,
+    borderColor: 'rgba(16,22,15,0.1)',
+    borderRadius: 18,
+    paddingHorizontal: 16,
+  },
   insetRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   rowPressed: { opacity: 0.6 },
   insetIcon: { width: 22, alignItems: 'center' },
@@ -385,14 +457,14 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(16,22,15,0.18)',
   },
   insetText: { flex: 1, gap: 2 },
-  insetLabel: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary },
+  insetLabel: { fontSize: 16, lineHeight: 21, letterSpacing: -0.16, color: colors.textPrimary },
   insetMuted: { color: palette.sage },
-  insetSubtitle: { fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
+  insetSubtitle: { fontSize: 14, lineHeight: 18, color: palette.mutedCopy },
   insetValue: {
     flexShrink: 1,
-    maxWidth: 160,
-    fontSize: 14,
-    lineHeight: 18,
+    maxWidth: 170,
+    fontSize: 15,
+    lineHeight: 20,
     color: palette.mutedCopy,
   },
   chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
@@ -404,6 +476,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
   },
   soonText: { fontSize: 9, lineHeight: 12, letterSpacing: 1.26, color: palette.sage },
-  note: { fontSize: 13, lineHeight: 19, color: palette.mutedCopy, paddingHorizontal: 4 },
+  note: { fontSize: 14, lineHeight: 20, color: palette.mutedCopy, paddingHorizontal: 4 },
   pressed: { opacity: 0.72 },
 });
