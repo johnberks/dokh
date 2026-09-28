@@ -18,7 +18,7 @@ export function WorkTypeScreen() {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const isResident = useProfileDraft((state) => state.isResident);
+  const isResident = useProfileDraft((state) => state.status === 'resident');
   const { type: selected, update } = useWorkDraft();
   const [touched, setTouched] = useState(false);
 
@@ -48,9 +48,7 @@ export function WorkTypeScreen() {
           onChange={(value) => update({ type: value })}
           testID="work-type"
         />
-        {isResident === true && (
-          <AppText style={styles.note}>{t('firstWork.type.residencyNote')}</AppText>
-        )}
+        {isResident && <AppText style={styles.note}>{t('firstWork.type.residencyNote')}</AppText>}
         {touched && selected === null && (
           <AppText style={styles.error}>{t('firstWork.type.required')}</AppText>
         )}

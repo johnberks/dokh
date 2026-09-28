@@ -42,8 +42,11 @@ export function ResidencyScreen() {
   const { t } = useTranslation('profile');
   const type = useBrandTypography();
   const residency = useActiveResidency();
+  const profile = useProfile();
   const data = residency.data;
   const openForm = () => router.push('/profile/residency/edit');
+  // Sem residência é um estado válido para quem não é residente: nada a completar aqui.
+  const notResident = profile.data != null && profile.data.status !== 'resident';
 
   return (
     <SubScreen title={t('residency.title')} onBack={() => router.back()} testID="residency-screen">
@@ -51,6 +54,8 @@ export function ResidencyScreen() {
         <ActivityIndicator color={palette.sage} style={styles.loading} />
       ) : residency.isError ? (
         <LoadError onRetry={() => void residency.refetch()} retrying={residency.isFetching} />
+      ) : !data && notResident ? (
+        <Note testID="residency-not-resident">{t('residency.notResident')}</Note>
       ) : !data ? (
         <View style={styles.empty}>
           <EmptyState

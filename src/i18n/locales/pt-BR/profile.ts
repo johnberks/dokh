@@ -1,12 +1,17 @@
 export const profile = {
   title: 'Perfil',
   soon: 'EM BREVE',
-  /** Perfil 01/18. */
-  main: {
-    edit: 'Editar perfil',
+  /** Situação profissional explícita (11.10): nunca inferida da residência. */
+  status: {
     resident: 'Residente de {{specialty}}',
     residentNoSpecialty: 'Residente',
     generalist: 'Generalista',
+    specialist: 'Especialista em {{specialty}}',
+    specialistNoSpecialty: 'Especialista',
+  },
+  /** Perfil 01/18. */
+  main: {
+    edit: 'Editar perfil',
     premiumEyebrow: 'DOKH PREMIUM',
     premiumTitle: 'Vá além da organização.',
     premiumDescription: 'Entenda melhor sua renda e sua rotina profissional.',
@@ -45,10 +50,20 @@ export const profile = {
     graduationPlaceholder: 'Ex.: 2024',
     graduationInvalid: 'Use um ano entre 1950 e {{year}}.',
     status: 'Situação profissional',
+    resident: 'Em residência',
     generalist: 'Generalista',
-    resident: 'Residência',
-    specialty: 'Especialidade ou programa',
-    specialtyPlaceholder: 'Ex.: Clínica Médica',
+    specialist: 'Especialista',
+    residencyProgram: 'Especialidade ou programa da residência',
+    residencyProgramPlaceholder: 'Ex.: Clínica Médica',
+    specialty: 'Especialidade',
+    specialtyPlaceholder: 'Ex.: Cardiologia',
+    residencyData: 'Dados da residência',
+    residencyDataHint: 'Instituição, datas e bolsa',
+    leaveTitle: 'Sair da residência?',
+    leaveText:
+      'Sua residência ativa será encerrada. Os próximos meses da bolsa saem de Finanças; o que já foi recebido continua no seu histórico.',
+    leaveConfirm: 'Salvar e encerrar residência',
+    cancel: 'Cancelar',
     city: 'Cidade',
     cityPlaceholder: 'Ex.: São Paulo, SP',
     save: 'Salvar alterações',
@@ -85,6 +100,8 @@ export const profile = {
   residency: {
     title: 'Residência',
     activeLabel: 'Residência ativa',
+    notResident:
+      'Os dados de residência aparecem para quem está em residência. Para mudar sua situação profissional, use Editar perfil.',
     institution: 'Instituição',
     start: 'Início',
     end: 'Previsão de término',
@@ -114,7 +131,7 @@ export const profile = {
     endResidency: 'Encerrar residência',
     endTitle: 'Encerrar residência?',
     endText:
-      'Os próximos meses da bolsa saem de Finanças. O que já foi recebido continua no seu histórico.',
+      'Os próximos meses da bolsa saem de Finanças. O que já foi recebido continua no seu histórico. Se você concluiu a residência, atualize sua situação em Editar perfil.',
     endConfirm: 'Encerrar residência',
     cancel: 'Cancelar',
     previousMonth: 'Mês anterior',
@@ -183,12 +200,13 @@ export const profile = {
     noLocationsDescription:
       'Cadastre os lugares onde você trabalha para criar plantões mais rápido.',
     addFirstLocation: 'Adicionar primeiro local',
-    noResidencyEyebrow: 'NENHUMA RESIDÊNCIA CADASTRADA',
-    noResidencyTitle: 'Você está em residência?',
+    // Só residentes chegam aqui (11.10): a residência é o complemento de `Em residência`.
+    noResidencyEyebrow: 'NENHUMA BOLSA CADASTRADA',
+    noResidencyTitle: 'Complete os dados da sua residência.',
     noResidencyDescription:
-      'Se sim, adicione as informações para a DOKH considerar essa parte da sua rotina.',
-    addResidency: 'Adicionar residência',
-    noResidencyNote: 'Não faz residência? Nada muda para você.',
+      'Informe a bolsa e o dia de pagamento para a DOKH contar essa entrada todo mês.',
+    addResidency: 'Adicionar dados da residência',
+    noResidencyNote: 'Você pode fazer isso depois, quando quiser.',
     importNoDataEyebrow: 'ARQUIVO LIDO · 0 PLANTÕES',
     importNoDataTitle: 'Não encontramos plantões neste arquivo.',
     importNoDataDescription:

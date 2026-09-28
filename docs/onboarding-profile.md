@@ -1,5 +1,7 @@
 # Coleta de perfil e residência — tarefa 7.3
 
+> Atualização 11.10 (2026-09-27): a pergunta "faz residência?" virou **situação profissional** (Em residência / Generalista / Especialista), na rota `/professional-status`. Veja `docs/professional-status.md`; o fluxo e as decisões abaixo sobre Sim/Não ficam como histórico.
+
 Fontes: `design/onboarding.html` (telas 06 Vamos começar, 07 Nome, 09 Atuação atual, TELA 04 Informações da residência e 12 Sua rotina) e `docs/screens/onboarding.md`. Dados: `profiles` (3.2) e a RPC `create_or_update_residency` (3.9).
 
 ## Fluxo

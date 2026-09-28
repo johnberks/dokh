@@ -230,6 +230,8 @@ export function ChoiceChips<T extends string | number>({
           >
             <AppText
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}
               style={[type.heading1, styles.chipText, on && styles.chipTextOn]}
             >
               {option.label}
@@ -265,11 +267,17 @@ export function SectionTitle({ children, testID }: { children: string; testID?: 
 export function InsetList({
   children,
   grouped = false,
+  testID,
 }: {
   children: ReactNode;
   grouped?: boolean;
+  testID?: string;
 }) {
-  return <View style={grouped ? styles.grouped : styles.inset}>{children}</View>;
+  return (
+    <View style={grouped ? styles.grouped : styles.inset} testID={testID}>
+      {children}
+    </View>
+  );
 }
 
 export function InsetRow({

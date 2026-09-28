@@ -15,7 +15,7 @@ describe('gravação do perfil do onboarding', () => {
     const { client, upsert, rpc } = fakeClient();
     await saveOnboardingProfile(
       'user-1',
-      { displayName: '  Anna  ', timezone: 'America/Sao_Paulo', isResident: false },
+      { displayName: '  Anna  ', timezone: 'America/Sao_Paulo', status: 'general_practitioner' },
       client,
     );
     expect(upsert).toHaveBeenCalledWith(
@@ -38,8 +38,8 @@ describe('gravação do perfil do onboarding', () => {
       {
         displayName: 'Anna',
         timezone: 'America/Sao_Paulo',
-        isResident: true,
-        residencyProgram: 'Cardiologia',
+        status: 'resident',
+        specialty: 'Cardiologia',
         monthlyAmountCents: 365442n,
         paymentDay: 5,
         startsOn: '2026-09-01',
@@ -61,11 +61,30 @@ describe('gravação do perfil do onboarding', () => {
     );
   });
 
+  it('especialista grava a especialidade e não cria residência nem bolsa', async () => {
+    const { client, upsert, rpc } = fakeClient();
+    await saveOnboardingProfile(
+      'user-5',
+      {
+        displayName: 'Anna',
+        timezone: 'America/Sao_Paulo',
+        status: 'specialist',
+        specialty: ' Cardiologia ',
+      },
+      client,
+    );
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ professional_status: 'specialist', specialty: 'Cardiologia' }),
+      { onConflict: 'id' },
+    );
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it('não marca o onboarding como concluído (isso é da 7.5)', async () => {
     const { client, upsert } = fakeClient();
     await saveOnboardingProfile(
       'user-3',
-      { displayName: 'Anna', timezone: 'America/Sao_Paulo', isResident: false },
+      { displayName: 'Anna', timezone: 'America/Sao_Paulo', status: 'general_practitioner' },
       client,
     );
     expect(upsert.mock.calls[0][0]).not.toHaveProperty('onboarding_completed_at');
@@ -81,8 +100,8 @@ describe('gravação do perfil do onboarding', () => {
         {
           displayName: 'Anna',
           timezone: 'America/Sao_Paulo',
-          isResident: true,
-          residencyProgram: 'Pediatria',
+          status: 'resident',
+          specialty: 'Pediatria',
           monthlyAmountCents: 100000n,
           paymentDay: 10,
           startsOn: '2026-09-01',

@@ -13,10 +13,11 @@ export type OnboardingProfileInput = {
   displayName: string;
   timezone: string;
 } & (
-  | { isResident: false }
+  | { status: 'general_practitioner' }
+  | { status: 'specialist'; specialty: string }
   | {
-      isResident: true;
-      residencyProgram: string;
+      status: 'resident';
+      specialty: string;
       monthlyAmountCents: bigint;
       paymentDay: number;
       /** Primeiro dia do mês em que a bolsa começa a contar (`YYYY-MM-DD`). */
@@ -46,9 +47,10 @@ export function currentMonthStart(timezone: string, now: Date = new Date()): str
 }
 
 /**
- * Grava o perfil e, para quem faz residência, cria a bolsa recorrente Free (RPC da 3.9).
- * Não marca `onboarding_completed_at`: isso pertence à conclusão do fluxo (7.5).
- * Generalista não tem especialidade — o banco recusa o contrário.
+ * Grava o perfil com a situação escolhida e, só para residentes, cria a bolsa recorrente Free
+ * (RPC da 3.9). Generalista não tem especialidade; especialista tem, mas não tem bolsa.
+ * Trocar a situação depois de voltar no fluxo é seguro: sair de `resident` encerra a bolsa
+ * no servidor (11.10). Não marca `onboarding_completed_at`: isso pertence à 7.5.
  */
 export async function saveOnboardingProfile(
   userId: string,
@@ -59,19 +61,19 @@ export async function saveOnboardingProfile(
     {
       id: userId,
       display_name: input.displayName.trim(),
-      professional_status: input.isResident ? 'resident' : 'general_practitioner',
-      specialty: input.isResident ? input.residencyProgram : null,
+      professional_status: input.status,
+      specialty: input.status === 'general_practitioner' ? null : input.specialty.trim(),
       timezone: input.timezone,
     },
     { onConflict: 'id' },
   );
   if (profileError) throw profileError;
 
-  if (!input.isResident) return;
+  if (input.status !== 'resident') return;
 
   const { error: residencyError } = await client.rpc('create_or_update_residency', {
     p_residency_id: null as unknown as string,
-    p_specialty: input.residencyProgram,
+    p_specialty: input.specialty.trim(),
     p_institution: null as unknown as string,
     p_level_label: null as unknown as string,
     p_starts_on: input.startsOn,

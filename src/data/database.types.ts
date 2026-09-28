@@ -870,7 +870,7 @@ export type Database = {
         | 'failed'
         | 'empty'
         | 'cancelled';
-      professional_status: 'general_practitioner' | 'resident';
+      professional_status: 'general_practitioner' | 'resident' | 'specialist';
       subscription_environment: 'sandbox' | 'production';
       subscription_store: 'app_store' | 'play_store';
       work_entry_source: 'manual' | 'import' | 'recurrence';
@@ -1005,7 +1005,7 @@ export const Constants = {
       device_platform: ['ios', 'android'],
       import_source: ['plantaozinho', 'csv', 'compatible_file'],
       import_status: ['uploaded', 'parsing', 'ready', 'confirmed', 'failed', 'empty', 'cancelled'],
-      professional_status: ['general_practitioner', 'resident'],
+      professional_status: ['general_practitioner', 'resident', 'specialist'],
       subscription_environment: ['sandbox', 'production'],
       subscription_store: ['app_store', 'play_store'],
       work_entry_source: ['manual', 'import', 'recurrence'],

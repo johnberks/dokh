@@ -722,23 +722,23 @@ try {
       default_payment_term_days: 30,
     },
   ]);
-  const [savedResidency] = success(
-    await call('/rest/v1/rpc/create_or_update_residency', {
-      method: 'POST',
-      token: owner.token,
-      body: {
-        p_residency_id: null,
-        p_specialty: 'Clínica Médica',
-        p_institution: 'Hospital São Lucas',
-        p_level_label: 'R2',
-        p_starts_on: '2026-03-01',
-        p_expected_ends_on: '2028-02-01',
-        p_monthly_amount_cents: 410609,
-        p_payment_day: 5,
-      },
-    }),
-    'owner creates residency from profile',
-  );
+  const residencyBody = {
+    p_residency_id: null,
+    p_specialty: 'Clínica Médica',
+    p_institution: 'Hospital São Lucas',
+    p_level_label: 'R2',
+    p_starts_on: '2026-03-01',
+    p_expected_ends_on: '2028-02-01',
+    p_monthly_amount_cents: 410609,
+    p_payment_day: 5,
+  };
+  // 11.10: sem residência ≠ generalista, e generalista não tem bolsa.
+  const generalistResidency = await call('/rest/v1/rpc/create_or_update_residency', {
+    method: 'POST',
+    token: owner.token,
+    body: residencyBody,
+  });
+  assert.ok(!generalistResidency.response.ok, 'generalist must not create a residency');
   success(
     await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
       method: 'PATCH',
@@ -746,6 +746,14 @@ try {
       body: { professional_status: 'resident', specialty: 'Clínica Médica' },
     }),
     'owner becomes resident',
+  );
+  const [savedResidency] = success(
+    await call('/rest/v1/rpc/create_or_update_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: residencyBody,
+    }),
+    'owner creates residency from profile',
   );
   success(
     await call('/rest/v1/rpc/deactivate_residency', {
@@ -760,6 +768,41 @@ try {
     'owner reads active residency',
   );
   assert.deepEqual(activeResidency, []);
+  success(
+    await call('/rest/v1/rpc/create_or_update_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: residencyBody,
+    }),
+    'owner starts a new residency',
+  );
+  const specialistWithoutSpecialty = await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+    method: 'PATCH',
+    token: owner.token,
+    body: { professional_status: 'specialist', specialty: null },
+  });
+  assert.ok(!specialistWithoutSpecialty.response.ok, 'specialist requires a specialty');
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { professional_status: 'specialist', specialty: 'Cardiologia' },
+    }),
+    'owner becomes specialist',
+  );
+  const afterSpecialist = success(
+    await call('/rest/v1/residencies?select=id&active=eq.true', { token: owner.token }),
+    'owner reads residency after becoming specialist',
+  );
+  assert.deepEqual(afterSpecialist, [], 'leaving residency ends the active one');
+  const futureStipends = success(
+    await call(
+      `/rest/v1/receivables?select=id&residency_id=not.is.null&invalidated_at=is.null&received_at=is.null&expected_on=gt.${new Date().toISOString().slice(0, 10)}`,
+      { token: owner.token },
+    ),
+    'owner reads future stipends',
+  );
+  assert.deepEqual(futureStipends, [], 'future stipend months leave Finances');
   const avatarPath = `${owner.id}/avatar-${randomUUID()}.png`;
   const png = Buffer.from(
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',

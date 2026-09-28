@@ -9,11 +9,12 @@ import {
 } from './profile-data';
 
 type SaveInput =
-  | { displayName: string; isResident: false }
+  | { displayName: string; status: 'general_practitioner' }
+  | { displayName: string; status: 'specialist'; specialty: string }
   | {
       displayName: string;
-      isResident: true;
-      residencyProgram: string;
+      status: 'resident';
+      specialty: string;
       monthlyAmountCents: bigint;
       paymentDay: number;
     };
@@ -30,9 +31,10 @@ export function useSaveProfile() {
     mutationFn: async (input: SaveInput) => {
       if (session.userId === null) throw new Error('missing session');
       const timezone = deviceTimezone();
-      const payload: OnboardingProfileInput = input.isResident
-        ? { ...input, timezone, startsOn: currentMonthStart(timezone) }
-        : { ...input, timezone };
+      const payload: OnboardingProfileInput =
+        input.status === 'resident'
+          ? { ...input, timezone, startsOn: currentMonthStart(timezone) }
+          : { ...input, timezone };
       await saveOnboardingProfile(session.userId, payload);
     },
     onSuccess: () => {

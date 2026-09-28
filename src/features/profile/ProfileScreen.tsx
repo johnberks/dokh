@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import type { TFunction } from 'i18next';
 import { type ReactNode, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -17,7 +16,13 @@ import { useWorkLocations } from '@/features/locations/locations-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { InsetList, InsetRow, Note, ProfileIcon, SectionTitle } from './ProfilePieces';
-import { initialsOf, type Profile, useActiveResidency, useProfile } from './profile-data';
+import {
+  initialsOf,
+  type Profile,
+  professionalStatusLabel,
+  useActiveResidency,
+  useProfile,
+} from './profile-data';
 
 const HERO_SECONDARY = '#B9BFB2';
 
@@ -52,13 +57,6 @@ export function Avatar({ profile, size }: { profile: Profile; size: number }) {
       </AppText>
     </View>
   );
-}
-
-function statusLine(profile: Profile, t: TFunction<'profile'>): string {
-  if (profile.status === 'general_practitioner') return t('main.generalist');
-  return profile.specialty
-    ? t('main.resident', { specialty: profile.specialty })
-    : t('main.residentNoSpecialty');
 }
 
 function openUrl(url: string | null) {
@@ -254,7 +252,7 @@ export function ProfileScreen() {
           <View style={styles.tags} testID="profile-tags">
             <View style={[styles.tag, styles.tagStatus]}>
               <AppText variant="heading2" style={[styles.tagText, styles.tagStatusText]}>
-                {statusLine(data, t)}
+                {professionalStatusLabel(data.status, data.specialty, t)}
               </AppText>
             </View>
             {data.graduationYear !== null && (
@@ -295,13 +293,16 @@ export function ProfileScreen() {
             onPress={() => router.push('/profile/locations')}
             testID="profile-row-locations"
           />
-          <InsetRow
-            icon={<ProfileIcon name="residency" />}
-            label={t('main.residency')}
-            value={residency.data?.specialty ?? null}
-            onPress={() => router.push('/profile/residency')}
-            testID="profile-row-residency"
-          />
+          {/* Residência é complemento de `Em residência`, nunca pendência de quem não é residente. */}
+          {profile.data?.status === 'resident' && (
+            <InsetRow
+              icon={<ProfileIcon name="residency" />}
+              label={t('main.residency')}
+              value={residency.data?.specialty ?? null}
+              onPress={() => router.push('/profile/residency')}
+              testID="profile-row-residency"
+            />
+          )}
           <InsetRow
             icon={<ProfileIcon name="sliders" />}
             label={t('main.workPreferences')}

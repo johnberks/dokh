@@ -516,6 +516,11 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Exclusões finais dependem de P05/P04.
   - **DoD:** tema escuro aparece indisponível; links configurados; logout funciona; nenhuma ação destrutiva é inventada.
 
+- [x] **11.10 — Situação profissional explícita**
+  - Dependências: 3.2, 3.9, 7.3, 11.2.
+  - Em residência / Generalista / Especialista no onboarding e no Perfil; residência só para residentes.
+  - **DoD:** sem residência ≠ generalista; especialista exige especialidade; só residente cria bolsa; sair da residência encerra a bolsa futura (teste em banco descartável e PostgREST).
+
 - [ ] **11.9 — E2E Perfil/importação**
   - Dependências: 11.8.
   - **DoD:** Maestro cobre local Free/Premium, residência Free, import válido/parcial/erro e estado Premium ativo.
