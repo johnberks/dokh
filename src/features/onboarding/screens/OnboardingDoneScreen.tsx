@@ -7,12 +7,14 @@ import { ActivityIndicator, BackHandler, Pressable, StyleSheet, View } from 'rea
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
+import { Reveal, step, WordReveal } from '@/components/Reveal';
 import { formatCentsToBRL } from '@/domain/money';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { onboardingStatusKey } from '@/features/auth/onboarding-status';
 import { useWorkDraft } from '@/features/work/work-draft';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { onboardingProfileMetrics as m, palette } from '@/theme/tokens';
+import { useCountUp } from '@/theme/useCountUp';
 import { BrandBackdrop } from '../BrandBackdrop';
 import {
   formatShortDate,
@@ -31,6 +33,8 @@ const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true }
  * não existe, sem horário a linha não aparece, sem previsão aparece "Sem previsão de entrada".
  * O onboarding é marcado como concluído ao abrir a tela, para que fechar o app aqui não refaça
  * o fluxo (e não duplique o Trabalho); a Home só assume quando a pessoa toca no botão.
+ * Entrada em cascata (referência Buddy/Duolingo na Mobbin): o total conta até o valor, os cards
+ * sobem um a um e o título entra palavra por palavra.
  */
 export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
   const { t } = useTranslation('onboarding');
@@ -69,6 +73,7 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
 
   const data = summary.data;
   const totals = data ? summaryTotals(data) : null;
+  const counted = useCountUp(totals?.totalCents ?? 0n, data ? 1 : 0);
   const referenceYear = new Date().getFullYear();
 
   return (
@@ -81,10 +86,10 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
     >
       <StatusBar style="light" />
       <BrandBackdrop variant="done" />
-      <View style={styles.wordmark}>
+      <Reveal style={styles.wordmark}>
         <BrandMark light size={22} />
         <AppText style={[type.wordmark, styles.wordmarkText]}>{t('welcome.splash.label')}</AppText>
-      </View>
+      </Reveal>
 
       <View style={styles.summary}>
         {summary.isPending ? (
@@ -104,22 +109,30 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
           </View>
         ) : (
           <>
-            <View style={styles.total} accessible testID="onboarding-done-total">
-              <AppText variant="technical" style={styles.totalLabel}>
-                {t('done.totalLabel')}
-              </AppText>
-              <AppText style={[type.heading1, styles.totalValue]}>
-                {money(totals.totalCents)}
-              </AppText>
-              <AppText style={styles.totalCount}>
-                {totals.count === 1
-                  ? t('done.countOne')
-                  : t('done.countMany', { count: totals.count })}
-              </AppText>
-            </View>
+            <Reveal delay={step(1)}>
+              <View style={styles.total} accessible testID="onboarding-done-total">
+                <AppText variant="technical" style={styles.totalLabel}>
+                  {t('done.totalLabel')}
+                </AppText>
+                <AppText style={[type.heading1, styles.totalValue]}>{money(counted)}</AppText>
+                <AppText style={styles.totalCount}>
+                  {totals.count === 1
+                    ? t('done.countOne')
+                    : t('done.countMany', { count: totals.count })}
+                </AppText>
+              </View>
+            </Reveal>
             <View style={styles.cards}>
-              {data.residency && <ResidencyCard residency={data.residency} />}
-              {data.work && <WorkSummaryCard work={data.work} referenceYear={referenceYear} />}
+              {data.residency && (
+                <Reveal delay={step(3)} rise={24} scaleFrom={0.96}>
+                  <ResidencyCard residency={data.residency} />
+                </Reveal>
+              )}
+              {data.work && (
+                <Reveal delay={step(data.residency ? 4 : 3)} rise={24} scaleFrom={0.96}>
+                  <WorkSummaryCard work={data.work} referenceYear={referenceYear} />
+                </Reveal>
+              )}
             </View>
           </>
         )}
@@ -127,30 +140,36 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
 
       <View style={styles.footer}>
         <View style={styles.copy}>
-          <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-            {t('done.title')}
-          </AppText>
-          <AppText style={styles.description}>{t('done.description')}</AppText>
+          <WordReveal
+            text={t('done.title')}
+            style={[type.heading1, styles.title]}
+            delay={step(5)}
+          />
+          <Reveal delay={step(9)}>
+            <AppText style={styles.description}>{t('done.description')}</AppText>
+          </Reveal>
         </View>
         {complete.isError && !complete.isPending && (
           <AppText style={styles.errorText} testID="onboarding-done-complete-error">
             {t('done.completeError')}
           </AppText>
         )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('done.cta')}
-          accessibilityState={{ busy: complete.isPending }}
-          disabled={complete.isPending}
-          onPress={submit}
-          testID="onboarding-done-cta"
-          style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
-        >
-          <AppText style={[type.heading1, styles.ctaLabel]}>{t('done.cta')}</AppText>
-          <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
-            {'→'}
-          </AppText>
-        </Pressable>
+        <Reveal delay={step(10)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('done.cta')}
+            accessibilityState={{ busy: complete.isPending }}
+            disabled={complete.isPending}
+            onPress={submit}
+            testID="onboarding-done-cta"
+            style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+          >
+            <AppText style={[type.heading1, styles.ctaLabel]}>{t('done.cta')}</AppText>
+            <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
+              {'→'}
+            </AppText>
+          </Pressable>
+        </Reveal>
       </View>
     </View>
   );

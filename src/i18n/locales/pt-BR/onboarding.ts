@@ -53,6 +53,10 @@ export const onboarding = {
     ready: {
       badge: 'RESIDÊNCIA',
       professionalBadge: 'SITUAÇÃO PROFISSIONAL',
+      trackEyebrow: 'A DOKH VAI ACOMPANHAR',
+      trackWork: 'Plantões, procedimentos e atendimentos',
+      trackEntries: 'Quando cada pagamento deve entrar',
+      trackIncome: 'Quanto seu trabalho rende no mês',
       everyDay: 'todo dia {{day}}',
       withResidencyTitle: 'Sua residência já é sua primeira entrada.',
       withResidencyDescription:

@@ -337,6 +337,22 @@ describe('conclusão do perfil (tela 12)', () => {
     expect(screen.queryByText(/Pular/i)).toBeNull();
   });
 
+  it('generalista vê o que a DOKH vai acompanhar, para o card não ficar vazio', async () => {
+    useProfileDraft.setState({ status: 'general_practitioner' });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.getByTestId('profile-ready-track')).toBeTruthy();
+    expect(screen.getByText('A DOKH VAI ACOMPANHAR')).toBeTruthy();
+    expect(screen.getByText('Plantões, procedimentos e atendimentos')).toBeTruthy();
+    expect(screen.getByText('Quando cada pagamento deve entrar')).toBeTruthy();
+    expect(screen.getByText('Quanto seu trabalho rende no mês')).toBeTruthy();
+  });
+
+  it('residente mantém só o card da bolsa, sem a lista', async () => {
+    useProfileDraft.setState({ status: 'resident', specialty: 'Pediatria', paymentDay: 5 });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.queryByTestId('profile-ready-track')).toBeNull();
+  });
+
   it('especialista vê "Especialista em X", sem card de residência nem bolsa', async () => {
     useProfileDraft.setState({ status: 'specialist', specialty: 'Cardiologia' });
     await renderWithProviders(<ProfileReadyScreen />);

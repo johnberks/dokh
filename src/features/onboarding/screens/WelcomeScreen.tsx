@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { Reveal, step, WordReveal } from '@/components/Reveal';
 import { legalUrls } from '@/config/legal';
 import { AuthAction, AuthWordmark, SocialChoices } from '@/features/auth/AuthVisuals';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
@@ -34,6 +35,10 @@ function LegalLink({ label, url }: { label: string; url: string | null }) {
   );
 }
 
+/** O título leva ~9 palavras; a prévia começa quando ele está quase montado. */
+const PREVIEW_START = step(5);
+const ACTIONS_START = step(9);
+
 /**
  * Splash 00B seguido da tela 04 (Criar conta) de `design/onboarding.html`.
  * Depois do splash existe só esta tela: e-mail leva ao cadastro e `Entrar` ao login.
@@ -57,19 +62,23 @@ export function WelcomeScreen() {
       testID="welcome-account"
     >
       <StatusBar style="dark" />
-      <View style={styles.header}>
+      {/* Entrada em cascata: marca → título palavra a palavra → prévia → ações → aviso legal. */}
+      <Reveal style={styles.header}>
         <AuthWordmark />
-      </View>
+      </Reveal>
 
-      <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-        {t('welcome.account.headline')}
-      </AppText>
+      <WordReveal
+        text={t('welcome.account.headline')}
+        style={[type.heading1, styles.title]}
+        delay={step(1)}
+        testID="welcome-headline"
+      />
 
       <View style={styles.preview}>
-        <AccountPreview />
+        <AccountPreview startDelay={PREVIEW_START} />
       </View>
 
-      <View style={styles.actions}>
+      <Reveal delay={ACTIONS_START} style={styles.actions}>
         <SocialChoices />
         <AuthAction label={t('welcome.account.email')} onPress={() => router.push('/sign-up')} />
         <View style={styles.signInRow}>
@@ -86,15 +95,17 @@ export function WelcomeScreen() {
             </AppText>
           </Pressable>
         </View>
-      </View>
+      </Reveal>
 
-      <AppText style={styles.legal}>
-        {t('welcome.account.legalBefore')}
-        <LegalLink label={t('welcome.account.terms')} url={legalUrls.terms} />
-        {t('welcome.account.legalBetween')}
-        <LegalLink label={t('welcome.account.privacy')} url={legalUrls.privacy} />
-        {t('welcome.account.legalAfter')}
-      </AppText>
+      <Reveal delay={ACTIONS_START + step(2)}>
+        <AppText style={styles.legal}>
+          {t('welcome.account.legalBefore')}
+          <LegalLink label={t('welcome.account.terms')} url={legalUrls.terms} />
+          {t('welcome.account.legalBetween')}
+          <LegalLink label={t('welcome.account.privacy')} url={legalUrls.privacy} />
+          {t('welcome.account.legalAfter')}
+        </AppText>
+      </Reveal>
     </View>
   );
 }
