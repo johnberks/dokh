@@ -23,6 +23,7 @@ import {
 import { type LocalMonth, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { compactReais } from '@/features/finances/finance-format';
+import { useTourTarget } from '@/features/guide/useTourTarget';
 import { localDateToDate } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { fontAliases, palette } from '@/theme/tokens';
@@ -98,6 +99,7 @@ export function HomeHeroCards({
   }
 
   const mask = (text: string) => (hidden ? 'R$ ••••' : text);
+  const amountTarget = useTourTarget('home-amount');
 
   const monthCard = (
     <Pressable
@@ -105,6 +107,8 @@ export function HomeHeroCards({
       accessibilityLabel={twoCards ? t('hero.pageMonth') : undefined}
       disabled={!twoCards}
       onPress={() => go(0)}
+      ref={amountTarget.ref}
+      onLayout={amountTarget.onLayout}
       style={[styles.card, { width: cardWidth }]}
       testID="home-hero-month"
     >

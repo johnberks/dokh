@@ -53,7 +53,7 @@ export function Reveal({
   style,
   testID,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   delay?: number;
   rise?: number;
   /** Escala inicial (ex.: 0.94 para cards que "assentam" ao entrar). */

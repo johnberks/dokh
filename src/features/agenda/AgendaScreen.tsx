@@ -14,6 +14,7 @@ import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { WorkCard } from '@/components/WorkCard';
 import { type LocalDate, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
+import { useTourTarget } from '@/features/guide/useTourTarget';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { colors, palette } from '@/theme/tokens';
@@ -82,6 +83,8 @@ export function AgendaScreen() {
     }, [savedDate]),
   );
   const agenda = useAgendaMonth(month);
+  const addTarget = useTourTarget('agenda-add');
+  const calendarTarget = useTourTarget('agenda-calendar');
 
   const works = agenda.data ?? [];
   const byDay = worksByDay(works);
@@ -126,6 +129,8 @@ export function AgendaScreen() {
         </Reveal>
         <Reveal key={`add-${enterKey}`} delay={step(1)} scaleFrom={0.8}>
           <Pressable
+            ref={addTarget.ref}
+            onLayout={addTarget.onLayout}
             accessibilityRole="button"
             accessibilityLabel={t('empty.addWork')}
             onPress={addWork}
@@ -154,14 +159,16 @@ export function AgendaScreen() {
         scaleFrom={0.97}
         style={styles.calendar}
       >
-        <CalendarCard
-          month={month}
-          today={today}
-          selected={selected}
-          dots={dotsByDay(works)}
-          onSelectDate={selectDate}
-          testID="agenda-calendar"
-        />
+        <View ref={calendarTarget.ref} onLayout={calendarTarget.onLayout}>
+          <CalendarCard
+            month={month}
+            today={today}
+            selected={selected}
+            dots={dotsByDay(works)}
+            onSelectDate={selectDate}
+            testID="agenda-calendar"
+          />
+        </View>
       </Reveal>
 
       <Reveal key={`day-${enterKey}`} delay={step(4)} style={styles.dayRow}>

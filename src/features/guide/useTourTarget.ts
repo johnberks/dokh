@@ -1,0 +1,30 @@
+import { useCallback, useEffect, useRef } from 'react';
+import type { View } from 'react-native';
+import { currentTourStep, type TourTargetId, useGuideTour } from './guide-tour';
+
+/** Espera a troca de aba e a entrada em cascata assentarem antes de medir. */
+export const TOUR_MEASURE_DELAY = 750;
+
+/**
+ * Marca um elemento como alvo do tour: devolve o `ref` para o elemento e mede sua posição na
+ * janela quando o passo dele fica ativo (e de novo se o layout mudar enquanto está ativo).
+ */
+export function useTourTarget(id: TourTargetId) {
+  const ref = useRef<View>(null);
+  const active = useGuideTour((state) => currentTourStep(state.step)?.target === id);
+  const setRect = useGuideTour((state) => state.setRect);
+
+  const measure = useCallback(() => {
+    ref.current?.measureInWindow((x, y, width, height) => {
+      if (width > 0 && height > 0) setRect(id, { x, y, width, height });
+    });
+  }, [id, setRect]);
+
+  useEffect(() => {
+    if (!active) return;
+    const timer = setTimeout(measure, TOUR_MEASURE_DELAY);
+    return () => clearTimeout(timer);
+  }, [active, measure]);
+
+  return { ref, onLayout: active ? measure : undefined };
+}
