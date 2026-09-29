@@ -11,6 +11,7 @@ Pedido do usuário: um tour bem simples quando a pessoa cria uma conta, com opç
 | 5 | Finanças | Valor do topo | Entenda cada valor (ⓘ) |
 | 6 | Finanças | Mês/Ano no topo direito | Veja o ano inteiro |
 
+- **Ritmo:** a Início fica 3 s sozinha antes do primeiro passo (`motion.guideStartDelay`). O véu escurece em 700 ms, uma vez para o tour todo, e o balão e o anel chegam 250 ms depois, em 600 ms.
 - **Quando aparece:** só ao tocar em "Ir para o início" na conclusão do onboarding (`OnboardingDoneScreen`). Contas existentes nunca veem o tour.
 - **Estado:** fica em memória (`useGuideTour`, zustand). Nada é gravado (D20), e fechar o app no meio encerra o tour.
 - **Alvos:** `useTourTarget(id)` dá o `ref`/`onLayout` do elemento e mede na janela 750 ms depois do passo ficar ativo, o tempo da troca de aba e da cascata. Se o alvo não existir, o balão aparece centralizado, sem recorte.

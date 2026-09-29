@@ -2,6 +2,7 @@ import '@/i18n';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { motion } from '@/theme/tokens';
 import { GuideTourOverlay } from './GuideTourOverlay';
 import { TOUR_STEPS, useGuideTour } from './guide-tour';
 
@@ -13,11 +14,16 @@ const metrics = {
 };
 
 async function renderOverlay() {
-  return render(
+  const view = await render(
     <SafeAreaProvider initialMetrics={metrics}>
       <GuideTourOverlay />
     </SafeAreaProvider>,
   );
+  // O primeiro passo espera a Início ser vista antes de escurecer a tela.
+  await act(async () => {
+    jest.advanceTimersByTime(motion.guideStartDelay);
+  });
+  return view;
 }
 
 /** O alvo do passo atual "se mede" como se estivesse na tela. */
@@ -30,13 +36,34 @@ function measureCurrent() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  jest.useFakeTimers();
   useGuideTour.setState({ step: null, rects: {} });
 });
+afterEach(() => jest.useRealTimers());
 
 describe('guia de primeiro uso', () => {
   it('não aparece sem começar (contas existentes nunca veem o tour)', async () => {
     await renderOverlay();
     expect(screen.queryByTestId('guide-tour')).toBeNull();
+  });
+
+  it('espera 3 s na Início antes do primeiro passo', async () => {
+    await act(async () => useGuideTour.getState().start());
+    await render(
+      <SafeAreaProvider initialMetrics={metrics}>
+        <GuideTourOverlay />
+      </SafeAreaProvider>,
+    );
+    await act(async () => measureCurrent());
+    await act(async () => {
+      jest.advanceTimersByTime(motion.guideStartDelay - 1);
+    });
+    expect(screen.queryByTestId('guide-tour')).toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(screen.getByTestId('guide-tour-card')).toBeTruthy();
+    expect(motion.guideStartDelay).toBe(3000);
   });
 
   it('passa por Início, Agenda e Finanças, trocando de aba, e conclui na Início', async () => {

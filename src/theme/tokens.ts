@@ -660,6 +660,12 @@ export const motion = {
   reveal: 460,
   /** Intervalo entre itens (e entre palavras de um título) na cascata. */
   revealStagger: 80,
+  /** Guia de primeiro uso: a Início aparece sozinha antes do primeiro passo. */
+  guideStartDelay: 3000,
+  /** Véu do guia entra devagar; o balão vem logo depois, também sem pressa. */
+  guideVeil: 700,
+  guideBubble: 600,
+  guideBubbleDelay: 250,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

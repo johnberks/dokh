@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Reveal } from '@/components/Reveal';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
-import { palette, shadow } from '@/theme/tokens';
+import { motion, palette, shadow } from '@/theme/tokens';
 import {
   currentTourStep,
   TOUR_STEPS,
@@ -35,6 +35,8 @@ const DIM = 'rgba(16,22,15,0.62)';
  * Guia de primeiro uso (referências da Mobbin: monday.com, MD Vinyl e Mesh — balão com seta,
  * contador, Pular e Próximo): escurece a tela, recorta o elemento do passo e explica em uma frase.
  * Troca de aba sozinho quando o passo pede. "Pular" encerra na hora; "Concluir" volta ao Início.
+ * Começa sem pressa (pedido do usuário, 2026-09-28): a Início aparece sozinha por 3 s, o véu
+ * escurece devagar e o balão chega logo depois.
  */
 export function GuideTourOverlay() {
   const { t } = useTranslation('navigation');
@@ -47,6 +49,8 @@ export function GuideTourOverlay() {
   const finish = useGuideTour((state) => state.finish);
   const [bubbleHeight, setBubbleHeight] = useState(0);
   const [fallback, setFallback] = useState(false);
+  // O primeiro passo espera a Início ser vista; os seguintes seguem direto.
+  const [started, setStarted] = useState(false);
   const step = currentTourStep(index);
   const tab = step?.tab;
 
@@ -56,19 +60,31 @@ export function GuideTourOverlay() {
     router.navigate(TAB_HREF[tab]);
   }, [tab]);
 
+  const touring = index !== null;
+  useEffect(() => {
+    if (!touring) {
+      setStarted(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      // Se a pessoa trocou de aba durante a espera, o primeiro passo volta à Início.
+      router.navigate('/');
+      setStarted(true);
+    }, motion.guideStartDelay);
+    return () => clearTimeout(timer);
+  }, [touring]);
+
   useEffect(() => {
     setFallback(false);
-    if (index === null) return;
+    if (index === null || !started) return;
     const timer = setTimeout(() => setFallback(true), FALLBACK_DELAY);
     return () => clearTimeout(timer);
-  }, [index]);
+  }, [index, started]);
 
-  if (!step || index === null) return null;
+  if (!step || index === null || !started) return null;
   const rect: TourRect | undefined = rects[step.target];
-  if (!rect && !fallback) {
-    // Enquanto a aba troca, só o véu: nada de balão apontando para o lugar errado.
-    return <View pointerEvents="auto" style={[StyleSheet.absoluteFill, styles.veil]} />;
-  }
+  // Enquanto a aba troca, só o véu: nada de balão apontando para o lugar errado.
+  const showBubble = Boolean(rect) || fallback;
 
   const last = index === TOUR_STEPS.length - 1;
   const hole = rect
@@ -104,101 +120,112 @@ export function GuideTourOverlay() {
 
   return (
     <View style={StyleSheet.absoluteFill} testID="guide-tour">
-      {hole ? (
-        <>
-          {/* Quatro faixas escuras em volta do recorte: o alvo fica aceso e visível. */}
-          <View style={[styles.veil, { top: 0, left: 0, right: 0, height: Math.max(0, hole.y) }]} />
-          <View
-            style={[styles.veil, { top: hole.y + hole.height, left: 0, right: 0, bottom: 0 }]}
-          />
-          <View
-            style={[
-              styles.veil,
-              { top: hole.y, left: 0, width: Math.max(0, hole.x), height: hole.height },
-            ]}
-          />
-          <View
-            style={[
-              styles.veil,
-              { top: hole.y, left: hole.x + hole.width, right: 0, height: hole.height },
-            ]}
-          />
-          <Reveal
-            key={`ring-${index}`}
-            rise={0}
-            scaleFrom={1.06}
-            style={[
-              styles.ring,
-              { top: hole.y, left: hole.x, width: hole.width, height: hole.height },
-            ]}
-          />
-        </>
-      ) : (
-        <View style={[StyleSheet.absoluteFill, styles.veil]} />
-      )}
-
-      <Reveal
-        key={`bubble-${index}`}
-        rise={below ? -10 : 10}
-        style={[styles.bubble, { top: bubbleTop }]}
-      >
-        <View
-          accessibilityViewIsModal
-          accessibilityLiveRegion="polite"
-          onLayout={(event) => setBubbleHeight(event.nativeEvent.layout.height)}
-          style={styles.card}
-          testID="guide-tour-card"
-        >
-          {arrowLeft !== null && (
+      {/* Um só véu para o tour inteiro: escurece devagar uma vez e só muda o recorte. */}
+      <Reveal rise={0} duration={motion.guideVeil} style={StyleSheet.absoluteFill}>
+        {hole ? (
+          <>
+            {/* Quatro faixas escuras em volta do recorte: o alvo fica aceso e visível. */}
+            <View
+              style={[styles.veil, { top: 0, left: 0, right: 0, height: Math.max(0, hole.y) }]}
+            />
+            <View
+              style={[styles.veil, { top: hole.y + hole.height, left: 0, right: 0, bottom: 0 }]}
+            />
             <View
               style={[
-                styles.arrow,
-                below ? { top: -ARROW / 2 } : { bottom: -ARROW / 2 },
-                { left: arrowLeft },
+                styles.veil,
+                { top: hole.y, left: 0, width: Math.max(0, hole.x), height: hole.height },
               ]}
             />
-          )}
-          <View style={styles.header}>
-            <AppText variant="technical" style={styles.progress}>
-              {t('guide.progress', { current: index + 1, total: TOUR_STEPS.length })}
+            <View
+              style={[
+                styles.veil,
+                { top: hole.y, left: hole.x + hole.width, right: 0, height: hole.height },
+              ]}
+            />
+            <Reveal
+              key={`ring-${index}`}
+              rise={0}
+              scaleFrom={1.06}
+              delay={motion.guideBubbleDelay}
+              duration={motion.guideBubble}
+              style={[
+                styles.ring,
+                { top: hole.y, left: hole.x, width: hole.width, height: hole.height },
+              ]}
+            />
+          </>
+        ) : (
+          <View style={[StyleSheet.absoluteFill, styles.veil]} />
+        )}
+      </Reveal>
+
+      {showBubble && (
+        <Reveal
+          key={`bubble-${index}`}
+          rise={below ? -12 : 12}
+          delay={motion.guideBubbleDelay}
+          duration={motion.guideBubble}
+          style={[styles.bubble, { top: bubbleTop }]}
+        >
+          <View
+            accessibilityViewIsModal
+            accessibilityLiveRegion="polite"
+            onLayout={(event) => setBubbleHeight(event.nativeEvent.layout.height)}
+            style={styles.card}
+            testID="guide-tour-card"
+          >
+            {arrowLeft !== null && (
+              <View
+                style={[
+                  styles.arrow,
+                  below ? { top: -ARROW / 2 } : { bottom: -ARROW / 2 },
+                  { left: arrowLeft },
+                ]}
+              />
+            )}
+            <View style={styles.header}>
+              <AppText variant="technical" style={styles.progress}>
+                {t('guide.progress', { current: index + 1, total: TOUR_STEPS.length })}
+              </AppText>
+              {!last && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('guide.skip')}
+                  hitSlop={10}
+                  onPress={finish}
+                  testID="guide-tour-skip"
+                  style={({ pressed }) => [styles.skip, pressed && styles.pressed]}
+                >
+                  <AppText style={[type.heading1, styles.skipLabel]}>{t('guide.skip')}</AppText>
+                </Pressable>
+              )}
+            </View>
+            <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+              {t(`guide.${step.key}.title`)}
             </AppText>
-            {!last && (
+            <AppText style={styles.body}>{t(`guide.${step.key}.body`)}</AppText>
+            <View style={styles.footer}>
+              <View style={styles.dots}>
+                {TOUR_STEPS.map((item, dot) => (
+                  <View key={item.key} style={[styles.dot, dot === index && styles.dotOn]} />
+                ))}
+              </View>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t('guide.skip')}
-                hitSlop={10}
-                onPress={finish}
-                testID="guide-tour-skip"
-                style={({ pressed }) => [styles.skip, pressed && styles.pressed]}
+                accessibilityLabel={last ? t('guide.done') : t('guide.next')}
+                onPress={advance}
+                testID="guide-tour-next"
+                style={({ pressed }) => [styles.next, pressed && styles.pressed]}
               >
-                <AppText style={[type.heading1, styles.skipLabel]}>{t('guide.skip')}</AppText>
+                <AppText style={[type.heading1, styles.nextLabel]}>
+                  {last ? t('guide.done') : t('guide.next')}
+                </AppText>
               </Pressable>
-            )}
-          </View>
-          <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-            {t(`guide.${step.key}.title`)}
-          </AppText>
-          <AppText style={styles.body}>{t(`guide.${step.key}.body`)}</AppText>
-          <View style={styles.footer}>
-            <View style={styles.dots}>
-              {TOUR_STEPS.map((item, dot) => (
-                <View key={item.key} style={[styles.dot, dot === index && styles.dotOn]} />
-              ))}
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={last ? t('guide.done') : t('guide.next')}
-              onPress={advance}
-              testID="guide-tour-next"
-              style={({ pressed }) => [styles.next, pressed && styles.pressed]}
-            >
-              <AppText style={[type.heading1, styles.nextLabel]}>
-                {last ? t('guide.done') : t('guide.next')}
-              </AppText>
-            </Pressable>
           </View>
-        </View>
-      </Reveal>
+        </Reveal>
+      )}
     </View>
   );
 }
