@@ -9,12 +9,20 @@ import { useTourTarget } from '@/features/guide/useTourTarget';
 export default function TabsLayout() {
   const { t } = useTranslation('navigation');
   const tabBar = useTourTarget('tab-bar');
+  // A barra não se mexe: as abas de destino podem ser medidas quase na hora.
+  const agendaTab = useTourTarget('tab-agenda', 60);
+  const financesTab = useTourTarget('tab-finances', 60);
   return (
     <View style={{ flex: 1 }}>
       <Tabs
         screenOptions={{ headerShown: false }}
         tabBar={(props) => (
-          <BottomTabs {...props} rowRef={tabBar.ref} onRowLayout={tabBar.onLayout} />
+          <BottomTabs
+            {...props}
+            rowRef={tabBar.ref}
+            onRowLayout={tabBar.onLayout}
+            tabTargets={{ agenda: agendaTab, finances: financesTab }}
+          />
         )}
       >
         <Tabs.Screen

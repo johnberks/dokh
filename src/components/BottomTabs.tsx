@@ -37,7 +37,15 @@ export function BottomTabs({
   navigation,
   rowRef,
   onRowLayout,
-}: TabBarProps & { rowRef?: RefObject<View | null>; onRowLayout?: () => void }) {
+  tabTargets,
+}: TabBarProps & {
+  rowRef?: RefObject<View | null>;
+  onRowLayout?: () => void;
+  /** Abas marcadas pelo guia, acesas na passagem entre seções. */
+  tabTargets?: Partial<
+    Record<MainTab, { ref: RefObject<View | null>; onLayout: (() => void) | undefined }>
+  >;
+}) {
   const { t } = useTranslation('navigation');
   const insets = useSafeAreaInsets();
 
@@ -63,6 +71,8 @@ export function BottomTabs({
     return (
       <Pressable
         key={name}
+        ref={tabTargets?.[name]?.ref}
+        onLayout={tabTargets?.[name]?.onLayout}
         accessibilityRole="tab"
         accessibilityLabel={t(tabLabels[name])}
         accessibilityState={{ selected: focused }}

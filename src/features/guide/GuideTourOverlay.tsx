@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { ArrowDownIcon, ArrowRightIcon } from '@/components/icons/heroicons';
 import { Reveal } from '@/components/Reveal';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { motion, palette, shadow } from '@/theme/tokens';
@@ -36,7 +37,9 @@ const DIM = 'rgba(16,22,15,0.62)';
  * contador, Pular e Próximo): escurece a tela, recorta o elemento do passo e explica em uma frase.
  * Troca de aba sozinho quando o passo pede. "Pular" encerra na hora; "Concluir" volta ao Início.
  * Começa sem pressa (pedido do usuário, 2026-09-28): a Início aparece sozinha por 3 s, o véu
- * escurece devagar e o balão chega logo depois.
+ * escurece devagar e o balão chega logo depois. Na passagem para Agenda e Finanças, o botão
+ * diz para onde vai ("Ir para Agenda") e a aba de destino acende na barra, com uma legenda,
+ * antes de a tela trocar — a pessoa vê onde está indo (pedido do usuário, 2026-09-29).
  */
 export function GuideTourOverlay() {
   const { t } = useTranslation('navigation');
@@ -47,6 +50,8 @@ export function GuideTourOverlay() {
   const rects = useGuideTour((state) => state.rects);
   const next = useGuideTour((state) => state.next);
   const finish = useGuideTour((state) => state.finish);
+  const going = useGuideTour((state) => state.going);
+  const goTo = useGuideTour((state) => state.goTo);
   const [bubbleHeight, setBubbleHeight] = useState(0);
   const [fallback, setFallback] = useState(false);
   // O primeiro passo espera a Início ser vista; os seguintes seguem direto.
@@ -74,6 +79,13 @@ export function GuideTourOverlay() {
     return () => clearTimeout(timer);
   }, [touring]);
 
+  // A aba de destino fica acesa um instante; só então o próximo passo (e a troca de aba).
+  useEffect(() => {
+    if (!going) return;
+    const timer = setTimeout(next, motion.guideTransition);
+    return () => clearTimeout(timer);
+  }, [going, next]);
+
   useEffect(() => {
     setFallback(false);
     if (index === null || !started) return;
@@ -82,11 +94,21 @@ export function GuideTourOverlay() {
   }, [index, started]);
 
   if (!step || index === null || !started) return null;
-  const rect: TourRect | undefined = rects[step.target];
+  const goingTarget =
+    going === 'agenda' ? 'tab-agenda' : going === 'finances' ? 'tab-finances' : null;
+  const rect: TourRect | undefined = goingTarget ? rects[goingTarget] : rects[step.target];
   // Enquanto a aba troca, só o véu: nada de balão apontando para o lugar errado.
-  const showBubble = Boolean(rect) || fallback;
+  const showBubble = !going && (Boolean(rect) || fallback);
 
   const last = index === TOUR_STEPS.length - 1;
+  const upcoming = TOUR_STEPS[index + 1];
+  // O próximo passo está em outra aba: o botão já diz para onde vai.
+  const switchingTo = upcoming && upcoming.tab !== step.tab ? upcoming.tab : null;
+  const nextLabel = last
+    ? t('guide.done')
+    : switchingTo === 'agenda' || switchingTo === 'finances'
+      ? t(`guide.goTo.${switchingTo}`)
+      : t('guide.next');
   const hole = rect
     ? {
         x: rect.x - PAD,
@@ -113,6 +135,10 @@ export function GuideTourOverlay() {
     if (last) {
       finish();
       router.navigate('/');
+      return;
+    }
+    if (switchingTo) {
+      goTo(switchingTo);
       return;
     }
     next();
@@ -144,7 +170,7 @@ export function GuideTourOverlay() {
               ]}
             />
             <Reveal
-              key={`ring-${index}`}
+              key={`ring-${index}-${going ?? ''}`}
               rise={0}
               scaleFrom={1.06}
               delay={motion.guideBubbleDelay}
@@ -185,9 +211,14 @@ export function GuideTourOverlay() {
               />
             )}
             <View style={styles.header}>
-              <AppText variant="technical" style={styles.progress}>
-                {t('guide.progress', { current: index + 1, total: TOUR_STEPS.length })}
-              </AppText>
+              <View style={styles.headerLeft}>
+                <AppText variant="technical" style={styles.section}>
+                  {t(`guide.sections.${step.tab}`)}
+                </AppText>
+                <AppText variant="technical" style={styles.progress}>
+                  {t('guide.progress', { current: index + 1, total: TOUR_STEPS.length })}
+                </AppText>
+              </View>
               {!last && (
                 <Pressable
                   accessibilityRole="button"
@@ -213,19 +244,36 @@ export function GuideTourOverlay() {
               </View>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={last ? t('guide.done') : t('guide.next')}
+                accessibilityLabel={nextLabel}
                 onPress={advance}
                 testID="guide-tour-next"
                 style={({ pressed }) => [styles.next, pressed && styles.pressed]}
               >
-                <AppText style={[type.heading1, styles.nextLabel]}>
-                  {last ? t('guide.done') : t('guide.next')}
-                </AppText>
+                <AppText style={[type.heading1, styles.nextLabel]}>{nextLabel}</AppText>
+                {switchingTo ? <ArrowRightIcon size={14} color={palette.base} /> : null}
               </Pressable>
             </View>
           </View>
         </Reveal>
       )}
+
+      {going && hole ? (
+        // Passagem entre seções: legenda logo acima da aba acesa na barra.
+        <Reveal
+          key={`going-${going}`}
+          rise={10}
+          duration={motion.guideBubble}
+          style={[styles.goingWrap, { bottom: window.height - hole.y + GAP }]}
+          testID="guide-tour-going"
+        >
+          <View accessibilityLiveRegion="polite" style={styles.goingPill}>
+            <AppText style={[type.heading1, styles.goingText]}>
+              {going === 'agenda' || going === 'finances' ? t(`guide.going.${going}`) : ''}
+            </AppText>
+            <ArrowDownIcon size={14} color={palette.cream} />
+          </View>
+        </Reveal>
+      ) : null}
     </View>
   );
 }
@@ -254,7 +302,21 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  section: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.bronze },
   progress: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
+  goingWrap: { position: 'absolute', left: EDGE, right: EDGE, alignItems: 'center' },
+  goingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: palette.base,
+    ...shadow.raised,
+  },
+  goingText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
   skip: { paddingVertical: 2 },
   skipLabel: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: palette.secondaryText },
   title: { fontSize: 19, lineHeight: 24, letterSpacing: -0.38, color: palette.cream },
@@ -269,6 +331,8 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(237,234,224,0.24)' },
   dotOn: { width: 18, backgroundColor: palette.bronze },
   next: {
+    flexDirection: 'row',
+    gap: 6,
     minHeight: 40,
     paddingHorizontal: 18,
     borderRadius: 12,

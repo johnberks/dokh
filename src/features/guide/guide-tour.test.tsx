@@ -74,15 +74,56 @@ describe('guia de primeiro uso', () => {
       await act(async () => measureCurrent());
       expect(screen.getByText(`${index + 1} de ${TOUR_STEPS.length}`)).toBeTruthy();
       seen.push(TOUR_STEPS[index].tab);
+      const switching =
+        TOUR_STEPS[index + 1] && TOUR_STEPS[index + 1].tab !== TOUR_STEPS[index].tab;
       await act(async () => {
         await fireEvent.press(screen.getByTestId('guide-tour-next'));
       });
+      if (switching) {
+        // A aba de destino acende na barra, com legenda, antes de a tela trocar.
+        expect(useGuideTour.getState().going).toBe(TOUR_STEPS[index + 1].tab);
+        await act(async () => {
+          useGuideTour.getState().setRect(`tab-${TOUR_STEPS[index + 1].tab}` as 'tab-agenda', {
+            x: 100,
+            y: 760,
+            width: 60,
+            height: 50,
+          });
+        });
+        expect(screen.getByTestId('guide-tour-going')).toBeTruthy();
+        await act(async () => {
+          jest.advanceTimersByTime(motion.guideTransition);
+        });
+      }
     }
     expect(useGuideTour.getState().step).toBeNull();
     expect(seen).toEqual(['index', 'index', 'agenda', 'agenda', 'finances', 'finances']);
     expect(router.navigate).toHaveBeenCalledWith('/agenda');
     expect(router.navigate).toHaveBeenCalledWith('/finances');
     expect(router.navigate).toHaveBeenLastCalledWith('/');
+  });
+
+  it('antes de mudar de seção o botão diz para onde vai', async () => {
+    await act(async () => useGuideTour.setState({ step: 1, rects: {} }));
+    await renderOverlay();
+    await act(async () => measureCurrent());
+    expect(screen.getByText('INÍCIO')).toBeTruthy();
+    expect(screen.getByText('Ir para Agenda')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('guide-tour-next'));
+    });
+    await act(async () => {
+      useGuideTour.getState().setRect('tab-agenda', { x: 100, y: 760, width: 60, height: 50 });
+    });
+    expect(screen.getByText('Agora, vamos para a Agenda')).toBeTruthy();
+    // A tela só troca depois da legenda.
+    expect(router.navigate).not.toHaveBeenCalledWith('/agenda');
+    await act(async () => {
+      jest.advanceTimersByTime(motion.guideTransition);
+    });
+    expect(router.navigate).toHaveBeenCalledWith('/agenda');
+    await act(async () => measureCurrent());
+    expect(screen.getByText('AGENDA')).toBeTruthy();
   });
 
   it('mostra os textos pedidos e deixa pular a qualquer momento', async () => {

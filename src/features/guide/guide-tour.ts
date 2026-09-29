@@ -6,7 +6,10 @@ export type TourTargetId =
   | 'agenda-add'
   | 'agenda-calendar'
   | 'finances-value'
-  | 'finances-period';
+  | 'finances-period'
+  /** Abas de destino, acesas na passagem entre seções. */
+  | 'tab-agenda'
+  | 'tab-finances';
 
 export type TourTab = 'index' | 'agenda' | 'finances';
 
@@ -39,7 +42,10 @@ type TourState = {
   /** `null` quando o tour não está acontecendo. */
   step: number | null;
   rects: Partial<Record<TourTargetId, TourRect>>;
+  /** Passagem para outra seção: a aba de destino fica acesa antes de a tela trocar. */
+  going: TourTab | null;
   start: () => void;
+  goTo: (tab: TourTab) => void;
   next: () => void;
   /** Pular e concluir terminam igual: o tour não volta nesta sessão. */
   finish: () => void;
@@ -54,13 +60,15 @@ type TourState = {
 export const useGuideTour = create<TourState>((set, get) => ({
   step: null,
   rects: {},
-  start: () => set({ step: 0, rects: {} }),
+  going: null,
+  start: () => set({ step: 0, rects: {}, going: null }),
+  goTo: (tab) => set({ going: tab }),
   next: () => {
     const { step } = get();
     if (step === null) return;
-    set({ step: step + 1 < TOUR_STEPS.length ? step + 1 : null });
+    set({ step: step + 1 < TOUR_STEPS.length ? step + 1 : null, going: null });
   },
-  finish: () => set({ step: null }),
+  finish: () => set({ step: null, going: null }),
   setRect: (id, rect) => set((state) => ({ rects: { ...state.rects, [id]: rect } })),
 }));
 

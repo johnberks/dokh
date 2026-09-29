@@ -11,6 +11,7 @@ const VERSION = '2.2.0';
 const NAMES = [
   'academic-cap',
   'adjustments-horizontal',
+  'arrow-down',
   'arrow-path',
   'arrow-right',
   'arrow-right-start-on-rectangle',

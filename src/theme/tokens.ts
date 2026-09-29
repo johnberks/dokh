@@ -666,6 +666,8 @@ export const motion = {
   guideVeil: 700,
   guideBubble: 600,
   guideBubbleDelay: 250,
+  /** Antes de trocar de aba, o guia acende a aba de destino por este tempo. */
+  guideTransition: 1300,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

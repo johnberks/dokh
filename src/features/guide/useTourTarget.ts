@@ -9,9 +9,13 @@ export const TOUR_MEASURE_DELAY = 750;
  * Marca um elemento como alvo do tour: devolve o `ref` para o elemento e mede sua posição na
  * janela quando o passo dele fica ativo (e de novo se o layout mudar enquanto está ativo).
  */
-export function useTourTarget(id: TourTargetId) {
+export function useTourTarget(id: TourTargetId, delay = TOUR_MEASURE_DELAY) {
   const ref = useRef<View>(null);
-  const active = useGuideTour((state) => currentTourStep(state.step)?.target === id);
+  const active = useGuideTour(
+    (state) =>
+      currentTourStep(state.step)?.target === id ||
+      (state.going !== null && id === `tab-${state.going}`),
+  );
   const setRect = useGuideTour((state) => state.setRect);
 
   const measure = useCallback(() => {
@@ -22,9 +26,9 @@ export function useTourTarget(id: TourTargetId) {
 
   useEffect(() => {
     if (!active) return;
-    const timer = setTimeout(measure, TOUR_MEASURE_DELAY);
+    const timer = setTimeout(measure, delay);
     return () => clearTimeout(timer);
-  }, [active, measure]);
+  }, [active, delay, measure]);
 
   return { ref, onLayout: active ? measure : undefined };
 }

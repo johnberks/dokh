@@ -13,6 +13,9 @@ export const navigation = {
     skip: 'Pular',
     next: 'Próximo',
     done: 'Concluir',
+    sections: { index: 'INÍCIO', agenda: 'AGENDA', finances: 'FINANÇAS' },
+    goTo: { agenda: 'Ir para Agenda', finances: 'Ir para Finanças' },
+    going: { agenda: 'Agora, vamos para a Agenda', finances: 'Agora, vamos para Finanças' },
     homeAmount: {
       title: 'Seu mês em um número',
       body: 'Aqui você vê quanto tem para receber neste mês.',
