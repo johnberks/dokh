@@ -8,11 +8,11 @@
     "scheme": "dokh",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "com.dokh.app",
+      "bundleIdentifier": "br.com.dokh.app",
       "supportsTablet": false
     },
     "android": {
-      "package": "com.dokh.app",
+      "package": "br.com.dokh.app",
       "adaptiveIcon": {
         "backgroundColor": "#10160F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -35,7 +35,15 @@
       "expo-status-bar",
       "expo-localization",
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "A DOKH usa suas fotos só para a imagem do seu perfil.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

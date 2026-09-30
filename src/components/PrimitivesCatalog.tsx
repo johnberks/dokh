@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
-import Plus from 'lucide-react-native/icons/plus';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
+import { PlusIcon } from '@/components/icons/heroicons';
 import { colors, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { BottomSheetCatalog } from './BottomSheetCatalog';
@@ -48,7 +48,7 @@ export function PrimitivesCatalog({ extra }: { extra?: ReactNode }) {
         <Button label={t('catalog.disabled')} onPress={() => {}} disabled />
         <Button label={t('catalog.loading')} onPress={() => {}} loading />
         <IconButton
-          icon={<Plus color={colors.foreground} size={20} />}
+          icon={<PlusIcon color={colors.foreground} size={20} />}
           accessibilityLabel={t('catalog.iconButton')}
           onPress={() => {}}
         />

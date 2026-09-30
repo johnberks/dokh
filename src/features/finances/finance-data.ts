@@ -27,13 +27,20 @@ export type FinanceMonth = {
 
 export type OriginAmount = { origin: EntryOrigin; amountCents: bigint | null };
 
-export type NextEntry = {
+export type UpcomingEntry = {
   receivableId: string;
   origin: EntryOrigin;
   /** Nome do Local, ou `null` para a Residência. */
   locationName: string | null;
   amountCents: bigint;
   expectedOn: LocalDate;
+};
+
+/** A próxima entrada do mês e, logo depois, até duas seguintes (prévia do card). */
+export type NextEntry = UpcomingEntry & {
+  following: UpcomingEntry[];
+  /** Entradas previstas depois das mostradas, até o fim do mês. */
+  moreCount: number;
 };
 
 export type UndatedPreview = {
@@ -92,36 +99,49 @@ export async function readNextEntry(
 ): Promise<NextEntry | null> {
   const monthStart = `${month}-01`;
   const from = today > monthStart ? today : monthStart;
-  const { data, error } = await client
+  const { data, error, count } = await client
     .from('receivable_projection')
-    .select('receivable_id, work_entry_id, origin, amount_cents, expected_on')
+    .select('receivable_id, work_entry_id, origin, amount_cents, expected_on', {
+      count: 'exact',
+    })
     .gte('expected_on', from)
     .lt('expected_on', `${shiftMonth(month, 1)}-01`)
     .is('received_at', null)
     .is('invalidated_at', null)
     .is('work_deleted_at', null)
     .order('expected_on', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order('receivable_id', { ascending: true })
+    .limit(3);
   if (error) throw error;
-  if (!data?.receivable_id || !data.expected_on || !data.origin) return null;
+  const rows = (data ?? []).filter((row) => row.receivable_id && row.expected_on && row.origin);
+  if (rows.length === 0) return null;
 
-  let locationName: string | null = null;
-  if (data.work_entry_id) {
-    const work = await client
+  const workIds = rows.map((row) => row.work_entry_id).filter((id): id is string => !!id);
+  const names = new Map<string, string>();
+  if (workIds.length > 0) {
+    const works = await client
       .from('agenda_work_projection')
-      .select('location_name')
-      .eq('work_entry_id', data.work_entry_id)
-      .maybeSingle();
-    if (work.error) throw work.error;
-    locationName = work.data?.location_name ?? null;
+      .select('work_entry_id, location_name')
+      .in('work_entry_id', workIds);
+    if (works.error) throw works.error;
+    for (const work of works.data ?? []) {
+      if (work.work_entry_id && work.location_name) {
+        names.set(work.work_entry_id, work.location_name);
+      }
+    }
   }
+  const entries: UpcomingEntry[] = rows.map((row) => ({
+    receivableId: row.receivable_id as string,
+    origin: row.origin as EntryOrigin,
+    locationName: row.work_entry_id ? (names.get(row.work_entry_id) ?? null) : null,
+    amountCents: cents(row.amount_cents),
+    expectedOn: row.expected_on as LocalDate,
+  }));
+  const [first, ...following] = entries;
   return {
-    receivableId: data.receivable_id,
-    origin: data.origin as EntryOrigin,
-    locationName,
-    amountCents: cents(data.amount_cents),
-    expectedOn: data.expected_on,
+    ...first,
+    following,
+    moreCount: Math.max(0, (count ?? entries.length) - entries.length),
   };
 }
 
@@ -188,12 +208,20 @@ export function useUndatedPreviews(enabled: boolean) {
   });
 }
 
-export type YearMonth = { month: LocalMonth; expectedTotalCents: bigint };
+export type YearMonth = {
+  month: LocalMonth;
+  expectedTotalCents: bigint;
+  /** Parte do previsto do mês já confirmada como recebida. */
+  receivedCents: bigint;
+};
 
 /** Série do ano: só meses com dado real, média apenas com base suficiente (≥ 2 meses). */
 export type FinanceYear = {
   months: YearMonth[];
   totalCents: bigint;
+  /** Recebido e a receber do total do ano (resumo anual). */
+  receivedCents: bigint;
+  awaitingCents: bigint;
   historicalMonthCount: number;
   historicalAverageCents: bigint | null;
 };
@@ -208,11 +236,16 @@ export async function readFinanceYear(
   const months = rows.map((row) => ({
     month: row.month_start.slice(0, 7),
     expectedTotalCents: cents(row.expected_total_cents),
+    receivedCents: cents(row.received_of_expected_cents),
   }));
   const first = rows[0];
+  const totalCents = months.reduce((sum, item) => sum + item.expectedTotalCents, 0n);
+  const receivedCents = months.reduce((sum, item) => sum + item.receivedCents, 0n);
   return {
     months,
-    totalCents: months.reduce((sum, item) => sum + item.expectedTotalCents, 0n),
+    totalCents,
+    receivedCents,
+    awaitingCents: totalCents - receivedCents,
     historicalMonthCount: first?.historical_month_count ?? 0,
     historicalAverageCents:
       first?.historical_average_cents == null ? null : cents(first.historical_average_cents),
@@ -264,6 +297,11 @@ export type YearWork = {
   hourlyValueCents: bigint | null;
   /** Variação entre o primeiro e o último mês do ano com valor/hora; `null` sem base. */
   hourlyEvolutionPercent: number | null;
+  /** Trabalhos e horas do ano (competência): abertos também no Free. */
+  workCount: number;
+  workDurationMinutes: number;
+  /** Horas que entraram no valor/hora (só trabalhos com duração e valor/hora do servidor). */
+  hourlyMinutes: number;
 };
 
 /**
@@ -275,13 +313,23 @@ export async function readYearWork(
   client: AuthClient = supabase,
 ): Promise<YearWork> {
   const monthly = await Promise.all(months.map((month) => readFinanceMonth(month, client)));
+  const workCount = monthly.reduce((sum, item) => sum + item.workCount, 0);
+  const workDurationMinutes = monthly.reduce((sum, item) => sum + item.workDurationMinutes, 0);
   const withHourly = monthly
     .map((data, index) => ({ month: months[index], data }))
     .filter(
       (item): item is { month: LocalMonth; data: FinanceMonth & { hourlyValueCents: bigint } } =>
         item.data.hourlyValueCents !== null && item.data.workDurationMinutes > 0,
     );
-  if (withHourly.length === 0) return { hourlyValueCents: null, hourlyEvolutionPercent: null };
+  if (withHourly.length === 0) {
+    return {
+      hourlyValueCents: null,
+      hourlyEvolutionPercent: null,
+      workCount,
+      workDurationMinutes,
+      hourlyMinutes: 0,
+    };
+  }
 
   const minutes = withHourly.reduce((sum, item) => sum + item.data.workDurationMinutes, 0);
   const weighted = withHourly.reduce(
@@ -296,6 +344,9 @@ export async function readYearWork(
       withHourly.length >= 2 && first > 0n
         ? Math.round((Number(last - first) / Number(first)) * 100)
         : null,
+    workCount,
+    workDurationMinutes,
+    hourlyMinutes: minutes,
   };
 }
 
@@ -322,7 +373,16 @@ export async function readHourlyWindow(
   month: LocalMonth,
   client: AuthClient = supabase,
 ): Promise<HourlyMonth[]> {
-  const months = [shiftMonth(month, -2), shiftMonth(month, -1), month];
+  return readHourlyHistory(month, 3, client);
+}
+
+/** O mês e os `count - 1` anteriores, do mais antigo ao atual (análise completa usa seis). */
+export async function readHourlyHistory(
+  month: LocalMonth,
+  count: number,
+  client: AuthClient = supabase,
+): Promise<HourlyMonth[]> {
+  const months = Array.from({ length: count }, (_, index) => shiftMonth(month, index - count + 1));
   const data = await Promise.all(months.map((item) => readFinanceMonth(item, client)));
   return data.map((item, index) => ({
     month: months[index],
@@ -339,5 +399,100 @@ export function useHourlyWindow(month: LocalMonth, enabled: boolean) {
     queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'hourly-window'],
     queryFn: () => readHourlyWindow(month),
     enabled: userId !== null && enabled,
+  });
+}
+
+/** Análise completa de valor/hora (Finanças 02): seis meses até o escolhido. */
+export function useHourlyHistory(month: LocalMonth, enabled: boolean) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'hourly-history'],
+    queryFn: () => readHourlyHistory(month, 6),
+    enabled: userId !== null && enabled,
+  });
+}
+
+export type EntryStatus = 'received' | 'scheduled' | 'due_today' | 'confirmation_pending';
+
+/** Uma linha de Entradas (05–10): Recebível datado no mês, pela data prevista de pagamento. */
+export type MonthEntry = {
+  receivableId: string;
+  workId: string | null;
+  origin: EntryOrigin;
+  /** Nome do Local, ou `null` para a Residência. */
+  locationName: string | null;
+  amountCents: bigint;
+  expectedOn: LocalDate;
+  /** Derivado no servidor pelo fuso do perfil; nunca confirmado pela passagem do tempo. */
+  status: EntryStatus;
+};
+
+const ENTRY_STATUSES: readonly EntryStatus[] = [
+  'received',
+  'scheduled',
+  'due_today',
+  'confirmation_pending',
+];
+
+/**
+ * Entradas do mês: o mesmo recorte do total de Finanças (data prevista dentro do mês, sem
+ * invalidados nem Trabalhos excluídos), em ordem cronológica. Sem data fica de fora (Review Card).
+ */
+export async function readMonthEntries(
+  month: LocalMonth,
+  client: AuthClient = supabase,
+): Promise<MonthEntry[]> {
+  const { data, error } = await client
+    .from('receivable_projection')
+    .select('receivable_id, work_entry_id, origin, amount_cents, expected_on, receipt_status')
+    .gte('expected_on', `${month}-01`)
+    .lt('expected_on', `${shiftMonth(month, 1)}-01`)
+    .is('invalidated_at', null)
+    .is('work_deleted_at', null)
+    .order('expected_on', { ascending: true })
+    .order('receivable_id', { ascending: true });
+  if (error) throw error;
+  const rows = (data ?? []).filter(
+    (row) =>
+      row.receivable_id &&
+      row.expected_on &&
+      row.origin &&
+      ENTRY_STATUSES.includes(row.receipt_status as EntryStatus),
+  );
+
+  const workIds = [
+    ...new Set(rows.map((row) => row.work_entry_id).filter((id): id is string => !!id)),
+  ];
+  const names = new Map<string, string>();
+  if (workIds.length > 0) {
+    const works = await client
+      .from('agenda_work_projection')
+      .select('work_entry_id, location_name')
+      .in('work_entry_id', workIds);
+    if (works.error) throw works.error;
+    for (const work of works.data ?? []) {
+      if (work.work_entry_id && work.location_name) {
+        names.set(work.work_entry_id, work.location_name);
+      }
+    }
+  }
+
+  return rows.map((row) => ({
+    receivableId: row.receivable_id as string,
+    workId: row.work_entry_id,
+    origin: row.origin as EntryOrigin,
+    locationName: row.work_entry_id ? (names.get(row.work_entry_id) ?? null) : null,
+    amountCents: cents(row.amount_cents),
+    expectedOn: row.expected_on as LocalDate,
+    status: row.receipt_status as EntryStatus,
+  }));
+}
+
+export function useMonthEntries(month: LocalMonth) {
+  const { userId } = useAuthSession();
+  return useQuery({
+    queryKey: [...queryKeys.financeMonth(userId ?? '', month), 'entries'],
+    queryFn: () => readMonthEntries(month),
+    enabled: userId !== null,
   });
 }

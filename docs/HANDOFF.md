@@ -3,7 +3,7 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-26 · Claude Code · 1.9 (EAS) na branch `codex/1.9-eas`: projeto `@jberks/dokh`, perfis e canais OTA; faltam chave publishable no EAS, conta Apple paga e aparelho Android para fechar a DoD. Finanças 9.1–9.6 e edição 6.7/8.4 já estão na `main` (#40, #41).
+Última atualização: 2026-09-30 · Claude Code · Conta Apple Developer ativa; identificador `br.com.dokh.app` (D76, PR #58); EAS (1.9, PR #42) refeito sobre #58 com login `jberks`, `expo-dev-client`/`expo-updates` e patches do SDK 57 alinhados (expo-doctor 21/21). `generate:routes` agora resolve `@expo/router-server` pelo `@expo/cli` do projeto. Próximo: `eas device:create` e primeiro build iOS de desenvolvimento (`docs/eas.md`). Tour de primeiro uso segue no PR #57.
 
 Após teste do cadastro no iPhone 16, o usuário relatou a mensagem genérica de erro e a falta de um controle para ver a senha. O campo compartilhado agora oferece mostrar/ocultar senha em cadastro, login e redefinição, e falha de conexão com Auth tem mensagem específica sem expor dados privados. O Safari do iPhone abriu o Metro (`192.168.0.2:8081`) e um teste Node (`:8082`), mas perdeu a conexão com a porta `:54321` publicada pelo Docker; o firewall macOS estava desligado e o Mac recebeu 200 na mesma URL. Há um proxy HTTP local em `scripts/supabase-lan-proxy.mjs` para `:8082`, e o `.env.local` ignorado neste worktree foi alterado para usar essa porta. O smoke de cadastro, login e reset passou através do proxy; **o usuário confirmou que o cadastro concluiu no iPhone após reiniciar o Metro**. O pedido de recuperação vai ao Mailpit local, não à caixa real; o retorno do link ainda não foi validado em build nativo. Veja `docs/email-auth.md` para iniciar proxy + Expo. A 4.2 continua desmarcada até a DoD completa, inclusive Android depois.
 
@@ -30,7 +30,7 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 1.6 Estado e formulários | ✅ Concluída | — |
 | 1.7 Qualidade local | ✅ Concluída | — |
 | 1.8 CI | 🟡 Workflow passou no PR #2 | Tornar o check obrigatório na `main` e validar bloqueio de falha intencional |
-| 1.9 EAS | 🟡 Projeto `@jberks/dokh`, `eas.json` (development/preview/production), `expo-dev-client`, `expo-updates`, runtime por versão e canais; variáveis públicas de preview/production no EAS | Chave publishable no EAS; build iOS exige Apple Developer Program; build Android sem aparelho para testar. Ver [`eas.md`](eas.md) |
+| 1.9 EAS | ⏳ Não iniciada | Precisa de conta Expo (`npx eas-cli login`) |
 | 2.1 Tokens do Brand Kit | ✅ Integrada no PR #2 | — |
 | 2.2 Fontes e assets | 🟡 Fontes no PR draft #3 e nesta prévia | Vetor D1 final aprovado, splash/ícones e validação nativa |
 | 2.3 Primitives acessíveis | 🟡 Código no PR draft #4 e nesta prévia | Inspeção visual e VoiceOver no iPhone; Android/TalkBack depois |
@@ -47,14 +47,16 @@ A **Fase 0** e quase toda a **Fase 1** do `build-plan.md` estão implementadas. 
 | 3.7 RPCs Trabalho + Recebível | ✅ Criar, editar e excluir atomicamente com JWT, idempotência e rollback testados | — |
 | 3.8 Confirmação de Recebível | ✅ RPC explícita, horário de servidor imutável, ownership e concorrência testados | — |
 | 3.9 Residência recorrente Free | ✅ RPCs de criação/edição/desativação, geração mensal e job de extensão; histórico e limites testados | — |
+| 3.10 Recorrência de Trabalho Premium | ✅ Série com modelo do Trabalho, Premium validado antes de qualquer escrita, 12 meses idempotentes (weekly/biweekly/monthly, dia 31 sem escorregar), job diário, parar de repetir; testes descartável e real | — |
 | 3.11 Projeções de Agenda e Finanças | ✅ Views `security_invoker`, métricas de caixa/competência, status e ano testados | — |
 | 3.12 Tipos e seed local | ✅ `generate:types`, três contas sintéticas, estados de Home/Agenda/Finanças, Auth e RLS testados | — |
 | 4.1 Cliente Supabase e sessão segura | 🟡 Cliente tipado, SecureStore em partes, refresh e logout/limpeza implementados | Conferir persistência nativa após reinício e saída/redirecionamento numa tela real; 4.5 ainda pendente |
 | 4.2 E-mail/senha e recuperação | 🟡 Login 05B, cadastro, recuperação e callback implementados; fluxo real local testado | Configurar URLs/SMTP de preview e validar e-mail, reset e logout em aparelho; Android adiado pelo usuário |
 | 6.1 Dados de Locais | 🟡 Lista, criação com cor automática, edição e arquivamento; escritas por RPC (migration `20260925000000`), com teste real pelo PostgREST; criação exercitada no iPhone | Edição e arquivamento pela UI entram na Fase 8/11 |
 | 6.2 Dados de Trabalho/Recebível | 🟡 RPCs atômicas, confirmação de recebimento, idempotência e invalidação; criação exercitada no iPhone pela 7.4 (2026-09-25) | Edição, exclusão e confirmação pela UI entram na 6.7 e na Fase 8 |
-| 6.3–6.6 Formulário de Trabalho e Usar novamente | 🟡 `+` sem histórico abre direto no tipo; com histórico, 06 com templates derivados do histórico + `Criar novo` (06B); formulário (07) com folhas 08–10; template preenche tudo e pergunta a data | Aprovado no iPhone (2026-09-25); `Repetir`/`Cor do local` entram na 8.5/8.6 |
-| 8.1–8.2 Agenda do mês e do dia | 🟡 Calendário em card com pontos por Local; lista do dia com estado do Recebível; dia livre com `Adicionar trabalho`; detalhe com horário em blocos e Excluir com confirmação; aprovada pelo usuário no iPhone (2026-09-25) | Android depois; editar na 6.7/8.4 |
+| 6.3–6.6 Formulário de Trabalho e Usar novamente | 🟡 `+` sem histórico abre direto no tipo; com histórico, 06 com templates derivados do histórico + `Criar novo` (06B); formulário (07) com folhas 08–10; template preenche tudo e pergunta a data | Aprovado no iPhone (2026-09-25); `Repetir`/`Cor do local` na 8.5/8.6 |
+| 8.1–8.2 Agenda do mês e do dia | 🟡 Calendário em card com pontos por Local; lista do dia com estado do Recebível; dia livre com `Adicionar trabalho`; detalhe com horário em blocos e Excluir com confirmação; aprovada pelo usuário no iPhone (2026-09-25) | Android depois. Início de semana configurável fora do escopo (usuário, 2026-09-26) |
+| 8.5/8.6 Recorrência e cor do local | 🟡 `Repetir` e `Cor do local` no formulário (selo só no Free), folhas 11–14, série salva pela RPC, card "Este trabalho se repete" e `Gerenciar` → parar de repetir no detalhe; paleta de 8 cores salva no Local | Validar no iPhone (Premium e Free); `Conhecer DOKH Premium` quando a 5.5 existir; `Personalizar` e edição da série dependem da P03 |
 | 6.7/8.4 Detalhe, edição e exclusão | 🟡 `Editar trabalho` abre o formulário preenchido e grava pela RPC de atualização; exclusão com confirmação; aprovados no iPhone (2026-09-25) | Android depois |
 | 9.1/9.2/9.4/9.5 Finanças (mês e ano) | 🟡 Mês com topo/recebido×a receber/próxima entrada/revisão/origem/trabalho gerado; folhas `i`; ano com `BarChartCard`, média, origem, valor/hora, evolução e projeção; Premium sem selo | Validar no iPhone com Supabase local; extrato (9.3), folhas (9.4) e análises Premium (9.6) depois |
 | 7.4 Primeiro Trabalho | 🟡 Telas de tipo, local, quando e valor, com gravação atômica e idempotente; aprovadas pelo usuário no iPhone (2026-09-25) | Android depois; conclusão dinâmica é a 7.5 |
@@ -188,7 +190,7 @@ npm_config_cache=/private/tmp/dokh-npm-cache fnm exec --using=22 npx expo-doctor
 - **i18n** (`src/i18n/`): um namespace por feature, chaves tipadas. Texto literal em JSX quebra o teste `src/test/no-hardcoded-text.test.ts`.
 - **Estado** (`src/data/query-client.ts`, `src/features/app-shell/AppProviders.tsx`): TanStack Query só em memória, revalida ao voltar ao app e ao reconectar.
 - **Regras de camada**: o Biome impede, por exemplo, `src/domain` de importar React Native (`biome.json` > `overrides`).
-- **Billing**: nada implementado de propósito. `docs/billing-readiness.md` lista o que não pode mudar (bundle `com.dokh.app`, `app_user_id` = UUID do Supabase, entitlement `premium`).
+- **Billing**: nada implementado de propósito. `docs/billing-readiness.md` lista o que não pode mudar (bundle `br.com.dokh.app`, `app_user_id` = UUID do Supabase, entitlement `premium`).
 - **Tokens** (`src/theme/tokens.ts`, `docs/theme-tokens.md`): paleta e papéis semânticos, tipografia, spacing, radius, shadow, motion e z-index. `PlaceholderScreen` usa tokens.
 - **Fontes (2.2 parcial)**: Archivo 400/500/600/700, IBM Plex Mono 400/500 e Unbounded 600 via `@expo-google-fonts` + `expo-font`. `BrandFontProvider` segura o splash até carregar ou falhar; o placeholder usa Archivo carregada ou `System` no fallback. O splash atual ainda usa a imagem genérica anterior; o Brand Kit diz que o desenho D1 no HTML não é o vetor final de produção.
 - **Primitives (2.3 parcial)**: `src/components/` contém Text, Button, IconButton, Input, SegmentedControl, Toggle, Chip, Divider, Card, Screen e ScrollScreen. Catálogo interno em `/dev/primitives` apenas em desenvolvimento, acessível por botão na Home provisória; detalhes em `docs/primitives.md`. Nesta prévia, `AppText` e `Input` adotam Archivo ao carregar e `System` se a fonte falhar.
@@ -213,7 +215,7 @@ npm_config_cache=/private/tmp/dokh-npm-cache fnm exec --using=22 npx expo-doctor
 - `renderRouter` não aguarda o render; usar o helper `openAt` de `src/test/routes.test.tsx`.
 - QueryClient de teste precisa de `gcTime: Infinity` em queries e mutations, senão o Jest não encerra.
 - Não usar `new URL().hostname` no app: a implementação de URL do React Native é incompleta.
-- `lucide-react-native` é mapeado para o build CJS só no Jest (`package.json` > `jest.moduleNameMapper`).
+- Ícones: Heroicons Solid gerados em `src/components/icons/heroicons.tsx` (`node scripts/generate-heroicons.mjs`); `lucide-react-native` foi removido em 2026-09-28 (D10).
 - Reanimated 4 no Jest: `src/test/native-mocks.setup.ts` mocka `react-native-worklets` e chama `setUpTests()`. Os testes de rota usam o mock do Expo Router, que **não tem** `useReducedMotion`; use o hook próprio `src/theme/useReducedMotion.ts`.
 - Use `useContext(SafeAreaInsetsContext)` com fallback em componentes que também aparecem em testes sem `SafeAreaProvider`.
 - `npx expo-doctor` pode falhar se o cache global npm não for gravável. Neste ambiente, `npm_config_cache=/private/tmp/dokh-npm-cache npx expo-doctor` executou 21/21 checks.
@@ -344,4 +346,93 @@ Quarto retorno (2026-09-26): sem barra de rolagem no `TwoToneScrollScreen` (Agen
 
 Quinto retorno (visão anual, 2026-09-26): gráfico de barras voltou a ser um bloco (card) com a média no rodapé; valor/hora do ano e evolução em duas caixinhas com destaque (bronze/verde); projeção agora **acumulada** (a linha só sobe e termina no total projetado), porque a versão mês a mês parecia cair a zero depois do mês atual.
 
-Na 1.9 (2026-09-26), com a conta Expo do usuário (`jberks`, conta pessoal escolhida por ele), o projeto `@jberks/dokh` foi criado e ligado ao `app.json`; `expo-dev-client` e `expo-updates` instalados; `eas.json` com perfis development/preview/production, canais homônimos e EAS Environments. `EXPO_PUBLIC_APP_ENV` e `EXPO_PUBLIC_SUPABASE_URL` foram cadastrados em preview e production; a chave publishable fica com o usuário. O usuário ainda não tem Apple Developer Program, então nenhum build foi disparado. `expo-doctor` segue 20/21 pelo desvio de patch já registrado. 56 suítes/367 testes, export iOS ok. Contrato em [`eas.md`](eas.md).
+Sexto retorno de Finanças (2026-09-26, branch `codex/9.2-receipt-block`): no Mês, Recebido, A receber e a barra viraram um único card (`ReceiptProgressCard` com a superfície do `CalendarCard`: caixas em cima, barra de 12 pt — antes 8 — e legenda embaixo), sobreposto ao topo verde como o gráfico do Ano. 56 suítes/367 testes.
+
+Na 9.3 + 9.6 (2026-09-26, branch `codex/9.3-entries`, empilhada sobre `codex/9.2-receipt-block`): **Entradas** (`/finances/entries`) com resumo sobre o verde, timeline `ReceivableRow` e `Você recebeu?` confirmando só pelo servidor; **análise completa de valor/hora** (`/finances/hourly`, Premium) com o card do trabalho, resultado com fórmula e evolução de seis meses sem zeros inventados. Atalhos `Ver entradas`, `Ver extrato do mês` e `Ver análise completa` ligados. Rótulos dos botões do `EmptyState` sem o espaçamento negativo do heading1. Teste real cobre Entradas e confirmação. 58 suítes/381 testes. Falta a 9.7 (E2E Maestro) e o fluxo de benefícios (5.5) para o Free. Contrato em [`finances.md`](finances.md).
+
+Retorno da tela Entradas (2026-09-26), com referências da Mobbin (MCP conectado): topo numa barra só (voltar em círculo + `ENTRADAS` e troca de mês compacta no centro) e `ReceivableRow` como card tocável com seta `›` e ícone do tipo; sem destino (Residência), sem seta. `PeriodSwitcher` aceita `style`. 58 suítes/382 testes.
+
+Card "Próxima entrada" refeito (2026-09-26, referências Mobbin): manchete com o tempo que falta, valor em destaque com ícone do tipo, etiqueta Previsto/Hoje, confirmação no dia, até duas seguintes no mês atual e `Ver entradas ›` em linha inteira (`NextEntryCard.tsx`; `OriginTile` foi para `FinanceCards.tsx`). 58 suítes/385 testes.
+
+Visão anual refeita pelo conceito do usuário (2026-09-26, branch `codex/9.5-year-redesign`, empilhada sobre `codex/9.3-entries`): resumo com recebido × a receber; barras com recebido na base, atual com contorno, futuro previsto em contorno, toque para escolher o mês e média tracejada (sem rótulos sobre as barras); "Seu ano" (média, melhor mês, trabalhos, horas — Free); valor/hora com horas usadas; projeção com linha cheia só do recebido e tracejado pelo maior entre previsto e média, valor final no ponto de dezembro e marca de hoje. Sem migration. 58 suítes/388 testes; teste real cobre o recebido por mês no ano.
+
+Ajustes na visão anual (2026-09-26): topo só com o total (sem barra/valores de recebido e a receber); gráfico de barras de volta ao modelo anterior, com o ganho médio até o mês atual no rodapé do componente; valor/hora do ano sem o percentual de evolução.
+
+Teste na visão anual (2026-09-26): três tipos de barra no gráfico (consolidado sálvia, atual bronze, futuro só contorno) com legenda; títulos das seções fora dos cards (`SectionTitle`/`SectionCard title`), o do gráfico em creme sobre o verde. Mês ainda com rótulo interno — aguardando aprovação do usuário para estender.
+
+Títulos fora dos cards revertidos a pedido do usuário (2026-09-26): voltaram para dentro dos componentes; os três tipos de barra continuam.
+
+Títulos de card com peso (2026-09-26): novo `CardLabel` (Plex semibold 11, escuro) substitui o rótulo sálvia de 10 pt em todos os cards (Finanças, Agenda/Home via `WorkCard`, `ReviewCard`, `ProgressCard`, `EmptyState` em card). 59 suítes/389 testes.
+
+Na Fase 10 (2026-09-26, branch `codex/10-home`): a aba Início deixou de ser placeholder. Topo com carrossel (mês + histórico só quando válido), próximo trabalho sobre o verde, Review Cards de entrada de hoje/vencida/sem data (confirmação só pelo servidor), próximas entradas, próximos trabalhos e progresso inicial que some ao completar. Aplica os ajustes das outras seções (sem barra de rolagem, `CardLabel`, textos sem quebra). Catálogo `/dev/primitives` agora sai do Perfil provisório. Teste real cobre as leituras da Home. 61 suítes/408 testes. Contrato em [`home.md`](home.md). Falta a 10.6 (E2E).
+
+Topo da Início na visão 2A "cards com peek" (2026-09-26, arquivo `HOME.dc.html` do Claude Design, exportado pelo usuário em `~/Downloads/dokh_app`): cards de vidro lado a lado com o histórico espiando pela borda, snap, pontos, olho para ocultar valores. Só o topo mudou. O conector `claude_design` foi adicionado ao projeto `~/Desktop/dokh` (precisa de sessão nova + `/design-login` para ler direto do Claude Design).
+
+Altura do verde padronizada (2026-09-26): `TOP_GREEN_HEIGHT` (272 pt abaixo da status bar) em Início, Agenda e Finanças via `TwoToneScrollScreen standardHeroHeight`. Na Início o próximo trabalho saiu de cima do verde e o topo 2A ficou compacto; na Agenda o calendário passou a `marginTop: -(272-102)`.
+
+Início (2026-09-26, referência do usuário): card do mês denso (valor com `›`, linha em degraus do mês, faixa com a comparação), sem olho nem etiqueta de %; verde da Início com altura própria e folga (não usa mais `standardHeroHeight`); espaço uniforme de 16 pt entre os blocos, e a pilha de pendências só existe quando há pendência.
+
+Início: cards do topo voltaram ao modelo 2A anterior (vidro, olho, etiqueta de %), mantendo o verde maior com folga; o card "denso" com linha em degraus foi descartado pelo usuário.
+
+Contagem do valor do topo (2026-09-26): `src/theme/useCountUp.ts` anima de zero ao total em 650 ms ao entrar na Início e em Finanças (Mês e Ano); respeita "Reduzir movimento". 62 suítes/410 testes.
+
+Agenda Premium (2026-09-26, branch `codex/8-agenda-premium`): **3.10** no servidor e **8.5/8.6** no app.
+- A migration `20260926000000_work_recurrence.sql` já foi aplicada no Supabase local com `supabase migration up --local`, e os tipos foram regenerados.
+- Servidor (3.10):
+  - `create_work_series` é Premium-only e recusa o Free antes de escrever qualquer coisa;
+  - é idempotente e gera 12 meses de Trabalho + Recebível;
+  - o job diário `dokh-work-series-extension` estende o horizonte;
+  - cada ocorrência é editada ou excluída sozinha;
+  - `stop_work_series` remove as próximas não recebidas;
+  - a view da Agenda expõe a série.
+- App:
+  - linhas `Repetir` e `Cor do local` no formulário, com as folhas 11 a 14;
+  - `PremiumGate` sem o botão de compra enquanto a 5.5 não existe;
+  - card de recorrência com `Gerenciar` no detalhe;
+  - tokens Cáqui e Petróleo.
+- Início de semana configurável foi retirado do escopo por decisão do usuário.
+- Testes:
+  - `scripts/test-migration-3.10.sh` foi incluído no `test:db`;
+  - o teste real `scripts/test-location-rpcs-6.1.mjs` cobre série, Free negado, cor ampliada e parar de repetir;
+  - 63 suítes e 422 testes. Contrato em [`agenda.md`](agenda.md).
+- Faltam a validação no iPhone e a 8.7 (E2E Maestro).
+
+Excluir recorrente (2026-09-26, mesma branch), pedido do usuário:
+- No detalhe de um Trabalho de série ativa, `Excluir` oferece `Só este dia` (padrão) ou `Este e os próximos`.
+- A segunda opção chama a nova RPC `delete_work_series_from` (migration `20260926010000_work_series_delete_forward.sql`, já aplicada no local). Ela encerra a série e remove esse dia e os seguintes não recebidos; os anteriores ficam.
+- Testes: `3_10` descartável e caminho real cobertos; 63 suítes e 425 testes.
+
+Deslize em Finanças (2026-09-26, branch `codex/9-finances-motion`), pedido do usuário:
+- `SlideIn` no topo e no corpo da tela principal.
+- Mês → Ano entra pela direita e Ano → Mês pela esquerda.
+- Ao voltar de uma tela interna, o conteúdo entra pela esquerda.
+- As telas internas usam `slide_from_right` explícito.
+
+Botão Salvar trabalho animado (2026-09-26, branch `codex/work-save-motion`), com referência Shazam na Mobbin:
+- O botão passa por três estados: `Salvar trabalho`, `Salvando…` com spinner e `Trabalho salvo` com check desenhado e fundo verde.
+- Depois do sucesso não há nenhum toque: o app vai sozinho para a Agenda no dia salvo.
+- Sem vibração, a pedido do usuário.
+- Testes: 63 suítes e 427 testes.
+
+Perfil (2026-09-26, branch `codex/11-profile`), tarefas 11.1–11.5 e 11.8. Importação, calendário, notificações e paywall ficaram de fora por decisão do usuário ou por dependência (5.5 e P01).
+- Telas:
+  - Perfil principal Free e Premium;
+  - Editar perfil com foto (`expo-image-picker`, instalado; plugin com o texto de permissão no `app.json`);
+  - Locais: lista, vazio, novo, editar e remover;
+  - Residência: dados, vazio, formulário e encerrar;
+  - Preferências, que já preenchem o `+`;
+  - Aparência, Conta (com sair) e Ajuda.
+- Rotas `/profile/*` com slide.
+- Links de suporte e legais ficam nulos em `src/config/legal.ts` e aparecem como `EM BREVE`.
+- Sem migration.
+- Testes: 64 suítes e 444 testes. O teste real cobre perfil, preferências, residência e foto. Contrato em [`profile.md`](profile.md).
+- Falta validar no iPhone, principalmente o envio da foto pelo Expo Go.
+
+Revisão visual do Perfil (2026-09-27, branch `codex/11-profile-refresh`), com referências da Mobbin e a pedido do usuário. O bloco Premium ficou como estava, por decisão dele.
+- Topo claro com avatar, câmera, números reais e `Editar perfil` em pílula.
+- Listas de um nível com títulos em texto normal.
+- `Sair` no fim da lista principal.
+- Itens sem destino são escondidos, em vez de mostrados como "em breve".
+- Residência em lista plana.
+- Testes: 64 suítes e 448 testes. Detalhes em [`profile.md`](profile.md).
+

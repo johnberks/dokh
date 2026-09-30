@@ -1,10 +1,15 @@
 import { create } from 'zustand';
+import type { ProfessionalStatus } from '@/features/profile/profile-data';
 
 export type ProfileDraft = {
   displayName: string;
-  /** `null` enquanto a pessoa não respondeu à pergunta de residência. */
-  isResident: boolean | null;
-  residencyProgram: string;
+  /**
+   * Situação escolhida explicitamente (11.10); `null` enquanto a pessoa não respondeu.
+   * Nunca inferida da residência: sem residência ≠ generalista.
+   */
+  status: ProfessionalStatus | null;
+  /** Programa da residência (`resident`) ou especialidade concluída (`specialist`). */
+  specialty: string;
   /** Rascunho em pt-BR; a conversão para centavos acontece na validação. */
   monthlyAmount: string;
   paymentDay: number | null;
@@ -24,8 +29,8 @@ export const DEFAULT_RESIDENCY_PAYMENT_DAY = 5;
 
 const EMPTY: ProfileDraft = {
   displayName: '',
-  isResident: null,
-  residencyProgram: '',
+  status: null,
+  specialty: '',
   monthlyAmount: DEFAULT_RESIDENCY_AMOUNT,
   paymentDay: DEFAULT_RESIDENCY_PAYMENT_DAY,
 };

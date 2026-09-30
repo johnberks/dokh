@@ -27,6 +27,9 @@ export function editDraftFromWork(work: AgendaWork): WorkDraft {
     idempotencyKey: null,
     plannedTermDays: null,
     description: work.description,
+    // A edição é de uma ocorrência; a série se gerencia no detalhe.
+    repeat: 'none',
+    colorToken: null,
   };
 }
 

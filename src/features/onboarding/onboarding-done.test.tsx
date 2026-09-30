@@ -8,6 +8,8 @@ import { completeOnboarding, readOnboardingSummary } from './onboarding-summary'
 import { useProfileDraft } from './profile-draft';
 import { OnboardingDoneScreen } from './screens/OnboardingDoneScreen';
 
+// O total conta até o valor com animação; aqui o valor final aparece direto.
+jest.mock('@/theme/useReducedMotion', () => ({ useReducedMotion: () => true }));
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
 }));

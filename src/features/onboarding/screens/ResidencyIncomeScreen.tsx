@@ -31,7 +31,7 @@ export function ResidencyIncomeScreen() {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const { displayName, residencyProgram, monthlyAmount, paymentDay, update } = useProfileDraft();
+  const { displayName, specialty, monthlyAmount, paymentDay, update } = useProfileDraft();
   const [touched, setTouched] = useState(false);
   const [showAllDays, setShowAllDays] = useState(false);
   const save = useSaveProfile();
@@ -46,8 +46,8 @@ export function ResidencyIncomeScreen() {
     save.mutate(
       {
         displayName,
-        isResident: true,
-        residencyProgram,
+        status: 'resident',
+        specialty,
         monthlyAmountCents: cents,
         paymentDay,
       },
@@ -74,7 +74,7 @@ export function ResidencyIncomeScreen() {
           <View style={styles.badge}>
             <View style={styles.badgeDot} />
             <AppText variant="technical" style={styles.badgeLabel}>
-              {t('profile.income.badge', { specialty: residencyProgram.toUpperCase() })}
+              {t('profile.income.badge', { specialty: specialty.toUpperCase() })}
             </AppText>
           </View>
           <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>

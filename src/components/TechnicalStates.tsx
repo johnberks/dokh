@@ -1,8 +1,11 @@
+import { onlineManager } from '@tanstack/react-query';
+import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { colors, radius, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 import { Button } from './Button';
+import { Illustration } from './Illustration';
 
 const placeholderRows = ['first', 'second', 'third'] as const;
 
@@ -58,22 +61,40 @@ export type LoadErrorProps = {
   testID?: string;
 };
 
-/** Show only for failed reads; a valid empty response uses the feature's EmptyState. */
+/** Conexão como o TanStack Query a vê (alimentada pelo NetInfo em `query-client.ts`). */
+function useIsOnline(): boolean {
+  return useSyncExternalStore(
+    (listener) => onlineManager.subscribe(listener),
+    () => onlineManager.isOnline(),
+  );
+}
+
+/**
+ * Show only for failed reads; a valid empty response uses the feature's EmptyState.
+ * Ilustração do design (`DOKH Ilustracoes`, "Uso erro"): sem conexão quando o aparelho está
+ * offline, "algo deu errado" nos demais casos.
+ */
 export function LoadError({ onRetry, retrying = false, testID }: LoadErrorProps) {
   const { t } = useTranslation('components');
+  const online = useIsOnline();
   return (
     <View accessibilityLiveRegion="polite" testID={testID} style={styles.stateCard}>
-      <AppText accessibilityRole="header" variant="heading2">
-        {t('technical.loadErrorTitle')}
+      <Illustration name={online ? 'error' : 'offline'} width={140} />
+      <AppText accessibilityRole="header" variant="heading2" style={styles.centered}>
+        {online ? t('technical.loadErrorTitle') : t('technical.offlineTitle')}
       </AppText>
-      <AppText tone="secondary">{t('technical.loadErrorMessage')}</AppText>
-      <Button
-        label={t('technical.retry')}
-        onPress={onRetry}
-        loading={retrying}
-        variant="secondary"
-        testID="load-error-retry"
-      />
+      <AppText tone="secondary" style={styles.centered}>
+        {online ? t('technical.loadErrorMessage') : t('technical.offlineMessage')}
+      </AppText>
+      <View style={styles.stretch}>
+        <Button
+          label={t('technical.retry')}
+          onPress={onRetry}
+          loading={retrying}
+          variant="secondary"
+          testID="load-error-retry"
+        />
+      </View>
     </View>
   );
 }
@@ -154,6 +175,7 @@ const styles = StyleSheet.create({
   rowTitle: { height: 14, width: '62%' },
   rowDetail: { height: 10, width: '42%' },
   stateCard: {
+    alignItems: 'center',
     padding: spacing.xl,
     gap: spacing.base,
     borderRadius: radius.card,
@@ -161,6 +183,8 @@ const styles = StyleSheet.create({
     borderColor: colors.tabBarBorder,
     backgroundColor: colors.surface,
   },
+  centered: { textAlign: 'center' },
+  stretch: { alignSelf: 'stretch' },
   inlineError: {
     gap: spacing.md,
     padding: spacing.base,

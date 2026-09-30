@@ -28,7 +28,7 @@ Status:
 | D07 | Aceita | React Native `StyleSheet` + tokens próprios como estratégia de estilo. | Não usar NativeWind, Tamagui ou outra camada de design system no MVP. Os HTMLs são referência visual, não código para transpilar. |
 | D08 | Aceita | Tokens centralizados para cor, tipografia, espaçamento, raio, sombra e motion. | Hexadecimais e medidas não devem se espalhar por componentes. |
 | D09 | Aceita | Fontes: Archivo na interface, IBM Plex Mono em etiquetas/dados técnicos e Unbounded 600 exclusivamente no wordmark. | Carregar por `expo-font`; respeitar fallback e estados de carregamento. |
-| D10 | Aceita | Ícones em `lucide-react-native`; símbolo DOKH como asset vetorial próprio. | Não substituir o símbolo por ícone genérico. |
+| D10 | Revista 2026-09-28 | Ícones **Heroicons Solid** (heroicons.com, MIT), vendorizados em `src/components/icons/heroicons.tsx` por `scripts/generate-heroicons.mjs` — substitui `lucide-react-native` a pedido do usuário; símbolo DOKH continua asset vetorial próprio. | Não substituir o símbolo por ícone genérico; ícone novo entra pelo gerador, nunca à mão. |
 | D11 | Aceita | `react-native-reanimated` para carrossel, remoção de Review Card e motion especificado. | Respeitar `reduce motion`; nenhuma animação decorativa extra. |
 | D12 | Aceita | Componentes compartilhados documentados: AppShell, Header, BottomTabs, ReviewCard, WorkCard, EmptyState, BottomSheet, MoneyInput, TypeSelector e PremiumGate. | Duplicação visual entre telas deve virar componente, sem acoplar regra de negócio ao componente visual. |
 | D13 | Aceita | Bronze é acento raro; estados de pendência não usam vermelho. | Vermelho/negativo só para perda ou erro real e com contraste acessível. |
@@ -149,6 +149,7 @@ Status:
 | D73 | Aceita | Arquivos de importação são privados e removidos após conclusão/expiração da janela operacional. | Job de limpeza obrigatório. |
 | D74 | Pendente de produto/jurídico | Prazo exato de retenção de imports, logs e soft deletes; textos legais e URLs. | Deve ser fechado antes de produção e submissão às lojas. |
 | D75 | Aceita | Sem SDK de atribuição paga/ATT no MVP. | Não pedir ATT nem adicionar AppsFlyer/Adjust/Branch sem nova decisão. |
+| D76 | Aceita 2026-09-30 | Identificador do app `br.com.dokh.app` (iOS `bundleIdentifier` e Android `package`), a partir do domínio `dokh.com.br`, antes de qualquer envio às lojas. | Não mudar depois do primeiro envio ao App Store Connect/Play Console: amarra atualizações, assinaturas, Sign in with Apple e push. |
 
 ## Fora de escopo técnico do MVP
 

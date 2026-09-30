@@ -72,7 +72,7 @@ describe('tipo do primeiro Trabalho (TELA 06)', () => {
   });
 
   it('avisa quem tem residência que ali entram os trabalhos além dela', async () => {
-    useProfileDraft.setState({ isResident: true });
+    useProfileDraft.setState({ status: 'resident' });
     await renderWithProviders(<WorkTypeScreen />);
     expect(screen.getByText(/Sua residência já está cadastrada/)).toBeTruthy();
   });

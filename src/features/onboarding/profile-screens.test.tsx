@@ -9,9 +9,9 @@ import {
   useProfileDraft,
 } from './profile-draft';
 import { NameScreen } from './screens/NameScreen';
+import { ProfessionalStatusScreen } from './screens/ProfessionalStatusScreen';
 import { ProfileReadyScreen } from './screens/ProfileReadyScreen';
 import { ResidencyIncomeScreen } from './screens/ResidencyIncomeScreen';
-import { ResidencyScreen } from './screens/ResidencyScreen';
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
@@ -44,7 +44,7 @@ describe('nome (tela 07)', () => {
       await fireEvent.changeText(screen.getByTestId('name-input'), 'Anna');
       await fireEvent.press(screen.getByTestId('name-cta'));
     });
-    expect(mockedPush).toHaveBeenCalledWith('/residency');
+    expect(mockedPush).toHaveBeenCalledWith('/professional-status');
   });
 
   it('exige um nome e guarda sem espaços em volta', async () => {
@@ -60,113 +60,175 @@ describe('nome (tela 07)', () => {
       await fireEvent.press(screen.getByTestId('name-cta'));
     });
     expect(useProfileDraft.getState().displayName).toBe('Anna');
-    expect(mockedPush).toHaveBeenCalledWith('/residency');
+    expect(mockedPush).toHaveBeenCalledWith('/professional-status');
   });
 });
 
-describe('residência (tela 09)', () => {
-  it('só mostra a busca depois de responder Sim', async () => {
+describe('situação profissional (tela 09)', () => {
+  it('pergunta a situação com três opções e só busca depois de escolher', async () => {
     useProfileDraft.setState({ displayName: 'Anna' });
-    await renderWithProviders(<ResidencyScreen />);
-    expect(screen.getByRole('header', { name: /Anna, você está fazendo residência/ })).toBeTruthy();
-    expect(screen.queryByTestId('residency-search')).toBeNull();
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    expect(
+      screen.getByRole('header', { name: 'Qual é sua situação profissional hoje?' }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText('Isso ajuda a DOKH a entender melhor sua rotina profissional.'),
+    ).toBeTruthy();
+    expect(screen.getByText('Em residência')).toBeTruthy();
+    expect(screen.getByText('Estou fazendo uma residência médica atualmente.')).toBeTruthy();
+    expect(screen.getByText('Generalista')).toBeTruthy();
+    expect(screen.getByText('Atuo como médico generalista.')).toBeTruthy();
+    expect(screen.getByText('Especialista')).toBeTruthy();
+    expect(screen.getByText('Já concluí minha especialização.')).toBeTruthy();
+    expect(screen.queryByTestId('status-search')).toBeNull();
 
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-yes'));
+      await fireEvent.press(screen.getByTestId('status-resident'));
     });
-    expect(screen.getByTestId('residency-search')).toBeTruthy();
-    expect(screen.queryByTestId('residency-generalist')).toBeNull();
+    expect(screen.getByText('QUAL É A SUA RESIDÊNCIA?')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-specialist'));
+    });
+    expect(screen.getByText('QUAL É SUA ESPECIALIDADE?')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-general_practitioner'));
+    });
+    expect(screen.queryByTestId('status-search')).toBeNull();
   });
 
   it('rola a tela inteira, sem área interna rolável', async () => {
-    await renderWithProviders(<ResidencyScreen />);
-    const scroll = screen.getByTestId('residency-scroll');
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    const scroll = screen.getByTestId('status-scroll');
     // Uma rolagem só, da tela inteira, sem barra lateral e com toque direto nas sugestões.
     expect(scroll.props.showsVerticalScrollIndicator).toBe(false);
     expect(scroll.props.keyboardShouldPersistTaps).toBe('handled');
     expect(scroll.props.bounces).toBe(false);
-    expect(screen.getByTestId('residency-header')).toBeTruthy();
+    expect(screen.getByTestId('status-header')).toBeTruthy();
   });
 
-  it('sugere as residências oficiais ao começar a escrever e marca a escolhida', async () => {
-    await renderWithProviders(<ResidencyScreen />);
+  it('sugere as residências oficiais ao começar a escrever e esconde a lista ao escolher', async () => {
+    await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-yes'));
-      await fireEvent.changeText(screen.getByTestId('residency-input'), 'car');
+      await fireEvent.press(screen.getByTestId('status-resident'));
+      await fireEvent.changeText(screen.getByTestId('status-input'), 'car');
     });
-    expect(screen.getByTestId('residency-option-Cardiologia')).toBeTruthy();
-    expect(screen.getByTestId('residency-option-Cardiologia pediátrica')).toBeTruthy();
-    expect(screen.getByTestId('residency-option-Cirurgia cardiovascular')).toBeTruthy();
+    expect(screen.getByTestId('status-option-Cardiologia')).toBeTruthy();
+    expect(screen.getByTestId('status-option-Cardiologia pediátrica')).toBeTruthy();
+    expect(screen.getByTestId('status-option-Cirurgia cardiovascular')).toBeTruthy();
     // Poucas sugestões cabem acima do teclado; o restante fica fora da lista.
-    expect(screen.getAllByTestId(/^residency-option-/).length).toBeLessThanOrEqual(5);
+    expect(screen.getAllByTestId(/^status-option-/).length).toBeLessThanOrEqual(5);
 
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-option-Cardiologia'));
+      await fireEvent.press(screen.getByTestId('status-option-Cardiologia'));
     });
-    expect(useProfileDraft.getState().residencyProgram).toBe('Cardiologia');
+    expect(useProfileDraft.getState().specialty).toBe('Cardiologia');
     // O teclado desce e a lista some: não há mais o que decidir.
     expect(dismissKeyboard).toHaveBeenCalled();
-    expect(screen.queryByTestId('residency-suggestions')).toBeNull();
-    expect(screen.queryByText('SELECIONADA')).toBeNull();
-    expect(screen.queryByTestId('residency-option-Cardiologia pediátrica')).toBeNull();
+    expect(screen.queryByTestId('status-suggestions')).toBeNull();
+    expect(screen.queryByTestId('status-option-Cardiologia pediátrica')).toBeNull();
   });
 
-  it('Sim sem residência escolhida não avança', async () => {
-    await renderWithProviders(<ResidencyScreen />);
+  it('Em residência sem programa escolhido não avança', async () => {
+    await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-yes'));
-      await fireEvent.press(screen.getByTestId('residency-cta'));
+      await fireEvent.press(screen.getByTestId('status-resident'));
+      await fireEvent.press(screen.getByTestId('status-cta'));
     });
     expect(mockedPush).not.toHaveBeenCalled();
     expect(screen.getByText('Escolha a sua residência para continuar.')).toBeTruthy();
   });
 
-  it('Não mostra a etiqueta Generalista, grava e vai para a conclusão', async () => {
-    useProfileDraft.setState({ displayName: 'Anna' });
-    await renderWithProviders(<ResidencyScreen />);
+  it('Em residência com programa segue para a bolsa sem gravar ainda', async () => {
+    await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-no'));
+      await fireEvent.press(screen.getByTestId('status-resident'));
+      await fireEvent.changeText(screen.getByTestId('status-input'), 'Clínica');
     });
-    expect(screen.getByTestId('residency-generalist')).toBeTruthy();
-    expect(screen.getByText('GENERALISTA')).toBeTruthy();
-    expect(screen.queryByTestId('residency-search')).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-option-Clínica médica'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-cta'));
+    });
+    expect(mockedSave).not.toHaveBeenCalled();
+    expect(mockedPush).toHaveBeenCalledWith('/residency-income');
+  });
+
+  it('Generalista não pede especialidade, grava e vai para a conclusão', async () => {
+    useProfileDraft.setState({ displayName: 'Anna' });
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-general_practitioner'));
+    });
+    expect(screen.queryByTestId('status-search')).toBeNull();
 
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-cta'));
+      await fireEvent.press(screen.getByTestId('status-cta'));
     });
     expect(mockedSave).toHaveBeenCalledWith(
       'user-1',
-      expect.objectContaining({ displayName: 'Anna', isResident: false }),
+      expect.objectContaining({ displayName: 'Anna', status: 'general_practitioner' }),
     );
     expect(mockedPush).toHaveBeenCalledWith('/profile-ready');
   });
 
+  it('Especialista exige a especialidade e grava sem bolsa', async () => {
+    useProfileDraft.setState({ displayName: 'Anna' });
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-specialist'));
+      await fireEvent.press(screen.getByTestId('status-cta'));
+    });
+    expect(mockedSave).not.toHaveBeenCalled();
+    expect(screen.getByText('Escolha a sua especialidade para continuar.')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('status-input'), 'cardio');
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-option-Cardiologia'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('status-cta'));
+    });
+    expect(mockedSave).toHaveBeenCalledWith('user-1', {
+      displayName: 'Anna',
+      status: 'specialist',
+      specialty: 'Cardiologia',
+      timezone: expect.any(String),
+    });
+    expect(mockedPush).toHaveBeenCalledWith('/profile-ready');
+    expect(mockedPush).not.toHaveBeenCalledWith('/residency-income');
+  });
+
   it('oferece Traumatologia Bucomaxilofacial', async () => {
-    await renderWithProviders(<ResidencyScreen />);
+    await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-yes'));
-      await fireEvent.changeText(screen.getByTestId('residency-input'), 'bucomaxilo');
+      await fireEvent.press(screen.getByTestId('status-resident'));
+      await fireEvent.changeText(screen.getByTestId('status-input'), 'bucomaxilo');
     });
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-option-Traumatologia Bucomaxilofacial'));
+      await fireEvent.press(screen.getByTestId('status-option-Traumatologia Bucomaxilofacial'));
     });
-    expect(useProfileDraft.getState().residencyProgram).toBe('Traumatologia Bucomaxilofacial');
+    expect(useProfileDraft.getState().specialty).toBe('Traumatologia Bucomaxilofacial');
   });
 
   it('escolher Outra usa o texto digitado', async () => {
-    await renderWithProviders(<ResidencyScreen />);
+    await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('residency-yes'));
-      await fireEvent.changeText(screen.getByTestId('residency-input'), '  Programa novo  ');
-      await fireEvent.press(screen.getByTestId('residency-option-other'));
+      await fireEvent.press(screen.getByTestId('status-resident'));
+      await fireEvent.changeText(screen.getByTestId('status-input'), '  Programa novo  ');
+      await fireEvent.press(screen.getByTestId('status-option-other'));
     });
-    expect(useProfileDraft.getState().residencyProgram).toBe('Programa novo');
+    expect(useProfileDraft.getState().specialty).toBe('Programa novo');
   });
 });
 
 describe('bolsa da residência (TELA 04)', () => {
   it('já vem com a bolsa padrão e o dia 05, ambos editáveis', async () => {
-    useProfileDraft.setState({ isResident: true, residencyProgram: 'Cardiologia' });
+    useProfileDraft.setState({ status: 'resident', specialty: 'Cardiologia' });
     await renderWithProviders(<ResidencyIncomeScreen />);
     expect(screen.getByLabelText('Bolsa mensal').props.value).toBe(DEFAULT_RESIDENCY_AMOUNT);
     expect(DEFAULT_RESIDENCY_PAYMENT_DAY).toBe(5);
@@ -183,7 +245,7 @@ describe('bolsa da residência (TELA 04)', () => {
   });
 
   it('não tem rolagem: a tela inteira cabe', async () => {
-    useProfileDraft.setState({ isResident: true, residencyProgram: 'Cardiologia' });
+    useProfileDraft.setState({ status: 'resident', specialty: 'Cardiologia' });
     await renderWithProviders(<ResidencyIncomeScreen />);
     expect(screen.queryByTestId('income-scroll')).toBeNull();
     expect(screen.getByTestId('income-header')).toBeTruthy();
@@ -193,8 +255,8 @@ describe('bolsa da residência (TELA 04)', () => {
   it('valor apagado bloqueia a gravação', async () => {
     useProfileDraft.setState({
       displayName: 'Anna',
-      isResident: true,
-      residencyProgram: 'Cardiologia',
+      status: 'resident',
+      specialty: 'Cardiologia',
     });
     await renderWithProviders(<ResidencyIncomeScreen />);
     await act(async () => {
@@ -211,8 +273,8 @@ describe('bolsa da residência (TELA 04)', () => {
     expect(mockedSave).toHaveBeenCalledWith(
       'user-1',
       expect.objectContaining({
-        isResident: true,
-        residencyProgram: 'Cardiologia',
+        status: 'resident',
+        specialty: 'Cardiologia',
         monthlyAmountCents: 365442n,
         paymentDay: 5,
       }),
@@ -221,7 +283,7 @@ describe('bolsa da residência (TELA 04)', () => {
   });
 
   it('dia fora dos atalhos recolhe a grade e vira uma das opções', async () => {
-    useProfileDraft.setState({ isResident: true, residencyProgram: 'Pediatria' });
+    useProfileDraft.setState({ status: 'resident', specialty: 'Pediatria' });
     await renderWithProviders(<ResidencyIncomeScreen />);
     expect(screen.queryByTestId('income-day-all')).toBeNull();
 
@@ -243,16 +305,16 @@ describe('bolsa da residência (TELA 04)', () => {
 });
 
 describe('conclusão do perfil (tela 12)', () => {
-  it('mostra a residência cadastrada e leva ao primeiro trabalho, sem Pular', async () => {
+  it('residente vê "Residente de X" com a bolsa e vai ao primeiro trabalho, sem Pular', async () => {
     useProfileDraft.setState({
-      isResident: true,
-      residencyProgram: 'Cardiologia',
+      status: 'resident',
+      specialty: 'Clínica Médica',
       monthlyAmount: '3.654,42',
       paymentDay: 5,
     });
     await renderWithProviders(<ProfileReadyScreen />);
     expect(screen.getByTestId('profile-ready-residency')).toBeTruthy();
-    expect(screen.getByText('Cardiologia')).toBeTruthy();
+    expect(screen.getByText('Residente de Clínica Médica')).toBeTruthy();
     expect(screen.getByText(/3\.654,42/)).toBeTruthy();
     expect(screen.getByText('todo dia 05')).toBeTruthy();
     expect(screen.queryByText(/Pular/i)).toBeNull();
@@ -263,15 +325,39 @@ describe('conclusão do perfil (tela 12)', () => {
     expect(mockedPush).toHaveBeenCalledWith('/first-work');
   });
 
-  it('sem residência mostra Generalista e o convite do primeiro trabalho', async () => {
-    useProfileDraft.setState({ isResident: false });
+  it('generalista vê Generalista, sem card de residência', async () => {
+    useProfileDraft.setState({ status: 'general_practitioner' });
     await renderWithProviders(<ProfileReadyScreen />);
-    expect(screen.getByTestId('profile-ready-generalist')).toBeTruthy();
-    expect(screen.getByText('GENERALISTA')).toBeTruthy();
+    expect(screen.getByTestId('profile-ready-status')).toBeTruthy();
+    expect(screen.getByText('Generalista')).toBeTruthy();
     expect(screen.queryByTestId('profile-ready-residency')).toBeNull();
     expect(
       screen.getByRole('header', { name: 'Agora vamos entender como seu trabalho vira renda.' }),
     ).toBeTruthy();
     expect(screen.queryByText(/Pular/i)).toBeNull();
+  });
+
+  it('generalista vê o que a DOKH vai acompanhar, para o card não ficar vazio', async () => {
+    useProfileDraft.setState({ status: 'general_practitioner' });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.getByTestId('profile-ready-track')).toBeTruthy();
+    expect(screen.getByText('A DOKH VAI ACOMPANHAR')).toBeTruthy();
+    expect(screen.getByText('Plantões, procedimentos e atendimentos')).toBeTruthy();
+    expect(screen.getByText('Quando cada pagamento deve entrar')).toBeTruthy();
+    expect(screen.getByText('Quanto seu trabalho rende no mês')).toBeTruthy();
+  });
+
+  it('residente mantém só o card da bolsa, sem a lista', async () => {
+    useProfileDraft.setState({ status: 'resident', specialty: 'Pediatria', paymentDay: 5 });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.queryByTestId('profile-ready-track')).toBeNull();
+  });
+
+  it('especialista vê "Especialista em X", sem card de residência nem bolsa', async () => {
+    useProfileDraft.setState({ status: 'specialist', specialty: 'Cardiologia' });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.getByText('Especialista em Cardiologia')).toBeTruthy();
+    expect(screen.queryByTestId('profile-ready-residency')).toBeNull();
+    expect(screen.queryByText(/todo dia/)).toBeNull();
   });
 });

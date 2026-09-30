@@ -1,6 +1,11 @@
 import '@/i18n';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { createWorkLocation, listWorkLocations } from '@/features/locations/locations-data';
+import { formatDayMonth } from '@/domain/calendar';
+import {
+  createWorkLocation,
+  listWorkLocations,
+  updateWorkLocation,
+} from '@/features/locations/locations-data';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { renderWithProviders } from '@/test/render';
 import { NewWorkFlow } from './form/NewWorkFlow';
@@ -8,11 +13,20 @@ import { canSaveWork } from './form/WorkForm';
 import { listMonthWorkDots } from './month-work-dots';
 import { createWorkWithReceivable } from './work-data';
 import { useNewWorkDraft } from './work-draft';
+import { createWorkSeries } from './work-recurrence';
 import { addDaysToLocalDate, todayInTimezone } from './work-schedule';
 
 jest.mock('@/features/auth/AuthSessionProvider', () => ({
   AuthSessionProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuthSession: () => ({ status: 'signedIn', userId: 'user-1' }),
+}));
+let mockPremium = false;
+jest.mock('@/features/billing/entitlement', () => ({
+  usePremium: () => ({ isSuccess: true, data: mockPremium }),
+}));
+let mockPreferences: unknown;
+jest.mock('@/features/profile/profile-data', () => ({
+  useWorkPreferences: () => ({ data: mockPreferences }),
 }));
 let mockLocations: unknown[] = [];
 jest.mock('@/features/locations/locations-data', () => ({
@@ -28,6 +42,11 @@ jest.mock('@/features/locations/locations-data', () => ({
     colorSource: 'automatic' as const,
     archivedAt: null,
   })),
+  updateWorkLocation: jest.fn(async (current: object, patch: object) => ({ ...current, ...patch })),
+}));
+jest.mock('./work-recurrence', () => ({
+  ...jest.requireActual('./work-recurrence'),
+  createWorkSeries: jest.fn(async () => ({ seriesId: 's1', workId: 'w1', occurrences: 53 })),
 }));
 jest.mock('./work-data', () => ({
   ...jest.requireActual('./work-data'),
@@ -48,6 +67,8 @@ const mockedList = jest.mocked(listWorkLocations);
 const mockedCreateLocation = jest.mocked(createWorkLocation);
 const mockedCreateWork = jest.mocked(createWorkWithReceivable);
 const mockedDots = jest.mocked(listMonthWorkDots);
+const mockedUpdateLocation = jest.mocked(updateWorkLocation);
+const mockedCreateSeries = jest.mocked(createWorkSeries);
 
 const hospital = {
   id: 'loc-hsl',
@@ -66,6 +87,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockLocations = [];
   mockTemplates = [];
+  mockPremium = false;
+  mockPreferences = undefined;
   mockedList.mockImplementation(async () => mockLocations as never);
   mockedDots.mockResolvedValue({});
 });
@@ -149,7 +172,8 @@ describe('fluxo do + (Agenda 06–10)', () => {
     });
 
     await press('work-save');
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    // A tela segue depois da animação de sucesso do botão.
+    await waitFor(() => expect(onClose).toHaveBeenCalled(), { timeout: 3000 });
     expect(mockedCreateLocation).toHaveBeenCalledWith({ name: 'Clínica Nova' }, []);
     expect(mockedCreateWork).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -284,7 +308,8 @@ describe('fluxo do + (Agenda 06–10)', () => {
     });
 
     await press('work-save');
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    // A tela segue depois da animação de sucesso do botão.
+    await waitFor(() => expect(onClose).toHaveBeenCalled(), { timeout: 3000 });
     expect(mockedCreateLocation).not.toHaveBeenCalled();
     expect(mockedCreateWork.mock.calls[0][0]).toMatchObject({
       locationId: 'loc-hsl',
@@ -316,5 +341,156 @@ describe('fluxo do + (Agenda 06–10)', () => {
     });
     expect(useNewWorkDraft.getState().type).toBe('appointment');
     expect(screen.getByRole('header', { name: 'Novo trabalho' })).toBeTruthy();
+  });
+});
+
+describe('Repetir e Cor do local (8.5/8.6)', () => {
+  async function fillProcedure() {
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('work-location-input'), 'Hospital São Lucas');
+    });
+    await pickDate();
+    await act(async () => {
+      await fireEvent.changeText(screen.getByLabelText('QUANTO VOCÊ VAI RECEBER?'), '800');
+    });
+  }
+
+  it('Free vê o selo Premium, a prévia esmaecida e segue sem recorrência nem cor', async () => {
+    mockLocations = [hospital];
+    await openForm('procedure');
+    expect(screen.getAllByText('PREMIUM')).toHaveLength(2);
+    expect(screen.getByTestId('work-repeat-field').props.accessibilityValue.text).toBe(
+      'Não repetir',
+    );
+    expect(screen.getByTestId('work-color-field').props.accessibilityValue.text).toBe('Automática');
+
+    await press('work-repeat-field');
+    expect(screen.getByText('Seus plantões se repetem. Seu cadastro não precisa.')).toBeTruthy();
+    expect(screen.getByTestId('work-repeat-gate-preview')).toBeTruthy();
+    // Sem o fluxo de benefícios (5.5), não há botão de compra.
+    expect(screen.queryByTestId('work-repeat-gate-learn-more')).toBeNull();
+    await press('work-repeat-gate-free');
+    expect(useNewWorkDraft.getState().repeat).toBe('none');
+
+    await press('work-color-field');
+    expect(screen.getByText('Cada lugar com a sua cor.')).toBeTruthy();
+    await press('work-color-gate-free');
+    expect(useNewWorkDraft.getState().colorToken).toBeNull();
+
+    await fillProcedure();
+    await press('work-save');
+    await waitFor(() => expect(mockedCreateWork).toHaveBeenCalled());
+    expect(mockedCreateSeries).not.toHaveBeenCalled();
+    expect(mockedUpdateLocation).not.toHaveBeenCalled();
+  });
+
+  it('Premium escolhe toda semana, vê as próximas datas e grava a série', async () => {
+    mockPremium = true;
+    mockLocations = [hospital];
+    await openForm('procedure');
+    // Premium desbloqueado não mostra selo.
+    expect(screen.queryByText('PREMIUM')).toBeNull();
+    await fillProcedure();
+
+    await press('work-repeat-field');
+    expect(screen.getByRole('header', { name: 'Com que frequência?' })).toBeTruthy();
+    await press('work-repeat-weekly');
+    const next = [7, 14, 21].map((days) => addDaysToLocalDate(workDate, days));
+    expect(screen.getByTestId('work-repeat-next').props.children).toBe(
+      `Próximos: ${next.map((date) => formatDayMonth(date)).join(' · ')}`,
+    );
+    await press('work-repeat-confirm');
+    expect(screen.getByTestId('work-repeat-field').props.accessibilityValue.text).toBe(
+      'Toda semana',
+    );
+
+    await press('work-save');
+    await waitFor(() => expect(mockedCreateSeries).toHaveBeenCalled());
+    expect(mockedCreateWork).not.toHaveBeenCalled();
+    expect(mockedCreateSeries.mock.calls[0][0]).toMatchObject({
+      type: 'procedure',
+      locationId: 'loc-hsl',
+      workDate,
+    });
+    expect(mockedCreateSeries.mock.calls[0][1]).toBe('weekly');
+  });
+
+  it('Premium escolhe a cor na paleta ampliada e ela é salva no Local', async () => {
+    mockPremium = true;
+    mockLocations = [hospital];
+    await openForm('procedure');
+    await fillProcedure();
+
+    await press('work-color-field');
+    expect(screen.getByRole('header', { name: 'Hospital São Lucas' })).toBeTruthy();
+    expect(
+      screen.getAllByRole('radio', {
+        name: /^(Sage|Bronze|Azul|Verde|Terra|Violeta|Cáqui|Petróleo)$/,
+      }),
+    ).toHaveLength(8);
+    await press('work-color-petrol');
+    expect(screen.getByTestId('work-color-preview')).toBeTruthy();
+    await press('work-color-save');
+    expect(screen.getByTestId('work-color-field').props.accessibilityValue.text).toBe('Petróleo');
+
+    await press('work-save');
+    await waitFor(() => expect(mockedCreateWork).toHaveBeenCalled());
+    expect(mockedUpdateLocation).toHaveBeenCalledWith(hospital, {
+      colorToken: 'petrol',
+      colorSource: 'premium_palette',
+    });
+  });
+});
+
+describe('Salvar trabalho (animação de sucesso)', () => {
+  it('mostra "Trabalho salvo" e segue sozinho para a Agenda com a data salva', async () => {
+    const onClose = jest.fn();
+    const onSaved = jest.fn();
+    await renderWithProviders(<NewWorkFlow onClose={onClose} onSaved={onSaved} />);
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Procedimento' }));
+    });
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('work-location-input'), 'Clínica Nova');
+    });
+    await pickDate();
+    await act(async () => {
+      await fireEvent.changeText(screen.getByLabelText('QUANTO VOCÊ VAI RECEBER?'), '500');
+    });
+    expect(screen.getByTestId('work-save').props.accessibilityLabel).toBe('Salvar trabalho');
+    await press('work-save');
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(workDate), { timeout: 3000 });
+    expect(screen.getByTestId('work-save').props.accessibilityLabel).toBe('Trabalho salvo');
+    // Nenhum toque extra: salvar não fecha pelo "fechar".
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId('work-save').props.accessibilityState).toMatchObject({
+      disabled: true,
+    });
+  });
+});
+
+describe('Preferências de trabalho no + (11.5)', () => {
+  it('Plantão novo vem com horário, duração e prazo padrão, que podem ser trocados', async () => {
+    mockPreferences = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 30 };
+    await openForm('shift');
+    expect(useNewWorkDraft.getState()).toMatchObject({ startTime: '19:00', durationMinutes: 720 });
+    await pickDate();
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(workDate, 30),
+    });
+    await press('work-duration-6');
+    expect(useNewWorkDraft.getState().durationMinutes).toBe(360);
+  });
+
+  it('Procedimento usa só o prazo padrão', async () => {
+    mockPreferences = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 60 };
+    await openForm('procedure');
+    expect(useNewWorkDraft.getState()).toMatchObject({ startTime: null, durationMinutes: null });
+    await pickDate();
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(workDate, 60),
+    });
   });
 });

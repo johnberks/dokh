@@ -5,6 +5,7 @@ import { type LocalDate, type LocalMonth, shiftMonth } from '@/domain/calendar';
 import type { WorkType } from '@/domain/work-type';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import type { AuthClient } from '@/features/auth/session';
+import type { SeriesFrequency } from '@/features/work/work-recurrence';
 import { type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
 
 export type ReceiptStatus =
@@ -29,6 +30,10 @@ export type AgendaWork = {
   amountCents: bigint | null;
   expectedOn: LocalDate | null;
   receiptStatus: ReceiptStatus | null;
+  /** Série da recorrência Premium, quando o Trabalho é uma ocorrência. */
+  seriesId: string | null;
+  seriesFrequency: SeriesFrequency | null;
+  seriesActive: boolean;
 };
 
 type Row = {
@@ -43,12 +48,16 @@ type Row = {
   amount_cents: number | null;
   expected_on: string | null;
   receipt_status: string | null;
+  /** Ausentes em leituras que não pedem a série (ex.: Início). */
+  series_id?: string | null;
+  series_frequency?: string | null;
+  series_active?: boolean | null;
 };
 
 const COLUMNS =
-  'work_entry_id, work_date, start_time, duration_minutes, type, description, location_name, color_token, amount_cents, expected_on, receipt_status';
+  'work_entry_id, work_date, start_time, duration_minutes, type, description, location_name, color_token, amount_cents, expected_on, receipt_status, series_id, series_frequency, series_active';
 
-function toAgendaWork(row: Row): AgendaWork | null {
+export function toAgendaWork(row: Row): AgendaWork | null {
   if (!row.work_entry_id || !row.work_date || !row.type || !row.location_name) return null;
   const token = row.color_token ?? 'sage';
   return {
@@ -64,6 +73,14 @@ function toAgendaWork(row: Row): AgendaWork | null {
     amountCents: row.amount_cents === null ? null : BigInt(row.amount_cents),
     expectedOn: row.expected_on,
     receiptStatus: row.receipt_status as ReceiptStatus | null,
+    seriesId: row.series_id ?? null,
+    seriesFrequency:
+      row.series_frequency === 'weekly' ||
+      row.series_frequency === 'biweekly' ||
+      row.series_frequency === 'monthly'
+        ? row.series_frequency
+        : null,
+    seriesActive: row.series_active === true,
   };
 }
 

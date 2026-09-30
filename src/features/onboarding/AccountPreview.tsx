@@ -16,7 +16,7 @@ import { useReducedMotion } from '@/theme/useReducedMotion';
 const LAYERS = ['shift', 'receivable', 'earnings'] as const;
 const EARNINGS_LINE = '0,18 40,15 80,16 120,10 150,7 182,2';
 
-function useReveal(index: number) {
+function useReveal(index: number, startDelay: number) {
   const reduced = useReducedMotion();
   const progress = useSharedValue(reduced ? 1 : 0);
 
@@ -24,10 +24,10 @@ function useReveal(index: number) {
     progress.value = reduced
       ? withTiming(1, { duration: motion.instant })
       : withDelay(
-          index * p.revealStagger,
+          startDelay + index * p.revealStagger,
           withTiming(1, { duration: motion.enter, easing: Easing.out(Easing.cubic) }),
         );
-  }, [index, progress, reduced]);
+  }, [index, progress, reduced, startDelay]);
 
   return useAnimatedStyle(() => ({
     opacity: progress.value,
@@ -39,7 +39,8 @@ function useReveal(index: number) {
  * Três cartões da tela 04 empilhados. A profundidade vem da ordem das camadas, de sombras
  * crescentes e da entrada em cascata — a geometria e as cores continuam as do HTML.
  */
-export function AccountPreview() {
+/** `startDelay`: a cascata começa depois do título da tela (ms). */
+export function AccountPreview({ startDelay = 0 }: { startDelay?: number }) {
   const { t } = useTranslation('onboarding');
   // Os cartões usam as posições absolutas do HTML. A tela é estática: em vez de rolar ou
   // invadir os botões, a pilha inteira encolhe proporcionalmente para caber no espaço livre.
@@ -59,9 +60,9 @@ export function AccountPreview() {
   const scale =
     availableHeight > 0 && neededHeight > availableHeight ? availableHeight / neededHeight : 1;
 
-  const shift = useReveal(LAYERS.indexOf('shift'));
-  const receivable = useReveal(LAYERS.indexOf('receivable'));
-  const earnings = useReveal(LAYERS.indexOf('earnings'));
+  const shift = useReveal(LAYERS.indexOf('shift'), startDelay);
+  const receivable = useReveal(LAYERS.indexOf('receivable'), startDelay);
+  const earnings = useReveal(LAYERS.indexOf('earnings'), startDelay);
 
   return (
     <View

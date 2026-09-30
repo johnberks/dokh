@@ -67,7 +67,15 @@ export type TwoToneScrollScreenProps = Omit<
   heroBackground?: ReactNode;
   heroStyle?: ViewProps['style'];
   bodyStyle?: ViewProps['style'];
+  /**
+   * Altura do verde padronizada entre as abas (Início, Agenda e Finanças), com Finanças como
+   * referência: `TOP_GREEN_HEIGHT` abaixo da barra de status, independente do conteúdo.
+   */
+  standardHeroHeight?: boolean;
 };
+
+/** Altura do topo verde abaixo da barra de status, igual em Início, Agenda e Finanças. */
+export const TOP_GREEN_HEIGHT = 272;
 
 /** Home/Finanças: one vertical scroll owns both the green hero and cream body. */
 export function TwoToneScrollScreen({
@@ -76,6 +84,7 @@ export function TwoToneScrollScreen({
   heroBackground,
   heroStyle,
   bodyStyle,
+  standardHeroHeight = false,
   ...props
 }: TwoToneScrollScreenProps) {
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
@@ -94,7 +103,12 @@ export function TwoToneScrollScreen({
         <View pointerEvents="none" style={styles.twoToneBleed} testID="two-tone-bleed" />
         <View
           testID="two-tone-hero"
-          style={[styles.twoToneHero, { paddingTop: insets.top }, heroStyle]}
+          style={[
+            styles.twoToneHero,
+            { paddingTop: insets.top },
+            standardHeroHeight && { height: insets.top + TOP_GREEN_HEIGHT },
+            heroStyle,
+          ]}
         >
           {heroBackground}
           {hero}

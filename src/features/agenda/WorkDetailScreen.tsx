@@ -1,16 +1,23 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
 import { type ReactNode, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
+import { ChevronLeftIcon } from '@/components/icons/heroicons';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { formatDayMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
+import { usePremium } from '@/features/billing/entitlement';
+import { RepeatIcon } from '@/features/work/form/FormPieces';
 import { newIdempotencyKey, useDeleteWork } from '@/features/work/work-data';
+import {
+  useDeleteWorkSeriesFrom,
+  useNextOccurrence,
+  useStopWorkSeries,
+} from '@/features/work/work-recurrence';
 import { localDateToDate, workEndDescription } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette, workLocationColors } from '@/theme/tokens';
@@ -41,7 +48,8 @@ const STATUS_DOT = {
 /**
  * Agenda 15: data por extenso, local, horário em blocos (início, término, duração), valor,
  * previsão e status (ponto + texto, sem badge), `Editar trabalho` (mesmo formulário, preenchido)
- * e `Excluir` com confirmação. Recorrência entra com a 8.5.
+ * e `Excluir` com confirmação. Ocorrência de uma série mostra "Este trabalho se repete"; quem
+ * tem Premium vê `Gerenciar` (parar de repetir).
  */
 export function WorkDetailScreen({ workId }: { workId: string }) {
   const { t } = useTranslation('agenda');
@@ -99,7 +107,7 @@ function DetailFrame({
               testID="work-detail-back"
               style={({ pressed }) => [styles.back, pressed && styles.pressed]}
             >
-              <ChevronLeft color={palette.cream} size={20} />
+              <ChevronLeftIcon color={palette.cream} size={20} />
             </Pressable>
             <AppText variant="technical" style={styles.eyebrow}>
               {t('detail.eyebrow')}
@@ -158,7 +166,17 @@ function DetailContent({ work }: { work: AgendaWork }) {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
   const [confirming, setConfirming] = useState(false);
+  const [managing, setManaging] = useState(false);
+  // Trabalho recorrente: excluir só o dia ou deste em diante (pedido do usuário, 2026-09-26).
+  const [deleteScope, setDeleteScope] = useState<'one' | 'forward'>('one');
   const remove = useDeleteWork();
+  const removeForward = useDeleteWorkSeriesFrom();
+  const deleting = remove.isPending || removeForward.isPending;
+  const deleteFailed = remove.isError || removeForward.isError;
+  const stop = useStopWorkSeries();
+  const premium = usePremium();
+  const repeating = work.seriesId !== null && work.seriesActive && work.seriesFrequency !== null;
+  const next = useNextOccurrence(repeating ? work.seriesId : null, work.workDate);
   // Uma chave por tentativa de exclusão: repetir após erro de rede não apaga duas vezes.
   const deleteKey = useRef<string | null>(null);
   const end = workEndDescription(work.workDate, work.startTime, work.durationMinutes);
@@ -167,6 +185,15 @@ function DetailContent({ work }: { work: AgendaWork }) {
     work.amountCents === null ? '—' : formatCentsToBRL(work.amountCents, { omitZeroCents: true });
 
   function confirmDelete() {
+    if (repeating && deleteScope === 'forward') {
+      removeForward.mutate(work.id, {
+        onSuccess: () => {
+          setConfirming(false);
+          router.back();
+        },
+      });
+      return;
+    }
     deleteKey.current ??= newIdempotencyKey();
     remove.mutate(
       { workEntryId: work.id, idempotencyKey: deleteKey.current },
@@ -177,6 +204,17 @@ function DetailContent({ work }: { work: AgendaWork }) {
         },
       },
     );
+  }
+
+  const deleteLabel = !repeating
+    ? t('detail.confirmDelete')
+    : deleteScope === 'forward'
+      ? t('detail.deleteSeries.confirmForward')
+      : t('detail.deleteSeries.confirmOnlyThis');
+
+  function confirmStop() {
+    if (work.seriesId === null) return;
+    stop.mutate(work.seriesId, { onSuccess: () => setManaging(false) });
   }
 
   const hero = (
@@ -238,7 +276,10 @@ function DetailContent({ work }: { work: AgendaWork }) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('detail.delete')}
-        onPress={() => setConfirming(true)}
+        onPress={() => {
+          setDeleteScope('one');
+          setConfirming(true);
+        }}
         testID="work-detail-delete"
         style={({ pressed }) => [styles.delete, pressed && styles.pressed]}
       >
@@ -277,47 +318,168 @@ function DetailContent({ work }: { work: AgendaWork }) {
             )}
           </View>
         </View>
+        {repeating && work.seriesFrequency && (
+          <View style={styles.repeatCard} testID="work-detail-repeat">
+            <View style={styles.repeatStart}>
+              <RepeatIcon />
+              <View style={styles.repeatText}>
+                <AppText style={[type.heading1, styles.repeatTitle]}>{t('detail.repeats')}</AppText>
+                <AppText style={styles.repeatDetail}>
+                  {next.data
+                    ? t('detail.repeatsNext', {
+                        frequency: t(`form.repeatLabel.${work.seriesFrequency}`),
+                        date: formatDayMonth(next.data),
+                      })
+                    : t(`form.repeatLabel.${work.seriesFrequency}`)}
+                </AppText>
+              </View>
+            </View>
+            {premium.data === true && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('detail.manage')}
+                hitSlop={8}
+                onPress={() => setManaging(true)}
+                testID="work-detail-manage"
+                style={({ pressed }) => pressed && styles.pressed}
+              >
+                <AppText
+                  style={[type.heading1, styles.manage]}
+                >{`${t('detail.manage')} →`}</AppText>
+              </Pressable>
+            )}
+          </View>
+        )}
       </DetailFrame>
 
       <BottomSheet
-        open={confirming}
+        open={managing}
         onClose={() => {
-          if (!remove.isPending) setConfirming(false);
+          if (!stop.isPending) setManaging(false);
         }}
-        accessibilityLabel={t('detail.confirmTitle')}
-        testID="work-delete-sheet"
+        accessibilityLabel={t('detail.manageSheet.title')}
+        testID="work-series-sheet"
       >
         <View style={styles.confirmCopy}>
+          <AppText variant="technical" style={styles.sheetEyebrow}>
+            {t('detail.manageSheet.eyebrow')}
+          </AppText>
           <AppText accessibilityRole="header" style={[type.heading1, styles.confirmTitle]}>
-            {t('detail.confirmTitle')}
+            {t('detail.manageSheet.title')}
           </AppText>
-          <AppText style={styles.confirmText}>
-            {t('detail.confirmText', {
-              place: work.locationName,
-              date: formatDayMonth(work.workDate),
-              amount,
-            })}
-          </AppText>
+          <AppText style={styles.confirmText}>{t('detail.manageSheet.text')}</AppText>
         </View>
-        {remove.isError && <MutationError onRetry={confirmDelete} retrying={remove.isPending} />}
+        {stop.isError && <MutationError onRetry={confirmStop} retrying={stop.isPending} />}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('detail.confirmDelete')}
-          accessibilityState={{ busy: remove.isPending, disabled: remove.isPending }}
-          disabled={remove.isPending}
-          onPress={confirmDelete}
-          testID="work-delete-confirm"
-          style={({ pressed }) => [styles.confirmButton, pressed && styles.pressed]}
+          accessibilityLabel={t('detail.manageSheet.stop')}
+          accessibilityState={{ busy: stop.isPending, disabled: stop.isPending }}
+          disabled={stop.isPending}
+          onPress={confirmStop}
+          testID="work-series-stop"
+          style={({ pressed }) => [styles.stopButton, pressed && styles.pressed]}
         >
-          {remove.isPending && <ActivityIndicator color={palette.cream} />}
+          {stop.isPending && <ActivityIndicator color={palette.cream} />}
           <AppText style={[type.heading1, styles.confirmButtonText]}>
-            {t('detail.confirmDelete')}
+            {t('detail.manageSheet.stop')}
           </AppText>
         </Pressable>
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={t('detail.manageSheet.keep')}
+          disabled={stop.isPending}
+          onPress={() => setManaging(false)}
+          testID="work-series-keep"
+          style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}
+        >
+          <AppText style={[type.heading1, styles.cancelText]}>
+            {t('detail.manageSheet.keep')}
+          </AppText>
+        </Pressable>
+      </BottomSheet>
+
+      <BottomSheet
+        open={confirming}
+        onClose={() => {
+          if (!deleting) setConfirming(false);
+        }}
+        accessibilityLabel={repeating ? t('detail.deleteSeries.title') : t('detail.confirmTitle')}
+        testID="work-delete-sheet"
+      >
+        <View style={styles.confirmCopy}>
+          <AppText accessibilityRole="header" style={[type.heading1, styles.confirmTitle]}>
+            {repeating ? t('detail.deleteSeries.title') : t('detail.confirmTitle')}
+          </AppText>
+          <AppText style={styles.confirmText}>
+            {repeating
+              ? t('detail.deleteSeries.text', { place: work.locationName })
+              : t('detail.confirmText', {
+                  place: work.locationName,
+                  date: formatDayMonth(work.workDate),
+                  amount,
+                })}
+          </AppText>
+        </View>
+        {repeating && (
+          <View accessibilityRole="radiogroup" style={styles.scopeOptions}>
+            {(['one', 'forward'] as const).map((scope) => {
+              const selected = deleteScope === scope;
+              const label =
+                scope === 'one'
+                  ? t('detail.deleteSeries.onlyThis')
+                  : t('detail.deleteSeries.forward');
+              const hint = t(
+                scope === 'one'
+                  ? 'detail.deleteSeries.onlyThisHint'
+                  : 'detail.deleteSeries.forwardHint',
+                { date: formatDayMonth(work.workDate) },
+              );
+              return (
+                <Pressable
+                  key={scope}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${label}, ${hint}`}
+                  accessibilityState={{ checked: selected, disabled: deleting }}
+                  disabled={deleting}
+                  onPress={() => setDeleteScope(scope)}
+                  testID={`work-delete-scope-${scope}`}
+                  style={({ pressed }) => [
+                    styles.scopeOption,
+                    selected ? styles.scopeOptionOn : styles.scopeOptionOff,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={[styles.radio, selected ? styles.radioOn : styles.radioOff]}>
+                    {selected && <View style={styles.radioDot} />}
+                  </View>
+                  <View style={styles.scopeText}>
+                    <AppText style={[selected && type.heading1, styles.scopeLabel]}>
+                      {label}
+                    </AppText>
+                    <AppText style={styles.scopeHint}>{hint}</AppText>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+        {deleteFailed && <MutationError onRetry={confirmDelete} retrying={deleting} />}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={deleteLabel}
+          accessibilityState={{ busy: deleting, disabled: deleting }}
+          disabled={deleting}
+          onPress={confirmDelete}
+          testID="work-delete-confirm"
+          style={({ pressed }) => [styles.confirmButton, pressed && styles.pressed]}
+        >
+          {deleting && <ActivityIndicator color={palette.cream} />}
+          <AppText style={[type.heading1, styles.confirmButtonText]}>{deleteLabel}</AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
           accessibilityLabel={t('detail.cancel')}
-          disabled={remove.isPending}
+          disabled={deleting}
           onPress={() => setConfirming(false)}
           testID="work-delete-cancel"
           style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}
@@ -431,6 +593,38 @@ const styles = StyleSheet.create({
   status: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
   statusText: { fontSize: 14, lineHeight: 18, letterSpacing: 0, color: colors.textPrimary },
+  repeatCard: {
+    backgroundColor: '#F6F4EC',
+    borderWidth: 1,
+    borderColor: 'rgba(16,22,15,0.14)',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    shadowColor: colors.foreground,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  repeatStart: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  repeatText: { flex: 1, gap: 2 },
+  repeatTitle: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
+  repeatDetail: { fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
+  manage: { fontSize: 13, lineHeight: 17, letterSpacing: 0, color: colors.textPrimary },
+  sheetEyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  stopButton: {
+    minHeight: 56,
+    borderRadius: 16,
+    backgroundColor: colors.foreground,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
   footer: { paddingHorizontal: 24, paddingTop: 8, backgroundColor: colors.background },
   actions: { gap: 6 },
   edit: {
@@ -456,6 +650,33 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   confirmButtonText: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
+  scopeOptions: { gap: 8 },
+  scopeOption: {
+    minHeight: 64,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  scopeOptionOn: { borderColor: colors.foreground, backgroundColor: '#F6F4EC' },
+  scopeOptionOff: { borderColor: 'rgba(16,22,15,0.2)' },
+  scopeText: { flex: 1, gap: 2 },
+  scopeLabel: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary },
+  scopeHint: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOn: { borderColor: colors.foreground },
+  radioOff: { borderColor: 'rgba(16,22,15,0.3)' },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.foreground },
   cancel: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   cancelText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   loading: { marginTop: 24 },

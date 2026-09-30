@@ -23,6 +23,8 @@ export const palette = {
   workTerra: '#8C6A5A',
   workViolet: '#6E6A8A',
   workBlueDeep: '#4A5F70',
+  workKhaki: '#9A8F6A',
+  workPetrol: '#5E7A72',
   authHeroShade: '#161F14',
 } as const;
 
@@ -106,6 +108,8 @@ export const workLocationColors = {
   green: palette.structure,
   terra: palette.workTerra,
   violet: palette.workViolet,
+  khaki: palette.workKhaki,
+  petrol: palette.workPetrol,
 } as const;
 
 export type WorkLocationColorToken = keyof typeof workLocationColors;
@@ -254,7 +258,6 @@ export const navigationMetrics = {
   tabBarBottom: 28,
   tabWidth: 64,
   tabIconSize: 22,
-  tabIconStroke: 1.7,
   tabIconBoxWidth: 40,
   tabIconBoxHeight: 30,
   tabIconRadius: 10,
@@ -386,7 +389,6 @@ export const workTypeSelectorMetrics = {
   iconTile: 42,
   iconTileRadius: 12,
   iconSize: 20,
-  iconStroke: 1.7,
   selectedBorderWidth: 1.5,
   radio: 22,
   radioBorderWidth: 1.5,
@@ -526,8 +528,16 @@ export const onboardingIntroMetrics = {
   splashWordmarkDelay: 420,
   splashWordmark: 420,
   splashWordmarkRise: 10,
-  /** Leitura antes de entregar a tela 04: total entre 1,2 s e 1,6 s. */
+  /** Letras de DOKH entram uma a uma, com este intervalo. */
+  splashLetterStagger: 70,
+  /** Escala inicial do símbolo, que cresce enquanto as superfícies se aproximam. */
+  splashSymbolScale: 0.78,
+  /** A interseção bronze "estala" quando as superfícies se encontram. */
+  splashPop: 360,
+  /** Leitura antes de entregar a tela 04. */
   splashHold: 360,
+  /** Saída suave: o splash some e cresce de leve enquanto a tela 04 assume. */
+  splashExit: 240,
   headerPaddingTop: 22,
   horizontalPadding: 32,
   headingPaddingTop: 40,
@@ -563,6 +573,20 @@ export const radius = {
   card: 22,
   screen: 28,
   pill: 999,
+} as const;
+
+/**
+ * Ilustrações (design `DOKH Ilustracoes.dc.html`, V1): traço em tinta, papel, papel escuro e um
+ * único toque de ouro, num quadro de 160×120 usado de 64 a 200 px.
+ */
+export const illustration = {
+  ink: palette.base,
+  paper: palette.cream,
+  shade: '#D9D5C7',
+  gold: palette.bronze,
+  stroke: 2.5,
+  viewBoxWidth: 160,
+  viewBoxHeight: 120,
 } as const;
 
 /** Neutral-only shadows; RN cannot reproduce the HTML's inset highlight. */
@@ -620,6 +644,22 @@ export const motion = {
   heroPage: 450,
   heroBar: 400,
   reviewRemoval: 200,
+  /** Valor do topo da Início contando até o total ao entrar na tela. */
+  countUp: 650,
+  /** Botão Salvar trabalho: troca de estado (texto ↔ spinner ↔ check). */
+  saveMorph: 220,
+  /** Traço do check desenhado no sucesso. */
+  saveCheck: 360,
+  /** Quanto o "Trabalho salvo" fica visível antes de ir para a Agenda. */
+  saveHold: 650,
+  /** Conteúdo que desliza ao trocar de visão (Mês ↔ Ano) ou ao voltar de uma tela interna. */
+  slide: 300,
+  /** Dropdown do Perfil: cartão flutuante abre/fecha e a seta gira. */
+  dropdown: 180,
+  /** Entrada de itens do onboarding (fade + subida curta), em cascata. */
+  reveal: 460,
+  /** Intervalo entre itens (e entre palavras de um título) na cascata. */
+  revealStagger: 80,
 } as const;
 
 /** Relative stacking within one RN view hierarchy; modal navigation owns its own layer. */

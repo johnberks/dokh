@@ -243,7 +243,7 @@ try {
   );
   const nextEntry = success(
     await call(
-      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&limit=1',
+      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&order=receivable_id.asc&limit=3',
       { token: owner.token },
     ),
     'owner reads next entry',
@@ -308,6 +308,137 @@ try {
     'owner reads premium entitlement',
   );
   assert.deepEqual(premiumEntitlement, [{ is_active: true, expires_at: null }]);
+
+  // Entradas (Finanças 05–10): mesma consulta do app e confirmação explícita pelo servidor.
+  const toConfirm = success(
+    await call('/rest/v1/rpc/create_work_with_receivable', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_idempotency_key: randomUUID(),
+        p_type: 'appointment',
+        p_location_id: location.id,
+        p_description: null,
+        p_work_date: '2026-11-02',
+        p_start_time: null,
+        p_duration_minutes: null,
+        p_timezone: 'America/Sao_Paulo',
+        p_amount_cents: 85000,
+        p_expected_on: '2026-11-05',
+      },
+    }),
+    'owner creates a work paid in November',
+  )[0];
+  const entriesQuery =
+    '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on,receipt_status&expected_on=gte.2026-11-01&expected_on=lt.2026-12-01&invalidated_at=is.null&work_deleted_at=is.null&order=expected_on.asc&order=receivable_id.asc';
+  const entries = success(await call(entriesQuery, { token: owner.token }), 'owner reads entries');
+  assert.deepEqual(
+    entries.map((row) => [row.receivable_id, row.expected_on, row.receipt_status]),
+    [[toConfirm.receivable_id, '2026-11-05', 'scheduled']],
+  );
+  const entryNames = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id,location_name&work_entry_id=in.(${toConfirm.work_id})`,
+      { token: owner.token },
+    ),
+    'owner reads entry location names',
+  );
+  assert.equal(entryNames[0].location_name, 'Hospital São Lucas');
+  const foreignConfirm = await call('/rest/v1/rpc/confirm_receivable_received', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_receivable_id: toConfirm.receivable_id },
+  });
+  assert.ok(!foreignConfirm.response.ok, 'stranger cannot confirm another user entry');
+  success(
+    await call('/rest/v1/rpc/confirm_receivable_received', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_receivable_id: toConfirm.receivable_id },
+    }),
+    'owner confirms entry received',
+  );
+  const entriesAfter = success(
+    await call(entriesQuery, { token: owner.token }),
+    'owner reads confirmed entries',
+  );
+  assert.equal(entriesAfter[0].receipt_status, 'received');
+  const novemberAfter = success(
+    await call('/rest/v1/rpc/finance_month_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_month: '2026-11-01' },
+    }),
+    'owner reads November after confirming',
+  )[0];
+  assert.equal(Number(novemberAfter.received_of_expected_cents), 85000, 'summary reflects receipt');
+  assert.equal(Number(novemberAfter.awaiting_of_expected_cents), 0);
+  // Visão anual: o recebido por mês (base do resumo anual e das barras) reflete a confirmação.
+  const yearAfter = success(
+    await call('/rest/v1/rpc/finance_year_projection', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_year: 2026 },
+    }),
+    'owner reads year after confirming',
+  );
+  const novemberRow = yearAfter.find((row) => row.month_start === '2026-11-01');
+  assert.equal(Number(novemberRow.received_of_expected_cents), 85000);
+  assert.equal(Number(novemberRow.expected_total_cents), 85000);
+
+  // Início (Home): as mesmas leituras do app, pelo dono e com RLS.
+  const homeProfile = success(
+    await call(`/rest/v1/profiles?select=display_name,professional_status&id=eq.${owner.id}`, {
+      token: owner.token,
+    }),
+    'home reads profile',
+  );
+  assert.equal(homeProfile.length, 1);
+  assert.equal(homeProfile[0].professional_status, 'general_practitioner');
+  const homeResidency = success(
+    await call(`/rest/v1/residencies?select=id&user_id=eq.${owner.id}&active=eq.true&limit=1`, {
+      token: owner.token,
+    }),
+    'home reads residency',
+  );
+  assert.deepEqual(homeResidency, []);
+  const homeWorks = success(
+    await call(
+      '/rest/v1/agenda_work_projection?select=work_entry_id,work_date,start_time,location_name,color_token,amount_cents,expected_on,receipt_status&work_date=gte.2026-09-01&order=work_date.asc,start_time.asc.nullslast,created_at.asc&limit=3',
+      { token: owner.token },
+    ),
+    'home reads upcoming works',
+  );
+  assert.ok(homeWorks.length >= 1, 'home lists upcoming works');
+  assert.equal(homeWorks[0].location_name, 'Hospital São Lucas');
+  const homeOpen = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id&expected_on=gte.2026-10-01&expected_on=lt.2026-11-01&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null',
+      { token: owner.token },
+    ),
+    'home counts open entries of the month',
+  );
+  assert.equal(homeOpen.length, 1, 'October has one open entry');
+  const homeUpcoming = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id,work_entry_id,origin,amount_cents,expected_on&received_at=is.null&invalidated_at=is.null&work_deleted_at=is.null&expected_on=gt.2026-09-26&order=expected_on.asc&order=receivable_id.asc&limit=3',
+      { token: owner.token },
+    ),
+    'home reads upcoming entries',
+  );
+  // A entrada de novembro já foi confirmada: só outubro segue em aberto.
+  assert.deepEqual(
+    homeUpcoming.map((row) => row.expected_on),
+    ['2026-10-26'],
+  );
+  const strangerHome = success(
+    await call(
+      '/rest/v1/receivable_projection?select=receivable_id&received_at=is.null&invalidated_at=is.null',
+      { token: stranger.token },
+    ),
+    'stranger reads own home entries',
+  );
+  assert.deepEqual(strangerHome, [], 'home never shows another account entries');
 
   // Editar (Agenda 16): mesmos argumentos do app; Agenda reflete o novo valor e a nova data.
   const foreignUpdate = await call('/rest/v1/rpc/update_work_with_receivable', {
@@ -415,6 +546,307 @@ try {
     }),
     'owner updates location',
   );
+  // Recorrência Premium (3.10/8.5): série semanal pelo caminho do app, cor ampliada no Local,
+  // Free negado e "parar de repetir" tirando as próximas da Agenda.
+  const seriesBody = {
+    p_frequency: 'weekly',
+    p_type: 'appointment',
+    p_location_id: location.id,
+    p_description: null,
+    p_starts_on: '2027-03-01',
+    p_start_time: null,
+    p_duration_minutes: null,
+    p_timezone: 'America/Sao_Paulo',
+    p_amount_cents: 50000,
+    p_expected_offset_days: 30,
+  };
+  const freeSeries = await call('/rest/v1/rpc/create_work_series', {
+    method: 'POST',
+    token: stranger.token,
+    body: { ...seriesBody, p_idempotency_key: randomUUID() },
+  });
+  assert.ok(!freeSeries.response.ok, 'Free account must not create a work series');
+  const seriesKey = randomUUID();
+  const [series] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_idempotency_key: seriesKey },
+    }),
+    'premium creates weekly series',
+  );
+  assert.ok(series.occurrences >= 1, 'series materializes its first occurrence');
+  const [retried] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_idempotency_key: seriesKey },
+    }),
+    'retry returns the same series',
+  );
+  assert.equal(retried.series_id, series.series_id);
+  const firstOccurrence = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_date,expected_on,series_frequency,series_active&work_entry_id=eq.${series.work_id}`,
+      { token: owner.token },
+    ),
+    'owner reads first occurrence',
+  );
+  assert.deepEqual(firstOccurrence, [
+    {
+      work_date: '2027-03-01',
+      expected_on: '2027-03-31',
+      series_frequency: 'weekly',
+      series_active: true,
+    },
+  ]);
+  // "Este e os próximos" (8.5): a partir da 3ª ocorrência a série acaba; as duas primeiras ficam.
+  const [forwardSeries] = success(
+    await call('/rest/v1/rpc/create_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { ...seriesBody, p_starts_on: '2027-06-07', p_idempotency_key: randomUUID() },
+    }),
+    'premium creates a second weekly series',
+  );
+  const [third] = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id,work_date&series_id=eq.${forwardSeries.series_id}&order=work_date.asc&offset=2&limit=1`,
+      { token: owner.token },
+    ),
+    'owner reads third occurrence',
+  );
+  assert.equal(third.work_date, '2027-06-21');
+  const strangerForward = await call('/rest/v1/rpc/delete_work_series_from', {
+    method: 'POST',
+    token: stranger.token,
+    body: { p_work_entry_id: third.work_entry_id },
+  });
+  assert.ok(!strangerForward.response.ok, 'other user must not delete a series forward');
+  const [forward] = success(
+    await call('/rest/v1/rpc/delete_work_series_from', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_work_entry_id: third.work_entry_id },
+    }),
+    'owner deletes this and the following',
+  );
+  assert.equal(forward.removed, forwardSeries.occurrences - 2);
+  const kept = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_date,series_active&series_id=eq.${forwardSeries.series_id}&order=work_date.asc`,
+      { token: owner.token },
+    ),
+    'owner reads what stayed',
+  );
+  assert.deepEqual(kept, [
+    { work_date: '2027-06-07', series_active: false },
+    { work_date: '2027-06-14', series_active: false },
+  ]);
+
+  const petrol = success(
+    await call('/rest/v1/rpc/update_work_location', {
+      method: 'POST',
+      token: owner.token,
+      body: {
+        p_location_id: location.id,
+        p_name: 'Hospital São Lucas',
+        p_city: null,
+        p_color_token: 'petrol',
+        p_color_source: 'premium_palette',
+      },
+    }),
+    'premium saves an expanded color',
+  );
+  assert.equal(petrol.color_token, 'petrol');
+  const [stopped] = success(
+    await call('/rest/v1/rpc/stop_work_series', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_series_id: series.series_id },
+    }),
+    'owner stops the series',
+  );
+  assert.equal(stopped.removed, series.occurrences, 'future occurrences leave the agenda');
+  const remaining = success(
+    await call(
+      `/rest/v1/agenda_work_projection?select=work_entry_id&series_id=eq.${series.series_id}`,
+      { token: owner.token },
+    ),
+    'owner reads stopped series',
+  );
+  assert.deepEqual(remaining, []);
+
+  // Perfil (11.1–11.5): edição direta do próprio perfil e das preferências (RLS do dono),
+  // residência pela RPC Free e foto no bucket privado com URL assinada.
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { graduation_year: 2024, city: 'São Paulo, SP' },
+    }),
+    'owner edits profile',
+  );
+  const strangerEdit = await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+    method: 'PATCH',
+    token: stranger.token,
+    prefer: 'return=representation',
+    body: { city: 'Invasão' },
+  });
+  assert.deepEqual(strangerEdit.data, [], 'other user must not edit the profile');
+  success(
+    await call('/rest/v1/work_preferences?on_conflict=user_id', {
+      method: 'POST',
+      token: owner.token,
+      prefer: 'resolution=merge-duplicates',
+      body: {
+        user_id: owner.id,
+        default_duration_minutes: 720,
+        default_start_time: '19:00',
+        default_payment_term_days: 30,
+      },
+    }),
+    'owner saves work preferences',
+  );
+  const preferences = success(
+    await call(
+      '/rest/v1/work_preferences?select=default_duration_minutes,default_start_time,default_payment_term_days',
+      { token: owner.token },
+    ),
+    'owner reads work preferences',
+  );
+  assert.deepEqual(preferences, [
+    {
+      default_duration_minutes: 720,
+      default_start_time: '19:00:00',
+      default_payment_term_days: 30,
+    },
+  ]);
+  const residencyBody = {
+    p_residency_id: null,
+    p_specialty: 'Clínica Médica',
+    p_institution: 'Hospital São Lucas',
+    p_level_label: 'R2',
+    p_starts_on: '2026-03-01',
+    p_expected_ends_on: '2028-02-01',
+    p_monthly_amount_cents: 410609,
+    p_payment_day: 5,
+  };
+  // 11.10: sem residência ≠ generalista, e generalista não tem bolsa.
+  const generalistResidency = await call('/rest/v1/rpc/create_or_update_residency', {
+    method: 'POST',
+    token: owner.token,
+    body: residencyBody,
+  });
+  assert.ok(!generalistResidency.response.ok, 'generalist must not create a residency');
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { professional_status: 'resident', specialty: 'Clínica Médica' },
+    }),
+    'owner becomes resident',
+  );
+  const [savedResidency] = success(
+    await call('/rest/v1/rpc/create_or_update_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: residencyBody,
+    }),
+    'owner creates residency from profile',
+  );
+  success(
+    await call('/rest/v1/rpc/deactivate_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: { p_residency_id: savedResidency.residency_id },
+    }),
+    'owner ends residency',
+  );
+  const activeResidency = success(
+    await call('/rest/v1/residencies?select=id&active=eq.true', { token: owner.token }),
+    'owner reads active residency',
+  );
+  assert.deepEqual(activeResidency, []);
+  success(
+    await call('/rest/v1/rpc/create_or_update_residency', {
+      method: 'POST',
+      token: owner.token,
+      body: residencyBody,
+    }),
+    'owner starts a new residency',
+  );
+  const specialistWithoutSpecialty = await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+    method: 'PATCH',
+    token: owner.token,
+    body: { professional_status: 'specialist', specialty: null },
+  });
+  assert.ok(!specialistWithoutSpecialty.response.ok, 'specialist requires a specialty');
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { professional_status: 'specialist', specialty: 'Cardiologia' },
+    }),
+    'owner becomes specialist',
+  );
+  const afterSpecialist = success(
+    await call('/rest/v1/residencies?select=id&active=eq.true', { token: owner.token }),
+    'owner reads residency after becoming specialist',
+  );
+  assert.deepEqual(afterSpecialist, [], 'leaving residency ends the active one');
+  const futureStipends = success(
+    await call(
+      `/rest/v1/receivables?select=id&residency_id=not.is.null&invalidated_at=is.null&received_at=is.null&expected_on=gt.${new Date().toISOString().slice(0, 10)}`,
+      { token: owner.token },
+    ),
+    'owner reads future stipends',
+  );
+  assert.deepEqual(futureStipends, [], 'future stipend months leave Finances');
+  const avatarPath = `${owner.id}/avatar-${randomUUID()}.png`;
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64',
+  );
+  const upload = await fetch(new URL(`/storage/v1/object/avatars/${avatarPath}`, apiUrl), {
+    method: 'POST',
+    headers: {
+      apikey: anonKey,
+      authorization: `Bearer ${owner.token}`,
+      'content-type': 'image/png',
+    },
+    body: png,
+  });
+  assert.ok(upload.ok, `owner uploads avatar: HTTP ${upload.status}`);
+  success(
+    await call(`/rest/v1/profiles?id=eq.${owner.id}`, {
+      method: 'PATCH',
+      token: owner.token,
+      body: { avatar_path: avatarPath },
+    }),
+    'owner points profile to avatar',
+  );
+  const signed = success(
+    await call(`/storage/v1/object/sign/avatars/${avatarPath}`, {
+      method: 'POST',
+      token: owner.token,
+      body: { expiresIn: 3600 },
+    }),
+    'owner signs avatar URL',
+  );
+  assert.ok(signed.signedURL, 'signed avatar URL');
+  const strangerSign = await call(`/storage/v1/object/sign/avatars/${avatarPath}`, {
+    method: 'POST',
+    token: stranger.token,
+    body: { expiresIn: 3600 },
+  });
+  assert.ok(!strangerSign.response.ok, 'other user must not sign the avatar');
+  const removed = await fetch(new URL(`/storage/v1/object/avatars/${avatarPath}`, apiUrl), {
+    method: 'DELETE',
+    headers: { apikey: anonKey, authorization: `Bearer ${owner.token}` },
+  });
+  assert.ok(removed.ok, `owner removes avatar: HTTP ${removed.status}`);
+
   success(
     await call('/rest/v1/rpc/archive_work_location', {
       method: 'POST',
@@ -424,7 +856,7 @@ try {
     'owner archives location',
   );
   console.log(
-    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), edit, delete from agenda and finances, month dots, template history, palette and ownership passed',
+    '6.1 location RPCs through PostgREST, first work flow, agenda month, finance month and year (Free and Premium), entries and confirmation, home, edit, delete from agenda and finances, month dots, template history, Premium recurrence (stop and delete forward), profile, preferences, residency and avatar, palette and ownership passed',
   );
 } finally {
   for (const id of users) {

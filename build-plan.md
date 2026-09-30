@@ -205,7 +205,7 @@
   - Reconciliar somente futuros não recebidos.
   - **DoD:** usuário Free gera meses corretamente, inclusive dia 31/fevereiro; recebidos históricos não mudam; teste garante zero linhas em `work_series`.
 
-- [ ] **3.10 — Implementar recorrência de Trabalho Premium**
+- [x] **3.10 — Implementar recorrência de Trabalho Premium**
   - Dependências: 3.3, 3.5, 5.4.
   - Materialização idempotente por 12 meses e extensão periódica.
   - Validar entitlement no servidor.
@@ -368,7 +368,7 @@ Pré-requisito documental: UX e design de Agenda presentes.
 
 - [ ] **8.1 — Implementar query e calendário mensal**
   - Dependências: 3.11, 6.2, 2.5.
-  - Hoje, seleção, dias passados, pontos por local e início de semana configurável.
+  - Hoje, seleção, dias passados e pontos por local. Início de semana configurável fora do escopo por ora (decisão do usuário, 2026-09-26): a Agenda começa na segunda.
   - **DoD:** mês padrão, um/múltiplos trabalhos, dia livre e recebido correspondem aos estados desenhados.
 
 - [ ] **8.2 — Implementar lista diária e navegação de mês**
@@ -515,6 +515,11 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Aparência, conta/segurança, ajuda, feedback, termos e privacidade.
   - Exclusões finais dependem de P05/P04.
   - **DoD:** tema escuro aparece indisponível; links configurados; logout funciona; nenhuma ação destrutiva é inventada.
+
+- [x] **11.10 — Situação profissional explícita**
+  - Dependências: 3.2, 3.9, 7.3, 11.2.
+  - Em residência / Generalista / Especialista no onboarding e no Perfil; residência só para residentes.
+  - **DoD:** sem residência ≠ generalista; especialista exige especialidade; só residente cria bolsa; sair da residência encerra a bolsa futura (teste em banco descartável e PostgREST).
 
 - [ ] **11.9 — E2E Perfil/importação**
   - Dependências: 11.8.

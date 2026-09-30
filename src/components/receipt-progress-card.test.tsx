@@ -25,6 +25,12 @@ describe('ReceiptProgressCard', () => {
     const bar = screen.getByRole('progressbar');
     expect(bar.props.accessibilityValue).toMatchObject({ now: 67 });
     expect(bar.children[0]).toHaveStyle({ width: '67%', backgroundColor: palette.structure });
+    // Um card só: as duas caixas e a barra (mais grossa) dentro da mesma superfície.
+    const card = screen.getByTestId('split');
+    expect(card).toHaveStyle({ backgroundColor: '#F8F6EF', borderRadius: 28 });
+    expect(screen.getByTestId('split-bar')).toHaveStyle({ height: 12 });
+    expect(card).toContainElement(screen.getByTestId('split-received'));
+    expect(card).toContainElement(screen.getByTestId('split-bar'));
     await fireEvent.press(screen.getByTestId('split-received'));
     await fireEvent.press(screen.getByTestId('split-awaiting'));
     expect(onReceived).toHaveBeenCalled();

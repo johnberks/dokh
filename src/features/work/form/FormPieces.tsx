@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
+import { ArrowPathIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 
@@ -52,6 +53,61 @@ export function FieldBox({
         </AppText>
       </View>
       {accessory}
+    </Pressable>
+  );
+}
+
+/** Ícone de "Repetir" (Agenda 07 e 15): Heroicons Solid `arrow-path`. */
+export function RepeatIcon({
+  color = colors.foreground,
+  size = 18,
+}: {
+  color?: string;
+  size?: number;
+}) {
+  return <ArrowPathIcon size={size} color={color} />;
+}
+
+/**
+ * Linha de 54 abaixo do divisor da Agenda 07 (`Repetir`, `Cor do local`): ícone e rótulo à
+ * esquerda, valor e acessório (selo Premium no Free, `›` no Premium) à direita.
+ */
+export function OptionRow({
+  icon,
+  label,
+  value,
+  accessory,
+  onPress,
+  testID,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  accessory: ReactNode;
+  onPress: () => void;
+  testID?: string;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: value }}
+      onPress={onPress}
+      testID={testID}
+      style={({ pressed }) => [styles.optionRow, pressed && styles.pressed]}
+    >
+      <View style={styles.optionStart}>
+        {icon}
+        <AppText variant="heading2" style={styles.optionLabel}>
+          {label}
+        </AppText>
+      </View>
+      <View style={styles.optionEnd}>
+        <AppText numberOfLines={1} style={styles.optionValue}>
+          {value}
+        </AppText>
+        {accessory}
+      </View>
     </Pressable>
   );
 }
@@ -146,6 +202,18 @@ const styles = StyleSheet.create({
   buttonEnabled: { backgroundColor: colors.foreground },
   buttonDisabled: { backgroundColor: 'rgba(16,22,15,0.18)' },
   buttonLabel: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
+  optionRow: {
+    minHeight: 54,
+    paddingHorizontal: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  optionStart: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  optionLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
+  optionEnd: { flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  optionValue: { flexShrink: 1, fontSize: 14, lineHeight: 18, color: palette.sage },
   heading: { gap: 6, paddingTop: 6 },
   eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   title: { fontSize: 24, lineHeight: 27, letterSpacing: -0.72, color: colors.textPrimary },

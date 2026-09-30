@@ -1,6 +1,5 @@
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { palette } from '@/theme/tokens';
 import { AppText } from './AppText';
@@ -18,6 +17,8 @@ export type PeriodSwitcherProps = {
   testID: string;
   /** `compact` divide a linha com outro controle (Finanças: seletor Mês/Ano). */
   size?: 'large' | 'compact';
+  /** Ajuste de posição do container (ex.: centralizado numa barra, sem o recuo à esquerda). */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -33,10 +34,11 @@ export function PeriodSwitcher({
   onNext,
   testID,
   size = 'large',
+  style,
 }: PeriodSwitcherProps) {
   const type = useBrandTypography();
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, style]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={previousLabel}
@@ -45,7 +47,7 @@ export function PeriodSwitcher({
         testID={`${testID}-previous`}
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
       >
-        <ChevronLeft color={palette.sage} size={22} />
+        <ChevronLeftIcon color={palette.sage} size={22} />
       </Pressable>
       <AppText
         accessibilityRole="header"
@@ -65,7 +67,7 @@ export function PeriodSwitcher({
         testID={`${testID}-next`}
         style={({ pressed }) => [styles.button, pressed && styles.pressed]}
       >
-        <ChevronRight color={palette.cream} size={22} />
+        <ChevronRightIcon color={palette.cream} size={22} />
       </Pressable>
     </View>
   );

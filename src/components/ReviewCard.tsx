@@ -1,12 +1,12 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Check from 'lucide-react-native/icons/check';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, ReduceMotion } from 'react-native-reanimated';
+import { ArrowRightIcon, CheckIcon } from '@/components/icons/heroicons';
 import { colors, motion, reviewCardMetrics, shadow, spacing } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 export type ReviewPreview = {
   id: string;
@@ -46,8 +46,8 @@ const reviewLayout = LinearTransition.duration(motion.reviewRemoval).reduceMotio
 
 function ActionGlyph({ kind, busy }: { kind: 'arrow' | 'check'; busy: boolean }) {
   if (busy) return <ActivityIndicator color={colors.accent} size="small" />;
-  if (kind === 'check') return <Check color={colors.accent} size={14} strokeWidth={2} />;
-  return <ArrowRight color={colors.accent} size={16} strokeWidth={1.8} />;
+  if (kind === 'check') return <CheckIcon color={colors.accent} size={14} />;
+  return <ArrowRightIcon color={colors.accent} size={16} />;
 }
 
 /** Only two visible cards per screen, with at most one attention card first. */
@@ -173,13 +173,13 @@ export function ReviewCard({
               {icon}
             </View>
             {eyebrow ? (
-              <AppText
+              <CardLabel
                 numberOfLines={2}
-                variant="technical"
-                style={[styles.eyebrow, isAttention && styles.attentionEyebrow]}
+                tone={isAttention ? 'attention' : 'default'}
+                style={styles.eyebrow}
               >
                 {eyebrow}
-              </AppText>
+              </CardLabel>
             ) : null}
           </View>
 
@@ -341,14 +341,7 @@ const styles = StyleSheet.create({
   compactValue: { fontSize: 15, lineHeight: 18, letterSpacing: -0.15 },
   compactQualifier: { fontSize: 13, lineHeight: 17, color: colors.textMuted },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  eyebrow: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: colors.darkTextSecondary,
-  },
-  attentionEyebrow: { color: colors.reviewBronzeText },
+  eyebrow: { flex: 1 },
   main: { gap: 6 },
   valueLine: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
   standardValue: { fontSize: 30, lineHeight: 30, letterSpacing: -0.9 },

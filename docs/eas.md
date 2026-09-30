@@ -1,7 +1,7 @@
 # EAS (tarefa 1.9)
 
 Projeto `@jberks/dokh` (ID `285cce47-d906-40fc-a6ea-168a3dd63919`), ligado em `app.json`
-(`owner`, `extra.eas.projectId`, `updates.url`).
+(`owner`, `extra.eas.projectId`, `updates.url`). Identificador do app: `br.com.dokh.app` (D76).
 
 ## Perfis (`eas.json`)
 
@@ -45,9 +45,21 @@ npx eas-cli build --platform ios --profile development       # exige Apple Devel
 npx eas-cli update --channel preview --environment preview --message "..."
 ```
 
+## Primeiro build no iPhone (conta Apple ativa desde 2026-09-30)
+
+1. **Registrar o aparelho** (uma vez): o comando mostra um link/QR para abrir no iPhone e instalar o perfil.
+   ```bash
+   npx eas-cli device:create
+   ```
+2. **Build de desenvolvimento:** o EAS pede o login da Apple no terminal (o usuário digita) e cria certificado e perfil para `br.com.dokh.app`.
+   ```bash
+   npx eas-cli build --platform ios --profile development
+   ```
+3. Instalar pelo link do build e rodar `npm run start:dev-client`.
+
 ## DoD pendente
 
-- Build de desenvolvimento de iOS: depende da conta paga da Apple (o usuário ainda não tem).
+- Build de desenvolvimento de iOS instalado e aberto no iPhone.
 - Build de Android: depende de aparelho/emulador Android para instalar (validação Android adiada).
 - Update no canal `preview` recebido por um build preview: depende da chave publishable e de um
   build instalado. Isso também fecha a prova da 3.1 (app preview conectado só a `dokh-preview`).

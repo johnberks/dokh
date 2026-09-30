@@ -1,6 +1,5 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Check from 'lucide-react-native/icons/check';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { ArrowRightIcon, CheckIcon } from '@/components/icons/heroicons';
 import {
   colors,
   shadow,
@@ -9,6 +8,7 @@ import {
   workLocationColors,
 } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 type CommonProps = {
   place: string;
@@ -57,7 +57,7 @@ function ActionArrow({ placement }: { placement: 'agenda' | 'featured' }) {
       accessible={false}
       style={[styles.arrow, placement === 'agenda' ? styles.agendaArrow : styles.featuredArrow]}
     >
-      <ArrowRight color={colors.accent} size={16} strokeWidth={1.8} />
+      <ArrowRightIcon color={colors.accent} size={16} />
     </View>
   );
 }
@@ -118,7 +118,7 @@ export function WorkCard(props: WorkCardProps) {
           </AppText>
           <View testID={testID ? `${testID}-status` : undefined} style={styles.statusLine}>
             {props.payment.state === 'received' ? (
-              <Check color={colors.textSecondary} size={12} strokeWidth={2} />
+              <CheckIcon color={colors.textSecondary} size={12} />
             ) : null}
             <AppText
               numberOfLines={1}
@@ -167,9 +167,9 @@ export function WorkCard(props: WorkCardProps) {
         ]}
       >
         <View style={styles.featuredHeader}>
-          <AppText numberOfLines={1} variant="technical" style={styles.eyebrow}>
+          <CardLabel numberOfLines={1} style={styles.eyebrow}>
             {props.eyebrow}
-          </AppText>
+          </CardLabel>
           <ActionArrow placement="featured" />
         </View>
         <View style={styles.featuredTimeLine}>
@@ -327,13 +327,7 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   featuredHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: {
-    flex: 1,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: colors.darkTextSecondary,
-  },
+  eyebrow: { flex: 1 },
   featuredTimeLine: { flexDirection: 'row', alignItems: 'flex-end', gap: 14 },
   temporalLabel: {
     fontSize: 11,

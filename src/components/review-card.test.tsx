@@ -1,6 +1,6 @@
+import { CalendarDaysIcon } from '@/components/icons/heroicons';
 import '@/i18n';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import CalendarDays from 'lucide-react-native/icons/calendar-days';
 import { colors, reviewCardMetrics } from '@/theme/tokens';
 import {
   ReviewCard,
@@ -10,7 +10,7 @@ import {
   selectVisibleReviewCards,
 } from './ReviewCard';
 
-const icon = <CalendarDays color={colors.reviewBronzeText} size={17} />;
+const icon = <CalendarDaysIcon color={colors.reviewBronzeText} size={17} />;
 
 const previews: ReviewPreview[] = [
   {

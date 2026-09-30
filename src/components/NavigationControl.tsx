@@ -1,7 +1,6 @@
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import X from 'lucide-react-native/icons/x';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { ChevronLeftIcon, XMarkIcon } from '@/components/icons/heroicons';
 import { colors, navigationMetrics } from '@/theme/tokens';
 
 type Props = { kind: 'back' | 'close'; onPress: () => void };
@@ -9,7 +8,7 @@ type Props = { kind: 'back' | 'close'; onPress: () => void };
 /** A 40-point circle inside a 44-point accessible touch target. */
 export function NavigationControl({ kind, onPress }: Props) {
   const { t } = useTranslation('navigation');
-  const Icon = kind === 'back' ? ChevronLeft : X;
+  const Icon = kind === 'back' ? ChevronLeftIcon : XMarkIcon;
 
   return (
     <Pressable

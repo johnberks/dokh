@@ -24,7 +24,7 @@
     "supabase:status": "SUPABASE_TELEMETRY_DISABLED=1 supabase status",
     "supabase:lan-proxy": "node --env-file=.env.local scripts/supabase-lan-proxy.mjs",
     "supabase:reset": "SUPABASE_TELEMETRY_DISABLED=1 supabase db reset --local",
-    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-6.1.sh && node scripts/test-location-rpcs-6.1.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh && node scripts/test-auth-session-4.1.mjs && node scripts/test-email-auth-4.2.mjs",
+    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-6.1.sh && node scripts/test-location-rpcs-6.1.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.10.sh && bash scripts/test-migration-11.10.sh && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh && node scripts/test-auth-session-4.1.mjs && node scripts/test-email-auth-4.2.mjs",
     "check:db-types": "SUPABASE_TELEMETRY_DISABLED=1 supabase gen types typescript --local --schema public | biome format --stdin-file-path src/data/database.types.ts | diff -u src/data/database.types.ts -"
   },
   "dependencies": {
@@ -37,22 +37,22 @@
     "@supabase/supabase-js": "^2.117.1",
     "@tanstack/react-query": "^5.103.2",
     "date-fns": "^4.4.0",
-    "expo": "~57.0.24",
+    "expo": "~57.0.26",
     "expo-blur": "~57.0.3",
     "expo-constants": "~57.0.19",
     "expo-crypto": "~57.0.3",
     "expo-dev-client": "~57.0.19",
     "expo-font": "~57.0.4",
-    "expo-linking": "~57.0.10",
+    "expo-image-picker": "~57.0.20",
+    "expo-linking": "~57.0.11",
     "expo-localization": "~57.0.2",
-    "expo-router": "~57.0.22",
+    "expo-router": "~57.0.24",
     "expo-secure-store": "~57.0.4",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
-    "expo-updates": "~57.0.23",
+    "expo-updates": "~57.0.24",
     "i18next": "^26.4.2",
-    "lucide-react-native": "^1.47.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.88.0",
@@ -82,12 +82,10 @@
   "jest": {
     "preset": "jest-expo",
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1",
-      "^lucide-react-native/icons/(.*)$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/icons/$1.js",
-      "^lucide-react-native$": "<rootDir>/node_modules/lucide-react-native/dist/cjs/lucide-react-native.js"
+      "^@/(.*)$": "<rootDir>/src/$1"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|standard-navigation|lucide-react-native|@sentry/react-native|native-base|react-native-svg)"
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|standard-navigation|@sentry/react-native|native-base|react-native-svg)"
     ],
     "setupFiles": [
       "<rootDir>/src/test/env.setup.ts",

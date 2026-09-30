@@ -1,9 +1,9 @@
-import ArrowRight from 'lucide-react-native/icons/arrow-right';
-import Check from 'lucide-react-native/icons/check';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { ArrowRightIcon, CheckIcon } from '@/components/icons/heroicons';
 import { colors, progressCardMetrics } from '@/theme/tokens';
 import { AppText } from './AppText';
+import { CardLabel } from './CardLabel';
 
 export type CompletedSetupStep = { id: string; label: string };
 export type NextSetupStep = CompletedSetupStep & { onPress: () => void };
@@ -39,9 +39,7 @@ export function ProgressCard({
     <View testID={testID} style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headingLine}>
-          <AppText variant="technical" style={styles.eyebrow}>
-            {t('progress.eyebrow')}
-          </AppText>
+          <CardLabel style={styles.eyebrow}>{t('progress.eyebrow')}</CardLabel>
           <AppText variant="technical" style={styles.count}>
             {t('progress.count', { completed: completedCount, total: totalSteps })}
           </AppText>
@@ -65,7 +63,7 @@ export function ProgressCard({
         {completed.map((step) => (
           <View key={step.id} style={styles.completedRow}>
             <View accessible={false} style={styles.completedCircle}>
-              <Check color={colors.darkTextPrimary} size={10} strokeWidth={2} />
+              <CheckIcon color={colors.darkTextPrimary} size={10} />
             </View>
             <AppText style={styles.completedText}>{step.label}</AppText>
           </View>
@@ -88,7 +86,7 @@ export function ProgressCard({
             {busy ? (
               <ActivityIndicator color={colors.accent} size="small" />
             ) : (
-              <ArrowRight color={colors.accent} size={13} strokeWidth={1.8} />
+              <ArrowRightIcon color={colors.accent} size={13} />
             )}
           </View>
         </Pressable>
@@ -121,13 +119,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 8,
   },
-  eyebrow: {
-    flexShrink: 1,
-    fontSize: 10,
-    lineHeight: 14,
-    letterSpacing: 1.8,
-    color: colors.textMuted,
-  },
+  eyebrow: { flexShrink: 1 },
   count: {
     flexShrink: 0,
     fontSize: 11,

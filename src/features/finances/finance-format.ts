@@ -131,7 +131,7 @@ const MONTH_LABELS = [
   'DEZ',
 ];
 
-/** `5,3k` acima de mil reais; abaixo, o valor inteiro (`850`). */
+/** `5,3k` acima de mil reais; abaixo, o valor inteiro (`850`). Eixos e rótulos curtos. */
 export function compactReais(cents: bigint): string {
   const reais = Number(cents) / 100;
   if (reais < 1000) return String(Math.round(reais));
@@ -152,51 +152,83 @@ export function yearBars(data: FinanceYear, year: number, today: LocalDate): Cha
       value: has ? Number(cents) : null,
       valueLabel: has ? compactReais(cents) : undefined,
       current: month === currentMonth,
+      future: month > currentMonth,
     };
   });
 }
 
+/** Melhor mês já vivido do ano (até o atual), pelo previsto do mês. */
+export function bestMonth(
+  data: FinanceYear,
+  today: LocalDate,
+): { month: LocalMonth; amountCents: bigint } | null {
+  const current = today.slice(0, 7);
+  let best: { month: LocalMonth; amountCents: bigint } | null = null;
+  for (const item of data.months) {
+    if (item.month > current || item.expectedTotalCents <= 0n) continue;
+    if (!best || item.expectedTotalCents > best.amountCents) {
+      best = { month: item.month, amountCents: item.expectedTotalCents };
+    }
+  }
+  return best;
+}
+
 export type Projection = {
-  /** Previsto de janeiro até o mês atual (inclusive). */
-  realizedCents: bigint;
-  /** Meses depois do atual, estimados pela média. */
+  /** Recebido de janeiro até hoje (fim da linha cheia). */
+  receivedCents: bigint;
+  /** Previsto até o mês atual que ainda não foi confirmado. */
+  pendingCents: bigint;
+  /** Meses depois do atual. */
   remainingMonths: number;
+  /** Soma dos meses que faltam: o maior entre o já previsto e a média, mês a mês. */
   remainingCents: bigint;
   totalCents: bigint;
   averageCents: bigint;
-  /** Acumulado de janeiro até cada mês, até o atual (linha cheia). */
+  /** Acumulado recebido de janeiro até cada mês, até o atual (linha cheia). */
   cumulative: number[];
-  /** Acumulado do mês atual até dezembro somando a média a cada mês (linha tracejada). */
+  /** Do ponto de hoje a dezembro (linha tracejada); termina no total projetado. */
   projected: number[];
   currentIndex: number;
 };
 
 /**
- * Projeção até dezembro (Premium), acumulada: o total do ano cresce mês a mês com o que está
- * previsto até agora e, dali em diante, com a média mensal — se o ritmo se mantiver, a linha
- * termina no total projetado. Só no ano corrente e com média (≥ 2 meses de histórico).
+ * Projeção até dezembro (Premium), acumulada. A linha cheia soma só o que já foi recebido. O
+ * tracejado parte daí: soma o que está previsto até o mês atual e ainda não entrou e, em cada
+ * mês que falta, o maior entre o que já está previsto e a média dos meses concluídos — a
+ * projeção nunca fica abaixo do que já está marcado. Só no ano corrente e com média (≥ 2 meses).
  */
 export function projectYear(data: FinanceYear, year: number, today: LocalDate): Projection | null {
   if (Number(today.slice(0, 4)) !== year || data.historicalAverageCents === null) return null;
   const currentIndex = Number(today.slice(5, 7)) - 1;
-  const byMonth = new Map(data.months.map((item) => [item.month, item.expectedTotalCents]));
+  const byMonth = new Map(data.months.map((item) => [item.month, item]));
+  const monthAt = (index: number) => byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`);
   const cumulative: number[] = [];
-  let realized = 0n;
+  let received = 0n;
+  let pending = 0n;
   for (let index = 0; index <= currentIndex; index++) {
-    realized += byMonth.get(`${year}-${String(index + 1).padStart(2, '0')}`) ?? 0n;
-    cumulative.push(Number(realized));
+    const item = monthAt(index);
+    received += item?.receivedCents ?? 0n;
+    pending += (item?.expectedTotalCents ?? 0n) - (item?.receivedCents ?? 0n);
+    cumulative.push(Number(received));
   }
-  const remainingMonths = 11 - currentIndex;
   const average = data.historicalAverageCents;
-  const projected = Array.from({ length: remainingMonths + 1 }, (_, step) =>
-    Number(realized + average * BigInt(step)),
-  );
-  const remaining = average * BigInt(remainingMonths);
+  const remainingMonths = 11 - currentIndex;
+  const projected = [Number(received)];
+  let running = received + pending;
+  let remaining = 0n;
+  for (let index = currentIndex + 1; index <= 11; index++) {
+    const scheduled = monthAt(index)?.expectedTotalCents ?? 0n;
+    const value = scheduled > average ? scheduled : average;
+    remaining += value;
+    running += value;
+    projected.push(Number(running));
+  }
   return {
-    realizedCents: realized,
+    receivedCents: received,
+    pendingCents: pending,
     remainingMonths,
     remainingCents: remaining,
-    totalCents: realized + remaining,
+    totalCents: received + pending + remaining,
     averageCents: average,
     cumulative,
     projected,
@@ -278,5 +310,69 @@ export function hourlyInsight(window: readonly HourlyMonth[]): HourlyInsight | n
     ],
     previousMonths: previous.map((entry) => entry.item.month),
     fewerWorks: direction === 'up' && current.workCount < previousWorks,
+  };
+}
+
+export type HourlyEvolution = {
+  bars: InsightBar[];
+  /** Primeiro mês com valor/hora na janela. */
+  firstMonth: LocalMonth;
+  /** Primeiro × último mês com valor/hora; `null` com um mês só. */
+  percent: number | null;
+  direction: 'up' | 'down' | 'stable' | null;
+  /** Os dois maiores, em ordem cronológica; só com quatro meses ou mais. */
+  bestTwo: [LocalMonth, LocalMonth] | null;
+  /** O mês escolhido é o maior da janela (com pelo menos três meses). */
+  currentIsBest: boolean;
+};
+
+/**
+ * Evolução do valor/hora (Finanças 02): só meses com valor/hora real entram — mês sem horas
+ * não vira zero. Comparações só aparecem quando há base para elas.
+ */
+export function hourlyEvolution(
+  history: readonly HourlyMonth[],
+  month: LocalMonth,
+): HourlyEvolution | null {
+  const points = history.filter(
+    (item): item is HourlyMonth & { hourlyValueCents: bigint } =>
+      item.hourlyValueCents !== null && item.hourlyValueCents > 0n,
+  );
+  if (points.length === 0) return null;
+  const first = points[0];
+  const last = points[points.length - 1];
+  const percent =
+    points.length >= 2
+      ? Math.round(
+          (Number(last.hourlyValueCents - first.hourlyValueCents) /
+            Number(first.hourlyValueCents)) *
+            100,
+        )
+      : null;
+  const direction =
+    percent === null ? null : percent >= 3 ? 'up' : percent <= -3 ? 'down' : 'stable';
+  const ranked = [...points].sort((a, b) =>
+    a.hourlyValueCents > b.hourlyValueCents ? -1 : a.hourlyValueCents < b.hourlyValueCents ? 1 : 0,
+  );
+  const bestTwo =
+    points.length >= 4
+      ? ([ranked[0].month, ranked[1].month].sort() as [LocalMonth, LocalMonth])
+      : null;
+  const current = points.find((item) => item.month === month);
+  const currentIsBest =
+    points.length >= 3 &&
+    current !== undefined &&
+    points.every((item) => item === current || item.hourlyValueCents < current.hourlyValueCents);
+  return {
+    bars: points.map((item) => ({
+      month: item.month,
+      hourlyCents: Number(item.hourlyValueCents),
+      current: item.month === month,
+    })),
+    firstMonth: first.month,
+    percent,
+    direction,
+    bestTwo,
+    currentIsBest,
   };
 }

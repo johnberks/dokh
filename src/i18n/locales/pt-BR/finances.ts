@@ -54,8 +54,9 @@ export const finances = {
     },
     projection: {
       title: 'PROJEÇÃO ATÉ DEZEMBRO',
-      text: 'Quanto você soma no ano se mantiver sua média mensal: o que está previsto até este mês mais a média em cada mês que falta.',
-      example: 'Com média de R$ 12.000, três meses restantes somam mais R$ 36.000.',
+      text: 'Quanto você soma no ano se mantiver seu ritmo: o que já entrou, o que está previsto até este mês e, em cada mês que falta, a média dos meses concluídos — ou o que já está previsto, quando for maior.',
+      example:
+        'Com média de R$ 12.000 e R$ 15.000 já previstos para novembro, novembro conta R$ 15.000.',
     },
   },
   year: {
@@ -78,6 +79,20 @@ export const finances = {
     projectionLocked:
       'Descubra quanto você deve receber até o fim do ano, com base no seu ritmo atual.',
     chartProjectionLabel: 'Projeção das entradas até dezembro de {{year}}',
+    yourYear: 'SEU ANO',
+    legendRealized: 'Consolidado',
+    legendCurrent: 'Mês atual',
+    legendFuture: 'Previsto',
+    statAverage: 'média mensal',
+    statAverageEmpty: 'a partir do 2º mês',
+    statBest: 'melhor mês',
+    statWorks: 'trabalhos',
+    statHours: 'horas trabalhadas',
+    hourlyEyebrow: 'VALOR/HORA MÉDIO DO ANO',
+    hourlyHours: 'calculado com {{hours}} de trabalhos com duração registrada',
+    hourlyNoHours: 'Registre a duração dos seus trabalhos para ver quanto cada hora valeu no ano.',
+    projectionToday: 'HOJE',
+    projectionAverage: 'Mantendo sua média de {{average}}/mês nos meses que faltam.',
   },
   hero: {
     empty: 'R$ —',
@@ -106,6 +121,11 @@ export const finances = {
     closed: '{{month}} está fechado: nenhuma entrada ficou pendente neste mês.',
     pendingConfirmation: 'Há entradas de {{month}} aguardando sua confirmação de recebimento.',
     onlyUndated: 'O que você trabalhou ainda está sem data de entrada prevista.',
+    seeEntries: 'Ver entradas',
+    tagExpected: 'Previsto',
+    tagToday: 'Hoje',
+    moreOne: '+1 entrada até o fim do mês',
+    moreMany: '+{{count}} entradas até o fim do mês',
   },
   review: {
     eyebrowOne: 'REVISÃO NECESSÁRIA · 1 ENTRADA',
@@ -150,6 +170,41 @@ export const finances = {
     lockedStable:
       'Seu valor por hora em {{month}} ficou parecido com o dos últimos meses. Descubra quanto.',
     chartLabel: 'Valor por hora de {{months}}',
+    seeAnalysis: 'Ver análise completa',
+  },
+  /** Entradas 05–10 e 14 de `design/financas.html`. */
+  entries: {
+    title: 'Entradas',
+    back: 'Voltar para Finanças',
+    backLabel: 'Finanças',
+    received: 'RECEBIDOS',
+    awaiting: 'A RECEBER',
+    expected: 'PREVISTOS',
+    count: 'ENTRADAS',
+    pendingOne: '1 entrada aguardando sua confirmação',
+    pendingMany: '{{count}} entradas aguardando sua confirmação',
+    futureCaption: 'Pagamentos com data prevista para {{month}}.',
+    confirmError: 'Não foi possível confirmar agora. Tente de novo.',
+  },
+  /** Finanças 02 — análise completa de valor/hora (Premium). */
+  analysis: {
+    title: 'Seu valor por hora',
+    eyebrow: 'SEU VALOR POR HORA',
+    generated: 'gerados',
+    worked: 'trabalhadas',
+    textBest:
+      'Cada hora do seu trabalho em {{month}} valeu {{hourly}} — o maior valor dos últimos {{months}} meses.',
+    text: 'Cada hora do seu trabalho em {{month}} valeu {{hourly}}.',
+    noHours: 'Registre a duração dos seus trabalhos de {{month}} para ver quanto cada hora valeu.',
+    evolutionEyebrow: 'EVOLUÇÃO DO SEU VALOR/HORA',
+    evolutionTitle: '{{months}} meses de valor/hora, lado a lado.',
+    evolutionUp: 'Seu valor/hora subiu {{percent}}% desde {{month}}.',
+    evolutionDown: 'Seu valor/hora caiu {{percent}}% desde {{month}}.',
+    evolutionStable: 'Seu valor/hora ficou estável desde {{month}}.',
+    bestTwo: '{{first}} e {{second}} foram os dois melhores meses.',
+    evolutionShort: 'Com mais meses registrados, a evolução do seu valor/hora aparece aqui.',
+    chartLabel: 'Valor por hora de {{months}}',
+    monthsWord: { two: 'Dois', three: 'Três', four: 'Quatro', five: 'Cinco', six: 'Seis' },
   },
   workType: {
     shift: 'PLANTÃO',

@@ -7,7 +7,10 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
+import { CheckIcon } from '@/components/icons/heroicons';
+import { Reveal, step, WordReveal } from '@/components/Reveal';
 import { formatCentsToBRL, parseBRLToCents } from '@/domain/money';
+import { professionalStatusLabel } from '@/features/profile/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import {
   onboardingIntroMetrics as intro,
@@ -19,14 +22,25 @@ import { useProfileDraft } from '../profile-draft';
 
 /**
  * Tela 12: perfil construído. Não existe `Pular` — a única saída é registrar o primeiro
- * trabalho, conforme decisão do usuário (2026-09-25). Mostra só o que foi cadastrado.
+ * trabalho, conforme decisão do usuário (2026-09-25). Mostra só o que foi cadastrado:
+ * residente vê "Residente de X" com a bolsa; generalista e especialista veem só a situação
+ * ("Generalista", "Especialista em X"), sem card de residência (11.10), e a lista do que a DOKH
+ * passa a acompanhar — sem ela o card ficava vazio (pedido do usuário, 2026-09-27; referência
+ * Buddy na Mobbin). Tudo entra em cascata: marca, card, itens da lista, título, texto e botão.
  */
+const TRACK_KEYS = ['trackWork', 'trackEntries', 'trackIncome'] as const;
 export function ProfileReadyScreen() {
   const { t } = useTranslation('onboarding');
+  const { t: tProfile } = useTranslation('profile');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const { isResident, residencyProgram, monthlyAmount, paymentDay } = useProfileDraft();
-  const resident = isResident === true;
+  const { status, specialty, monthlyAmount, paymentDay } = useProfileDraft();
+  const resident = status === 'resident';
+  const statusLabel = professionalStatusLabel(
+    status ?? 'general_practitioner',
+    specialty,
+    tProfile,
+  );
   const amountCents = parseBRLToCents(monthlyAmount);
 
   return (
@@ -39,83 +53,117 @@ export function ProfileReadyScreen() {
     >
       <StatusBar style="light" />
       <BrandBackdrop variant="ready" />
-      <View style={styles.wordmark}>
+      <Reveal style={styles.wordmark}>
         <BrandMark light size={22} />
         <AppText style={[type.wordmark, styles.wordmarkText]}>{t('welcome.splash.label')}</AppText>
-      </View>
+      </Reveal>
 
       <View style={styles.summary}>
-        <BrandMark light size={intro.symbolSize} />
-        {resident ? (
-          <BlurView intensity={36} tint="dark" style={styles.card} testID="profile-ready-residency">
-            <View style={styles.badge}>
-              <View style={styles.badgeDot} />
-              <AppText variant="technical" style={styles.badgeLabel}>
-                {t('profile.ready.badge')}
-              </AppText>
-            </View>
-            <View style={styles.cardBody}>
-              <AppText style={[type.heading1, styles.program]}>{residencyProgram}</AppText>
-              {amountCents !== null && (
-                <AppText style={[type.heading1, styles.amount]}>
-                  {formatCentsToBRL(amountCents)}
+        <Reveal delay={step(1)} scaleFrom={0.8}>
+          <BrandMark light size={intro.symbolSize} />
+        </Reveal>
+        <Reveal delay={step(3)} rise={24} scaleFrom={0.94}>
+          {resident ? (
+            <BlurView
+              intensity={36}
+              tint="dark"
+              style={styles.card}
+              testID="profile-ready-residency"
+            >
+              <View style={styles.badge}>
+                <View style={styles.badgeDot} />
+                <AppText variant="technical" style={styles.badgeLabel}>
+                  {t('profile.ready.badge')}
                 </AppText>
-              )}
-              {paymentDay !== null && (
-                <AppText style={styles.day}>
-                  {t('profile.ready.everyDay', { day: String(paymentDay).padStart(2, '0') })}
+              </View>
+              <View style={styles.cardBody}>
+                <AppText style={[type.heading1, styles.program]}>{statusLabel}</AppText>
+                {amountCents !== null && (
+                  <AppText style={[type.heading1, styles.amount]}>
+                    {formatCentsToBRL(amountCents)}
+                  </AppText>
+                )}
+                {paymentDay !== null && (
+                  <AppText style={styles.day}>
+                    {t('profile.ready.everyDay', { day: String(paymentDay).padStart(2, '0') })}
+                  </AppText>
+                )}
+              </View>
+            </BlurView>
+          ) : (
+            <BlurView
+              intensity={36}
+              tint="dark"
+              style={[styles.card, styles.cardWide]}
+              testID="profile-ready-status"
+            >
+              <View style={styles.badge}>
+                <View style={styles.badgeDot} />
+                <AppText variant="technical" style={styles.badgeLabel}>
+                  {t('profile.ready.professionalBadge')}
                 </AppText>
-              )}
-            </View>
-          </BlurView>
-        ) : (
-          <BlurView
-            intensity={36}
-            tint="dark"
-            style={styles.card}
-            testID="profile-ready-generalist"
-          >
-            <View style={styles.badge}>
-              <View style={styles.badgeDot} />
+              </View>
+              <AppText style={[type.heading1, styles.program]}>{statusLabel}</AppText>
+              <View style={styles.divider} />
               <AppText variant="technical" style={styles.badgeLabel}>
-                {t('profile.ready.generalistBadge')}
+                {t('profile.ready.trackEyebrow')}
               </AppText>
-            </View>
-          </BlurView>
-        )}
+              <View style={styles.trackList} testID="profile-ready-track">
+                {TRACK_KEYS.map((key, index) => (
+                  <Reveal key={key} delay={step(5 + index)} rise={10} style={styles.trackRow}>
+                    <View style={styles.trackCheck}>
+                      <CheckIcon color={palette.base} size={11} />
+                    </View>
+                    <AppText style={styles.trackText}>{t(`profile.ready.${key}`)}</AppText>
+                  </Reveal>
+                ))}
+              </View>
+            </BlurView>
+          )}
+        </Reveal>
       </View>
 
       <View style={styles.footer}>
         <View style={styles.copy}>
-          <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-            {resident
-              ? t('profile.ready.withResidencyTitle')
-              : t('profile.ready.withoutResidencyTitle')}
-          </AppText>
-          <AppText style={styles.description}>
-            {resident
-              ? t('profile.ready.withResidencyDescription')
-              : t('profile.ready.withoutResidencyDescription')}
-          </AppText>
+          <WordReveal
+            text={
+              resident
+                ? t('profile.ready.withResidencyTitle')
+                : t('profile.ready.withoutResidencyTitle')
+            }
+            style={[type.heading1, styles.title]}
+            delay={step(resident ? 5 : 8)}
+          />
+          <Reveal delay={step(resident ? 8 : 11)}>
+            <AppText style={styles.description}>
+              {resident
+                ? t('profile.ready.withResidencyDescription')
+                : t('profile.ready.withoutResidencyDescription')}
+            </AppText>
+          </Reveal>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={
-            resident ? t('profile.ready.withResidencyCta') : t('profile.ready.withoutResidencyCta')
-          }
-          onPress={() => router.push('/first-work')}
-          testID="profile-ready-cta"
-          style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
-        >
-          <AppText style={[type.heading1, styles.ctaLabel]}>
-            {resident
-              ? t('profile.ready.withResidencyCta')
-              : t('profile.ready.withoutResidencyCta')}
-          </AppText>
-          <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
-            {'→'}
-          </AppText>
-        </Pressable>
+        <Reveal delay={step(resident ? 9 : 12)}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              resident
+                ? t('profile.ready.withResidencyCta')
+                : t('profile.ready.withoutResidencyCta')
+            }
+            onPress={() => router.push('/first-work')}
+            testID="profile-ready-cta"
+            style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+          >
+            <AppText style={[type.heading1, styles.ctaLabel]}>
+              {resident
+                ? t('profile.ready.withResidencyCta')
+                : t('profile.ready.withoutResidencyCta')}
+            </AppText>
+            <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
+              {'→'}
+            </AppText>
+          </Pressable>
+        </Reveal>
       </View>
     </View>
   );
@@ -138,6 +186,19 @@ const styles = StyleSheet.create({
     gap: 10,
     overflow: 'hidden',
   },
+  cardWide: { width: 300, gap: 12 },
+  divider: { height: 1, backgroundColor: 'rgba(237,234,224,0.16)', marginVertical: 2 },
+  trackList: { gap: 10 },
+  trackRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  trackCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: palette.bronze,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  trackText: { flex: 1, fontSize: 14, lineHeight: 19, color: palette.cream },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   badgeDot: { width: 7, height: 7, backgroundColor: palette.workSage },
   badgeLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },

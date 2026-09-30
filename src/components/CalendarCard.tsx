@@ -1,8 +1,6 @@
-import CalendarDays from 'lucide-react-native/icons/calendar-days';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import {
   buildFullMonthGrid,
   compareLocalDates,
@@ -81,7 +79,7 @@ export function CalendarCard({
               testID={testID ? `${testID}-today` : undefined}
               style={({ pressed }) => [styles.action, pressed && styles.pressed]}
             >
-              <CalendarDays color={colors.textPrimary} size={21} strokeWidth={1.7} />
+              <CalendarDaysIcon color={colors.textPrimary} size={21} />
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -90,7 +88,7 @@ export function CalendarCard({
               testID={testID ? `${testID}-previous` : undefined}
               style={({ pressed }) => [styles.action, pressed && styles.pressed]}
             >
-              <ChevronLeft color={colors.textPrimary} size={22} strokeWidth={1.8} />
+              <ChevronLeftIcon color={colors.textPrimary} size={22} />
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -99,7 +97,7 @@ export function CalendarCard({
               testID={testID ? `${testID}-next` : undefined}
               style={({ pressed }) => [styles.action, pressed && styles.pressed]}
             >
-              <ChevronRight color={colors.textPrimary} size={22} strokeWidth={1.8} />
+              <ChevronRightIcon color={colors.textPrimary} size={22} />
             </Pressable>
           </View>
         </View>

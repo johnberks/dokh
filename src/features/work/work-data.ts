@@ -111,7 +111,7 @@ export async function confirmReceivableReceived(
   return { receivableId: row.receivable_id, receivedAt: row.received_at };
 }
 
-function useWorkInvalidation() {
+export function useWorkInvalidation() {
   const session = useAuthSession();
   const queryClient = useQueryClient();
   return () => {

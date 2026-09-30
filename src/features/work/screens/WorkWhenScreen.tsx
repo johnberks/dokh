@@ -1,13 +1,12 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import ChevronLeft from 'lucide-react-native/icons/chevron-left';
-import ChevronRight from 'lucide-react-native/icons/chevron-right';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { CalendarGrid } from '@/components/CalendarGrid';
+import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons/heroicons';
 import { monthOf, shiftMonth } from '@/domain/calendar';
 import { requiresSchedule } from '@/domain/work-type';
 import { OnboardingCta } from '@/features/onboarding/OnboardingCta';
@@ -87,7 +86,7 @@ export function WorkWhenScreen() {
               testID="work-when-previous-month"
               style={({ pressed }) => [styles.monthButton, pressed && styles.pressed]}
             >
-              <ChevronLeft color={palette.sage} size={18} strokeWidth={1.8} />
+              <ChevronLeftIcon color={palette.sage} size={18} />
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -96,7 +95,7 @@ export function WorkWhenScreen() {
               testID="work-when-next-month"
               style={({ pressed }) => [styles.monthButton, pressed && styles.pressed]}
             >
-              <ChevronRight color={palette.sage} size={18} strokeWidth={1.8} />
+              <ChevronRightIcon color={palette.sage} size={18} />
             </Pressable>
           </View>
         </View>
