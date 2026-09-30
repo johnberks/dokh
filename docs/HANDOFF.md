@@ -3,7 +3,14 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-30 · Claude Code · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
+Última atualização: 2026-09-30 · Claude Code · #59 (submit), #60 (4.3 Apple) e #61 (4.6 exclusão de conta) **integrados na `main`**; o usuário validou os dois no iPhone. **3.1 em andamento** no branch `codex/3.1-remote-setup`, com o roteiro em [`remote-environments.md`](remote-environments.md).
+
+- Os dois projetos remotos estavam **pausados** (`INACTIVE`, plano Free).
+- A chave publishable ainda falta no EAS.
+- As migrations e a função `delete-account` ainda não foram aplicadas remotamente.
+- As etapas com senha e chave são executadas pelo usuário: o agente não copia credenciais.
+
+Anterior (2026-09-30) · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
 
 - **Servidor:** a Edge Function `delete-account` é idempotente. Apaga Storage, revoga a Apple e apaga o usuário; as tabelas saem em cascata. Os logs não têm PII.
 - **Perfil:** a folha de confirmação segue o padrão P05. O usuário dispensou uma estética própria para ela.
