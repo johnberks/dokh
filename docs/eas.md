@@ -57,6 +57,17 @@ npx eas-cli update --channel preview --environment preview --message "..."
    ```
 3. Instalar pelo link do build e rodar `npm run start:dev-client`.
 
+## Envio à App Store Connect (TestFlight)
+
+App criado no App Store Connect em 2026-09-30: **DOKH**, bundle `br.com.dokh.app`, ID Apple `6817848761`, time `596B42HL3M`. Contratos (Apps Pagos), dados bancários e fiscais enviados pelo usuário. `eas.json > submit.production.ios` guarda `ascAppId` e `appleTeamId`, então o envio não faz perguntas:
+
+```bash
+npx eas-cli build --platform ios --profile production
+npx eas-cli submit --platform ios --profile production --latest
+```
+
+Antes do primeiro TestFlight com outras pessoas, o build `production` precisa do Supabase de produção (3.1) e das chaves no EAS Environment `production`.
+
 ## DoD pendente
 
 - Build de desenvolvimento de iOS instalado e aberto no iPhone.
