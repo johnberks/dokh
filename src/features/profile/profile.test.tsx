@@ -76,13 +76,26 @@ const mutation = (fn: jest.Mock) => ({
   isPending: false,
   isError: false,
 });
+let mockAccount: { email: string | null; provider: 'apple' | 'email' } = {
+  email: 'anna@example.com',
+  provider: 'email',
+};
+const mockDeleteAccount = jest.fn(async (_client: unknown, _appleCode?: string) => {});
+jest.mock('./delete-account', () => ({
+  deleteAccount: (client: unknown, appleCode?: string) => mockDeleteAccount(client, appleCode),
+}));
+const mockAppleCode = jest.fn(async (): Promise<string | null> => 'apple-code');
+jest.mock('@/features/auth/apple-auth', () => ({
+  requestAppleAuthorizationCode: () => mockAppleCode(),
+}));
+jest.mock('@/data/supabase-client', () => ({ supabase: {} }));
 jest.mock('./profile-data', () => ({
   ...jest.requireActual('./profile-data'),
   useProfile: () => ({ ...ok(mockProfile), refetch: jest.fn(), isFetching: false }),
   useActiveResidency: () => ({ ...ok(mockResidency), refetch: jest.fn(), isFetching: false }),
   useWorkPreferences: () => ({ ...ok(mockPreferences), refetch: jest.fn(), isFetching: false }),
   useLocationWorkCounts: () => ok({ 'loc-1': 12, 'loc-2': 1 }),
-  useAccountEmail: () => ok('anna@example.com'),
+  useAccount: () => ok(mockAccount),
   useUpdateProfile: () => mutation(mockUpdate),
   useReplaceAvatar: () => mutation(jest.fn()),
   useRemoveAvatar: () => mutation(jest.fn()),
@@ -410,9 +423,77 @@ describe('Preferências, aparência, conta e ajuda (06/15/16/17)', () => {
     await renderWithProviders(<AccountScreen />);
     expect(screen.getByText('anna@example.com')).toBeTruthy();
     expect(screen.getByText('Free')).toBeTruthy();
+    expect(screen.getByTestId('account-password')).toBeTruthy();
     expect(screen.queryByTestId('account-sign-out')).toBeNull();
-    await press('account-delete');
-    expect(screen.getByText(/ainda não está disponível/)).toBeTruthy();
+  });
+
+  describe('excluir conta (4.6)', () => {
+    beforeEach(() => {
+      mockAccount = { email: 'anna@example.com', provider: 'email' };
+      mockDeleteAccount.mockReset();
+      mockAppleCode.mockReset();
+      mockAppleCode.mockResolvedValue('apple-code');
+      mockPremium = false;
+    });
+
+    it('confirma, exclui e volta ao início', async () => {
+      await renderWithProviders(<AccountScreen />);
+      await press('account-delete');
+      expect(screen.getByText('Excluir sua conta?')).toBeTruthy();
+      expect(screen.getByText(/apagados para sempre/)).toBeTruthy();
+      expect(mockDeleteAccount).not.toHaveBeenCalled();
+
+      await press('account-delete-confirm');
+      expect(mockDeleteAccount).toHaveBeenCalledWith(expect.anything(), undefined);
+      expect(mockAppleCode).not.toHaveBeenCalled();
+      expect(router.replace).toHaveBeenCalledWith('/intro');
+    });
+
+    it('cancelar não exclui nada', async () => {
+      await renderWithProviders(<AccountScreen />);
+      await press('account-delete');
+      await press('account-delete-cancel');
+      expect(mockDeleteAccount).not.toHaveBeenCalled();
+    });
+
+    it('falha mantém a folha aberta com tentar de novo', async () => {
+      mockDeleteAccount.mockRejectedValueOnce(new Error('offline'));
+      await renderWithProviders(<AccountScreen />);
+      await press('account-delete');
+      await press('account-delete-confirm');
+      expect(router.replace).not.toHaveBeenCalledWith('/intro');
+      expect(screen.getByTestId('account-delete-confirm')).toBeTruthy();
+      expect(screen.getByText(/Tentar/i)).toBeTruthy();
+    });
+
+    it('Premium avisa que a assinatura da loja não é cancelada junto', async () => {
+      mockPremium = true;
+      await renderWithProviders(<AccountScreen />);
+      await press('account-delete');
+      expect(screen.getByText(/não é cancelada junto/)).toBeTruthy();
+    });
+
+    it('conta Apple: sem troca de senha e com reconfirmação da Apple antes de excluir', async () => {
+      mockAccount = { email: 'relay@privaterelay.appleid.com', provider: 'apple' };
+      await renderWithProviders(<AccountScreen />);
+      expect(screen.queryByTestId('account-password')).toBeNull();
+      expect(screen.getByText('Apple')).toBeTruthy();
+
+      await press('account-delete');
+      await press('account-delete-confirm');
+      expect(mockAppleCode).toHaveBeenCalled();
+      expect(mockDeleteAccount).toHaveBeenCalledWith(expect.anything(), 'apple-code');
+    });
+
+    it('conta Apple: cancelar a folha da Apple não exclui', async () => {
+      mockAccount = { email: null, provider: 'apple' };
+      mockAppleCode.mockResolvedValueOnce(null);
+      await renderWithProviders(<AccountScreen />);
+      await press('account-delete');
+      await press('account-delete-confirm');
+      expect(mockDeleteAccount).not.toHaveBeenCalled();
+      expect(router.replace).not.toHaveBeenCalledWith('/intro');
+    });
   });
 
   it('ajuda: destinos sem definição não aparecem', async () => {

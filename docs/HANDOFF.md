@@ -3,7 +3,15 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-30 · Claude Code · **4.3 Entrar com Apple** na branch `codex/4.3-apple-sign-in` ([`apple-auth.md`](apple-auth.md)):
+Última atualização: 2026-09-30 · Claude Code · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
+
+- **Servidor:** a Edge Function `delete-account` é idempotente. Apaga Storage, revoga a Apple e apaga o usuário; as tabelas saem em cascata. Os logs não têm PII.
+- **Perfil:** a folha de confirmação segue o padrão P05. O usuário dispensou uma estética própria para ela.
+- **Contas Apple:** a Apple pede identificação antes de excluir. A tela não mostra troca de senha e o método aparece como Apple.
+- **Testes:** `npm run test:functions` passou no Supabase local, com `npx supabase functions serve` rodando.
+- **Pendências:** teste em preview (3.1), deploy da função e chave `.p8` da Apple como segredo. A 4.6 fica desmarcada.
+
+Anterior (2026-09-30) · **4.3 Entrar com Apple** na branch `codex/4.3-apple-sign-in` ([`apple-auth.md`](apple-auth.md)):
 
 - **Implementação:** login nativo via `expo-apple-authentication` com nonce e `signInWithIdToken`. O botão fica ativo só no iOS com suporte; o Google segue indisponível. O primeiro nome da Apple preenche a tela de nome.
 - **Configuração:** `usesAppleSignIn` no `app.json`. O provedor Apple está ativo **só no Supabase local**, que foi reiniciado com backup e sem reset.

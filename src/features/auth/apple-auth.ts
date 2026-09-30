@@ -68,3 +68,17 @@ export async function signInWithApple(client: AuthClient): Promise<AppleSignInRe
   }
   return { status: 'signedIn', givenName };
 }
+
+/**
+ * Pede à Apple um `authorizationCode` novo para revogar o acesso na exclusão de conta (4.6).
+ * É também a reconfirmação de identidade de quem entrou com Apple. `null` = cancelou.
+ */
+export async function requestAppleAuthorizationCode(): Promise<string | null> {
+  try {
+    const credential = await AppleAuthentication.signInAsync({ requestedScopes: [] });
+    return credential.authorizationCode;
+  } catch (error) {
+    if (isCancellation(error)) return null;
+    throw error;
+  }
+}

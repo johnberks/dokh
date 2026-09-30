@@ -6,11 +6,14 @@ import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { LoadError, MutationError } from '@/components/TechnicalStates';
 import { subscriptionManagementUrls, supportUrls } from '@/config/legal';
+import { supabase } from '@/data/supabase-client';
+import { requestAppleAuthorizationCode } from '@/features/auth/apple-auth';
 import { usePremium } from '@/features/billing/entitlement';
 import { DarkButton } from '@/features/work/form/FormPieces';
 import { DurationSheet, StartTimeSheet } from '@/features/work/form/ScheduleSheets';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
+import { deleteAccount } from './delete-account';
 import {
   ChoiceChips,
   FieldLabel,
@@ -25,7 +28,7 @@ import {
   SubScreen,
 } from './ProfilePieces';
 import {
-  useAccountEmail,
+  useAccount,
   useSaveWorkPreferences,
   useWorkPreferences,
   type WorkPreferences,
@@ -242,10 +245,34 @@ export function AppearanceScreen() {
 export function AccountScreen() {
   const { t } = useTranslation('profile');
   const type = useBrandTypography();
-  const email = useAccountEmail();
+  const account = useAccount();
   const premium = usePremium();
   const isPremium = premium.data === true;
-  const [deleteInfo, setDeleteInfo] = useState(false);
+  const apple = account.data?.provider === 'apple';
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+
+  async function confirmDelete() {
+    if (deleting) return;
+    setDeleteFailed(false);
+    setDeleting(true);
+    try {
+      let appleCode: string | undefined;
+      if (apple && Platform.OS === 'ios') {
+        // A Apple reconfirma quem é a pessoa e entrega o código para revogar o acesso.
+        const code = await requestAppleAuthorizationCode();
+        if (code === null) return;
+        appleCode = code;
+      }
+      await deleteAccount(supabase, appleCode);
+      router.replace('/intro');
+    } catch {
+      setDeleteFailed(true);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <SubScreen title={t('account.title')} onBack={() => router.back()} testID="account-screen">
@@ -253,17 +280,19 @@ export function AccountScreen() {
       <InsetList grouped>
         <InsetRow
           label={t('account.emailLabel')}
-          subtitle={email.data ?? '—'}
+          subtitle={account.data?.email ?? '—'}
           testID="account-email"
         />
-        <InsetRow
-          label={t('account.changePassword')}
-          onPress={() => router.push('/recover-password')}
-          testID="account-password"
-        />
+        {!apple && (
+          <InsetRow
+            label={t('account.changePassword')}
+            onPress={() => router.push('/recover-password')}
+            testID="account-password"
+          />
+        )}
         <InsetRow
           label={t('account.method')}
-          value={t('account.methodEmail')}
+          value={apple ? t('account.methodApple') : t('account.methodEmail')}
           accessory={<View />}
           last
           testID="account-method"
@@ -297,7 +326,7 @@ export function AccountScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('account.delete')}
-          onPress={() => setDeleteInfo(true)}
+          onPress={() => setConfirming(true)}
           testID="account-delete"
           style={({ pressed }) => [styles.textAction, pressed && styles.pressed]}
         >
@@ -306,18 +335,48 @@ export function AccountScreen() {
       </View>
 
       <BottomSheet
-        open={deleteInfo}
-        onClose={() => setDeleteInfo(false)}
-        accessibilityLabel={t('account.delete')}
+        open={confirming}
+        onClose={() => {
+          if (!deleting) setConfirming(false);
+        }}
+        accessibilityLabel={t('account.deleteTitle')}
         testID="account-delete-sheet"
       >
         <View style={styles.sheetCopy}>
           <AppText accessibilityRole="header" style={[type.heading1, styles.sheetTitle]}>
-            {t('account.delete')}
+            {t('account.deleteTitle')}
           </AppText>
           <AppText style={styles.sheetText}>{t('account.deleteText')}</AppText>
+          {isPremium && (
+            <AppText style={styles.sheetText}>{t('account.deleteSubscription')}</AppText>
+          )}
+          {apple && <AppText style={styles.sheetText}>{t('account.deleteApple')}</AppText>}
         </View>
-        <DarkButton label={t('account.close')} onPress={() => setDeleteInfo(false)} />
+        {deleteFailed && <MutationError onRetry={() => void confirmDelete()} retrying={deleting} />}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('account.deleteConfirm')}
+          accessibilityState={{ busy: deleting, disabled: deleting }}
+          disabled={deleting}
+          onPress={() => void confirmDelete()}
+          testID="account-delete-confirm"
+          style={({ pressed }) => [styles.destructiveButton, pressed && styles.pressed]}
+        >
+          {deleting && <ActivityIndicator color={palette.cream} />}
+          <AppText style={[type.heading1, styles.destructiveText]}>
+            {t('account.deleteConfirm')}
+          </AppText>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('account.cancel')}
+          disabled={deleting}
+          onPress={() => setConfirming(false)}
+          testID="account-delete-cancel"
+          style={({ pressed }) => [styles.sheetCancel, pressed && styles.pressed]}
+        >
+          <AppText style={[type.heading1, styles.sheetCancelText]}>{t('account.cancel')}</AppText>
+        </Pressable>
       </BottomSheet>
     </SubScreen>
   );
@@ -432,6 +491,18 @@ const styles = StyleSheet.create({
   sheetCopy: { gap: 8, paddingTop: 6 },
   sheetTitle: { fontSize: 22, lineHeight: 26, letterSpacing: -0.44, color: colors.textPrimary },
   sheetText: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },
+  destructiveButton: {
+    minHeight: 56,
+    borderRadius: 16,
+    backgroundColor: palette.negative,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  destructiveText: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
+  sheetCancel: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  sheetCancelText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   invite: {
     marginTop: 30,
     overflow: 'hidden',
