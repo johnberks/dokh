@@ -7,7 +7,7 @@
 
 - **Implementação:** login nativo via `expo-apple-authentication` com nonce e `signInWithIdToken`. O botão fica ativo só no iOS com suporte; o Google segue indisponível. O primeiro nome da Apple preenche a tela de nome.
 - **Configuração:** `usesAppleSignIn` no `app.json`. O provedor Apple está ativo **só no Supabase local**, que foi reiniciado com backup e sem reset.
-- **Pendências:** exige novo build de desenvolvimento no EAS para testar no iPhone. A 4.3 fica desmarcada até o login real no aparelho.
+- **Validação:** novo build de desenvolvimento no EAS, com a capability *Sign In with Apple* ativada pelo próprio EAS. **O usuário confirmou no iPhone em 2026-09-30:** conta nova vai ao onboarding com o nome, um novo login volta à mesma conta e cancelar não mostra erro. A 4.3 foi marcada.
 
 Antes, integrados na `main`: `br.com.dokh.app` (D76, #58), EAS (1.9, #42), guia de primeiro uso (#57); PR #59 configura `eas submit` (App Store Connect `6817848761`). Testar no build de desenvolvimento com `npm run start:dev-client -- --lan --port 8081` + `npm run supabase:lan-proxy`. Próximos: exclusão de conta (4.6, com revogação do token Apple), Supabase de produção (3.1).
 

@@ -21,5 +21,5 @@
 
 ## Pendências da DoD
 
-- Login real no iPhone depende do novo build de desenvolvimento, porque o atual não tem a entitlement.
+- Login real no iPhone: confirmado pelo usuário em 2026-09-30, com o novo build de desenvolvimento e o Supabase local.
 - Na exclusão de conta (4.6), a Apple exige revogar o token de quem entrou com Apple. Para isso é preciso uma chave *Sign in with Apple* (.p8) no servidor, cadastrada como segredo da Edge Function e nunca no Git.
