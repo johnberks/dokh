@@ -15,7 +15,7 @@ import { AppText } from './AppText';
 /** Subida curta padrão da cascata; nunca desloca o layout, só o desenho. */
 const RISE = 16;
 
-function useRevealStyle(delay: number, rise: number, scaleFrom: number) {
+function useRevealStyle(delay: number, rise: number, scaleFrom: number, duration?: number) {
   const reduced = useReducedMotion();
   const progress = useSharedValue(0);
 
@@ -26,11 +26,11 @@ function useRevealStyle(delay: number, rise: number, scaleFrom: number) {
       : withDelay(
           delay,
           withTiming(1, {
-            duration: motionDuration('reveal', false),
+            duration: duration ?? motionDuration('reveal', false),
             easing: Easing.out(Easing.cubic),
           }),
         );
-  }, [delay, progress, reduced]);
+  }, [delay, duration, progress, reduced]);
 
   return useAnimatedStyle(() => ({
     opacity: progress.value,
@@ -50,18 +50,21 @@ export function Reveal({
   delay = 0,
   rise = RISE,
   scaleFrom = 1,
+  duration,
   style,
   testID,
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   delay?: number;
+  /** Duração própria (ms); padrão `motion.reveal`. */
+  duration?: number;
   rise?: number;
   /** Escala inicial (ex.: 0.94 para cards que "assentam" ao entrar). */
   scaleFrom?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }) {
-  const animated = useRevealStyle(delay, rise, scaleFrom);
+  const animated = useRevealStyle(delay, rise, scaleFrom, duration);
   return (
     <Animated.View style={[style, animated]} testID={testID}>
       {children}

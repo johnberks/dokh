@@ -22,6 +22,7 @@ import { type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { AgendaHeroBackdrop } from '@/features/agenda/AgendaHeroBackdrop';
 import { usePremium } from '@/features/billing/entitlement';
+import { useTourTarget } from '@/features/guide/useTourTarget';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
@@ -390,8 +391,14 @@ function PeriodToggle({
   yearLabel: string;
 }) {
   const type = useBrandTypography();
+  const periodTarget = useTourTarget('finances-period');
   return (
-    <View accessibilityRole="tablist" style={styles.toggle}>
+    <View
+      ref={periodTarget.ref}
+      onLayout={periodTarget.onLayout}
+      accessibilityRole="tablist"
+      style={styles.toggle}
+    >
       {(['month', 'year'] as const).map((option) => {
         const on = mode === option;
         return (
@@ -914,8 +921,15 @@ function HeroAmount({
   const { amount, caption } = heroCaption(data, tense, name, t);
   // O valor do topo conta rápido até o total ao entrar (como na Início).
   const counted = useCountUp(amount ?? 0n, enterKey);
+  const valueTarget = useTourTarget('finances-value');
   return (
-    <View style={styles.heroAmount} accessible testID="finances-hero">
+    <View
+      ref={valueTarget.ref}
+      onLayout={valueTarget.onLayout}
+      style={styles.heroAmount}
+      accessible
+      testID="finances-hero"
+    >
       <AppText adjustsFontSizeToFit numberOfLines={1} style={[type.heading1, styles.heroValue]}>
         {amount === null ? t('hero.empty') : money(counted)}
       </AppText>

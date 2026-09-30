@@ -1,5 +1,5 @@
 import { router, type Tabs } from 'expo-router';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,7 +31,21 @@ const tabLabels = {
 } as const;
 
 /** The four destinations and raised create action match all four tab-screen HTMLs. */
-export function BottomTabs({ state, navigation }: TabBarProps) {
+/** `rowRef`/`onRowLayout`: marcam a barra para o guia de primeiro uso (vêm do layout das abas). */
+export function BottomTabs({
+  state,
+  navigation,
+  rowRef,
+  onRowLayout,
+  tabTargets,
+}: TabBarProps & {
+  rowRef?: RefObject<View | null>;
+  onRowLayout?: () => void;
+  /** Abas marcadas pelo guia, acesas na passagem entre seções. */
+  tabTargets?: Partial<
+    Record<MainTab, { ref: RefObject<View | null>; onLayout: (() => void) | undefined }>
+  >;
+}) {
   const { t } = useTranslation('navigation');
   const insets = useSafeAreaInsets();
 
@@ -57,6 +71,8 @@ export function BottomTabs({ state, navigation }: TabBarProps) {
     return (
       <Pressable
         key={name}
+        ref={tabTargets?.[name]?.ref}
+        onLayout={tabTargets?.[name]?.onLayout}
         accessibilityRole="tab"
         accessibilityLabel={t(tabLabels[name])}
         accessibilityState={{ selected: focused }}
@@ -87,7 +103,7 @@ export function BottomTabs({ state, navigation }: TabBarProps) {
         { paddingBottom: Math.max(navigationMetrics.tabBarBottom, insets.bottom) },
       ]}
     >
-      <View style={styles.row}>
+      <View ref={rowRef} onLayout={onRowLayout} style={styles.row}>
         {tab('index')}
         {tab('agenda')}
         <Pressable

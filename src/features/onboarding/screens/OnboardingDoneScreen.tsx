@@ -11,6 +11,7 @@ import { Reveal, step, WordReveal } from '@/components/Reveal';
 import { formatCentsToBRL } from '@/domain/money';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { onboardingStatusKey } from '@/features/auth/onboarding-status';
+import { useGuideTour } from '@/features/guide/guide-tour';
 import { useWorkDraft } from '@/features/work/work-draft';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { onboardingProfileMetrics as m, palette } from '@/theme/tokens';
@@ -63,6 +64,8 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
     useProfileDraft.getState().reset();
     useWorkDraft.getState().reset();
     queryClient.setQueryData(onboardingStatusKey(userId), true);
+    // Conta nova: o guia de primeiro uso começa na Início.
+    useGuideTour.getState().start();
     router.replace('/');
   }
 

@@ -10,6 +10,9 @@ import { OnboardingDoneScreen } from './screens/OnboardingDoneScreen';
 
 // O total conta até o valor com animação; aqui o valor final aparece direto.
 jest.mock('@/theme/useReducedMotion', () => ({ useReducedMotion: () => true }));
+
+import { useGuideTour } from '@/features/guide/guide-tour';
+
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
 }));
@@ -97,6 +100,8 @@ describe('conclusão dinâmica (TELA 10)', () => {
       await fireEvent.press(screen.getByTestId('onboarding-done-cta'));
     });
     await waitFor(() => expect(mockedReplace).toHaveBeenCalledWith('/'));
+    // Conta nova: o guia de primeiro uso começa na Início.
+    expect(useGuideTour.getState().step).toBe(0);
     expect(queryClient.getQueryData(onboardingStatusKey('user-1'))).toBe(true);
     expect(mockedComplete).toHaveBeenCalledTimes(1);
     // Rascunhos não sobrevivem ao onboarding.
