@@ -149,6 +149,7 @@ Status:
 | D73 | Aceita | Arquivos de importação são privados e removidos após conclusão/expiração da janela operacional. | Job de limpeza obrigatório. |
 | D74 | Pendente de produto/jurídico | Prazo exato de retenção de imports, logs e soft deletes; textos legais e URLs. | Deve ser fechado antes de produção e submissão às lojas. |
 | D75 | Aceita | Sem SDK de atribuição paga/ATT no MVP. | Não pedir ATT nem adicionar AppsFlyer/Adjust/Branch sem nova decisão. |
+| D76 | Aceita 2026-09-30 | Identificador do app `br.com.dokh.app` (iOS `bundleIdentifier` e Android `package`), a partir do domínio `dokh.com.br`, antes de qualquer envio às lojas. | Não mudar depois do primeiro envio ao App Store Connect/Play Console: amarra atualizações, assinaturas, Sign in with Apple e push. |
 
 ## Fora de escopo técnico do MVP
 
