@@ -235,7 +235,7 @@
   - Sign up, sign in, deep link de reset e mensagens técnicas compartilhadas.
   - **DoD:** conta de teste completa cadastro, login, logout e reset em iOS/Android.
 
-- [ ] **4.3 — Implementar Apple Sign In**
+- [x] **4.3 — Implementar Apple Sign In**
   - Dependências: 4.1, configuração Apple humana.
   - **DoD:** login real em device iOS retorna sessão Supabase e perfil é criado idempotentemente.
 
