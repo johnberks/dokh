@@ -5,9 +5,12 @@
 
 Última atualização: 2026-09-30 · Claude Code · #59 (submit), #60 (4.3 Apple) e #61 (4.6 exclusão de conta) **integrados na `main`**; o usuário validou os dois no iPhone. **3.1 em andamento** no branch `codex/3.1-remote-setup`, com o roteiro em [`remote-environments.md`](remote-environments.md).
 
-- Os dois projetos remotos estavam **pausados** (`INACTIVE`, plano Free).
-- A chave publishable ainda falta no EAS.
-- As migrations e a função `delete-account` ainda não foram aplicadas remotamente.
+- Os dois projetos remotos estavam **pausados** (`INACTIVE`, plano Free); o usuário os reativou.
+- Chaves publishable cadastradas no EAS (preview/production). Cada uma responde 200 no próprio projeto e 401 no outro.
+- **`dokh-preview`:** as 16 migrations estão aplicadas (`migration list --linked` bate local = remoto) e a função `delete-account` foi publicada.
+  - Leitura anônima de `profiles` é negada (42501).
+  - A função recusa chamadas sem login (401).
+- **Pendente:** o Auth do preview no Dashboard (URL `dokh://`, provedor Apple), o build preview no iPhone (prova da 3.1) e depois repetir tudo em produção.
 - As etapas com senha e chave são executadas pelo usuário: o agente não copia credenciais.
 
 Anterior (2026-09-30) · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
