@@ -89,7 +89,7 @@ describe('tela 04 — criar conta', () => {
     expect(mockedPush).toHaveBeenCalledWith('/sign-in');
   });
 
-  it('Apple e Google aparecem desabilitados até 4.3/4.4', async () => {
+  it('sem login da Apple no aparelho, Apple e Google aparecem desabilitados', async () => {
     await renderAccountScreen();
     for (const name of ['Continuar com Apple', 'Continuar com Google']) {
       const button = screen.getByRole('button', { name });

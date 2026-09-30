@@ -1,7 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import type { AuthClient } from './session';
 
-export type AuthAction = 'signIn' | 'signUp' | 'recover' | 'reset';
+export type AuthAction = 'signIn' | 'signUp' | 'recover' | 'reset' | 'apple';
 
 /** Never surface raw Auth errors: they may contain an address or other PII. */
 export function authErrorMessage(error: unknown, action: AuthAction): string {
@@ -29,6 +29,7 @@ export function authErrorMessage(error: unknown, action: AuthAction): string {
     return 'Muitas tentativas. Aguarde um pouco e tente novamente.';
   if (code === 'otp_expired' || code === 'otp_disabled')
     return 'Este link expirou. Solicite outro e-mail.';
+  if (action === 'apple') return 'Não foi possível entrar com a Apple. Tente novamente.';
   if (action === 'recover') return 'Não foi possível enviar o e-mail. Tente novamente.';
   if (action === 'reset') return 'Não foi possível atualizar a senha. Tente novamente.';
   return 'Não foi possível continuar. Tente novamente.';

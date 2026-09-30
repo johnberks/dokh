@@ -1,5 +1,6 @@
 import { BlurTargetView, BlurView } from 'expo-blur';
-import { type ReactNode, type Ref, useContext, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import { type ReactNode, type Ref, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -14,8 +15,12 @@ import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
 import { EyeIcon, EyeSlashIcon } from '@/components/icons/heroicons';
+import { supabase } from '@/data/supabase-client';
+import { useProfileDraft } from '@/features/onboarding/profile-draft';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
+import { isAppleSignInAvailable, signInWithApple } from './apple-auth';
+import { authErrorMessage } from './email-auth';
 
 export function AuthWordmark({
   light = false,
@@ -109,19 +114,66 @@ function GoogleIcon() {
 export function SocialChoices() {
   const { t } = useTranslation('auth');
   const type = useBrandTypography();
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [appleBusy, setAppleBusy] = useState(false);
+  const [appleError, setAppleError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void isAppleSignInAvailable().then((available) => {
+      if (active) setAppleAvailable(available);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function continueWithApple() {
+    if (appleBusy) return;
+    setAppleError(null);
+    setAppleBusy(true);
+    try {
+      const result = await signInWithApple(supabase);
+      if (result.status === 'cancelled') return;
+      // A Apple só entrega o nome no primeiro login: ele já preenche a tela de nome.
+      if (result.givenName && !useProfileDraft.getState().displayName.trim())
+        useProfileDraft.getState().update({ displayName: result.givenName });
+      router.replace('/');
+    } catch (error) {
+      setAppleError(authErrorMessage(error, 'apple'));
+    } finally {
+      setAppleBusy(false);
+    }
+  }
+
   return (
     <View style={styles.socialChoices}>
-      <View
-        accessible
-        accessibilityRole="button"
-        accessibilityState={{ disabled: true }}
-        accessibilityLabel={t('signIn.apple')}
-        accessibilityHint={t('signIn.socialUnavailable')}
-        style={styles.socialButton}
-      >
-        <AppleIcon />
-        <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.apple')}</AppText>
-      </View>
+      {appleAvailable ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ busy: appleBusy }}
+          accessibilityLabel={t('signIn.apple')}
+          onPress={() => void continueWithApple()}
+          style={({ pressed }) => [styles.socialButton, pressed && styles.socialPressed]}
+          testID="social-apple"
+        >
+          {appleBusy ? <ActivityIndicator color={palette.base} /> : <AppleIcon />}
+          <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.apple')}</AppText>
+        </Pressable>
+      ) : (
+        <View
+          accessible
+          accessibilityRole="button"
+          accessibilityState={{ disabled: true }}
+          accessibilityLabel={t('signIn.apple')}
+          accessibilityHint={t('signIn.socialUnavailable')}
+          style={styles.socialButton}
+          testID="social-apple"
+        >
+          <AppleIcon />
+          <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.apple')}</AppText>
+        </View>
+      )}
       <View
         accessible
         accessibilityRole="button"
@@ -133,6 +185,11 @@ export function SocialChoices() {
         <GoogleIcon />
         <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.google')}</AppText>
       </View>
+      {appleError ? (
+        <AppText accessibilityLiveRegion="polite" style={styles.socialError}>
+          {appleError}
+        </AppText>
+      ) : null}
       <View style={styles.orRow}>
         <View style={styles.orLine} />
         <AppText style={styles.orText}>{t('common.or')}</AppText>
@@ -330,6 +387,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   socialLabel: { fontSize: 15, lineHeight: 20, letterSpacing: 0, color: palette.base },
+  socialPressed: { opacity: 0.72 },
+  socialError: { fontSize: 12, lineHeight: 18, color: palette.negative, textAlign: 'center' },
   orRow: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 2 },
   orLine: { flex: 1, height: 1, backgroundColor: colors.authDivider },
   orText: { fontSize: 13, lineHeight: 18, color: palette.sage },
