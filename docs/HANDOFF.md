@@ -12,7 +12,11 @@
   - A função recusa chamadas sem login (401).
 - **Auth do preview:** configurado no Dashboard (URL `dokh://`, provedor Apple ativo, conferido por `/auth/v1/settings`).
 - **Prova da 3.1:** build preview `926d4019` instalado no iPhone. **O usuário confirmou em 2026-09-30** o login e o uso contra o `dokh-preview`. A 3.1 foi marcada.
-- **Pendente:** repetir migrations, função e Auth em produção, e depois o build production com envio ao TestFlight.
+- **`dokh-production`:** as 16 migrations estão aplicadas e `delete-account` foi publicada.
+  - Leitura anônima é negada e a função sem login responde 401.
+  - O Auth está configurado no Dashboard, com o Apple ativo.
+  - O checkout foi desligado da produção com `supabase unlink`.
+- **Pendente:** build production com envio ao TestFlight, SMTP próprio (Resend) para os e-mails de Auth, chave `.p8` da Apple como segredo nos dois projetos e plano Pro antes de usuários reais.
 - As etapas com senha e chave são executadas pelo usuário: o agente não copia credenciais.
 
 Anterior (2026-09-30) · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
