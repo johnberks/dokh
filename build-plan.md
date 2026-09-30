@@ -156,7 +156,7 @@
 
 ## Fase 3 — Supabase, schema e segurança
 
-- [ ] **3.1 — Inicializar Supabase local e ambientes remotos**
+- [x] **3.1 — Inicializar Supabase local e ambientes remotos**
   - Dependências: 1.4.
   - Supabase CLI, config local e projetos separados preview/production.
   - **DoD:** `supabase start` e reset local funcionam; app preview conecta somente ao projeto preview.

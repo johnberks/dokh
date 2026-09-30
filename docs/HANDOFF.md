@@ -10,7 +10,9 @@
 - **`dokh-preview`:** as 16 migrations estão aplicadas (`migration list --linked` bate local = remoto) e a função `delete-account` foi publicada.
   - Leitura anônima de `profiles` é negada (42501).
   - A função recusa chamadas sem login (401).
-- **Pendente:** o Auth do preview no Dashboard (URL `dokh://`, provedor Apple), o build preview no iPhone (prova da 3.1) e depois repetir tudo em produção.
+- **Auth do preview:** configurado no Dashboard (URL `dokh://`, provedor Apple ativo, conferido por `/auth/v1/settings`).
+- **Prova da 3.1:** build preview `926d4019` instalado no iPhone. **O usuário confirmou em 2026-09-30** o login e o uso contra o `dokh-preview`. A 3.1 foi marcada.
+- **Pendente:** repetir migrations, função e Auth em produção, e depois o build production com envio ao TestFlight.
 - As etapas com senha e chave são executadas pelo usuário: o agente não copia credenciais.
 
 Anterior (2026-09-30) · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
