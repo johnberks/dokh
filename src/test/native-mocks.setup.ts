@@ -18,3 +18,10 @@ jest.mock('expo-splash-screen', () => ({
 jest.mock('react-native-worklets', () => require('react-native-worklets/lib/module/mock'));
 require('react-native-reanimated').setUpTests();
 require('react-native-gesture-handler/jestSetup');
+
+// Login com Apple (4.3): indisponível por padrão; testes específicos sobrescrevem.
+jest.mock('expo-apple-authentication', () => ({
+  isAvailableAsync: jest.fn(async () => false),
+  signInAsync: jest.fn(),
+  AppleAuthenticationScope: { FULL_NAME: 0, EMAIL: 1 },
+}));
