@@ -9,7 +9,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "br.com.dokh.app",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "br.com.dokh.app",
