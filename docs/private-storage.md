@@ -14,4 +14,4 @@ Para exibir/baixar arquivos, usar download autenticado ou URL assinada curta; n�
 
 O teste `npm run test:db` exercita a API local com duas contas descartáveis: upload, download, bloqueio cruzado/anônimo, URL assinada válida/expirada, MIME negado, objeto imutável e remoção de bytes. Não rodar esse teste contra preview/produção. Os objetos e usuários criados pelo teste são removidos ao final.
 
-A remoção automática de arquivos de importação após conclusão/expiração (D73) fica para o job posterior. O prazo exato (D74) segue pendente de produto/jurídico; não inferir retenção aqui. A exclusão de conta com purge de Storage também será implementada na tarefa 4.6.
+A remoção automática de arquivos de importação após conclusão/expiração (D73) fica para o job posterior. O prazo exato (D74) segue pendente de produto/jurídico; não inferir retenção aqui. A exclusão de conta (4.6) apaga os dois buckets do usuário pela Storage API; ver [`account-deletion.md`](account-deletion.md).

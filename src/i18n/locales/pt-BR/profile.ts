@@ -181,10 +181,16 @@ export const profile = {
     free: 'Free',
     premium: 'Premium',
     signOutError: 'Não foi possível sair. Tente de novo.',
+    methodApple: 'Apple',
     delete: 'Excluir conta',
+    deleteTitle: 'Excluir sua conta?',
     deleteText:
-      'A exclusão de conta pelo app ainda não está disponível. Seus dados continuam protegidos e só você tem acesso a eles.',
-    close: 'Entendi',
+      'Seus trabalhos, recebíveis, residência, locais e foto serão apagados para sempre, em todos os aparelhos. Não dá para desfazer.',
+    deleteSubscription:
+      'A assinatura Premium não é cancelada junto: cancele em Gerenciar assinatura para não ser cobrado.',
+    deleteApple: 'Para confirmar, a Apple vai pedir sua identificação.',
+    deleteConfirm: 'Excluir conta',
+    cancel: 'Cancelar',
   },
   /** Perfil 17. */
   help: {

@@ -289,10 +289,14 @@ export async function readLocationWorkCounts(
   return counts;
 }
 
-export async function readAccountEmail(client: AuthClient = supabase): Promise<string | null> {
+export type AccountIdentity = { email: string | null; provider: 'apple' | 'email' };
+
+/** E-mail e método de acesso; contas Apple podem ter e-mail privado de retransmissão. */
+export async function readAccount(client: AuthClient = supabase): Promise<AccountIdentity> {
   const { data, error } = await client.auth.getUser();
   if (error) throw error;
-  return data.user?.email ?? null;
+  const provider = data.user?.app_metadata.provider === 'apple' ? 'apple' : 'email';
+  return { email: data.user?.email ?? null, provider };
 }
 
 export function useProfile() {
@@ -331,11 +335,11 @@ export function useLocationWorkCounts() {
   });
 }
 
-export function useAccountEmail() {
+export function useAccount() {
   const { userId } = useAuthSession();
   return useQuery({
     queryKey: queryKeys.account(userId ?? ''),
-    queryFn: () => readAccountEmail(),
+    queryFn: () => readAccount(),
     enabled: userId !== null,
   });
 }
