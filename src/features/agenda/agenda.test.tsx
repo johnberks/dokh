@@ -146,12 +146,14 @@ describe('regras de apresentação da Agenda', () => {
   });
 
   it('agrupa por dia na ordem da consulta e limita os pontos a três', () => {
+    const otherDay = today.endsWith('-01') ? `${today.slice(0, 8)}02` : `${today.slice(0, 8)}01`;
     const works = [
       work({ id: 'a', colorToken: 'sage' }),
       work({ id: 'b', colorToken: 'bronze' }),
       work({ id: 'c', colorToken: 'blue' }),
       work({ id: 'd', colorToken: 'green' }),
-      work({ id: 'e', workDate: '2026-09-30', colorToken: 'terra' }),
+      // Outro dia qualquer, nunca o de hoje (antes era 2026-09-30 fixo e quebrou nesse dia).
+      work({ id: 'e', workDate: otherDay, colorToken: 'terra' }),
     ];
     expect(
       worksByDay(works)

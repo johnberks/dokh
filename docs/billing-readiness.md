@@ -6,7 +6,7 @@ A integração real acontece na **Fase 5** do `build-plan.md`. Este documento li
 
 | Item | Regra | Onde entra |
 | --- | --- | --- |
-| Identidade do app | iOS `bundleIdentifier` e Android `package` = `com.dokh.app`; scheme `dokh`. **Não mudar depois** que apps forem criados nas lojas/RevenueCat. | 1.1 (`app.json`) |
+| Identidade do app | iOS `bundleIdentifier` e Android `package` = `br.com.dokh.app`; scheme `dokh`. **Não mudar depois** que apps forem criados nas lojas/RevenueCat. | 1.1 (`app.json`) |
 | `app_user_id` | UUID do Supabase (`auth.users.id`). Nunca e-mail. `Purchases.logIn(userId)` no login, `logOut()` no logout. | 4.1, 5.3 |
 | Entitlement | Um único: `premium`. Offering `default` com packages mensal e anual. | 5.2 |
 | Espelho no servidor | `subscription_entitlements` conforme `domain-model.md` (`last_event_id` garante idempotência do webhook, `environment` separa sandbox de production). | 3.4, 5.4 |

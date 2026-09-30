@@ -8,11 +8,11 @@
     "scheme": "dokh",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "com.dokh.app",
+      "bundleIdentifier": "br.com.dokh.app",
       "supportsTablet": false
     },
     "android": {
-      "package": "com.dokh.app",
+      "package": "br.com.dokh.app",
       "adaptiveIcon": {
         "backgroundColor": "#10160F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
