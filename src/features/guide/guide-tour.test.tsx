@@ -1,10 +1,11 @@
 import '@/i18n';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { motion } from '@/theme/tokens';
 import { GuideTourOverlay } from './GuideTourOverlay';
-import { TOUR_STEPS, useGuideTour } from './guide-tour';
+import { TOUR_STEPS, tourStepsFor, useGuideTour } from './guide-tour';
+import { useTourTarget } from './useTourTarget';
 
 jest.mock('expo-router', () => ({ router: { navigate: jest.fn() } }));
 
@@ -30,14 +31,14 @@ async function renderOverlay() {
 function measureCurrent() {
   const step = useGuideTour.getState().step;
   if (step === null) return;
-  const target = TOUR_STEPS[step]?.target;
+  const target = useGuideTour.getState().steps[step]?.target;
   if (target) useGuideTour.getState().setRect(target, { x: 20, y: 120, width: 350, height: 140 });
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
   jest.useFakeTimers();
-  useGuideTour.setState({ step: null, rects: {} });
+  useGuideTour.setState({ step: null, rects: {}, steps: TOUR_STEPS });
 });
 afterEach(() => jest.useRealTimers());
 
@@ -145,5 +146,52 @@ describe('guia de primeiro uso', () => {
     expect(screen.getByText('Veja o ano inteiro')).toBeTruthy();
     expect(screen.queryByTestId('guide-tour-skip')).toBeNull();
     expect(screen.getByText('Concluir')).toBeTruthy();
+  });
+});
+
+describe('guia pelo foco do onboarding (7.7)', () => {
+  it('mesmas etapas, ordem do foco: Trabalhos começa na Agenda, Recebimentos em Finanças', () => {
+    const tabs = (focus: Parameters<typeof tourStepsFor>[0]) =>
+      tourStepsFor(focus).map((step) => step.tab);
+    expect(tabs('work')).toEqual(['agenda', 'agenda', 'index', 'index', 'finances', 'finances']);
+    expect(tabs('receivables')).toEqual([
+      'finances',
+      'finances',
+      'index',
+      'index',
+      'agenda',
+      'agenda',
+    ]);
+    expect(tabs('earnings')).toEqual(TOUR_STEPS.map((step) => step.tab));
+    expect(tabs(null)).toEqual(TOUR_STEPS.map((step) => step.tab));
+    expect(tourStepsFor('work')).toHaveLength(TOUR_STEPS.length);
+  });
+
+  it('começando por Finanças, abre Finanças e o botão leva de volta ao Início', async () => {
+    await act(async () => useGuideTour.getState().start('receivables'));
+    await renderOverlay();
+    expect(router.navigate).toHaveBeenCalledWith('/finances');
+    await act(async () => measureCurrent());
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('guide-tour-next'));
+    });
+    await act(async () => measureCurrent());
+    expect(screen.getByText('Ir para Início')).toBeTruthy();
+  });
+});
+
+describe('alvos do guia seguem a ordem do foco (7.7)', () => {
+  it('começando pela Agenda, o primeiro alvo medido é o + da Agenda, não o valor da Início', async () => {
+    await act(async () => useGuideTour.getState().start('work'));
+    const agendaAdd = await renderHook(() => useTourTarget('agenda-add'));
+    const homeAmount = await renderHook(() => useTourTarget('home-amount'));
+    expect(agendaAdd.result.current.onLayout).toBeDefined();
+    expect(homeAmount.result.current.onLayout).toBeUndefined();
+
+    await act(async () => useGuideTour.getState().next());
+    await act(async () => useGuideTour.getState().next());
+    // Terceiro passo do foco Trabalhos: o valor da Início.
+    expect(homeAmount.result.current.onLayout).toBeDefined();
+    expect(agendaAdd.result.current.onLayout).toBeUndefined();
   });
 });

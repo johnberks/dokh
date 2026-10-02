@@ -11,9 +11,11 @@ export const TOUR_MEASURE_DELAY = 750;
  */
 export function useTourTarget(id: TourTargetId, delay = TOUR_MEASURE_DELAY) {
   const ref = useRef<View>(null);
+  // O passo atual vem das etapas na ordem do foco (7.7), não da ordem fixa: começando pela
+  // Agenda, o primeiro alvo é o `+` dela, não o valor da Início.
   const active = useGuideTour(
     (state) =>
-      currentTourStep(state.step)?.target === id ||
+      currentTourStep(state.step, state.steps)?.target === id ||
       (state.going !== null && id === `tab-${state.going}`),
   );
   const setRect = useGuideTour((state) => state.setRect);

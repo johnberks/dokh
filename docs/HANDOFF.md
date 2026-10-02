@@ -3,7 +3,22 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-01 · Claude Code · **7.7 Entrega 2** no branch `codex/7.7-entrega-2`, empilhado sobre a Entrega 1 (#63). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §10.
+Última atualização: 2026-10-02 · Claude Code · **Onboarding v2 (7.7) completo na `main`**: Entregas 1 e 2 (#63, #64) e Entregas 3 e 4 (#65). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9–12.
+
+- **Fluxo:**
+  - abertura guiada pelo dedo, nome com moldura, foco, situação (Generalista/Residência/Especialista, busca com título e campo fixos);
+  - bolsa com peça ao vivo e tela 12 como payoff do residente ou ponte;
+  - primeiro trabalho numa rota só com a peça fixa no topo e "Já recebi";
+  - primeira visão por mês de entrada e guia de primeiro uso pelo foco.
+- **Correção depois do teste no iPhone:** os alvos do guia (`useTourTarget`) liam a ordem fixa; começando pela Agenda, o destaque caía fora do lugar. Agora seguem `state.steps`, e `currentTourStep` exige as etapas.
+- **Teclado** com `react-native-keyboard-controller` (D78). O build de desenvolvimento atual já o inclui; o próximo build de produção precisa ser novo.
+- **Pendências:**
+  - aplicar as migrations `20261001000000` e `20261001010000` em **preview e produção** antes de qualquer build remoto (`supabase link` → `db push` → `unlink`);
+  - validação completa no iPhone para marcar a 7.7 no `build-plan.md`;
+  - conta de demonstração da revisão do TestFlight (Guideline 2.1a);
+  - #62 (docs 3.1) aberto.
+
+Anterior (2026-10-01) · **7.7 Entrega 2** no branch `codex/7.7-entrega-2`, empilhado sobre a Entrega 1 (#63). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §10.
 
 - **Escopo:** abertura narrativa em três toques, moldura "DOKH de João", pergunta de foco com mini-sequência e subtítulo da Situação pelo foco.
 - **Banco:** migration `profiles.onboarding_focus` aplicada só no local.

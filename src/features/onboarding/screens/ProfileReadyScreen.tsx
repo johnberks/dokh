@@ -1,48 +1,51 @@
-import { BlurView } from 'expo-blur';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
-import { CheckIcon } from '@/components/icons/heroicons';
 import { Reveal, step, WordReveal } from '@/components/Reveal';
-import { formatCentsToBRL, parseBRLToCents } from '@/domain/money';
-import { professionalStatusLabel } from '@/features/profile/profile-data';
+import { formatDayMonth } from '@/domain/calendar';
+import { formatCentsToBRL } from '@/domain/money';
+import { useAuthSession } from '@/features/auth/AuthSessionProvider';
+import { EMPTY_PIECE, WorkPiece } from '@/features/work/first-work/WorkPiece';
+import { todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
-import {
-  onboardingIntroMetrics as intro,
-  onboardingProfileMetrics as m,
-  palette,
-} from '@/theme/tokens';
+import { onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 import { BrandBackdrop } from '../BrandBackdrop';
+import { deviceTimezone } from '../profile-data';
 import { useProfileDraft } from '../profile-draft';
+import { ResidencyPiece } from '../ResidencyPiece';
+import { useResidencyNextEntries } from '../use-onboarding-done';
 
 /**
- * Tela 12: perfil construído. O residente já tem uma fonte de renda real e pode concluir com
- * **Ainda não** (Onboarding v2, 7.7); generalista e especialista seguem para o primeiro
- * trabalho, que é o que gera a primeira visão deles. Mostra só o que foi cadastrado:
- * residente vê "Residente de X" com a bolsa; generalista e especialista veem só a situação
- * ("Generalista", "Especialista em X"), sem card de residência (11.10), e a lista do que a DOKH
- * passa a acompanhar — sem ela o card ficava vazio (pedido do usuário, 2026-09-27; referência
- * Buddy na Mobbin). Tudo entra em cascata: marca, card, itens da lista, título, texto e botão.
+ * Tela 12 (Onboarding v2, 7.7), depois da situação profissional:
+ * - **Residente:** payoff parcial — "Sua DOKH está começando a tomar forma." A peça da
+ *   residência e as próximas entradas reais da bolsa descem por uma linha bronze; a pergunta
+ *   "Você também faz plantões…?" leva ao primeiro trabalho ou conclui com **Ainda não**.
+ * - **Generalista/Especialista:** ponte — a peça do trabalho aparece vazia, com os encaixes que
+ *   o cadastro vai preencher, e o texto acompanha o foco escolhido.
  */
-const TRACK_KEYS = ['trackWork', 'trackEntries', 'trackIncome'] as const;
 export function ProfileReadyScreen() {
   const { t } = useTranslation('onboarding');
-  const { t: tProfile } = useTranslation('profile');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const { status, specialty, monthlyAmount, paymentDay } = useProfileDraft();
+  const { userId } = useAuthSession();
+  const { status, specialty, monthlyAmount, paymentDay, focus } = useProfileDraft();
   const resident = status === 'resident';
-  const statusLabel = professionalStatusLabel(
-    status ?? 'general_practitioner',
-    specialty,
-    tProfile,
-  );
-  const amountCents = parseBRLToCents(monthlyAmount);
+  const entries = useResidencyNextEntries(userId, resident);
+  const [today] = useState(() => todayInTimezone(deviceTimezone()));
+  const upcoming = entries.data ?? [];
+  const bridgeLine =
+    focus === 'work'
+      ? t('profile.ready.bridgeWork')
+      : focus === 'receivables'
+        ? t('profile.ready.bridgeReceivables')
+        : focus === 'earnings'
+          ? t('profile.ready.bridgeEarnings')
+          : t('profile.ready.bridgeDefault');
 
   return (
     <View
@@ -59,174 +62,146 @@ export function ProfileReadyScreen() {
         <AppText style={[type.wordmark, styles.wordmarkText]}>{t('welcome.splash.label')}</AppText>
       </Reveal>
 
-      <View style={styles.summary}>
-        <Reveal delay={step(1)} scaleFrom={0.8}>
-          <BrandMark light size={intro.symbolSize} />
-        </Reveal>
-        <Reveal delay={step(3)} rise={24} scaleFrom={0.94}>
-          {resident ? (
-            <BlurView
-              intensity={36}
-              tint="dark"
-              style={styles.card}
-              testID="profile-ready-residency"
-            >
-              <View style={styles.badge}>
-                <View style={styles.badgeDot} />
-                <AppText variant="technical" style={styles.badgeLabel}>
-                  {t('profile.ready.badge')}
-                </AppText>
-              </View>
-              <View style={styles.cardBody}>
-                <AppText style={[type.heading1, styles.program]}>{statusLabel}</AppText>
-                {amountCents !== null && (
-                  <AppText style={[type.heading1, styles.amount]}>
-                    {formatCentsToBRL(amountCents)}
-                  </AppText>
-                )}
-                {paymentDay !== null && (
-                  <AppText style={styles.day}>
-                    {t('profile.ready.everyDay', { day: String(paymentDay).padStart(2, '0') })}
-                  </AppText>
-                )}
-              </View>
-            </BlurView>
-          ) : (
-            <BlurView
-              intensity={36}
-              tint="dark"
-              style={[styles.card, styles.cardWide]}
-              testID="profile-ready-status"
-            >
-              <View style={styles.badge}>
-                <View style={styles.badgeDot} />
-                <AppText variant="technical" style={styles.badgeLabel}>
-                  {t('profile.ready.professionalBadge')}
-                </AppText>
-              </View>
-              <AppText style={[type.heading1, styles.program]}>{statusLabel}</AppText>
-              <View style={styles.divider} />
-              <AppText variant="technical" style={styles.badgeLabel}>
-                {t('profile.ready.trackEyebrow')}
-              </AppText>
-              <View style={styles.trackList} testID="profile-ready-track">
-                {TRACK_KEYS.map((key, index) => (
-                  <Reveal key={key} delay={step(5 + index)} rise={10} style={styles.trackRow}>
-                    <View style={styles.trackCheck}>
-                      <CheckIcon color={palette.base} size={11} />
-                    </View>
-                    <AppText style={styles.trackText}>{t(`profile.ready.${key}`)}</AppText>
-                  </Reveal>
-                ))}
-              </View>
-            </BlurView>
-          )}
-        </Reveal>
-      </View>
+      <ScrollView
+        bounces={false}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        style={styles.scroll}
+      >
+        <WordReveal
+          text={resident ? t('profile.ready.residentTitle') : t('profile.ready.bridgeTitle')}
+          style={[type.heading1, styles.title]}
+          delay={step(1)}
+        />
 
-      <View style={styles.footer}>
-        <View style={styles.copy}>
-          <WordReveal
-            text={
-              resident
-                ? t('profile.ready.withResidencyTitle')
-                : t('profile.ready.withoutResidencyTitle')
-            }
-            style={[type.heading1, styles.title]}
-            delay={step(resident ? 5 : 8)}
-          />
-          <Reveal delay={step(resident ? 8 : 11)}>
-            <AppText style={styles.description}>
-              {resident
-                ? t('profile.ready.withResidencyDescription')
-                : t('profile.ready.withoutResidencyDescription')}
-            </AppText>
-          </Reveal>
-        </View>
-        <Reveal delay={step(resident ? 9 : 12)}>
+        {resident ? (
+          <>
+            <Reveal delay={step(4)} rise={24} scaleFrom={0.96}>
+              <ResidencyPiece
+                specialty={specialty}
+                monthlyAmount={monthlyAmount}
+                paymentDay={paymentDay}
+                tone="light"
+                testID="profile-ready-residency"
+              />
+            </Reveal>
+            {upcoming.length > 0 && (
+              <View style={styles.timeline} testID="profile-ready-entries">
+                <Reveal delay={step(6)}>
+                  <AppText variant="technical" style={styles.eyebrow}>
+                    {t('profile.ready.nextEntries')}
+                  </AppText>
+                </Reveal>
+                <View style={styles.timelineRows}>
+                  <View style={styles.timelineLine} />
+                  {upcoming.map((entry, index) => (
+                    // As entradas descem uma a uma pela linha: a bolsa já é dinheiro previsto.
+                    <Reveal
+                      key={entry.expectedOn}
+                      delay={step(7 + index)}
+                      rise={10}
+                      style={styles.timelineRow}
+                    >
+                      <View style={styles.timelineDot} />
+                      <AppText style={[type.heading1, styles.timelineDate]}>
+                        {formatDayMonth(entry.expectedOn)}
+                      </AppText>
+                      <AppText style={styles.timelineAmount}>
+                        {formatCentsToBRL(entry.amountCents)}
+                      </AppText>
+                    </Reveal>
+                  ))}
+                </View>
+              </View>
+            )}
+            <Reveal delay={step(10)}>
+              <AppText style={[type.heading1, styles.question]}>
+                {t('profile.ready.residentQuestion')}
+              </AppText>
+            </Reveal>
+          </>
+        ) : (
+          <>
+            <Reveal delay={step(4)} rise={24} scaleFrom={0.96}>
+              {/* A peça vazia: os encaixes que o cadastro do trabalho vai preencher. */}
+              <WorkPiece
+                values={EMPTY_PIECE}
+                today={today}
+                tone="light"
+                testID="profile-ready-piece"
+              />
+            </Reveal>
+            <Reveal delay={step(6)} style={styles.bridgeCopy}>
+              <AppText style={styles.description}>{bridgeLine}</AppText>
+              <AppText style={styles.description}>{t('profile.ready.bridgeAnyDate')}</AppText>
+            </Reveal>
+          </>
+        )}
+      </ScrollView>
+
+      <Reveal delay={step(resident ? 11 : 8)} style={styles.footer}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            resident ? t('profile.ready.withResidencyCta') : t('profile.ready.withoutResidencyCta')
+          }
+          onPress={() => router.push('/first-work')}
+          testID="profile-ready-cta"
+          style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+        >
+          <AppText style={[type.heading1, styles.ctaLabel]}>
+            {resident
+              ? t('profile.ready.withResidencyCta')
+              : t('profile.ready.withoutResidencyCta')}
+          </AppText>
+          <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
+            {'→'}
+          </AppText>
+        </Pressable>
+        {resident && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={
-              resident
-                ? t('profile.ready.withResidencyCta')
-                : t('profile.ready.withoutResidencyCta')
-            }
-            onPress={() => router.push('/first-work')}
-            testID="profile-ready-cta"
-            style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
+            accessibilityLabel={t('profile.ready.notYet')}
+            // Sem trabalho: a conclusão mostra só a residência e suas entradas reais.
+            onPress={() => router.push('/first-work-done')}
+            testID="profile-ready-skip"
+            style={({ pressed }) => [styles.skip, pressed && styles.pressed]}
           >
-            <AppText style={[type.heading1, styles.ctaLabel]}>
-              {resident
-                ? t('profile.ready.withResidencyCta')
-                : t('profile.ready.withoutResidencyCta')}
-            </AppText>
-            <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
-              {'→'}
-            </AppText>
+            <AppText style={[type.heading1, styles.skipLabel]}>{t('profile.ready.notYet')}</AppText>
           </Pressable>
-          {resident && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('profile.ready.notYet')}
-              // Sem trabalho: a conclusão mostra só a residência e suas entradas reais.
-              onPress={() => router.push('/first-work-done')}
-              testID="profile-ready-skip"
-              style={({ pressed }) => [styles.skip, pressed && styles.pressed]}
-            >
-              <AppText style={[type.heading1, styles.skipLabel]}>
-                {t('profile.ready.notYet')}
-              </AppText>
-            </Pressable>
-          )}
-        </Reveal>
-      </View>
+        )}
+      </Reveal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.base, paddingHorizontal: 32 },
-  skip: { minHeight: 48, marginTop: 8, alignItems: 'center', justifyContent: 'center' },
-  skipLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   wordmarkText: { fontSize: 12, lineHeight: 14, color: palette.cream },
-  summary: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 32 },
-  // Vidro: desfoque real do fundo (expo-blur) + véu creme e borda clara do HTML.
-  card: {
-    width: 262,
-    backgroundColor: 'rgba(237,234,224,0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(237,234,224,0.22)',
-    borderRadius: 18,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    gap: 10,
-    overflow: 'hidden',
-  },
-  cardWide: { width: 300, gap: 12 },
-  divider: { height: 1, backgroundColor: 'rgba(237,234,224,0.16)', marginVertical: 2 },
-  trackList: { gap: 10 },
-  trackRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  trackCheck: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+  scroll: { flex: 1 },
+  content: { flexGrow: 1, justifyContent: 'center', gap: 24, paddingVertical: 24 },
+  title: { fontSize: 30, lineHeight: 33, letterSpacing: -1.05, color: palette.cream },
+  eyebrow: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  timeline: { gap: 12 },
+  timelineRows: { gap: 14, paddingLeft: 2 },
+  timelineLine: {
+    position: 'absolute',
+    left: 6,
+    top: 8,
+    bottom: 8,
+    width: 2,
+    borderRadius: 1,
     backgroundColor: palette.bronze,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  trackText: { flex: 1, fontSize: 14, lineHeight: 19, color: palette.cream },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  badgeDot: { width: 7, height: 7, backgroundColor: palette.workSage },
-  badgeLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  cardBody: { gap: 4 },
-  program: { fontSize: 20, lineHeight: 22, letterSpacing: -0.4, color: palette.cream },
-  amount: { fontSize: 22, lineHeight: 26, letterSpacing: -0.44, color: palette.cream },
-  day: { fontSize: 13, lineHeight: 17, color: palette.secondaryText },
-  footer: { gap: 32 },
-  copy: { gap: 14 },
-  title: { fontSize: 36, lineHeight: 38, letterSpacing: -1.26, color: palette.cream },
-  description: { fontSize: 15, lineHeight: 24, color: palette.secondaryText, maxWidth: 320 },
+  timelineRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  timelineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: palette.bronze },
+  timelineDate: { flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
+  timelineAmount: { fontSize: 15, lineHeight: 19, color: palette.secondaryText },
+  question: { fontSize: 19, lineHeight: 24, letterSpacing: -0.38, color: palette.cream },
+  bridgeCopy: { gap: 8 },
+  description: { fontSize: 15, lineHeight: 23, color: palette.secondaryText },
+  footer: { gap: 4 },
   cta: {
     minHeight: m.ctaHeight,
     borderRadius: m.ctaRadius,
@@ -238,5 +213,7 @@ const styles = StyleSheet.create({
   },
   ctaLabel: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.base },
   ctaArrow: { fontSize: 18, lineHeight: 20, letterSpacing: 0, color: palette.base },
+  skip: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  skipLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
   pressed: { opacity: 0.72 },
 });

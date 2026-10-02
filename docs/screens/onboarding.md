@@ -76,6 +76,12 @@ O indicador do carrossel deve refletir a página atual. O conteúdo apresenta ja
 
 ### Primeiro trabalho
 
+**Onboarding v2 (D77, 7.7):**
+- O primeiro trabalho é uma rota só: tipo → local → data → valor → entrada.
+- A peça fica fixa no topo e ganha um encaixe a cada resposta.
+- Valor e previsão viraram etapas separadas. A previsão mostra a ligação trabalho → prazo → entrada.
+- A tela 12 é o payoff parcial do residente (próximas entradas reais) ou a ponte de quem não é residente (peça vazia).
+
 | Cenário | Informações obrigatórias na tela | Comportamento |
 | --- | --- | --- |
 | Escolha do tipo | Plantão, Procedimento e Atendimento, cada um com ícone, nome e explicação | Toda a área de cada opção é clicável. O tipo escolhido acompanha as telas seguintes em um chip e define os campos exibidos. |
@@ -84,7 +90,7 @@ O indicador do carrossel deve refletir a página atual. O conteúdo apresenta ja
 | Data — Plantão | "Data do trabalho": calendário (dias passados com aparência normal, D77), data selecionada, início e duração | Data, horário de início e duração são obrigatórios para Plantão. O término é calculado e exibido, inclusive quando ocorre no dia seguinte. |
 | Data — Procedimento/Atendimento | Calendário e data selecionada | A data é obrigatória. Horário e duração ficam opcionais atrás de `+ Adicionar horário`. |
 | Valor e previsão | Valor do trabalho (centralizado) e estado da previsão | A previsão sempre termina em um estado conhecido: data definida ou `Ainda não sei quando entra`. Atalhos de 30, 60 e 90 dias mostram a data calculada a partir do trabalho. Data de hoje ou passada mostra "já passou" e pergunta **Você já recebeu esse valor?** (Ainda não / Já recebi), que começa em Ainda não (D77). |
-| Conclusão | Total por mês de entrada e cards somente dos itens cadastrados | O destaque é o mês mais próximo com entrada prevista ("Previsto para outubro"). Outros meses, Recebido e Aguardando confirmação ficam em linhas separadas e nunca somam ao destaque; sem previsão fica fora dos totais (D77). `Ir para o início` leva à Home. A tela não exibe campos ou linhas ausentes. |
+| Conclusão | Primeira visão "Sua DOKH está pronta, {nome}." (7.7): entradas agrupadas por mês de entrada, próximo trabalho ou trabalho realizado, ordem pelo foco, CTA "Ver minha DOKH". Total por mês de entrada e cards somente dos itens cadastrados | O destaque é o mês mais próximo com entrada prevista ("Previsto para outubro"). Outros meses, Recebido e Aguardando confirmação ficam em linhas separadas e nunca somam ao destaque; sem previsão fica fora dos totais (D77). `Ir para o início` leva à Home. A tela não exibe campos ou linhas ausentes. |
 
 ## Informações e regras obrigatórias
 

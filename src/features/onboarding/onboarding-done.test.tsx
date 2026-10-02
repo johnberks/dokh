@@ -51,6 +51,9 @@ const shift = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockedComplete.mockResolvedValue(undefined);
+  useProfileDraft.getState().reset();
+  useWorkDraft.getState().reset();
+  useGuideTour.getState().finish();
 });
 
 /** Espera o resumo e a marcação de conclusão assentarem antes das asserções. */
@@ -62,51 +65,75 @@ async function renderDone(workId: string | null = 'work-1') {
   return result;
 }
 
-describe('conclusão dinâmica (TELA 10)', () => {
-  it('bolsa e plantão que entram no mesmo mês: total do mês e data de entrada', async () => {
+describe('primeira visão (TELA 10, Onboarding v2 · Entrega 4)', () => {
+  it('"Sua DOKH está pronta, João." com o nome do rascunho', async () => {
+    useProfileDraft.setState({ displayName: 'João' });
+    mockedRead.mockResolvedValue({ residency, work: shift });
+    await renderDone();
+    expect(screen.getByLabelText('Sua DOKH está pronta, João.')).toBeTruthy();
+    expect(screen.getByText('2 itens organizados')).toBeTruthy();
+    expect(screen.getByText('Ver minha DOKH')).toBeTruthy();
+  });
+
+  it('bolsa e plantão do mesmo mês: o mês em destaque soma os dois e lista as peças', async () => {
     mockedRead.mockResolvedValue({ residency, work: shift });
     await renderDone();
     expect(screen.getByText('PREVISTO PARA OUTUBRO')).toBeTruthy();
     expect(screen.getByText(/4\.854,42/)).toBeTruthy();
-    expect(screen.getByText('2 itens organizados')).toBeTruthy();
-    expect(screen.getByTestId('onboarding-done-residency')).toBeTruthy();
-    expect(screen.getByText('todo dia 05')).toBeTruthy();
-    expect(screen.getByText('12 SET · 19:00 · 12h')).toBeTruthy();
+    expect(screen.getAllByTestId('onboarding-done-row')).toHaveLength(2);
+    expect(screen.getByText('Residência')).toBeTruthy();
+    expect(screen.getByText('05 OUT')).toBeTruthy();
     expect(screen.getByText('20 OUT')).toBeTruthy();
   });
 
-  it('plantão de outro mês aparece em linha própria, nunca somado à bolsa', async () => {
+  it('plantão de outro mês fica no mês dele, nunca somado à bolsa', async () => {
     mockedRead.mockResolvedValue({ residency, work: { ...shift, expectedOn: `${year}-11-11` } });
     await renderDone();
     expect(screen.getByText('PREVISTO PARA OUTUBRO')).toBeTruthy();
-    // Destaque (outubro) e card da bolsa mostram o mesmo valor; novembro fica à parte.
-    expect(screen.getAllByText(/3\.654,42/)).toHaveLength(2);
-    expect(screen.getByText('Previsto para Novembro')).toBeTruthy();
+    expect(screen.getByTestId(`onboarding-done-group-${year}-11`)).toBeTruthy();
+    expect(screen.getByText('Novembro')).toBeTruthy();
     expect(screen.queryByText(/4\.854,42/)).toBeNull();
   });
 
-  it('trabalho do passado: "Já recebi" vira recebido; sem confirmação, aguardando', async () => {
-    mockedRead.mockResolvedValue({ residency: null, work: { ...shift, receipt: 'received' } });
+  it('trabalho futuro aparece como próximo; o passado, como realizado', async () => {
+    mockedRead.mockResolvedValue({
+      residency: null,
+      work: { ...shift, workDate: `${year + 1}-01-12` },
+    });
     await renderDone();
-    expect(screen.getByText('RECEBIDO')).toBeTruthy();
-    expect(screen.getByText('Recebido')).toBeTruthy();
+    expect(screen.getByText('PRÓXIMO TRABALHO')).toBeTruthy();
+    expect(screen.getByTestId('onboarding-done-next-work')).toBeTruthy();
 
-    mockedRead.mockResolvedValue({ residency: null, work: { ...shift, receipt: 'pending' } });
+    mockedRead.mockResolvedValue({
+      residency: null,
+      work: { ...shift, workDate: `${year - 1}-09-12`, receipt: 'received' },
+    });
     await renderDone('work-2');
-    expect(screen.getAllByText('AGUARDANDO CONFIRMAÇÃO').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Aguardando confirmação').length).toBeGreaterThan(0);
+    expect(screen.getByText('TRABALHO REALIZADO')).toBeTruthy();
+    expect(screen.getAllByText('RECEBIDO').length).toBeGreaterThan(0);
   });
 
-  it('residente que concluiu sem trabalho vê só a residência', async () => {
+  it('pendente fica em "Aguardando confirmação", fora do previsto', async () => {
+    mockedRead.mockResolvedValue({ residency, work: { ...shift, receipt: 'pending' } });
+    await renderDone();
+    expect(screen.getByText('PREVISTO PARA OUTUBRO')).toBeTruthy();
+    // Destaque e linha da bolsa mostram o mesmo valor; o pendente não entra na soma.
+    expect(screen.getAllByText(/3\.654,42/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/4\.854,42/)).toBeNull();
+    expect(screen.getByTestId('onboarding-done-group-pending')).toBeTruthy();
+  });
+
+  it('residente que concluiu sem trabalho vê só a residência, sem bloco de trabalho', async () => {
     mockedRead.mockResolvedValue({ residency, work: null });
     await renderDone(null);
     expect(mockedRead).toHaveBeenCalledWith('user-1', null, expect.any(String));
-    expect(screen.getByTestId('onboarding-done-residency')).toBeTruthy();
-    expect(screen.queryByTestId('onboarding-done-work')).toBeNull();
+    expect(screen.getByText('Residência')).toBeTruthy();
+    expect(screen.queryByText('PRÓXIMO TRABALHO')).toBeNull();
+    expect(screen.queryByText('TRABALHO REALIZADO')).toBeNull();
     expect(screen.getByText('1 item organizado')).toBeTruthy();
   });
 
-  it('sem residência, sem horário e sem previsão: só o trabalho, sem placeholders', async () => {
+  it('sem previsão: "Entrada a definir", sem placeholders de horário', async () => {
     mockedRead.mockResolvedValue({
       residency: null,
       work: {
@@ -119,19 +146,29 @@ describe('conclusão dinâmica (TELA 10)', () => {
       },
     });
     await renderDone();
-    expect(screen.queryByTestId('onboarding-done-residency')).toBeNull();
     expect(screen.getByText('SEM PREVISÃO DE ENTRADA')).toBeTruthy();
-    expect(screen.getByText('1 item organizado')).toBeTruthy();
+    expect(screen.getByText('Entrada a definir')).toBeTruthy();
     expect(screen.getByText('PROCEDIMENTO')).toBeTruthy();
     expect(screen.getByTestId('onboarding-done-work-meta').props.children).toBe('12 SET');
-    expect(screen.getByText('Sem previsão de entrada')).toBeTruthy();
-    expect(screen.queryByTestId('onboarding-done-expected')).toBeNull();
   });
 
-  it('marca o onboarding ao abrir e só vai para o início pelo botão', async () => {
+  it('a ordem dos blocos segue o foco: Trabalhos começa pelo trabalho', async () => {
+    useProfileDraft.setState({ focus: 'work' });
+    mockedRead.mockResolvedValue({
+      residency: null,
+      work: { ...shift, workDate: `${year + 1}-01-12` },
+    });
+    await renderDone();
+    const order = screen
+      .getAllByText(/PRÓXIMO TRABALHO|PREVISTO PARA/)
+      .map((node) => String(node.props.children));
+    expect(order[0]).toBe('PRÓXIMO TRABALHO');
+  });
+
+  it('marca o onboarding ao abrir; "Ver minha DOKH" inicia o guia pelo foco', async () => {
     mockedRead.mockResolvedValue({ residency: null, work: shift });
     useWorkDraft.setState({ locationName: 'Hospital São Lucas' });
-    useProfileDraft.setState({ displayName: 'Anna' });
+    useProfileDraft.setState({ displayName: 'Anna', focus: 'receivables' });
     const { queryClient } = await renderDone();
     expect(mockedComplete).toHaveBeenCalledTimes(1);
     expect(mockedReplace).not.toHaveBeenCalled();
@@ -140,8 +177,9 @@ describe('conclusão dinâmica (TELA 10)', () => {
       await fireEvent.press(screen.getByTestId('onboarding-done-cta'));
     });
     await waitFor(() => expect(mockedReplace).toHaveBeenCalledWith('/'));
-    // Conta nova: o guia de primeiro uso começa na Início.
     expect(useGuideTour.getState().step).toBe(0);
+    // Recebimentos: o guia começa em Finanças.
+    expect(useGuideTour.getState().steps[0].tab).toBe('finances');
     expect(queryClient.getQueryData(onboardingStatusKey('user-1'))).toBe(true);
     expect(mockedComplete).toHaveBeenCalledTimes(1);
     // Rascunhos não sobrevivem ao onboarding.
@@ -154,7 +192,6 @@ describe('conclusão dinâmica (TELA 10)', () => {
     mockedComplete.mockRejectedValueOnce(new Error('network'));
     await renderDone();
     expect(await screen.findByTestId('onboarding-done-complete-error')).toBeTruthy();
-
     await act(async () => {
       await fireEvent.press(screen.getByTestId('onboarding-done-cta'));
     });
@@ -166,11 +203,10 @@ describe('conclusão dinâmica (TELA 10)', () => {
     mockedRead.mockRejectedValueOnce(new Error('network'));
     await renderDone();
     expect(screen.getByText('Não foi possível carregar o resumo agora.')).toBeTruthy();
-
     mockedRead.mockResolvedValue({ residency: null, work: shift });
     await act(async () => {
       await fireEvent.press(screen.getByTestId('onboarding-done-retry'));
     });
-    expect(await screen.findByTestId('onboarding-done-work')).toBeTruthy();
+    expect(await screen.findByTestId('onboarding-done-entries')).toBeTruthy();
   });
 });

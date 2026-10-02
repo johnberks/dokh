@@ -110,6 +110,35 @@ export async function readOnboardingSummary(
   };
 }
 
+export type UpcomingEntry = { expectedOn: string; amountCents: bigint };
+
+/**
+ * Próximas entradas reais da bolsa (7.7, payoff parcial do residente): os Recebíveis que a
+ * residência já gerou, a partir de hoje. Nada é calculado no aparelho.
+ */
+export async function readResidencyNextEntries(
+  userId: string,
+  today: string,
+  limit = 3,
+  client: AuthClient = supabase,
+): Promise<UpcomingEntry[]> {
+  const { data, error } = await client
+    .from('receivable_projection')
+    .select('expected_on, amount_cents')
+    .eq('user_id', userId)
+    .not('residency_id', 'is', null)
+    .is('invalidated_at', null)
+    .gte('expected_on', today)
+    .order('expected_on', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).flatMap((row) =>
+    row.expected_on && row.amount_cents != null
+      ? [{ expectedOn: row.expected_on, amountCents: BigInt(row.amount_cents) }]
+      : [],
+  );
+}
+
 export type SummaryTotals = {
   /** Previsto por mês de entrada (caixa), do mais próximo ao mais distante. `YYYY-MM`. */
   months: { month: string; totalCents: bigint }[];
@@ -149,6 +178,65 @@ export function summaryTotals(summary: OnboardingSummary): SummaryTotals {
     receivedCents,
     count: (residency ? 1 : 0) + (work ? 1 : 0),
   };
+}
+
+export type FirstViewRow = {
+  source: 'residency' | 'work';
+  /** Data da entrada; `null` só quando o trabalho está "sem previsão". */
+  date: string | null;
+  amountCents: bigint;
+};
+
+export type FirstViewGroup =
+  | { kind: 'month'; month: string; totalCents: bigint; rows: FirstViewRow[] }
+  | { kind: 'received' | 'pending' | 'undated'; totalCents: bigint; rows: FirstViewRow[] };
+
+/**
+ * A primeira visão (7.7): cada entrada vai para o mês em que deve entrar (caixa), do mais
+ * próximo ao mais distante; recebido, aguardando confirmação e sem previsão ficam em grupos
+ * próprios e nunca somam ao previsto. Só aparece o que foi cadastrado.
+ */
+export function firstViewGroups(summary: OnboardingSummary): FirstViewGroup[] {
+  const months = new Map<string, FirstViewRow[]>();
+  const add = (row: FirstViewRow & { date: string }) => {
+    const month = row.date.slice(0, 7);
+    months.set(month, [...(months.get(month) ?? []), row]);
+  };
+  const special: Record<'received' | 'pending' | 'undated', FirstViewRow[]> = {
+    received: [],
+    pending: [],
+    undated: [],
+  };
+
+  const { residency, work } = summary;
+  if (residency?.nextExpectedOn) {
+    add({
+      source: 'residency',
+      date: residency.nextExpectedOn,
+      amountCents: residency.monthlyAmountCents,
+    });
+  }
+  if (work) {
+    const row = { source: 'work' as const, date: work.expectedOn, amountCents: work.amountCents };
+    if (work.receipt === 'scheduled' && work.expectedOn) add({ ...row, date: work.expectedOn });
+    else if (work.receipt === 'received') special.received.push(row);
+    else if (work.receipt === 'pending') special.pending.push(row);
+    else special.undated.push(row);
+  }
+
+  const sum = (rows: FirstViewRow[]) => rows.reduce((total, row) => total + row.amountCents, 0n);
+  const monthGroups: FirstViewGroup[] = [...months.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, rows]) => ({
+      kind: 'month',
+      month,
+      totalCents: sum(rows),
+      rows: [...rows].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? '')),
+    }));
+  const specialGroups = (['pending', 'received', 'undated'] as const)
+    .filter((kind) => special[kind].length > 0)
+    .map((kind) => ({ kind, totalCents: sum(special[kind]), rows: special[kind] }));
+  return [...monthGroups, ...specialGroups];
 }
 
 const MONTH_NAMES = [

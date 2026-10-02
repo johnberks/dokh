@@ -15,6 +15,7 @@ import { OnboardingCta } from '../OnboardingCta';
 import { FIELD_HELPER_SPACE } from '../OnboardingField';
 import { OnboardingHeader } from '../OnboardingHeader';
 import { useProfileDraft } from '../profile-draft';
+import { ResidencyPiece } from '../ResidencyPiece';
 import { useSaveProfile } from '../use-save-profile';
 
 const QUICK_DAYS = [1, 5, 10, 15, 20] as const;
@@ -73,12 +74,12 @@ export function ResidencyIncomeScreen() {
         }
       >
         <View style={styles.heading}>
-          <View style={styles.badge}>
-            <View style={styles.badgeDot} />
-            <AppText variant="technical" style={styles.badgeLabel}>
-              {t('profile.income.badge', { specialty: specialty.toUpperCase() })}
-            </AppText>
-          </View>
+          {/* A peça da residência se monta enquanto a pessoa responde (7.7). */}
+          <ResidencyPiece
+            specialty={specialty}
+            monthlyAmount={monthlyAmount}
+            paymentDay={paymentDay}
+          />
           <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
             {t('profile.income.title')}
           </AppText>
@@ -207,11 +208,14 @@ export function ResidencyIncomeScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  heading: { marginTop: 28, marginHorizontal: 32, gap: 10 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  badgeDot: { width: 7, height: 7, backgroundColor: palette.workSage },
-  badgeLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  title: { fontSize: 26, lineHeight: 29, letterSpacing: -0.78, color: colors.textPrimary },
+  heading: { marginTop: 18, marginHorizontal: 24, gap: 18 },
+  title: {
+    marginHorizontal: 8,
+    fontSize: 22,
+    lineHeight: 26,
+    letterSpacing: -0.55,
+    color: colors.textPrimary,
+  },
   // Rola só quando não cabe (teclado aberto ou tela pequena); valores sempre centralizados.
   body: { marginTop: 24, paddingHorizontal: 32, paddingBottom: 12, gap: 24 },
   block: { gap: 10 },

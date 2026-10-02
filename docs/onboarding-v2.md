@@ -1,6 +1,6 @@
 # Onboarding v2: proposta narrativa (7.7)
 
-> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entregas 1 e 2 implementadas** (ver §9 e §10). As entregas 3 e 4 ainda estão por fazer. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
+> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entregas 1 a 4 implementadas** (ver §9 a §12). Falta só a validação final no iPhone. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
 
 Princípio: **Ask → Apply → Show value**. Cada pergunta precisa produzir uma consequência visível.
 
@@ -335,3 +335,34 @@ O usuário pediu uma abertura "mais interativa e fluida, nada de clicar no botã
 - **Concluído:** o trilho vira "Configurar minha DOKH".
 - **Leitor de tela:** trilho `adjustable` com ação que organiza. **Reduzir movimento:** estado final direto.
 - **Sem vibração:** `expo-haptics` exigiria outro build nativo; fica para quando houver um.
+
+## 11. Entrega 3: o que foi feito (2026-10-02)
+
+- **Primeiro trabalho numa rota só** (`src/features/work/first-work/`):
+  - `FirstWorkFlow` leva de tipo → local → data → valor → entrada (`FirstWorkSteps`);
+  - as rotas `work-place`, `work-when` e `work-amount` e as telas antigas foram removidas;
+  - voltar (botão ou gesto do Android) retorna à etapa anterior sem perder nada;
+  - o gesto de voltar do iOS só sai do fluxo na primeira etapa (`gestureEnabled`).
+- **A peça** (`WorkPiece`) fica fixa no topo, e as etapas trocam abaixo dela com fade:
+  - cada resposta preenche um encaixe — tipo (chip bronze), local (ao digitar), data e horário, valor (ao digitar) e entrada;
+  - o que falta aparece tracejado;
+  - a entrada mostra "Entrada prevista · 11 NOV", "Recebido · 11 SET", "Aguardando confirmação · 11 SET" ou "Entrada a definir".
+- **Valor e entrada separados.** A etapa de entrada mostra a ligação `12 OUT → +30 dias → 11 NOV` (`MoneyLink`), que muda na hora a cada escolha, mais os prazos com data, "Outra data", "Ainda não sei" e "Já recebi" quando a data passou.
+- **Bolsa:** a peça da residência (`ResidencyPiece`) se monta ao vivo, com o programa, o valor enquanto se digita e "todo dia X".
+- **Tela 12 reescrita:**
+  - **Residente**: "Sua DOKH está começando a tomar forma." — peça da residência, próximas 3 entradas **reais** da bolsa (`readResidencyNextEntries`) descendo por uma linha bronze e "Você também faz plantões…?" com **Adicionar um trabalho** / **Ainda não**.
+  - **Generalista/Especialista**: ponte "Vamos adicionar um trabalho para montar sua primeira visão." — a peça vazia com os encaixes, texto pelo foco e "Pode ser um trabalho que você já fez ou que ainda vai fazer."
+- **Progresso:** 13 passos (a entrada virou etapa própria).
+- **Sem dependência nativa nova:** testa no build de desenvolvimento atual, sem novo build no EAS.
+
+## 12. Entrega 4: o que foi feito (2026-10-02)
+
+- **Primeira visão** (`OnboardingDoneScreen`): "Sua DOKH está pronta, João."
+  - `firstViewGroups` coloca cada entrada no mês em que deve entrar (caixa).
+  - O mês mais próximo fica em destaque, com o número contando até o total. Os outros meses aparecem abaixo, com total próprio.
+  - Recebido, Aguardando confirmação e Sem previsão ficam em grupos próprios, nunca somados ao previsto.
+  - Cada linha é uma peça creme que se encaixa (data em bronze, origem, valor), em cascata.
+- **Trabalho:** "PRÓXIMO TRABALHO" só para trabalho futuro; o passado aparece como "TRABALHO REALIZADO". O residente que concluiu sem trabalho não vê o bloco.
+- **Ordem pelo foco:** Trabalhos começa pelo trabalho; Recebimentos e Ganhos, pelas entradas.
+- **CTA "Ver minha DOKH",** sem confete e sem oferta de Premium (D-3).
+- **Guia pelo foco:** `tourStepsFor` mantém as mesmas etapas e começa pela seção do foco (Agenda, Finanças ou Início). O overlay usa as etapas do estado, e a aba Início também acende na passagem.
