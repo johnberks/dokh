@@ -229,6 +229,18 @@ export const onboarding = {
   },
   /** TELA 10: conclusão dinâmica, com o que foi de fato gravado. */
   done: {
+    /** 7.7 · Entrega 4: a primeira visão, resolução da história. */
+    titleNamed: 'Sua DOKH está pronta, {{name}}.',
+    titleAnonymous: 'Sua DOKH está pronta.',
+    viewCta: 'Ver minha DOKH',
+    groupMonth: '{{month}}',
+    groupReceived: 'Recebido',
+    groupPending: 'Aguardando confirmação',
+    groupUndated: 'Sem previsão de entrada',
+    rowResidency: 'Residência',
+    rowUndated: 'Entrada a definir',
+    nextWork: 'PRÓXIMO TRABALHO',
+    doneWork: 'TRABALHO REALIZADO',
     /** 7.7: totais por mês de entrada (caixa); recebido e pendente nunca se somam ao previsto. */
     totalMonth: 'PREVISTO PARA {{month}}',
     totalReceived: 'RECEBIDO',

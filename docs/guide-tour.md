@@ -17,4 +17,9 @@ Pedido do usuário: um tour bem simples quando a pessoa cria uma conta, com opç
 - **Estado:** fica em memória (`useGuideTour`, zustand). Nada é gravado (D20), e fechar o app no meio encerra o tour.
 - **Alvos:** `useTourTarget(id)` dá o `ref`/`onLayout` do elemento e mede na janela 750 ms depois do passo ficar ativo, o tempo da troca de aba e da cascata. Se o alvo não existir, o balão aparece centralizado, sem recorte.
 - **Overlay:** `GuideTourOverlay` fica no layout das abas. Véu escuro em quatro faixas deixa o alvo aceso, com um anel creme. O balão fica embaixo do alvo ou em cima, se não couber. A tela troca de aba sozinha.
+- **Ordem pelo foco (7.7, `tourStepsFor`):** as seis etapas são sempre as mesmas, mas o guia começa pela seção do foco escolhido no onboarding:
+  - Meus trabalhos → Agenda, Início, Finanças;
+  - Meus recebimentos → Finanças, Início, Agenda;
+  - Meus ganhos ou sem foco → Início, Agenda, Finanças (a ordem original).
+  - A passagem de volta ao Início também acende a aba ("Ir para Início").
 - **Saída:** "Pular" encerra na hora, em qualquer passo. "Concluir" (último passo) volta ao Início.

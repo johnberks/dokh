@@ -3,17 +3,23 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-02 · Claude Code · **7.7 Entrega 3** no branch `codex/7.7-entrega-3` (Entregas 1 e 2 já na `main`: #63, #64). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §11.
+Última atualização: 2026-10-02 · Claude Code · **7.7 Entregas 3 e 4** no branch `codex/7.7-entrega-3` (PR #65). As Entregas 1 e 2 já estão na `main` (#63, #64). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §11 e §12.
 
-- **Escopo:**
+- **Entrega 3:**
   - primeiro trabalho numa rota só, com a peça fixa no topo;
   - valor e entrada separados, com a ligação trabalho → dinheiro;
   - peça da residência ao vivo;
-  - tela 12 como payoff parcial do residente (entradas reais) ou ponte com a peça vazia.
-- **Sem dependência nativa nova:** o usuário pediu teste local, sem build no EAS.
-- **Verificação:** Jest 73/526, typecheck, Biome, `check:db-types` e expo-doctor passaram.
-- **Pendências de banco:** as migrations `20261001000000` e `20261001010000` precisam ir para preview e produção antes do próximo build remoto.
-- **Próxima:** Entrega 4 (primeira visão + guia por foco).
+  - tela 12 como payoff do residente ou ponte.
+- **Entrega 4:**
+  - primeira visão "Sua DOKH está pronta, João." por mês de entrada (caixa);
+  - próximo trabalho ou trabalho realizado;
+  - ordem pelo foco e guia de primeiro uso começando pela seção do foco.
+- **Teste local, sem build no EAS** (pedido do usuário): não há dependência nativa nova.
+- **Verificação:** Jest 73/532, typecheck, Biome e expo-doctor passaram.
+- **Pendente:**
+  - validação no iPhone;
+  - migrations 7.7 (`20261001000000`, `20261001010000`) em preview e produção antes do próximo build remoto;
+  - marcar a 7.7 no `build-plan.md` só após a validação.
 
 Anterior (2026-10-01) · **7.7 Entrega 2** no branch `codex/7.7-entrega-2`, empilhado sobre a Entrega 1 (#63). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §10.
 

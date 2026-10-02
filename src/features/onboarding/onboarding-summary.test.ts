@@ -1,6 +1,7 @@
 import type { AuthClient } from '@/features/auth/session';
 import {
   completeOnboarding,
+  firstViewGroups,
   formatDuration,
   formatShortDate,
   monthLabel,
@@ -178,6 +179,38 @@ describe('resumo do onboarding', () => {
     ]);
     expect(chain.gte).toHaveBeenCalledWith('expected_on', '2026-10-01');
     expect(limit).toHaveBeenCalledWith(3);
+  });
+
+  it('primeira visão: cada entrada no mês em que entra; status em grupos próprios', () => {
+    const later = { ...shift, expectedOn: '2026-11-11' };
+    expect(firstViewGroups({ residency, work: later })).toEqual([
+      {
+        kind: 'month',
+        month: '2026-10',
+        totalCents: 365442n,
+        rows: [{ source: 'residency', date: '2026-10-05', amountCents: 365442n }],
+      },
+      {
+        kind: 'month',
+        month: '2026-11',
+        totalCents: 120000n,
+        rows: [{ source: 'work', date: '2026-11-11', amountCents: 120000n }],
+      },
+    ]);
+    const pending = firstViewGroups({ residency, work: { ...shift, receipt: 'pending' } });
+    expect(pending.map((group) => group.kind)).toEqual(['month', 'pending']);
+    expect(pending[0].totalCents).toBe(365442n);
+    const undated = firstViewGroups({
+      residency: null,
+      work: { ...shift, expectedOn: null, receipt: 'undated' },
+    });
+    expect(undated).toEqual([
+      {
+        kind: 'undated',
+        totalCents: 120000n,
+        rows: [{ source: 'work', date: null, amountCents: 120000n }],
+      },
+    ]);
   });
 
   it('nome do mês só ganha ano fora do ano de referência', () => {
