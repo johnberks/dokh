@@ -4,20 +4,21 @@ import { onboardingStatusKey } from '@/features/auth/onboarding-status';
 import {
   currentMonthStart,
   deviceTimezone,
+  type OnboardingFocus,
   type OnboardingProfileInput,
   saveOnboardingProfile,
 } from './profile-data';
 
-type SaveInput =
-  | { displayName: string; status: 'general_practitioner' }
-  | { displayName: string; status: 'specialist'; specialty: string }
+type SaveInput = { displayName: string; focus: OnboardingFocus | null } & (
+  | { status: 'general_practitioner' }
+  | { status: 'specialist'; specialty: string }
   | {
-      displayName: string;
       status: 'resident';
       specialty: string;
       monthlyAmountCents: bigint;
       paymentDay: number;
-    };
+    }
+);
 
 /**
  * Grava o perfil do onboarding. Sem retry automático (D21) e sem atualização otimista:

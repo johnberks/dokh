@@ -493,7 +493,8 @@ export const onboardingProfileMetrics = {
   ctaHeight: 56,
   ctaRadius: 16,
   /** O onboarding completo tem 11 passos; as porcentagens do HTML seguem essa escala. */
-  totalSteps: 11,
+  /** 12 com a pergunta de foco (Onboarding v2, 7.7). */
+  totalSteps: 12,
 } as const;
 
 /** Tela 04 (Criar conta): cartões flutuantes em três camadas de profundidade. */
@@ -660,6 +661,10 @@ export const motion = {
   reveal: 460,
   /** Intervalo entre itens (e entre palavras de um título) na cascata. */
   revealStagger: 80,
+  /** Abertura do onboarding (7.7): peças entram, chips encaixam, peças se alinham. */
+  storyEnter: 520,
+  storyChips: 420,
+  storyAlign: 560,
   /** Guia de primeiro uso: a Início aparece sozinha antes do primeiro passo. */
   guideStartDelay: 3000,
   /** Véu do guia entra devagar; o balão vem logo depois, também sem pressa. */

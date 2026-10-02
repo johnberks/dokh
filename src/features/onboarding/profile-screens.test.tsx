@@ -59,7 +59,7 @@ describe('nome (tela 07)', () => {
       await fireEvent.changeText(screen.getByTestId('name-input'), 'Anna');
       await fireEvent.press(screen.getByTestId('name-cta'));
     });
-    expect(mockedPush).toHaveBeenCalledWith('/professional-status');
+    expect(mockedPush).toHaveBeenCalledWith('/focus');
   });
 
   it('exige um nome e guarda sem espaços em volta', async () => {
@@ -75,7 +75,7 @@ describe('nome (tela 07)', () => {
       await fireEvent.press(screen.getByTestId('name-cta'));
     });
     expect(useProfileDraft.getState().displayName).toBe('Anna');
-    expect(mockedPush).toHaveBeenCalledWith('/professional-status');
+    expect(mockedPush).toHaveBeenCalledWith('/focus');
   });
 });
 
@@ -84,6 +84,18 @@ describe('situação profissional (tela 09)', () => {
     await renderWithProviders(<ProfessionalStatusScreen />);
     const labels = screen.getAllByRole('radio').map((radio) => radio.props.accessibilityLabel);
     expect(labels).toEqual(['Generalista', 'Em residência', 'Especialista']);
+  });
+
+  it('tocar na busca já mostra as mais procuradas, sem tela vazia', async () => {
+    useProfileDraft.setState({ status: 'specialist', specialty: '' });
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    await act(async () => {
+      await fireEvent(screen.getByTestId('status-input'), 'focus');
+    });
+    expect(screen.getByText('MAIS PROCURADAS')).toBeTruthy();
+    expect(screen.getByTestId('status-option-Clínica médica')).toBeTruthy();
+    // "Outra" só faz sentido com um nome digitado.
+    expect(screen.queryByTestId('status-option-other')).toBeNull();
   });
 
   it('ao digitar, a busca assume a tela: título, opções e botão saem da frente', async () => {
@@ -99,6 +111,10 @@ describe('situação profissional (tela 09)', () => {
     expect(screen.queryByTestId('status-general_practitioner')).toBeNull();
     expect(screen.queryByTestId('status-cta')).toBeNull();
     expect(screen.getByTestId('status-suggestions')).toBeTruthy();
+    // Título e campo fixos no topo; só a lista rola (pedido do usuário, 2026-10-02).
+    expect(screen.getByRole('header', { name: 'Qual é a sua especialidade?' })).toBeTruthy();
+    expect(screen.getByTestId('status-suggestions-scroll')).toBeTruthy();
+    expect(screen.getByTestId('status-scroll').props.scrollEnabled).toBe(false);
 
     await act(async () => {
       await fireEvent(screen.getByTestId('status-input'), 'blur');
@@ -217,7 +233,7 @@ describe('situação profissional (tela 09)', () => {
   });
 
   it('Especialista exige a especialidade e grava sem bolsa', async () => {
-    useProfileDraft.setState({ displayName: 'Anna' });
+    useProfileDraft.setState({ displayName: 'Anna', focus: 'receivables' });
     await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
       await fireEvent.press(screen.getByTestId('status-specialist'));
@@ -237,6 +253,8 @@ describe('situação profissional (tela 09)', () => {
     });
     expect(mockedSave).toHaveBeenCalledWith('user-1', {
       displayName: 'Anna',
+      // O foco escolhido na tela anterior vai junto com a situação (7.7).
+      focus: 'receivables',
       status: 'specialist',
       specialty: 'Cardiologia',
       timezone: expect.any(String),

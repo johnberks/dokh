@@ -168,7 +168,7 @@ describe('rotas', () => {
     const router = await openAt('/finances');
     expect(screen.getByTestId('onboarding-intro')).toBeTruthy();
     expect(
-      screen.getByRole('header', { name: 'Vamos deixar a DOKH mais com a sua cara.' }),
+      screen.getByRole('header', { name: 'Seu trabalho acontece em vários lugares.' }),
     ).toBeTruthy();
     await waitFor(() => expect(router.getPathname()).toBe('/welcome'));
   });

@@ -21,6 +21,12 @@ type Props = Omit<TextInputProps, 'style' | 'accessibilityLabel'> & {
 export function OnboardingField({ label, helper, error = false, testID, ...input }: Props) {
   const type = useBrandTypography();
   const ref = useRef<TextInput>(null);
+  // Campo de uma linha no iOS corta as letras se receber `lineHeight` (o `heading1` traz 38):
+  // só a família e o peso vêm da tipografia, como no login (AuthField).
+  const inputTypography = {
+    fontFamily: type.heading1.fontFamily,
+    fontWeight: type.heading1.fontWeight,
+  };
 
   return (
     <View style={styles.block}>
@@ -38,7 +44,7 @@ export function OnboardingField({ label, helper, error = false, testID, ...input
           ref={ref}
           accessibilityLabel={label}
           selectionColor={palette.bronze}
-          style={[type.heading1, styles.input]}
+          style={[inputTypography, styles.input]}
           testID={testID}
         />
       </Pressable>

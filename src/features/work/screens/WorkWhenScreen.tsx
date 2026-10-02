@@ -61,7 +61,7 @@ export function WorkWhenScreen() {
       testID="first-work-when"
     >
       <StatusBar style="dark" />
-      <OnboardingHeader step={6} onBack={() => router.back()} testID="work-when-header" />
+      <OnboardingHeader step={7} onBack={() => router.back()} testID="work-when-header" />
 
       <View style={styles.heading}>
         {workType && <WorkTypeChip type={workType} />}

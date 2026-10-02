@@ -180,6 +180,7 @@ export type Database = {
           id: string;
           locale: string;
           onboarding_completed_at: string | null;
+          onboarding_focus: Database['public']['Enums']['onboarding_focus'] | null;
           professional_status: Database['public']['Enums']['professional_status'];
           specialty: string | null;
           timezone: string;
@@ -196,6 +197,7 @@ export type Database = {
           id: string;
           locale?: string;
           onboarding_completed_at?: string | null;
+          onboarding_focus?: Database['public']['Enums']['onboarding_focus'] | null;
           professional_status: Database['public']['Enums']['professional_status'];
           specialty?: string | null;
           timezone: string;
@@ -212,6 +214,7 @@ export type Database = {
           id?: string;
           locale?: string;
           onboarding_completed_at?: string | null;
+          onboarding_focus?: Database['public']['Enums']['onboarding_focus'] | null;
           professional_status?: Database['public']['Enums']['professional_status'];
           specialty?: string | null;
           timezone?: string;
@@ -870,6 +873,7 @@ export type Database = {
         | 'failed'
         | 'empty'
         | 'cancelled';
+      onboarding_focus: 'work' | 'receivables' | 'earnings';
       professional_status: 'general_practitioner' | 'resident' | 'specialist';
       subscription_environment: 'sandbox' | 'production';
       subscription_store: 'app_store' | 'play_store';
@@ -1005,6 +1009,7 @@ export const Constants = {
       device_platform: ['ios', 'android'],
       import_source: ['plantaozinho', 'csv', 'compatible_file'],
       import_status: ['uploaded', 'parsing', 'ready', 'confirmed', 'failed', 'empty', 'cancelled'],
+      onboarding_focus: ['work', 'receivables', 'earnings'],
       professional_status: ['general_practitioner', 'resident', 'specialist'],
       subscription_environment: ['sandbox', 'production'],
       subscription_store: ['app_store', 'play_store'],

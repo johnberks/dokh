@@ -33,7 +33,7 @@ export function ResidencyIncomeScreen() {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
-  const { displayName, specialty, monthlyAmount, paymentDay, update } = useProfileDraft();
+  const { displayName, focus, specialty, monthlyAmount, paymentDay, update } = useProfileDraft();
   const [touched, setTouched] = useState(false);
   const [showAllDays, setShowAllDays] = useState(false);
   const save = useSaveProfile();
@@ -48,6 +48,7 @@ export function ResidencyIncomeScreen() {
     save.mutate(
       {
         displayName,
+        focus,
         status: 'resident',
         specialty,
         monthlyAmountCents: cents,
@@ -60,7 +61,7 @@ export function ResidencyIncomeScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]} testID="onboarding-residency-income">
       <StatusBar style="dark" />
-      <OnboardingHeader step={3} onBack={() => router.back()} testID="income-header" />
+      <OnboardingHeader step={4} onBack={() => router.back()} testID="income-header" />
       <KeyboardScreen
         bottomInset={Math.max(insets.bottom, 24) + 20}
         // A dica do valor fica visível logo abaixo dele enquanto se digita.

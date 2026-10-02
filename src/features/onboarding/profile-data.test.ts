@@ -15,13 +15,19 @@ describe('gravação do perfil do onboarding', () => {
     const { client, upsert, rpc } = fakeClient();
     await saveOnboardingProfile(
       'user-1',
-      { displayName: '  Anna  ', timezone: 'America/Sao_Paulo', status: 'general_practitioner' },
+      {
+        displayName: '  Anna  ',
+        focus: 'work',
+        timezone: 'America/Sao_Paulo',
+        status: 'general_practitioner',
+      },
       client,
     );
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'user-1',
         display_name: 'Anna',
+        onboarding_focus: 'work',
         professional_status: 'general_practitioner',
         specialty: null,
         timezone: 'America/Sao_Paulo',
@@ -37,6 +43,7 @@ describe('gravação do perfil do onboarding', () => {
       'user-2',
       {
         displayName: 'Anna',
+        focus: 'receivables',
         timezone: 'America/Sao_Paulo',
         status: 'resident',
         specialty: 'Cardiologia',
@@ -67,6 +74,7 @@ describe('gravação do perfil do onboarding', () => {
       'user-5',
       {
         displayName: 'Anna',
+        focus: 'receivables',
         timezone: 'America/Sao_Paulo',
         status: 'specialist',
         specialty: ' Cardiologia ',
@@ -84,7 +92,12 @@ describe('gravação do perfil do onboarding', () => {
     const { client, upsert } = fakeClient();
     await saveOnboardingProfile(
       'user-3',
-      { displayName: 'Anna', timezone: 'America/Sao_Paulo', status: 'general_practitioner' },
+      {
+        displayName: 'Anna',
+        focus: null,
+        timezone: 'America/Sao_Paulo',
+        status: 'general_practitioner',
+      },
       client,
     );
     expect(upsert.mock.calls[0][0]).not.toHaveProperty('onboarding_completed_at');
@@ -99,6 +112,7 @@ describe('gravação do perfil do onboarding', () => {
         'user-4',
         {
           displayName: 'Anna',
+          focus: 'receivables',
           timezone: 'America/Sao_Paulo',
           status: 'resident',
           specialty: 'Pediatria',

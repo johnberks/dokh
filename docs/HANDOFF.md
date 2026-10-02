@@ -3,7 +3,15 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-01 · Claude Code · **7.7 Onboarding v2, Entrega 1**, no branch `codex/7.7-onboarding-narrativo`. Proposta aprovada pelo usuário; detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9.
+Última atualização: 2026-10-01 · Claude Code · **7.7 Entrega 2** no branch `codex/7.7-entrega-2`, empilhado sobre a Entrega 1 (#63). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §10.
+
+- **Escopo:** abertura narrativa em três toques, moldura "DOKH de João", pergunta de foco com mini-sequência e subtítulo da Situação pelo foco.
+- **Banco:** migration `profiles.onboarding_focus` aplicada só no local.
+- **Ajustes da Entrega 1 (já no #63):** ordem Generalista/Residência/Especialista e busca que assume a tela ao digitar.
+- **Verificação:** Jest 73/522, typecheck, Biome, `check:db-types`, teste de banco 7.7 e expo-doctor passaram.
+- **Próximas:** Entrega 3 (peça persistente) e Entrega 4 (primeira visão + guia por foco).
+
+Anterior (2026-10-01) · **7.7 Onboarding v2, Entrega 1**, no branch `codex/7.7-onboarding-narrativo`. Proposta aprovada pelo usuário; detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9.
 
 - **Escopo:** teclado com `react-native-keyboard-controller` (D78, **exige novo build de desenvolvimento**), campos do onboarding centralizados, totais da conclusão por caixa, residente pode concluir sem trabalho, "Data do trabalho" com dias passados normais, datas nos prazos e "Já recebi".
 - **Banco:** migration `20261001000000_confirm_receivable_received_on` aplicada **só no local**. Preview e produção recebem quando a entrega for aprovada.

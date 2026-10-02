@@ -35,7 +35,7 @@ export function WorkPlaceScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]} testID="first-work-place">
       <StatusBar style="dark" />
-      <OnboardingHeader step={5} onBack={() => router.back()} testID="work-place-header" />
+      <OnboardingHeader step={6} onBack={() => router.back()} testID="work-place-header" />
 
       <KeyboardScreen
         bottomInset={Math.max(insets.bottom, 24) + 20}

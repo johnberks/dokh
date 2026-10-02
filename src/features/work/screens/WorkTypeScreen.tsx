@@ -31,7 +31,7 @@ export function WorkTypeScreen() {
       testID="first-work-type"
     >
       <StatusBar style="dark" />
-      <OnboardingHeader step={4} onBack={() => router.back()} testID="work-type-header" />
+      <OnboardingHeader step={5} onBack={() => router.back()} testID="work-type-header" />
 
       <View style={styles.heading}>
         <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
