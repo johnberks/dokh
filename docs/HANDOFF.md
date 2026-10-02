@@ -3,6 +3,13 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
+Última atualização: 2026-10-01 · Claude Code · **Onboarding v2 (7.7), proposta** no branch `codex/7.7-onboarding-narrativo`, com o roteiro em [`onboarding-v2.md`](onboarding-v2.md).
+
+- **Conteúdo:** referências do Mobbin, problemas do fluxo atual, storyboard, caminhos e matriz pergunta → consequência.
+- **Estado:** nenhuma tela foi alterada. Aguarda aprovação e as decisões D-1 a D-4.
+- **Problema encontrado:** `summaryTotals` soma a bolsa e o trabalho sem considerar o mês da entrada, inclusive o trabalho "sem previsão". Isso mistura caixa e competência.
+- **Outros pendentes:** #62 (3.1) aguarda merge. TestFlight: a Apple pediu conta de demonstração (Guideline 2.1a), que o usuário cria no `dokh-production`.
+
 Última atualização: 2026-09-30 · Claude Code · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
 
 - **Servidor:** a Edge Function `delete-account` é idempotente. Apaga Storage, revoga a Apple e apaga o usuário; as tabelas saem em cascata. Os logs não têm PII.
