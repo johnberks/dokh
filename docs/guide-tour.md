@@ -22,4 +22,5 @@ Pedido do usuário: um tour bem simples quando a pessoa cria uma conta, com opç
   - Meus recebimentos → Finanças, Início, Agenda;
   - Meus ganhos ou sem foco → Início, Agenda, Finanças (a ordem original).
   - A passagem de volta ao Início também acende a aba ("Ir para Início").
+  - Os alvos (`useTourTarget`) leem o passo atual pelas etapas do estado. A ordem fixa fazia o guia começado pela Agenda medir o alvo errado (bug encontrado no iPhone em 2026-10-02). `currentTourStep` agora exige as etapas.
 - **Saída:** "Pular" encerra na hora, em qualquer passo. "Concluir" (último passo) volta ao Início.

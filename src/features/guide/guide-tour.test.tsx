@@ -1,10 +1,11 @@
 import '@/i18n';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { motion } from '@/theme/tokens';
 import { GuideTourOverlay } from './GuideTourOverlay';
 import { TOUR_STEPS, tourStepsFor, useGuideTour } from './guide-tour';
+import { useTourTarget } from './useTourTarget';
 
 jest.mock('expo-router', () => ({ router: { navigate: jest.fn() } }));
 
@@ -176,5 +177,21 @@ describe('guia pelo foco do onboarding (7.7)', () => {
     });
     await act(async () => measureCurrent());
     expect(screen.getByText('Ir para Início')).toBeTruthy();
+  });
+});
+
+describe('alvos do guia seguem a ordem do foco (7.7)', () => {
+  it('começando pela Agenda, o primeiro alvo medido é o + da Agenda, não o valor da Início', async () => {
+    await act(async () => useGuideTour.getState().start('work'));
+    const agendaAdd = await renderHook(() => useTourTarget('agenda-add'));
+    const homeAmount = await renderHook(() => useTourTarget('home-amount'));
+    expect(agendaAdd.result.current.onLayout).toBeDefined();
+    expect(homeAmount.result.current.onLayout).toBeUndefined();
+
+    await act(async () => useGuideTour.getState().next());
+    await act(async () => useGuideTour.getState().next());
+    // Terceiro passo do foco Trabalhos: o valor da Início.
+    expect(homeAmount.result.current.onLayout).toBeDefined();
+    expect(agendaAdd.result.current.onLayout).toBeUndefined();
   });
 });

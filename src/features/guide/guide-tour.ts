@@ -90,9 +90,7 @@ export const useGuideTour = create<TourState>((set, get) => ({
   setRect: (id, rect) => set((state) => ({ rects: { ...state.rects, [id]: rect } })),
 }));
 
-export function currentTourStep(
-  step: number | null,
-  steps: readonly TourStep[] = TOUR_STEPS,
-): TourStep | null {
+/** Sempre com as etapas do estado: a ordem depende do foco (7.7). */
+export function currentTourStep(step: number | null, steps: readonly TourStep[]): TourStep | null {
   return step === null ? null : (steps[step] ?? null);
 }
