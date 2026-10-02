@@ -493,8 +493,8 @@ export const onboardingProfileMetrics = {
   ctaHeight: 56,
   ctaRadius: 16,
   /** O onboarding completo tem 11 passos; as porcentagens do HTML seguem essa escala. */
-  /** 12 com a pergunta de foco (Onboarding v2, 7.7). */
-  totalSteps: 12,
+  /** 13: foco e a etapa de entrada separada do valor (Onboarding v2, 7.7). */
+  totalSteps: 13,
 } as const;
 
 /** Tela 04 (Criar conta): cartões flutuantes em três camadas de profundidade. */

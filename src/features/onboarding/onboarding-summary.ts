@@ -110,6 +110,35 @@ export async function readOnboardingSummary(
   };
 }
 
+export type UpcomingEntry = { expectedOn: string; amountCents: bigint };
+
+/**
+ * Próximas entradas reais da bolsa (7.7, payoff parcial do residente): os Recebíveis que a
+ * residência já gerou, a partir de hoje. Nada é calculado no aparelho.
+ */
+export async function readResidencyNextEntries(
+  userId: string,
+  today: string,
+  limit = 3,
+  client: AuthClient = supabase,
+): Promise<UpcomingEntry[]> {
+  const { data, error } = await client
+    .from('receivable_projection')
+    .select('expected_on, amount_cents')
+    .eq('user_id', userId)
+    .not('residency_id', 'is', null)
+    .is('invalidated_at', null)
+    .gte('expected_on', today)
+    .order('expected_on', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).flatMap((row) =>
+    row.expected_on && row.amount_cents != null
+      ? [{ expectedOn: row.expected_on, amountCents: BigInt(row.amount_cents) }]
+      : [],
+  );
+}
+
 export type SummaryTotals = {
   /** Previsto por mês de entrada (caixa), do mais próximo ao mais distante. `YYYY-MM`. */
   months: { month: string; totalCents: bigint }[];

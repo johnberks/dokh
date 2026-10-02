@@ -1,6 +1,6 @@
 # Onboarding v2: proposta narrativa (7.7)
 
-> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entregas 1 e 2 implementadas** (ver §9 e §10). As entregas 3 e 4 ainda estão por fazer. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
+> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entregas 1, 2 e 3 implementadas** (ver §9, §10 e §11). A entrega 4 ainda está por fazer. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
 
 Princípio: **Ask → Apply → Show value**. Cada pergunta precisa produzir uma consequência visível.
 
@@ -335,3 +335,22 @@ O usuário pediu uma abertura "mais interativa e fluida, nada de clicar no botã
 - **Concluído:** o trilho vira "Configurar minha DOKH".
 - **Leitor de tela:** trilho `adjustable` com ação que organiza. **Reduzir movimento:** estado final direto.
 - **Sem vibração:** `expo-haptics` exigiria outro build nativo; fica para quando houver um.
+
+## 11. Entrega 3: o que foi feito (2026-10-02)
+
+- **Primeiro trabalho numa rota só** (`src/features/work/first-work/`):
+  - `FirstWorkFlow` leva de tipo → local → data → valor → entrada (`FirstWorkSteps`);
+  - as rotas `work-place`, `work-when` e `work-amount` e as telas antigas foram removidas;
+  - voltar (botão ou gesto do Android) retorna à etapa anterior sem perder nada;
+  - o gesto de voltar do iOS só sai do fluxo na primeira etapa (`gestureEnabled`).
+- **A peça** (`WorkPiece`) fica fixa no topo, e as etapas trocam abaixo dela com fade:
+  - cada resposta preenche um encaixe — tipo (chip bronze), local (ao digitar), data e horário, valor (ao digitar) e entrada;
+  - o que falta aparece tracejado;
+  - a entrada mostra "Entrada prevista · 11 NOV", "Recebido · 11 SET", "Aguardando confirmação · 11 SET" ou "Entrada a definir".
+- **Valor e entrada separados.** A etapa de entrada mostra a ligação `12 OUT → +30 dias → 11 NOV` (`MoneyLink`), que muda na hora a cada escolha, mais os prazos com data, "Outra data", "Ainda não sei" e "Já recebi" quando a data passou.
+- **Bolsa:** a peça da residência (`ResidencyPiece`) se monta ao vivo, com o programa, o valor enquanto se digita e "todo dia X".
+- **Tela 12 reescrita:**
+  - **Residente**: "Sua DOKH está começando a tomar forma." — peça da residência, próximas 3 entradas **reais** da bolsa (`readResidencyNextEntries`) descendo por uma linha bronze e "Você também faz plantões…?" com **Adicionar um trabalho** / **Ainda não**.
+  - **Generalista/Especialista**: ponte "Vamos adicionar um trabalho para montar sua primeira visão." — a peça vazia com os encaixes, texto pelo foco e "Pode ser um trabalho que você já fez ou que ainda vai fazer."
+- **Progresso:** 13 passos (a entrada virou etapa própria).
+- **Sem dependência nativa nova:** testa no build de desenvolvimento atual, sem novo build no EAS.

@@ -110,6 +110,16 @@ export const onboarding = {
       saveError: 'Não foi possível salvar seu perfil agora. Tente novamente.',
     },
     ready: {
+      /** 7.7 · payoff parcial do residente e ponte de quem não é residente. */
+      residentTitle: 'Sua DOKH está começando a tomar forma.',
+      nextEntries: 'PRÓXIMAS ENTRADAS',
+      residentQuestion: 'Você também faz plantões, atendimentos ou procedimentos?',
+      bridgeTitle: 'Vamos adicionar um trabalho para montar sua primeira visão.',
+      bridgeWork: 'Onde, quando e quanto: tudo começa por ele.',
+      bridgeReceivables: 'A DOKH já mostra quando esse valor deve entrar.',
+      bridgeEarnings: 'É o primeiro passo para ver quanto você ganha no mês.',
+      bridgeDefault: 'A DOKH organiza o resto a partir dele.',
+      bridgeAnyDate: 'Pode ser um trabalho que você já fez ou que ainda vai fazer.',
       badge: 'RESIDÊNCIA',
       professionalBadge: 'SITUAÇÃO PROFISSIONAL',
       trackEyebrow: 'A DOKH VAI ACOMPANHAR',
@@ -124,12 +134,38 @@ export const onboarding = {
       withoutResidencyDescription:
         'Registre um plantão, procedimento ou atendimento para a DOKH acompanhar suas entradas.',
       withResidencyCta: 'Adicionar um trabalho',
-      withoutResidencyCta: 'Registrar meu primeiro trabalho',
+      withoutResidencyCta: 'Adicionar um trabalho',
       notYet: 'Ainda não',
     },
   },
   /** Telas 06, 19, 20 e 22 do primeiro Trabalho em `design/onboarding.html`. */
   firstWork: {
+    /** 7.7 · a peça que se monta no topo enquanto o trabalho é cadastrado. */
+    piece: {
+      label: 'Seu trabalho',
+      slotType: 'Tipo',
+      slotPlace: 'Local',
+      slotDate: 'Data',
+      slotAmount: 'Valor',
+      slotEntry: 'Entrada',
+      expected: 'Entrada prevista · {{date}}',
+      received: 'Recebido · {{date}}',
+      pending: 'Aguardando confirmação · {{date}}',
+      undated: 'Entrada a definir',
+    },
+    /** 7.7 · ligação trabalho → dinheiro na etapa de previsão. */
+    link: {
+      work: 'trabalho',
+      entry: 'entrada',
+      received: 'recebido',
+      past: 'já passou',
+      days: '+{{days}} dias',
+      undated: 'a definir',
+      continue: 'Continuar',
+    },
+    expected: {
+      title: 'Quando esse valor deve entrar?',
+    },
     type: {
       title: 'O que você quer registrar?',
       description: 'Você pode adicionar outros tipos depois, quando quiser.',

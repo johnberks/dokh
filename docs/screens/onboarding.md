@@ -76,6 +76,12 @@ O indicador do carrossel deve refletir a página atual. O conteúdo apresenta ja
 
 ### Primeiro trabalho
 
+**Onboarding v2 (D77, 7.7):**
+- O primeiro trabalho é uma rota só: tipo → local → data → valor → entrada.
+- A peça fica fixa no topo e ganha um encaixe a cada resposta.
+- Valor e previsão viraram etapas separadas. A previsão mostra a ligação trabalho → prazo → entrada.
+- A tela 12 é o payoff parcial do residente (próximas entradas reais) ou a ponte de quem não é residente (peça vazia).
+
 | Cenário | Informações obrigatórias na tela | Comportamento |
 | --- | --- | --- |
 | Escolha do tipo | Plantão, Procedimento e Atendimento, cada um com ícone, nome e explicação | Toda a área de cada opção é clicável. O tipo escolhido acompanha as telas seguintes em um chip e define os campos exibidos. |

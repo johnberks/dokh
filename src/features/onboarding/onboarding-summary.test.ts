@@ -6,6 +6,7 @@ import {
   monthLabel,
   type OnboardingSummary,
   readOnboardingSummary,
+  readResidencyNextEntries,
   type SummaryWork,
   summaryTotals,
   workMetaLine,
@@ -154,6 +155,29 @@ describe('resumo do onboarding', () => {
       work: { ...shift, expectedOn: null, receipt: 'undated' },
     });
     expect(undated).toEqual({ months: [], receivedCents: 0n, pendingCents: 0n, count: 1 });
+  });
+
+  it('próximas entradas da bolsa vêm do servidor, a partir de hoje e em ordem', async () => {
+    const limit = jest.fn(async () => ({
+      data: [
+        { expected_on: '2026-10-05', amount_cents: 365442 },
+        { expected_on: '2026-11-05', amount_cents: 365442 },
+      ],
+      error: null,
+    }));
+    const chain: Record<string, unknown> = {};
+    for (const method of ['select', 'eq', 'not', 'is', 'gte', 'order']) {
+      chain[method] = jest.fn(() => chain);
+    }
+    chain.limit = limit;
+    const client = { from: jest.fn(() => chain) } as unknown as AuthClient;
+    const entries = await readResidencyNextEntries('user-1', '2026-10-01', 3, client);
+    expect(entries).toEqual([
+      { expectedOn: '2026-10-05', amountCents: 365442n },
+      { expectedOn: '2026-11-05', amountCents: 365442n },
+    ]);
+    expect(chain.gte).toHaveBeenCalledWith('expected_on', '2026-10-01');
+    expect(limit).toHaveBeenCalledWith(3);
   });
 
   it('nome do mês só ganha ano fora do ano de referência', () => {

@@ -4,7 +4,7 @@ import { ChevronLeftIcon } from '@/components/icons/heroicons';
 import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 
 type Props = {
-  /** Passo atual dentro dos 12 do onboarding completo (com o foco, 7.7). */
+  /** Passo atual dentro dos 13 do onboarding completo (7.7). */
   step: number;
   onBack: () => void;
   testID?: string;

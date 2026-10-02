@@ -4,6 +4,7 @@ import {
   completeOnboarding,
   onboardingSummaryKey,
   readOnboardingSummary,
+  readResidencyNextEntries,
 } from './onboarding-summary';
 import { deviceTimezone } from './profile-data';
 
@@ -22,5 +23,14 @@ export function useCompleteOnboarding(userId: string | null) {
       if (userId === null) throw new Error('missing session');
       await completeOnboarding(userId);
     },
+  });
+}
+
+/** Próximas entradas da bolsa recém-gravada (payoff parcial do residente, 7.7). */
+export function useResidencyNextEntries(userId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ['residency-next-entries', userId ?? ''],
+    queryFn: () => readResidencyNextEntries(userId ?? '', todayInTimezone(deviceTimezone())),
+    enabled: enabled && userId != null,
   });
 }

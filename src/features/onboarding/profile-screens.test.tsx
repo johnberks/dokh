@@ -2,6 +2,7 @@ import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
 import { renderWithProviders } from '@/test/render';
+import { readResidencyNextEntries } from './onboarding-summary';
 import { saveOnboardingProfile } from './profile-data';
 import {
   DEFAULT_RESIDENCY_AMOUNT,
@@ -21,6 +22,10 @@ jest.mock('@/features/auth/AuthSessionProvider', () => ({
   AuthSessionProvider: ({ children }: { children: React.ReactNode }) => children,
   useAuthSession: () => ({ status: 'signedIn', userId: 'user-1' }),
 }));
+jest.mock('./onboarding-summary', () => ({
+  ...jest.requireActual('./onboarding-summary'),
+  readResidencyNextEntries: jest.fn(async () => []),
+}));
 jest.mock('./profile-data', () => ({
   ...jest.requireActual('./profile-data'),
   saveOnboardingProfile: jest.fn(async () => {}),
@@ -29,6 +34,7 @@ jest.mock('./profile-data', () => ({
 const dismissKeyboard = jest.spyOn(require('react-native').Keyboard, 'dismiss');
 const mockedPush = jest.mocked(router.push);
 const mockedSave = jest.mocked(saveOnboardingProfile);
+const mockedNextEntries = jest.mocked(readResidencyNextEntries);
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -40,6 +46,26 @@ describe('campos centralizados e teclado (Onboarding v2)', () => {
     await renderWithProviders(<NameScreen />);
     expect(screen.getByTestId('name-input')).toHaveStyle({ textAlign: 'center' });
     expect(screen.getByText('NOME')).toHaveStyle({ textAlign: 'center' });
+  });
+
+  it('bolsa: a peça da residência se monta enquanto a pessoa responde (7.7)', async () => {
+    useProfileDraft.setState({
+      status: 'resident',
+      specialty: 'Clínica Médica',
+      monthlyAmount: '',
+      paymentDay: null,
+    });
+    await renderWithProviders(<ResidencyIncomeScreen />);
+    expect(screen.getByTestId('residency-piece')).toBeTruthy();
+    expect(screen.queryByTestId('residency-piece-amount')).toBeNull();
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('income-amount-input'), '4.106');
+    });
+    expect(screen.getByTestId('residency-piece-amount')).toHaveTextContent(/4\.106/);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('income-day-5'));
+    });
+    expect(screen.getByTestId('residency-piece-day')).toHaveTextContent('todo dia 05');
   });
 
   it('bolsa: valor centralizado', async () => {
@@ -364,40 +390,33 @@ describe('bolsa da residência (TELA 04)', () => {
   });
 });
 
-describe('conclusão do perfil (tela 12)', () => {
-  it('residente pode concluir sem trabalho: "Ainda não" leva à conclusão (7.7)', async () => {
-    useProfileDraft.setState({
-      status: 'resident',
-      specialty: 'Clínica Médica',
-      monthlyAmount: '3.654,42',
-      paymentDay: 5,
-    });
-    await renderWithProviders(<ProfileReadyScreen />);
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId('profile-ready-skip'));
-    });
-    expect(mockedPush).toHaveBeenCalledWith('/first-work-done');
-  });
+describe('tela 12: payoff do residente e ponte para o primeiro trabalho (7.7)', () => {
+  const resident = {
+    status: 'resident' as const,
+    specialty: 'Clínica Médica',
+    monthlyAmount: '3.654,42',
+    paymentDay: 5,
+  };
 
-  it('generalista não tem "Ainda não": o trabalho gera a primeira visão', async () => {
-    useProfileDraft.setState({ status: 'general_practitioner' });
+  it('residente vê a peça da residência e as próximas entradas reais da bolsa', async () => {
+    mockedNextEntries.mockResolvedValue([
+      { expectedOn: '2026-10-05', amountCents: 365442n },
+      { expectedOn: '2026-11-05', amountCents: 365442n },
+      { expectedOn: '2026-12-05', amountCents: 365442n },
+    ]);
+    useProfileDraft.setState(resident);
     await renderWithProviders(<ProfileReadyScreen />);
-    expect(screen.queryByTestId('profile-ready-skip')).toBeNull();
-  });
-
-  it('residente vê "Residente de X" com a bolsa e pode adicionar um trabalho', async () => {
-    useProfileDraft.setState({
-      status: 'resident',
-      specialty: 'Clínica Médica',
-      monthlyAmount: '3.654,42',
-      paymentDay: 5,
-    });
-    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.getByLabelText('Sua DOKH está começando a tomar forma.')).toBeTruthy();
     expect(screen.getByTestId('profile-ready-residency')).toBeTruthy();
-    expect(screen.getByText('Residente de Clínica Médica')).toBeTruthy();
-    expect(screen.getByText(/3\.654,42/)).toBeTruthy();
+    expect(screen.getByText('Clínica Médica')).toBeTruthy();
     expect(screen.getByText('todo dia 05')).toBeTruthy();
-    expect(screen.getByText('Adicionar um trabalho')).toBeTruthy();
+    expect(await screen.findByTestId('profile-ready-entries')).toBeTruthy();
+    expect(screen.getByText('05 OUT')).toBeTruthy();
+    expect(screen.getByText('05 DEZ')).toBeTruthy();
+    expect(mockedNextEntries).toHaveBeenCalledWith('user-1', expect.any(String));
+    expect(
+      screen.getByText('Você também faz plantões, atendimentos ou procedimentos?'),
+    ).toBeTruthy();
 
     await act(async () => {
       await fireEvent.press(screen.getByTestId('profile-ready-cta'));
@@ -405,39 +424,50 @@ describe('conclusão do perfil (tela 12)', () => {
     expect(mockedPush).toHaveBeenCalledWith('/first-work');
   });
 
-  it('generalista vê Generalista, sem card de residência', async () => {
-    useProfileDraft.setState({ status: 'general_practitioner' });
+  it('residente pode concluir sem trabalho: "Ainda não" leva à conclusão', async () => {
+    useProfileDraft.setState(resident);
     await renderWithProviders(<ProfileReadyScreen />);
-    expect(screen.getByTestId('profile-ready-status')).toBeTruthy();
-    expect(screen.getByText('Generalista')).toBeTruthy();
-    expect(screen.queryByTestId('profile-ready-residency')).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('profile-ready-skip'));
+    });
+    expect(mockedPush).toHaveBeenCalledWith('/first-work-done');
+  });
+
+  it('sem entradas geradas ainda, a linha do tempo não aparece (nada inventado)', async () => {
+    mockedNextEntries.mockResolvedValue([]);
+    useProfileDraft.setState(resident);
+    await renderWithProviders(<ProfileReadyScreen />);
+    await act(async () => {});
+    expect(screen.queryByTestId('profile-ready-entries')).toBeNull();
+  });
+
+  it('generalista vê a ponte: peça vazia com os encaixes e texto do foco, sem "Ainda não"', async () => {
+    useProfileDraft.setState({ status: 'general_practitioner', focus: 'receivables' });
+    await renderWithProviders(<ProfileReadyScreen />);
     expect(
-      screen.getByRole('header', { name: 'Agora vamos entender como seu trabalho vira renda.' }),
+      screen.getByLabelText('Vamos adicionar um trabalho para montar sua primeira visão.'),
     ).toBeTruthy();
-    expect(screen.queryByText(/Pular/i)).toBeNull();
-  });
-
-  it('generalista vê o que a DOKH vai acompanhar, para o card não ficar vazio', async () => {
-    useProfileDraft.setState({ status: 'general_practitioner' });
-    await renderWithProviders(<ProfileReadyScreen />);
-    expect(screen.getByTestId('profile-ready-track')).toBeTruthy();
-    expect(screen.getByText('A DOKH VAI ACOMPANHAR')).toBeTruthy();
-    expect(screen.getByText('Plantões, procedimentos e atendimentos')).toBeTruthy();
-    expect(screen.getByText('Quando cada pagamento deve entrar')).toBeTruthy();
-    expect(screen.getByText('Quanto seu trabalho rende no mês')).toBeTruthy();
-  });
-
-  it('residente mantém só o card da bolsa, sem a lista', async () => {
-    useProfileDraft.setState({ status: 'resident', specialty: 'Pediatria', paymentDay: 5 });
-    await renderWithProviders(<ProfileReadyScreen />);
-    expect(screen.queryByTestId('profile-ready-track')).toBeNull();
-  });
-
-  it('especialista vê "Especialista em X", sem card de residência nem bolsa', async () => {
-    useProfileDraft.setState({ status: 'specialist', specialty: 'Cardiologia' });
-    await renderWithProviders(<ProfileReadyScreen />);
-    expect(screen.getByText('Especialista em Cardiologia')).toBeTruthy();
+    expect(screen.getByTestId('profile-ready-piece')).toBeTruthy();
+    expect(screen.getByText('Tipo')).toBeTruthy();
+    expect(screen.getByText('Entrada')).toBeTruthy();
+    expect(screen.getByText('A DOKH já mostra quando esse valor deve entrar.')).toBeTruthy();
+    expect(
+      screen.getByText('Pode ser um trabalho que você já fez ou que ainda vai fazer.'),
+    ).toBeTruthy();
+    expect(screen.queryByTestId('profile-ready-skip')).toBeNull();
     expect(screen.queryByTestId('profile-ready-residency')).toBeNull();
+    expect(mockedNextEntries).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('profile-ready-cta'));
+    });
+    expect(mockedPush).toHaveBeenCalledWith('/first-work');
+  });
+
+  it('especialista também vai pela ponte, sem bolsa', async () => {
+    useProfileDraft.setState({ status: 'specialist', specialty: 'Cardiologia', focus: 'work' });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.getByText('Onde, quando e quanto: tudo começa por ele.')).toBeTruthy();
     expect(screen.queryByText(/todo dia/)).toBeNull();
   });
 });
