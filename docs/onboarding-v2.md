@@ -119,7 +119,7 @@ Regras do payoff (10):
 | Também faz trabalhos? | Ainda não | Termina o onboarding sem trabalho inventado |
 | Tipo | Plantão | Define os campos (horário e duração obrigatórios); ícone da peça |
 | Local | Hospital São Lucas | Local reutilizável na Agenda e em próximos trabalhos |
-| Data (+ horário) | 12 OUT · 19h | Próximo trabalho na Agenda, na Home e no payoff |
+| Data (+ horário) | 12 OUT · 19h, ou 12 SET (passado) | Futuro: próximo trabalho na Agenda, na Home e no payoff. Passado: realizado, e libera "Já recebi" |
 | Valor | R$ 1.500 | Valor em Finanças |
 | Previsão | D30 → 11 NOV | Entrada prevista em novembro; ou "a definir", fora do total |
 
@@ -130,11 +130,36 @@ Perguntas questionadas:
 
 ---
 
+## 5b. Trabalho no passado (pedido do usuário em 2026-10-01)
+
+Um médico no início do uso quase sempre tem trabalhos **já feitos** e ainda não pagos; muitas vezes esse é o primeiro dado que ele quer registrar. Hoje o banco e o calendário aceitam datas passadas, mas a experiência trata todo trabalho como futuro:
+
+- a pergunta é "Quando **acontece** esse plantão?";
+- os dias passados aparecem esmaecidos (`dayPast`) e parecem desabilitados;
+- a previsão só anda para frente e não existe "Já recebi" na criação; o trabalho passado vira `confirmation_pending` sem a pessoa entender o porquê.
+
+Mudanças, valendo para o onboarding **e** para o formulário do `+`:
+
+1. **Data:** a pergunta passa a ser "Quando foi ou quando vai ser esse plantão?". Nos seletores de data, dias passados ficam com a cor normal; o esmaecido continua só na navegação da Agenda. "Hoje" mantém o marcador.
+2. **Previsão adaptada à data:**
+   - D30/D60/D90 contam a partir da data do trabalho. Se a data resultante já passou, a opção mostra "11 SET · já passou".
+   - Para trabalho de hoje ou do passado aparece a opção **Já recebi**. Ela pede a data do recebimento, sugerindo a data prevista quando houver. Como é uma ação explícita da pessoa, pode gravar `received_at` (pela confirmação da 3.8, logo após criar o trabalho), sem violar a regra de nunca marcar recebido sozinho.
+   - **Ainda não recebi**, com a data prevista no passado, gera o estado "Aguardando confirmação", que é pendência e não erro (sem vermelho).
+3. **Peça e ligação:** a ligação mostra a ordem real, por exemplo `12 SET → D30 → 12 OUT · já passou → Recebido`, ou `→ Aguardando confirmação`.
+4. **Payoff:**
+   - O trabalho passado aparece como "Realizado em 12 SET", com o estado da entrada.
+   - "Próximo trabalho" só aparece se existir um trabalho futuro, sem placeholder.
+   - Valores recebidos e previstos ficam em linhas separadas e nunca somam no mesmo total.
+   - Com foco **Ganhos**, o payoff pode dizer "Você gerou R$ 1.500 em setembro", com o rótulo deixando claro que é o mês do trabalho (competência), separado das entradas (caixa).
+5. **Ponte (7) e foco Trabalhos:** a copy deixa claro que vale registrar um trabalho já feito: "Pode ser um plantão que você já fez ou um que ainda vai fazer."
+6. **Sem limite de data no Free.** Registrar trabalho passado é organizar, e a importação, que é Free, já traz histórico. Um limite inferior só existiria para evitar erro de digitação (ex.: ano 1900).
+
 ## 6. Decisões para o usuário
 
 - **D-1 · Guardar o foco?** Recomendo uma coluna `profiles.onboarding_focus` (`work` / `receivables` / `earnings`), para a Home e o guia lerem depois. Alternativa: só em memória durante a sessão, sem migration, mas a personalização morre ao reabrir o app.
 - **D-2 · Especialidade do especialista no onboarding?** A 11.10 exige a especialidade para Especialista. Pelo princípio deste brief, ela poderia ir para o Perfil. Recomendo **manter** agora, porque já existe, é uma busca rápida e alimenta o Perfil; mas a tela deve deixar claro para que serve.
 - **D-3 · Soft upsell depois do payoff?** Recomendo **não ter** no MVP: o payoff ainda não tem dados para "interpretar" (Free organiza, Premium interpreta). O Premium aparece no contexto certo depois (valor/hora, recorrência).
+- **D-5 · "Já recebi" na criação?** Recomendo **sim**, no onboarding e no `+`, para trabalhos de hoje ou do passado. A data sugerida é a prevista e pode ser editada. Alternativa: criar sempre como pendente e a pessoa confirma depois em Finanças, um passo a mais logo no primeiro uso.
 - **D-4 · Abertura com toque ou automática?** Recomendo três batidas que avançam **por toque**, com a primeira começando sozinha, para não haver atraso artificial. Com Reduzir movimento, as três aparecem empilhadas.
 
 ## 7. Impacto técnico (após aprovação)
@@ -145,4 +170,5 @@ Perguntas questionadas:
 - A residência sem trabalho conclui o onboarding (`onboarding_completed_at`) direto do passo 6.
 - Migration opcional para o foco (D-1). O guia de primeiro uso ganha uma ordem por foco.
 - Atualizar `docs/screens/onboarding.md` e registrar a divergência do HTML original, aprovada pelo usuário.
-- Fatiamento sugerido: (1) correção do total + residente pode concluir; (2) abertura narrativa + foco; (3) peça persistente no trabalho + previsão com ligação; (4) payoff novo + guia por foco.
+- Trabalho no passado (5b): copy da data, dias passados normais nos seletores, previsão que reconhece "já passou", "Já recebi" chamando `confirm_receivable` depois da criação. Vale também para o `+`.
+- Fatiamento sugerido: (1) correção do total + residente pode concluir + trabalho no passado; (2) abertura narrativa + foco; (3) peça persistente no trabalho + previsão com ligação; (4) payoff novo + guia por foco.
