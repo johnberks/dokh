@@ -360,6 +360,12 @@ Pré-requisito documental: UX e design de Onboarding presentes.
   - Dependências: 7.5.
   - **DoD:** Maestro passa em iOS/Android para: sem residência, com residência Free e login existente.
 
+- [ ] **7.7 — Onboarding v2 narrativo** (D77, `docs/onboarding-v2.md`)
+  - Dependências: 7.1–7.5.
+  - Entrega 1: totais por caixa, residente sem trabalho, trabalho no passado ("Data do trabalho", datas nos prazos, "Já recebi"), teclado e campos centralizados (D78).
+  - Entrega 2: abertura narrativa, foco (`profiles.onboarding_focus`). Entrega 3: peça persistente. Entrega 4: primeira visão e guia por foco.
+  - **DoD:** as quatro entregas validadas no iPhone; caixa e competência nunca misturados; Reduzir movimento respeitado.
+
 ---
 
 ## Fase 8 — Agenda

@@ -29,6 +29,11 @@ export type CalendarGridProps = {
   onSelectDate?: (date: LocalDate) => void;
   /** `compact` reproduz a grade menor do onboarding (tela 20). */
   density?: 'comfortable' | 'compact';
+  /**
+   * Esmaece os dias passados. Seletores de data do Trabalho desligam: registrar um trabalho
+   * que já aconteceu é tão válido quanto um futuro (7.7).
+   */
+  dimPast?: boolean;
   testID?: string;
 };
 
@@ -58,6 +63,7 @@ export function CalendarGrid({
   dots = {},
   onSelectDate,
   density = 'comfortable',
+  dimPast = true,
   testID,
 }: CalendarGridProps) {
   const { t } = useTranslation('components');
@@ -92,7 +98,7 @@ export function CalendarGrid({
 
               const isSelected = cell.date === selected;
               const isToday = cell.date === today;
-              const isPast = compareLocalDates(cell.date, today) < 0;
+              const isPast = dimPast && compareLocalDates(cell.date, today) < 0;
               const dayDots = dots[cell.date] ?? [];
               const label = [
                 spokenDate(cell.date),

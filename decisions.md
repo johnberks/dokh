@@ -150,28 +150,5 @@ Status:
 | D74 | Pendente de produto/jurídico | Prazo exato de retenção de imports, logs e soft deletes; textos legais e URLs. | Deve ser fechado antes de produção e submissão às lojas. |
 | D75 | Aceita | Sem SDK de atribuição paga/ATT no MVP. | Não pedir ATT nem adicionar AppsFlyer/Adjust/Branch sem nova decisão. |
 | D76 | Aceita 2026-09-30 | Identificador do app `br.com.dokh.app` (iOS `bundleIdentifier` e Android `package`), a partir do domínio `dokh.com.br`, antes de qualquer envio às lojas. | Não mudar depois do primeiro envio ao App Store Connect/Play Console: amarra atualizações, assinaturas, Sign in with Apple e push. |
-
-## Fora de escopo técnico do MVP
-
-- Web app.
-- Open Finance.
-- Offline-first e sincronização de conflitos.
-- Multiusuário/equipe.
-- Realtime entre devices.
-- Moedas além de BRL.
-- Pagamentos parciais, impostos, custos e estornos.
-- Sincronização bidirecional de calendário.
-- Atribuição de mídia paga e prompt ATT.
-- Tema escuro funcional.
-
-## Pendências que exigem decisão humana
-
-| ID | Pendência | Bloqueia |
-| --- | --- | --- |
-| P01 | Preços, product IDs e ofertas mensal/anual. | Billing de produção e paywall final. |
-| P02 | Fixtures/exportações reais do Plantãozinho e política de duplicatas. | Parser de produção. |
-| P03 | UX de recorrência customizada e edição de série versus ocorrência. | Esses dois comportamentos Premium. |
-| P04 | Retenção, textos legais, URLs e política de privacidade. | Release nas lojas. |
-| P05 | Copy e interação de confirmações destrutivas ainda ausentes nos designs. **Trabalho resolvido pelo usuário em 2026-09-25**: folha de confirmação que diz que o Trabalho sai da Agenda e o valor deixa de aparecer em Finanças, com `Excluir trabalho` e `Cancelar` (`docs/agenda.md`). | Exclusão de Local e Conta em produção. |
-
-As demais partes do projeto podem avançar sem escolher respostas para essas pendências.
+| D77 | Aceita 2026-10-01 | Onboarding v2 narrativo (`docs/onboarding-v2.md`), aprovado pelo usuário, diverge do HTML original nos pontos listados lá. Entre eles: residente conclui sem trabalho, totais por mês de entrada (caixa), trabalho no passado com "Já recebi", campos de digitação centralizados. | Entrega por fatias (7.7). `docs/screens/onboarding.md` registra cada mudança aplicada. |
+| D78 | Aceita 2026-10-01 | Teclado tratado com `react-native-keyboard-controller` (`KeyboardProvider` na raiz e `KeyboardScreen` nas telas com digitação): o campo em foco e o botão principal ficam sempre visíveis. | Biblioteca nativa: exige novo build de desenvolvimento/produção. Telas novas com campos usam `KeyboardScreen`, não `KeyboardAvoidingView`. |

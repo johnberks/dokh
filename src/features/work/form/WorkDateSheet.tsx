@@ -94,6 +94,7 @@ export function WorkDateSheet({
       </View>
 
       <CalendarGrid
+        dimPast={false}
         month={month}
         today={today}
         selected={pending}

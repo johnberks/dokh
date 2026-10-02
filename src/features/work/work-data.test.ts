@@ -84,9 +84,20 @@ describe('agregado Trabalho + Recebível', () => {
     const { client, rpc } = fakeClient([
       { receivable_id: 'r1', received_at: '2026-10-12T12:00:00Z' },
     ]);
-    const result = await confirmReceivableReceived('r1', client);
+    const result = await confirmReceivableReceived('r1', null, client);
     expect(rpc).toHaveBeenCalledWith('confirm_receivable_received', { p_receivable_id: 'r1' });
     expect(result).toEqual({ receivableId: 'r1', receivedAt: '2026-10-12T12:00:00Z' });
+  });
+
+  it('"Já recebi" envia o dia local em que o valor entrou', async () => {
+    const { client, rpc } = fakeClient([
+      { receivable_id: 'r1', received_at: '2026-09-11T15:00:00Z' },
+    ]);
+    await confirmReceivableReceived('r1', '2026-09-11', client);
+    expect(rpc).toHaveBeenCalledWith('confirm_receivable_received', {
+      p_receivable_id: 'r1',
+      p_received_on: '2026-09-11',
+    });
   });
 
   it('falha explicitamente quando o servidor não devolve linha', async () => {
@@ -99,6 +110,8 @@ describe('agregado Trabalho + Recebível', () => {
   it('propaga erro da RPC', async () => {
     const rpc = jest.fn(async () => ({ data: null, error: new Error('permission denied') }));
     const client = { rpc } as unknown as AuthClient;
-    await expect(confirmReceivableReceived('r1', client)).rejects.toThrow('permission denied');
+    await expect(confirmReceivableReceived('r1', null, client)).rejects.toThrow(
+      'permission denied',
+    );
   });
 });

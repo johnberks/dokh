@@ -2,19 +2,11 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { CheckIcon, MagnifyingGlassIcon } from '@/components/icons/heroicons';
+import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { MutationError } from '@/components/TechnicalStates';
 import { searchResidencyPrograms } from '@/domain/medical-specialties';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -28,6 +20,8 @@ import { useSaveProfile } from '../use-save-profile';
 
 /** Poucas sugestões cabem acima do teclado sem esconder a lista. */
 const SUGGESTION_LIMIT = 4;
+/** Altura das sugestões + "Outra" abaixo da busca: o teclado nunca as cobre. */
+const SUGGESTIONS_SPACE = (SUGGESTION_LIMIT + 1) * 44 + 16;
 
 const OPTIONS = [
   { value: 'resident', label: 'profile.status.resident', hint: 'profile.status.residentHint' },
@@ -87,152 +81,14 @@ export function ProfessionalStatusScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 24) + 20 },
-      ]}
-      testID="onboarding-status"
-    >
+    <View style={[styles.screen, { paddingTop: insets.top }]} testID="onboarding-status">
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-          showsVerticalScrollIndicator={false}
-          style={styles.flex}
-          testID="status-scroll"
-        >
-          <OnboardingHeader step={2} onBack={() => router.back()} testID="status-header" />
-
-          <View style={styles.heading}>
-            <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-              {t('profile.status.title')}
-            </AppText>
-            <AppText style={styles.description}>{t('profile.status.description')}</AppText>
-          </View>
-
-          <View style={styles.body}>
-            <View accessibilityRole="radiogroup" style={styles.choices}>
-              {OPTIONS.map((option) => {
-                const selected = status === option.value;
-                const label = t(option.label);
-                return (
-                  <Pressable
-                    key={option.value}
-                    accessibilityRole="radio"
-                    accessibilityLabel={label}
-                    accessibilityHint={t(option.hint)}
-                    accessibilityState={{ checked: selected }}
-                    onPress={() => update({ status: option.value })}
-                    testID={`status-${option.value}`}
-                    style={({ pressed }) => [
-                      styles.choice,
-                      selected ? styles.choiceSelected : styles.choiceIdle,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <View style={styles.choiceText}>
-                      <AppText
-                        style={[type.heading2, selected ? styles.choiceOn : styles.choiceOff]}
-                      >
-                        {label}
-                      </AppText>
-                      <AppText style={selected ? styles.hintOn : styles.hintOff}>
-                        {t(option.hint)}
-                      </AppText>
-                    </View>
-                    <View style={selected ? styles.radioOn : styles.radioOff}>
-                      {selected && <CheckIcon color={palette.base} size={12} />}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {asksSpecialty && (
-              <View style={styles.search} testID="status-search">
-                <AppText variant="technical" style={styles.searchLabel}>
-                  {status === 'resident'
-                    ? t('profile.status.residencyQuestion')
-                    : t('profile.status.specialtyQuestion')}
-                </AppText>
-                <View style={[styles.field, missingSpecialty && touched && styles.fieldError]}>
-                  <MagnifyingGlassIcon color={palette.sage} size={18} />
-                  <TextInput
-                    accessibilityLabel={
-                      status === 'resident'
-                        ? t('profile.status.residencySearchLabel')
-                        : t('profile.status.specialtySearchLabel')
-                    }
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    onChangeText={(value) => {
-                      setQuery(value);
-                      update({ specialty: '' });
-                    }}
-                    placeholder={t('profile.status.searchPlaceholder')}
-                    placeholderTextColor={palette.sage}
-                    selectionColor={palette.bronze}
-                    style={[type.body, styles.input]}
-                    testID="status-input"
-                    value={query}
-                  />
-                </View>
-
-                {/* Escolhida a especialidade, a lista some: não há mais o que decidir. */}
-                {query.trim().length > 0 && chosen.length === 0 && (
-                  <View testID="status-suggestions">
-                    {suggestions.map((program) => (
-                      <Pressable
-                        key={program.name}
-                        accessibilityRole="button"
-                        accessibilityLabel={program.name}
-                        onPress={() => selectSpecialty(program.name)}
-                        testID={`status-option-${program.name}`}
-                        style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
-                      >
-                        <AppText style={[type.body, styles.suggestionText]}>
-                          {program.name.slice(0, program.start)}
-                          <AppText style={[type.heading1, styles.suggestionMatch]}>
-                            {program.name.slice(program.start, program.end)}
-                          </AppText>
-                          {program.name.slice(program.end)}
-                        </AppText>
-                      </Pressable>
-                    ))}
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={t('profile.status.other')}
-                      accessibilityHint={t('profile.status.otherHint')}
-                      onPress={() => selectSpecialty(query.trim())}
-                      testID="status-option-other"
-                      style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
-                    >
-                      <AppText style={[type.body, styles.suggestionOther]}>
-                        {t('profile.status.other')}
-                      </AppText>
-                    </Pressable>
-                  </View>
-                )}
-
-                {touched && missingSpecialty && (
-                  <AppText style={styles.error}>
-                    {status === 'resident'
-                      ? t('profile.status.residencyRequired')
-                      : t('profile.status.specialtyRequired')}
-                  </AppText>
-                )}
-              </View>
-            )}
-
-            {save.isError && <MutationError onRetry={goForward} retrying={save.isPending} />}
-          </View>
-
+      <OnboardingHeader step={2} onBack={() => router.back()} testID="status-header" />
+      <KeyboardScreen
+        bottomInset={Math.max(insets.bottom, 24) + 20}
+        // Ao digitar, a busca sobe o bastante para as sugestões aparecerem acima do teclado.
+        extraOffset={SUGGESTIONS_SPACE}
+        footer={
           <View style={styles.footer}>
             <OnboardingCta
               disabled={status === null || session.userId === null}
@@ -241,17 +97,138 @@ export function ProfessionalStatusScreen() {
               testID="status-cta"
             />
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        }
+        testID="status-scroll"
+      >
+        <View style={styles.heading}>
+          <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+            {t('profile.status.title')}
+          </AppText>
+          <AppText style={styles.description}>{t('profile.status.description')}</AppText>
+        </View>
+
+        <View style={styles.body}>
+          <View accessibilityRole="radiogroup" style={styles.choices}>
+            {OPTIONS.map((option) => {
+              const selected = status === option.value;
+              const label = t(option.label);
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="radio"
+                  accessibilityLabel={label}
+                  accessibilityHint={t(option.hint)}
+                  accessibilityState={{ checked: selected }}
+                  onPress={() => update({ status: option.value })}
+                  testID={`status-${option.value}`}
+                  style={({ pressed }) => [
+                    styles.choice,
+                    selected ? styles.choiceSelected : styles.choiceIdle,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <View style={styles.choiceText}>
+                    <AppText style={[type.heading2, selected ? styles.choiceOn : styles.choiceOff]}>
+                      {label}
+                    </AppText>
+                    <AppText style={selected ? styles.hintOn : styles.hintOff}>
+                      {t(option.hint)}
+                    </AppText>
+                  </View>
+                  <View style={selected ? styles.radioOn : styles.radioOff}>
+                    {selected && <CheckIcon color={palette.base} size={12} />}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {asksSpecialty && (
+            <View style={styles.search} testID="status-search">
+              <AppText variant="technical" style={styles.searchLabel}>
+                {status === 'resident'
+                  ? t('profile.status.residencyQuestion')
+                  : t('profile.status.specialtyQuestion')}
+              </AppText>
+              <View style={[styles.field, missingSpecialty && touched && styles.fieldError]}>
+                <MagnifyingGlassIcon color={palette.sage} size={18} />
+                <TextInput
+                  accessibilityLabel={
+                    status === 'resident'
+                      ? t('profile.status.residencySearchLabel')
+                      : t('profile.status.specialtySearchLabel')
+                  }
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  onChangeText={(value) => {
+                    setQuery(value);
+                    update({ specialty: '' });
+                  }}
+                  placeholder={t('profile.status.searchPlaceholder')}
+                  placeholderTextColor={palette.sage}
+                  selectionColor={palette.bronze}
+                  style={[type.body, styles.input]}
+                  testID="status-input"
+                  value={query}
+                />
+                <View style={styles.iconBalance} />
+              </View>
+
+              {/* Escolhida a especialidade, a lista some: não há mais o que decidir. */}
+              {query.trim().length > 0 && chosen.length === 0 && (
+                <View testID="status-suggestions">
+                  {suggestions.map((program) => (
+                    <Pressable
+                      key={program.name}
+                      accessibilityRole="button"
+                      accessibilityLabel={program.name}
+                      onPress={() => selectSpecialty(program.name)}
+                      testID={`status-option-${program.name}`}
+                      style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
+                    >
+                      <AppText style={[type.body, styles.suggestionText]}>
+                        {program.name.slice(0, program.start)}
+                        <AppText style={[type.heading1, styles.suggestionMatch]}>
+                          {program.name.slice(program.start, program.end)}
+                        </AppText>
+                        {program.name.slice(program.end)}
+                      </AppText>
+                    </Pressable>
+                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.status.other')}
+                    accessibilityHint={t('profile.status.otherHint')}
+                    onPress={() => selectSpecialty(query.trim())}
+                    testID="status-option-other"
+                    style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
+                  >
+                    <AppText style={[type.body, styles.suggestionOther]}>
+                      {t('profile.status.other')}
+                    </AppText>
+                  </Pressable>
+                </View>
+              )}
+
+              {touched && missingSpecialty && (
+                <AppText style={styles.error}>
+                  {status === 'resident'
+                    ? t('profile.status.residencyRequired')
+                    : t('profile.status.specialtyRequired')}
+                </AppText>
+              )}
+            </View>
+          )}
+
+          {save.isError && <MutationError onRetry={goForward} retrying={save.isPending} />}
+        </View>
+      </KeyboardScreen>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  flex: { flex: 1 },
-  // A rolagem é da tela inteira e só existe quando o conteúdo não cabe.
-  content: { flexGrow: 1 },
   heading: { marginTop: m.titlePaddingTop, marginHorizontal: 32, gap: 12 },
   title: {
     fontSize: m.titleSize,
@@ -260,7 +237,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   description: { fontSize: 15, lineHeight: 23, color: colors.textMuted },
-  body: { flex: 1, marginTop: 28, marginHorizontal: 32, gap: 10 },
+  body: { marginTop: 28, marginHorizontal: 32, paddingBottom: 12, gap: 10 },
   choices: { gap: 10 },
   choice: {
     minHeight: m.choiceHeight,
@@ -299,7 +276,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16,22,15,0.25)',
   },
   search: { paddingTop: 16, gap: 10 },
-  searchLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
+  searchLabel: {
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 1.4,
+    color: palette.sage,
+    textAlign: 'center',
+  },
   field: {
     height: m.choiceHeight,
     borderRadius: m.choiceRadius,
@@ -311,7 +294,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fieldError: { borderColor: colors.errorFill },
-  input: { flex: 1, fontSize: 17, lineHeight: 22, color: colors.textPrimary, padding: 0 },
+  // Texto digitado centralizado, como nos demais campos do onboarding.
+  input: {
+    flex: 1,
+    fontSize: 17,
+    lineHeight: 22,
+    color: colors.textPrimary,
+    padding: 0,
+    textAlign: 'center',
+  },
+  // Contrapeso da lupa: mantém o texto no centro real do campo.
+  iconBalance: { width: 18 },
   suggestion: {
     minHeight: 44,
     paddingVertical: m.suggestionPaddingVertical,
@@ -328,5 +321,5 @@ const styles = StyleSheet.create({
   suggestionOther: { fontSize: 16, lineHeight: 21, color: colors.textMuted },
   error: { fontSize: 13, lineHeight: 18, color: colors.errorFill },
   pressed: { opacity: 0.72 },
-  footer: { paddingHorizontal: 32, paddingTop: 12 },
+  footer: { paddingHorizontal: 32 },
 });

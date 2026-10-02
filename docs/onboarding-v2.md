@@ -1,6 +1,6 @@
 # Onboarding v2: proposta narrativa (7.7)
 
-> Status: **proposta para aprovação**. Nenhuma tela foi alterada. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
+> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entrega 1 implementada** (ver §9). As entregas 2 a 4 ainda estão por fazer. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
 
 Princípio: **Ask → Apply → Show value**. Cada pergunta precisa produzir uma consequência visível.
 
@@ -250,3 +250,30 @@ As decisões pendentes estão marcadas com (D-n). A lista assume as recomendaç�
 ### O que não muda
 
 Splash, Criar conta/Entrar, login com Apple, opções de situação profissional, modelo de residência e recebíveis, tipos de trabalho, regras Free/Premium, e os layouts de Home, Agenda, Finanças e Perfil, salvo o guia de primeiro uso.
+
+---
+
+## 9. Entrega 1: o que foi feito (2026-10-01)
+
+- **Teclado (D78):**
+  - `react-native-keyboard-controller` com `KeyboardProvider` na raiz.
+  - `src/components/KeyboardScreen.tsx` rola até o campo em foco, mantém o botão principal acima do teclado e baixa o teclado ao tocar fora dos campos.
+  - Usado em Nome, Situação profissional (reserva espaço para as sugestões da busca), Bolsa, Local, Valor/previsão, no formulário do `+` e nas telas de edição do Perfil.
+- **Campos centralizados:**
+  - `OnboardingField` (Nome, Local) e `MoneyInput align="center"` (Bolsa, Valor) trazem rótulo, valor e ajuda centralizados, e a caixa inteira foca o campo.
+  - A busca de residência/especialidade centraliza o texto digitado; a lista de sugestões continua alinhada à esquerda.
+  - O formulário do `+` e o Perfil mantêm o alinhamento do design deles; só ganharam o tratamento de teclado.
+- **Totais por caixa:**
+  - `summaryTotals` agrupa por mês de entrada e separa recebido de pendente. Sem previsão fica fora.
+  - A residência entra pela próxima entrada real (`receivable_projection`), não pelo valor mensal "solto".
+- **Residente sem trabalho:** **Ainda não** na tela 12 leva à conclusão sem `workId`.
+- **Trabalho no passado:**
+  - O título passa a ser "Data do trabalho" e o `CalendarGrid` ganhou `dimPast` (os seletores usam `false`).
+  - D30/D60/D90 mostram a data calculada; prazo vencido mostra "já passou".
+  - "Já recebi" (`ReceivedChoice`) aparece no onboarding e no `+`. Começa em "Ainda não".
+- **Migration `20261001000000`:** `confirm_receivable_received(p_receivable_id, p_received_on date default null)`.
+  - O dia é gravado como meio-dia no fuso do perfil.
+  - Data futura é recusada e a repetição não reescreve a data.
+  - Rollback e `scripts/test-migration-7.7.sh` (no `test:db`).
+  - Aplicada só no Supabase local; preview e produção ainda não.
+- **Testes de data corrigidos:** testes que fixavam setembro (calendário do primeiro trabalho, melhor mês em Finanças) agora seguem o relógio.

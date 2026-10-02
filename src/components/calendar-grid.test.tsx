@@ -38,6 +38,11 @@ describe('CalendarGrid', () => {
     expect(screen.getByText('20')).toHaveStyle({ color: colors.textPrimary });
   });
 
+  it('seletor de data do Trabalho não esmaece dias passados (7.7)', async () => {
+    await render(<CalendarGrid {...base} dimPast={false} onSelectDate={jest.fn()} />);
+    expect(screen.getByText('3')).toHaveStyle({ color: colors.textPrimary });
+  });
+
   it('anuncia data por extenso, hoje, seleção e quantidade de trabalhos, sem depender de cor', async () => {
     await render(
       <CalendarGrid

@@ -664,7 +664,7 @@ export type Database = {
         Returns: undefined;
       };
       confirm_receivable_received: {
-        Args: { p_receivable_id: string };
+        Args: { p_receivable_id: string; p_received_on?: string };
         Returns: {
           receivable_id: string;
           received_at: string;

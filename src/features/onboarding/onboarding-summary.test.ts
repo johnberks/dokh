@@ -3,6 +3,7 @@ import {
   completeOnboarding,
   formatDuration,
   formatShortDate,
+  monthLabel,
   type OnboardingSummary,
   readOnboardingSummary,
   type SummaryWork,
@@ -10,26 +11,24 @@ import {
   workMetaLine,
 } from './onboarding-summary';
 
-/** Encadeamento `from().select().eq().eq().maybeSingle()` com resposta por tabela. */
+/** Encadeamento do PostgREST (`select/eq/not/is/gte/order/limit/maybeSingle`) por tabela. */
 function readClient(rows: Record<string, unknown>) {
-  const eq = jest.fn();
-  type Chain = {
-    select: () => Chain;
-    eq: (...args: unknown[]) => Chain;
+  const calls = jest.fn();
+  type Chain = Record<string, (...args: unknown[]) => Chain> & {
     maybeSingle: () => Promise<{ data: unknown; error: null }>;
   };
   const from = jest.fn((table: string) => {
-    const chain: Chain = {
-      select: jest.fn(() => chain),
-      eq: jest.fn((...args: unknown[]) => {
-        eq(table, ...args);
+    const chain = {} as Chain;
+    for (const method of ['select', 'eq', 'not', 'is', 'gte', 'order', 'limit']) {
+      chain[method] = jest.fn((...args: unknown[]) => {
+        calls(table, method, ...args);
         return chain;
-      }),
-      maybeSingle: jest.fn(async () => ({ data: rows[table] ?? null, error: null })),
-    };
+      });
+    }
+    chain.maybeSingle = jest.fn(async () => ({ data: rows[table] ?? null, error: null }));
     return chain;
   });
-  return { client: { from } as unknown as AuthClient, eq };
+  return { client: { from } as unknown as AuthClient, calls };
 }
 
 const shift: SummaryWork = {
@@ -40,12 +39,21 @@ const shift: SummaryWork = {
   durationMinutes: 720,
   amountCents: 120000n,
   expectedOn: '2026-10-12',
+  receipt: 'scheduled',
+};
+
+const residency = {
+  specialty: 'Cardiologia',
+  monthlyAmountCents: 365442n,
+  paymentDay: 5,
+  nextExpectedOn: '2026-10-05',
 };
 
 describe('resumo do onboarding', () => {
-  it('lê a bolsa ativa e o Trabalho gravado, convertendo centavos e horário', async () => {
-    const { client, eq } = readClient({
+  it('lê a bolsa ativa, sua próxima entrada real e o Trabalho gravado', async () => {
+    const { client, calls } = readClient({
       residencies: { specialty: 'Cardiologia', monthly_amount_cents: 365442, payment_day: 5 },
+      receivable_projection: { expected_on: '2026-10-05' },
       agenda_work_projection: {
         type: 'shift',
         location_name: 'Hospital São Lucas',
@@ -54,15 +62,46 @@ describe('resumo do onboarding', () => {
         duration_minutes: 720,
         amount_cents: 120000,
         expected_on: '2026-10-12',
+        receipt_status: 'scheduled',
       },
     });
-    const summary = await readOnboardingSummary('user-1', 'work-1', client);
-    expect(summary).toEqual({
-      residency: { specialty: 'Cardiologia', monthlyAmountCents: 365442n, paymentDay: 5 },
-      work: shift,
+    const summary = await readOnboardingSummary('user-1', 'work-1', '2026-10-01', client);
+    expect(summary).toEqual({ residency, work: shift });
+    expect(calls).toHaveBeenCalledWith('residencies', 'eq', 'active', true);
+    // Só entradas reais da bolsa a partir de hoje: nada é calculado no aparelho.
+    expect(calls).toHaveBeenCalledWith('receivable_projection', 'gte', 'expected_on', '2026-10-01');
+    expect(calls).toHaveBeenCalledWith('agenda_work_projection', 'eq', 'work_entry_id', 'work-1');
+  });
+
+  it('residente que concluiu sem trabalho não consulta Trabalho algum', async () => {
+    const { client, calls } = readClient({
+      residencies: { specialty: 'Cardiologia', monthly_amount_cents: 365442, payment_day: 5 },
+      receivable_projection: { expected_on: '2026-10-05' },
     });
-    expect(eq).toHaveBeenCalledWith('residencies', 'active', true);
-    expect(eq).toHaveBeenCalledWith('agenda_work_projection', 'work_entry_id', 'work-1');
+    const summary = await readOnboardingSummary('user-1', null, '2026-10-01', client);
+    expect(summary).toEqual({ residency, work: null });
+    expect(calls).not.toHaveBeenCalledWith('agenda_work_projection', expect.anything());
+  });
+
+  it('estado da entrada vem do servidor: recebido, pendente ou sem previsão', async () => {
+    const work = (receipt_status: string, expected_on: string | null) =>
+      readClient({
+        agenda_work_projection: {
+          type: 'shift',
+          location_name: 'H',
+          work_date: '2026-08-12',
+          start_time: '19:00:00',
+          duration_minutes: 720,
+          amount_cents: 1,
+          expected_on,
+          receipt_status,
+        },
+      }).client;
+    const read = async (client: AuthClient) =>
+      (await readOnboardingSummary('u', 'w', '2026-10-01', client)).work?.receipt;
+    expect(await read(work('received', '2026-09-11'))).toBe('received');
+    expect(await read(work('confirmation_pending', '2026-09-11'))).toBe('pending');
+    expect(await read(work('undated', null))).toBe('undated');
   });
 
   it('sem residência e sem horário não inventa dados', async () => {
@@ -75,9 +114,10 @@ describe('resumo do onboarding', () => {
         duration_minutes: null,
         amount_cents: 80000,
         expected_on: null,
+        receipt_status: 'undated',
       },
     });
-    const summary = await readOnboardingSummary('user-1', 'work-1', client);
+    const summary = await readOnboardingSummary('user-1', 'work-1', '2026-10-01', client);
     expect(summary.residency).toBeNull();
     expect(summary.work).toMatchObject({
       startTime: null,
@@ -86,16 +126,39 @@ describe('resumo do onboarding', () => {
     });
   });
 
-  it('total e contagem somam só o que existe', () => {
-    const both: OnboardingSummary = {
-      residency: { specialty: 'Cardiologia', monthlyAmountCents: 365442n, paymentDay: 5 },
-      work: shift,
-    };
-    expect(summaryTotals(both)).toEqual({ totalCents: 485442n, count: 2 });
-    expect(summaryTotals({ residency: null, work: shift })).toEqual({
-      totalCents: 120000n,
-      count: 1,
+  it('totais por mês de entrada: bolsa e plantão no mesmo mês somam', () => {
+    const both: OnboardingSummary = { residency, work: shift };
+    expect(summaryTotals(both)).toEqual({
+      months: [{ month: '2026-10', totalCents: 485442n }],
+      pendingCents: 0n,
+      receivedCents: 0n,
+      count: 2,
     });
+  });
+
+  it('plantão que entra em outro mês nunca se soma à bolsa deste mês', () => {
+    const later = { ...shift, expectedOn: '2026-11-11' };
+    expect(summaryTotals({ residency, work: later }).months).toEqual([
+      { month: '2026-10', totalCents: 365442n },
+      { month: '2026-11', totalCents: 120000n },
+    ]);
+  });
+
+  it('recebido, pendente e sem previsão ficam fora do previsto', () => {
+    const received = summaryTotals({ residency: null, work: { ...shift, receipt: 'received' } });
+    expect(received).toMatchObject({ months: [], receivedCents: 120000n, pendingCents: 0n });
+    const pending = summaryTotals({ residency: null, work: { ...shift, receipt: 'pending' } });
+    expect(pending).toMatchObject({ months: [], receivedCents: 0n, pendingCents: 120000n });
+    const undated = summaryTotals({
+      residency: null,
+      work: { ...shift, expectedOn: null, receipt: 'undated' },
+    });
+    expect(undated).toEqual({ months: [], receivedCents: 0n, pendingCents: 0n, count: 1 });
+  });
+
+  it('nome do mês só ganha ano fora do ano de referência', () => {
+    expect(monthLabel('2026-10', 2026)).toBe('OUTUBRO');
+    expect(monthLabel('2027-01', 2026)).toBe('JANEIRO 2027');
   });
 
   it('linha do card omite horário e duração ausentes', () => {

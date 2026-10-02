@@ -3,7 +3,14 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-01 · Claude Code · **Onboarding v2 (7.7), proposta** no branch `codex/7.7-onboarding-narrativo`, com o roteiro em [`onboarding-v2.md`](onboarding-v2.md).
+Última atualização: 2026-10-01 · Claude Code · **7.7 Onboarding v2, Entrega 1**, no branch `codex/7.7-onboarding-narrativo`. Proposta aprovada pelo usuário; detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9.
+
+- **Escopo:** teclado com `react-native-keyboard-controller` (D78, **exige novo build de desenvolvimento**), campos do onboarding centralizados, totais da conclusão por caixa, residente pode concluir sem trabalho, "Data do trabalho" com dias passados normais, datas nos prazos e "Já recebi".
+- **Banco:** migration `20261001000000_confirm_receivable_received_on` aplicada **só no local**. Preview e produção recebem quando a entrega for aprovada.
+- **Verificação:** typecheck, Biome, Jest (72/515), `check:db-types`, testes de banco 3.8/3.11/7.7 e expo-doctor 21/21 passaram.
+- **Próximas:** Entrega 2 (abertura + foco), Entrega 3 (peça persistente), Entrega 4 (primeira visão + guia por foco).
+
+Anterior (2026-10-01) · **Onboarding v2 (7.7), proposta** no branch `codex/7.7-onboarding-narrativo`, com o roteiro em [`onboarding-v2.md`](onboarding-v2.md).
 
 - **Conteúdo:** referências do Mobbin, problemas do fluxo atual, storyboard, caminhos e matriz pergunta → consequência.
 - **Estado:** nenhuma tela foi alterada. Aguarda aprovação e as decisões D-1 a D-4.

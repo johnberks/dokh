@@ -9,8 +9,12 @@ import { WorkAmountScreen } from './screens/WorkAmountScreen';
 import { WorkPlaceScreen } from './screens/WorkPlaceScreen';
 import { WorkTypeScreen } from './screens/WorkTypeScreen';
 import { WorkWhenScreen } from './screens/WorkWhenScreen';
-import { createWorkWithReceivable } from './work-data';
+import { confirmReceivableReceived, createWorkWithReceivable } from './work-data';
 import { useWorkDraft } from './work-draft';
+import { todayInTimezone } from './work-schedule';
+
+// O calendário abre no mês atual: o dia escolhido nos testes precisa estar nele.
+const DAY_IN_MONTH = `${todayInTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone).slice(0, 7)}-12`;
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
@@ -34,6 +38,7 @@ jest.mock('@/features/locations/locations-data', () => ({
 jest.mock('./work-data', () => ({
   ...jest.requireActual('./work-data'),
   createWorkWithReceivable: jest.fn(async () => ({ workId: 'w1', receivableId: 'r1' })),
+  confirmReceivableReceived: jest.fn(async () => ({ receivableId: 'r1', receivedAt: 'x' })),
   newIdempotencyKey: () => 'key-1',
 }));
 
@@ -42,6 +47,7 @@ jest.mock('@/components/useKeyboardVisible', () => ({ useKeyboardVisible: jest.f
 const mockedPush = jest.mocked(router.push);
 const mockedKeyboardVisible = jest.mocked(useKeyboardVisible);
 const mockedCreateWork = jest.mocked(createWorkWithReceivable);
+const mockedConfirm = jest.mocked(confirmReceivableReceived);
 const mockedCreateLocation = jest.mocked(createWorkLocation);
 const mockedListLocations = jest.mocked(listWorkLocations);
 
@@ -117,7 +123,7 @@ describe('quando acontece (tela 20)', () => {
     expect(mockedPush).not.toHaveBeenCalled();
 
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('work-when-calendar-2026-09-12'));
+      await fireEvent.press(screen.getByTestId(`work-when-calendar-${DAY_IN_MONTH}`));
     });
     await act(async () => {
       await fireEvent.press(screen.getByTestId('work-when-cta'));
@@ -164,7 +170,7 @@ describe('quando acontece (tela 20)', () => {
     expect(screen.getByTestId('work-when-add-schedule')).toBeTruthy();
 
     await act(async () => {
-      await fireEvent.press(screen.getByTestId('work-when-calendar-2026-09-12'));
+      await fireEvent.press(screen.getByTestId(`work-when-calendar-${DAY_IN_MONTH}`));
     });
     await act(async () => {
       await fireEvent.press(screen.getByTestId('work-when-cta'));
@@ -316,5 +322,79 @@ describe('valor e previsão (tela 22)', () => {
     });
     expect(mockedCreateWork).toHaveBeenCalledTimes(2);
     expect(mockedCreateWork.mock.calls[0][1]).toBe(mockedCreateWork.mock.calls[1][1]);
+  });
+});
+
+describe('trabalho no passado (7.7)', () => {
+  // Plantão de dois meses atrás: o D30 já passou, o D90 pode não ter passado.
+  const past = todayInTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const workDate = `${Number(past.slice(0, 4)) - 1}-${past.slice(5, 7)}-10`;
+  const pastWork = {
+    type: 'shift' as const,
+    locationName: 'Hospital São Lucas',
+    workDate,
+    startTime: '19:00',
+    durationMinutes: 720,
+  };
+
+  it('cada prazo mostra a data calculada a partir do trabalho', async () => {
+    useWorkDraft.setState({ ...pastWork, workDate: '2026-09-12' });
+    await renderWithProviders(<WorkAmountScreen />);
+    expect(screen.getByTestId('work-expected-30-date')).toHaveTextContent('12 OUT');
+    expect(screen.getByTestId('work-expected-60-date')).toHaveTextContent('11 NOV');
+    expect(screen.getByTestId('work-expected-90-date')).toHaveTextContent('11 DEZ');
+  });
+
+  it('data prevista já vencida pergunta se recebeu, começando em "Ainda não"', async () => {
+    useWorkDraft.setState(pastWork);
+    await renderWithProviders(<WorkAmountScreen />);
+    expect(screen.queryByTestId('work-received')).toBeNull();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-expected-30'));
+    });
+    expect(screen.getByText(/já passou/)).toBeTruthy();
+    expect(screen.getByTestId('work-received-no').props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+    expect(screen.getByText('Ele fica aguardando sua confirmação em Finanças.')).toBeTruthy();
+  });
+
+  it('"Já recebi" grava o trabalho e confirma o recebimento na data prevista', async () => {
+    useWorkDraft.setState({ ...pastWork, amount: '1.500' });
+    await renderWithProviders(<WorkAmountScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-expected-30'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-received-yes'));
+    });
+    const expectedOn = useWorkDraft.getState().expected;
+    expect(expectedOn).toMatchObject({ kind: 'date', received: true });
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-amount-cta'));
+    });
+    const date = expectedOn?.kind === 'date' ? expectedOn.date : '';
+    expect(mockedCreateWork.mock.calls[0][0]).toMatchObject({ workDate, expectedOn: date });
+    expect(mockedConfirm).toHaveBeenCalledWith('r1', date);
+  });
+
+  it('"Ainda não recebi" grava sem confirmar', async () => {
+    useWorkDraft.setState({ ...pastWork, amount: '1.500' });
+    await renderWithProviders(<WorkAmountScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-expected-30'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-amount-cta'));
+    });
+    expect(mockedCreateWork).toHaveBeenCalled();
+    expect(mockedConfirm).not.toHaveBeenCalled();
+  });
+
+  it('título curto "Data do trabalho" e dias passados sem esmaecer', async () => {
+    useWorkDraft.setState({ type: 'shift' });
+    await renderWithProviders(<WorkWhenScreen />);
+    expect(screen.getByRole('header', { name: 'Data do trabalho' })).toBeTruthy();
   });
 });

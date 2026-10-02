@@ -30,15 +30,22 @@ const mockedRead = jest.mocked(readOnboardingSummary);
 const mockedComplete = jest.mocked(completeOnboarding);
 const mockedReplace = jest.mocked(router.replace);
 
-const residency = { specialty: 'Cardiologia', monthlyAmountCents: 365442n, paymentDay: 5 };
+const year = new Date().getFullYear();
+const residency = {
+  specialty: 'Cardiologia',
+  monthlyAmountCents: 365442n,
+  paymentDay: 5,
+  nextExpectedOn: `${year}-10-05`,
+};
 const shift = {
   type: 'shift' as const,
   locationName: 'Hospital São Lucas',
-  workDate: `${new Date().getFullYear()}-09-12`,
+  workDate: `${year}-09-12`,
   startTime: '19:00',
   durationMinutes: 720,
   amountCents: 120000n,
-  expectedOn: `${new Date().getFullYear()}-09-20`,
+  expectedOn: `${year}-10-20`,
+  receipt: 'scheduled' as const,
 };
 
 beforeEach(() => {
@@ -47,8 +54,8 @@ beforeEach(() => {
 });
 
 /** Espera o resumo e a marcação de conclusão assentarem antes das asserções. */
-async function renderDone() {
-  const result = await renderWithProviders(<OnboardingDoneScreen workId="work-1" />);
+async function renderDone(workId: string | null = 'work-1') {
+  const result = await renderWithProviders(<OnboardingDoneScreen workId={workId} />);
   await waitFor(() => expect(screen.queryByTestId('onboarding-done-loading')).toBeNull());
   await waitFor(() => expect(mockedComplete).toHaveBeenCalled());
   await act(async () => {});
@@ -56,16 +63,47 @@ async function renderDone() {
 }
 
 describe('conclusão dinâmica (TELA 10)', () => {
-  it('com residência e trabalho mostra os dois itens, total combinado e data de entrada', async () => {
+  it('bolsa e plantão que entram no mesmo mês: total do mês e data de entrada', async () => {
     mockedRead.mockResolvedValue({ residency, work: shift });
     await renderDone();
+    expect(screen.getByText('PREVISTO PARA OUTUBRO')).toBeTruthy();
     expect(screen.getByText(/4\.854,42/)).toBeTruthy();
-    expect(screen.getByText('de 2 entradas que você acabou de organizar')).toBeTruthy();
+    expect(screen.getByText('2 itens organizados')).toBeTruthy();
     expect(screen.getByTestId('onboarding-done-residency')).toBeTruthy();
     expect(screen.getByText('todo dia 05')).toBeTruthy();
     expect(screen.getByText('12 SET · 19:00 · 12h')).toBeTruthy();
-    expect(screen.getByText(/1\.200$/)).toBeTruthy();
-    expect(screen.getByText('20 SET')).toBeTruthy();
+    expect(screen.getByText('20 OUT')).toBeTruthy();
+  });
+
+  it('plantão de outro mês aparece em linha própria, nunca somado à bolsa', async () => {
+    mockedRead.mockResolvedValue({ residency, work: { ...shift, expectedOn: `${year}-11-11` } });
+    await renderDone();
+    expect(screen.getByText('PREVISTO PARA OUTUBRO')).toBeTruthy();
+    // Destaque (outubro) e card da bolsa mostram o mesmo valor; novembro fica à parte.
+    expect(screen.getAllByText(/3\.654,42/)).toHaveLength(2);
+    expect(screen.getByText('Previsto para Novembro')).toBeTruthy();
+    expect(screen.queryByText(/4\.854,42/)).toBeNull();
+  });
+
+  it('trabalho do passado: "Já recebi" vira recebido; sem confirmação, aguardando', async () => {
+    mockedRead.mockResolvedValue({ residency: null, work: { ...shift, receipt: 'received' } });
+    await renderDone();
+    expect(screen.getByText('RECEBIDO')).toBeTruthy();
+    expect(screen.getByText('Recebido')).toBeTruthy();
+
+    mockedRead.mockResolvedValue({ residency: null, work: { ...shift, receipt: 'pending' } });
+    await renderDone('work-2');
+    expect(screen.getAllByText('AGUARDANDO CONFIRMAÇÃO').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Aguardando confirmação').length).toBeGreaterThan(0);
+  });
+
+  it('residente que concluiu sem trabalho vê só a residência', async () => {
+    mockedRead.mockResolvedValue({ residency, work: null });
+    await renderDone(null);
+    expect(mockedRead).toHaveBeenCalledWith('user-1', null, expect.any(String));
+    expect(screen.getByTestId('onboarding-done-residency')).toBeTruthy();
+    expect(screen.queryByTestId('onboarding-done-work')).toBeNull();
+    expect(screen.getByText('1 item organizado')).toBeTruthy();
   });
 
   it('sem residência, sem horário e sem previsão: só o trabalho, sem placeholders', async () => {
@@ -77,11 +115,13 @@ describe('conclusão dinâmica (TELA 10)', () => {
         startTime: null,
         durationMinutes: null,
         expectedOn: null,
+        receipt: 'undated',
       },
     });
     await renderDone();
     expect(screen.queryByTestId('onboarding-done-residency')).toBeNull();
-    expect(screen.getByText('de 1 entrada que você acabou de organizar')).toBeTruthy();
+    expect(screen.getByText('SEM PREVISÃO DE ENTRADA')).toBeTruthy();
+    expect(screen.getByText('1 item organizado')).toBeTruthy();
     expect(screen.getByText('PROCEDIMENTO')).toBeTruthy();
     expect(screen.getByTestId('onboarding-done-work-meta').props.children).toBe('12 SET');
     expect(screen.getByText('Sem previsão de entrada')).toBeTruthy();

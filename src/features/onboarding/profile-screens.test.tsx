@@ -35,6 +35,21 @@ beforeEach(() => {
   useProfileDraft.getState().reset();
 });
 
+describe('campos centralizados e teclado (Onboarding v2)', () => {
+  it('nome: rótulo e valor centralizados, dentro da tela com teclado tratado', async () => {
+    await renderWithProviders(<NameScreen />);
+    expect(screen.getByTestId('name-input')).toHaveStyle({ textAlign: 'center' });
+    expect(screen.getByText('NOME')).toHaveStyle({ textAlign: 'center' });
+  });
+
+  it('bolsa: valor centralizado', async () => {
+    useProfileDraft.setState({ status: 'resident', specialty: 'Clínica Médica' });
+    await renderWithProviders(<ResidencyIncomeScreen />);
+    expect(screen.getByTestId('income-amount-input')).toHaveStyle({ minWidth: 48 });
+    expect(screen.getByText('Quanto você recebe por mês?')).toHaveStyle({ textAlign: 'center' });
+  });
+});
+
 describe('nome (tela 07)', () => {
   it('não mostra mais a dica de primeiro nome e o botão fica acessível com o teclado', async () => {
     await renderWithProviders(<NameScreen />);
@@ -305,7 +320,27 @@ describe('bolsa da residência (TELA 04)', () => {
 });
 
 describe('conclusão do perfil (tela 12)', () => {
-  it('residente vê "Residente de X" com a bolsa e vai ao primeiro trabalho, sem Pular', async () => {
+  it('residente pode concluir sem trabalho: "Ainda não" leva à conclusão (7.7)', async () => {
+    useProfileDraft.setState({
+      status: 'resident',
+      specialty: 'Clínica Médica',
+      monthlyAmount: '3.654,42',
+      paymentDay: 5,
+    });
+    await renderWithProviders(<ProfileReadyScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('profile-ready-skip'));
+    });
+    expect(mockedPush).toHaveBeenCalledWith('/first-work-done');
+  });
+
+  it('generalista não tem "Ainda não": o trabalho gera a primeira visão', async () => {
+    useProfileDraft.setState({ status: 'general_practitioner' });
+    await renderWithProviders(<ProfileReadyScreen />);
+    expect(screen.queryByTestId('profile-ready-skip')).toBeNull();
+  });
+
+  it('residente vê "Residente de X" com a bolsa e pode adicionar um trabalho', async () => {
     useProfileDraft.setState({
       status: 'resident',
       specialty: 'Clínica Médica',
@@ -317,7 +352,7 @@ describe('conclusão do perfil (tela 12)', () => {
     expect(screen.getByText('Residente de Clínica Médica')).toBeTruthy();
     expect(screen.getByText(/3\.654,42/)).toBeTruthy();
     expect(screen.getByText('todo dia 05')).toBeTruthy();
-    expect(screen.queryByText(/Pular/i)).toBeNull();
+    expect(screen.getByText('Adicionar um trabalho')).toBeTruthy();
 
     await act(async () => {
       await fireEvent.press(screen.getByTestId('profile-ready-cta'));

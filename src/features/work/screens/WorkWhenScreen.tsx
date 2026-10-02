@@ -27,7 +27,10 @@ const SELECTED_LABEL = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long',
 });
 
-/** Tela 20: data obrigatória; horário e duração só são exigidos em Plantão. */
+/**
+ * Tela 20: "Data do trabalho" — futuro ou passado, dias passados com a mesma aparência (7.7).
+ * Data obrigatória; horário e duração só são exigidos em Plantão.
+ */
 export function WorkWhenScreen() {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
@@ -63,13 +66,7 @@ export function WorkWhenScreen() {
       <View style={styles.heading}>
         {workType && <WorkTypeChip type={workType} />}
         <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-          {t(
-            workType === 'procedure'
-              ? 'firstWork.when.titleProcedure'
-              : workType === 'appointment'
-                ? 'firstWork.when.titleAppointment'
-                : 'firstWork.when.titleShift',
-          )}
+          {t('firstWork.when.title')}
         </AppText>
       </View>
 
@@ -101,6 +98,7 @@ export function WorkWhenScreen() {
         </View>
 
         <CalendarGrid
+          dimPast={false}
           density="compact"
           month={month}
           today={today}

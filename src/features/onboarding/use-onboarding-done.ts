@@ -1,15 +1,18 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { todayInTimezone } from '@/features/work/work-schedule';
 import {
   completeOnboarding,
   onboardingSummaryKey,
   readOnboardingSummary,
 } from './onboarding-summary';
+import { deviceTimezone } from './profile-data';
 
+/** `workId` nulo: residente que concluiu sem registrar um trabalho (7.7). */
 export function useOnboardingSummary(userId: string | null, workId: string | null) {
   return useQuery({
-    queryKey: onboardingSummaryKey(userId ?? '', workId ?? ''),
-    queryFn: () => readOnboardingSummary(userId ?? '', workId ?? ''),
-    enabled: userId != null && workId != null,
+    queryKey: onboardingSummaryKey(userId ?? '', workId),
+    queryFn: () => readOnboardingSummary(userId ?? '', workId, todayInTimezone(deviceTimezone())),
+    enabled: userId != null,
   });
 }
 

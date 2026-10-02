@@ -2,15 +2,17 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { MoneyInput } from '@/components/MoneyInput';
 import { MutationError } from '@/components/TechnicalStates';
 import { parseBRLToCents } from '@/domain/money';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 import { OnboardingCta } from '../OnboardingCta';
+import { FIELD_HELPER_SPACE } from '../OnboardingField';
 import { OnboardingHeader } from '../OnboardingHeader';
 import { useProfileDraft } from '../profile-draft';
 import { useSaveProfile } from '../use-save-profile';
@@ -56,20 +58,19 @@ export function ResidencyIncomeScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 24) + 20 },
-      ]}
-      testID="onboarding-residency-income"
-    >
+    <View style={[styles.screen, { paddingTop: insets.top }]} testID="onboarding-residency-income">
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+      <OnboardingHeader step={3} onBack={() => router.back()} testID="income-header" />
+      <KeyboardScreen
+        bottomInset={Math.max(insets.bottom, 24) + 20}
+        // A dica do valor fica visível logo abaixo dele enquanto se digita.
+        extraOffset={FIELD_HELPER_SPACE}
+        footer={
+          <View style={styles.footer}>
+            <OnboardingCta loading={save.isPending} onPress={submit} testID="income-cta" />
+          </View>
+        }
       >
-        <OnboardingHeader step={3} onBack={() => router.back()} testID="income-header" />
-
         <View style={styles.heading}>
           <View style={styles.badge}>
             <View style={styles.badgeDot} />
@@ -88,6 +89,7 @@ export function ResidencyIncomeScreen() {
               {t('profile.income.amountTitle')}
             </AppText>
             <MoneyInput
+              align="center"
               variant="residency"
               label={t('profile.income.amountLabel')}
               hint={t('profile.income.amountHint')}
@@ -197,11 +199,7 @@ export function ResidencyIncomeScreen() {
 
           {save.isError && <MutationError onRetry={submit} retrying={save.isPending} />}
         </View>
-
-        <View style={styles.footer}>
-          <OnboardingCta loading={save.isPending} onPress={submit} testID="income-cta" />
-        </View>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
     </View>
   );
 }
@@ -213,12 +211,23 @@ const styles = StyleSheet.create({
   badgeDot: { width: 7, height: 7, backgroundColor: palette.workSage },
   badgeLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   title: { fontSize: 26, lineHeight: 29, letterSpacing: -0.78, color: colors.textPrimary },
-  flex: { flex: 1 },
-  // Tela estática: os espaçamentos abaixo garantem que tudo caiba sem rolagem.
-  body: { flex: 1, marginTop: 24, paddingHorizontal: 32, gap: 24 },
+  // Rola só quando não cabe (teclado aberto ou tela pequena); valores sempre centralizados.
+  body: { marginTop: 24, paddingHorizontal: 32, paddingBottom: 12, gap: 24 },
   block: { gap: 10 },
-  question: { fontSize: 17, lineHeight: 22, letterSpacing: -0.17, color: colors.textPrimary },
-  dayRow: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 2 },
+  question: {
+    fontSize: 17,
+    lineHeight: 22,
+    letterSpacing: -0.17,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  dayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingTop: 2,
+  },
   dayPrefix: { fontSize: 16, lineHeight: 20, color: colors.textMuted },
   dayBox: {
     width: 78,
@@ -230,7 +239,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dayBoxValue: { fontSize: 26, lineHeight: 30, letterSpacing: 0, color: colors.textPrimary },
-  dayGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  dayGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 6 },
   dayChip: {
     width: 46,
     height: 44,
@@ -243,7 +252,7 @@ const styles = StyleSheet.create({
   dayChipOnText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
   dayChipOffText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   dayOtherText: { fontSize: 13, lineHeight: 17, color: colors.textMuted },
-  dayHint: { fontSize: 13, lineHeight: 18, color: palette.sage },
+  dayHint: { fontSize: 13, lineHeight: 18, color: palette.sage, textAlign: 'center' },
   pressed: { opacity: 0.72 },
-  footer: { paddingHorizontal: 32, paddingTop: 16 },
+  footer: { paddingHorizontal: 32 },
 });
