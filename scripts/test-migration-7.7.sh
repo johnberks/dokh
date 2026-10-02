@@ -21,8 +21,13 @@ for migration in supabase/migrations/2026*.sql; do
   docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres -d "$database" < "$migration" > /dev/null
 done
 docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres -d "$database" < supabase/tests/7_7_received_on.sql
+docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres -d "$database" < supabase/tests/7_7_onboarding_focus.sql
+docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres -d "$database" < supabase/rollback/20261001010000_profiles_onboarding_focus.sql
 docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres -d "$database" < supabase/rollback/20261001000000_confirm_receivable_received_on.sql
+
+column=$(docker exec "$container" psql -U postgres -d "$database" -Atc "select count(*) from information_schema.columns where table_schema = 'public' and table_name = 'profiles' and column_name = 'onboarding_focus'")
+[[ "$column" == 0 ]] || { echo 'Rollback left onboarding_focus behind' >&2; exit 1; }
 
 signature=$(docker exec "$container" psql -U postgres -d "$database" -Atc "select pg_get_function_identity_arguments(p.oid) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'confirm_receivable_received'")
 [[ "$signature" == 'p_receivable_id uuid' ]] || { echo "Rollback left signature: $signature" >&2; exit 1; }
-echo '7.7 receipt date on confirmation, guards and rollback passed in disposable database'
+echo '7.7 receipt date, onboarding focus (RLS), guards and rollbacks passed in disposable database'

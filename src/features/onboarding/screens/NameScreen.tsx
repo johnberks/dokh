@@ -8,12 +8,16 @@ import { AppText } from '@/components/AppText';
 import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, onboardingProfileMetrics as m } from '@/theme/tokens';
+import { DokhFrame } from '../DokhFrame';
 import { OnboardingCta } from '../OnboardingCta';
 import { FIELD_HELPER_SPACE, OnboardingField } from '../OnboardingField';
 import { OnboardingHeader } from '../OnboardingHeader';
 import { useProfileDraft } from '../profile-draft';
 
-/** Tela 07: primeiro nome, usado para personalizar as telas seguintes. */
+/**
+ * Tela 07: primeiro nome, usado para personalizar as telas seguintes. A moldura "DOKH de João"
+ * ganha o nome enquanto se digita (Onboarding v2, 7.7).
+ */
 export function NameScreen() {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
@@ -29,7 +33,7 @@ export function NameScreen() {
     setTouched(true);
     if (trimmed.length === 0) return;
     update({ displayName: trimmed });
-    router.push('/professional-status');
+    router.push('/focus');
   }
 
   return (
@@ -46,6 +50,9 @@ export function NameScreen() {
           </View>
         }
       >
+        <View style={styles.frame}>
+          <DokhFrame name={displayName} />
+        </View>
         <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
           {t('profile.name.title')}
         </AppText>
@@ -73,8 +80,9 @@ export function NameScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  frame: { marginTop: 24, marginHorizontal: 32 },
   title: {
-    marginTop: m.titlePaddingTop,
+    marginTop: 28,
     marginHorizontal: 32,
     fontSize: m.titleSize,
     lineHeight: m.titleLineHeight,

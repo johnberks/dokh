@@ -55,6 +55,11 @@ O indicador do carrossel deve refletir a página atual. O conteúdo apresenta ja
 
 ### Perfil inicial
 
+**Onboarding v2 (D77, 7.7):**
+- A introdução virou a abertura narrativa em três batidas.
+- Depois do Nome (com a moldura "DOKH de João") vem a pergunta de **foco** (Meus trabalhos / Meus recebimentos / Meus ganhos), gravada em `profiles.onboarding_focus`.
+- A situação profissional mostra Generalista, Em residência e Especialista, nessa ordem. O subtítulo acompanha o foco.
+
 | Cenário | Informações obrigatórias na tela | Comportamento |
 | --- | --- | --- |
 | Introdução | Explicação curta e CTA `Vamos começar` | CTA abre a coleta do nome. |

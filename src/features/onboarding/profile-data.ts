@@ -1,4 +1,5 @@
 import { getCalendars } from 'expo-localization';
+import type { Database } from '@/data/database.types';
 import { supabase } from '@/data/supabase-client';
 import type { AuthClient } from '@/features/auth/session';
 
@@ -9,9 +10,19 @@ export function deviceTimezone(): string {
   return getCalendars()[0]?.timeZone ?? FALLBACK_TIMEZONE;
 }
 
+/** Foco do onboarding (7.7, D-1): trabalhos, recebimentos ou ganhos. */
+export type OnboardingFocus = Database['public']['Enums']['onboarding_focus'];
+export const ONBOARDING_FOCUSES = [
+  'work',
+  'receivables',
+  'earnings',
+] as const satisfies readonly OnboardingFocus[];
+
 export type OnboardingProfileInput = {
   displayName: string;
   timezone: string;
+  /** `null` só para quem não passou pela pergunta (contas antigas); o onboarding v2 sempre envia. */
+  focus: OnboardingFocus | null;
 } & (
   | { status: 'general_practitioner' }
   | { status: 'specialist'; specialty: string }
@@ -61,6 +72,7 @@ export async function saveOnboardingProfile(
     {
       id: userId,
       display_name: input.displayName.trim(),
+      onboarding_focus: input.focus,
       professional_status: input.status,
       specialty: input.status === 'general_practitioner' ? null : input.specialty.trim(),
       timezone: input.timezone,

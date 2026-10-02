@@ -1,6 +1,6 @@
 # Onboarding v2: proposta narrativa (7.7)
 
-> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entrega 1 implementada** (ver §9). As entregas 2 a 4 ainda estão por fazer. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
+> Status: **aprovada pelo usuário em 2026-10-01** (recomendações D-1 a D-5 e as cinco animações). **Entregas 1 e 2 implementadas** (ver §9 e §10). As entregas 3 e 4 ainda estão por fazer. Depois de aprovada, ela substitui o fluxo de `docs/screens/onboarding.md` nos pontos indicados. A identidade visual (Archivo, verde-escuro, creme, bronze como acento, superfícies DOKH) é mantida.
 
 Princípio: **Ask → Apply → Show value**. Cada pergunta precisa produzir uma consequência visível.
 
@@ -277,3 +277,29 @@ Splash, Criar conta/Entrar, login com Apple, opções de situação profissional
   - Rollback e `scripts/test-migration-7.7.sh` (no `test:db`).
   - Aplicada só no Supabase local; preview e produção ainda não.
 - **Testes de data corrigidos:** testes que fixavam setembro (calendário do primeiro trabalho, melhor mês em Finanças) agora seguem o relógio.
+
+### Ajustes pedidos depois do teste no iPhone (2026-10-01)
+
+- **Situação profissional:**
+  - Ordem nova: **Generalista, Em residência, Especialista**.
+  - Ao digitar a especialidade ou o programa, a busca assume a tela: título, opções e botão saem da frente, e as sugestões ficam inteiras acima do teclado.
+  - Escolher uma sugestão ou tocar fora devolve a tela completa.
+
+## 10. Entrega 2: o que foi feito (2026-10-01)
+
+- **Abertura narrativa** (`OnboardingIntroScreen`, rota `/welcome`):
+  - três batidas por toque (tela inteira ou botão "Continuar"): peças soltas e tortas, chips D30/D60/DIA 05, e peças alinhadas pela linha bronze;
+  - os cards são exemplo e mostram "EXEMPLO";
+  - o CTA final é "Configurar minha DOKH" → `/name`;
+  - com Reduzir movimento, as três frases aparecem juntas e as peças já organizadas;
+  - tokens novos: `motion.storyEnter/storyChips/storyAlign`.
+- **Moldura** (`DokhFrame`): na tela de Nome, "Sua DOKH" vira "DOKH de João" enquanto se digita, com borda tracejada → sólida.
+- **Foco** (`FocusScreen`, rota `/focus`, entre Nome e Situação):
+  - Meus trabalhos / Meus recebimentos / Meus ganhos, escolha única e obrigatória;
+  - a opção escolhida se abre com a mini-sequência (Onde · Quando · Quanto; Trabalho realizado → D30 → Entrada prevista; Plantões + Residência = Visão mensal) e a frase de consequência.
+- **Foco gravado (D-1):**
+  - migration `20261001010000_profiles_onboarding_focus` (enum `onboarding_focus`, coluna opcional) com teste de RLS e rollback em `scripts/test-migration-7.7.sh`;
+  - gravado junto com a situação/bolsa (`saveOnboardingProfile`);
+  - aplicada só no local.
+- **Consequência imediata:** o subtítulo da Situação muda pelo foco. A ordem da primeira visão e o guia vêm na Entrega 4.
+- **Progresso:** a barra fina do cabeçalho já não tinha texto "Etapa X de Y". Agora conta 12 passos, com o foco.

@@ -59,7 +59,7 @@ describe('nome (tela 07)', () => {
       await fireEvent.changeText(screen.getByTestId('name-input'), 'Anna');
       await fireEvent.press(screen.getByTestId('name-cta'));
     });
-    expect(mockedPush).toHaveBeenCalledWith('/professional-status');
+    expect(mockedPush).toHaveBeenCalledWith('/focus');
   });
 
   it('exige um nome e guarda sem espaços em volta', async () => {
@@ -75,7 +75,7 @@ describe('nome (tela 07)', () => {
       await fireEvent.press(screen.getByTestId('name-cta'));
     });
     expect(useProfileDraft.getState().displayName).toBe('Anna');
-    expect(mockedPush).toHaveBeenCalledWith('/professional-status');
+    expect(mockedPush).toHaveBeenCalledWith('/focus');
   });
 });
 
@@ -217,7 +217,7 @@ describe('situação profissional (tela 09)', () => {
   });
 
   it('Especialista exige a especialidade e grava sem bolsa', async () => {
-    useProfileDraft.setState({ displayName: 'Anna' });
+    useProfileDraft.setState({ displayName: 'Anna', focus: 'receivables' });
     await renderWithProviders(<ProfessionalStatusScreen />);
     await act(async () => {
       await fireEvent.press(screen.getByTestId('status-specialist'));
@@ -237,6 +237,8 @@ describe('situação profissional (tela 09)', () => {
     });
     expect(mockedSave).toHaveBeenCalledWith('user-1', {
       displayName: 'Anna',
+      // O foco escolhido na tela anterior vai junto com a situação (7.7).
+      focus: 'receivables',
       status: 'specialist',
       specialty: 'Cardiologia',
       timezone: expect.any(String),

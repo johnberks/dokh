@@ -49,7 +49,7 @@ export function ProfessionalStatusScreen() {
   const type = useBrandTypography();
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
   const session = useAuthSession();
-  const { displayName, status, specialty, update } = useProfileDraft();
+  const { displayName, focus, status, specialty, update } = useProfileDraft();
   const [query, setQuery] = useState(specialty);
   const [touched, setTouched] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
@@ -79,16 +79,16 @@ export function ProfessionalStatusScreen() {
     }
     const onSuccess = () => router.push('/profile-ready');
     if (status === 'specialist') {
-      save.mutate({ displayName, status, specialty: chosen }, { onSuccess });
+      save.mutate({ displayName, focus, status, specialty: chosen }, { onSuccess });
       return;
     }
-    save.mutate({ displayName, status }, { onSuccess });
+    save.mutate({ displayName, focus, status }, { onSuccess });
   }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]} testID="onboarding-status">
       <StatusBar style="dark" />
-      <OnboardingHeader step={2} onBack={() => router.back()} testID="status-header" />
+      <OnboardingHeader step={3} onBack={() => router.back()} testID="status-header" />
       <KeyboardScreen
         bottomInset={Math.max(insets.bottom, 24) + 20}
         // Em telas pequenas, a busca ainda sobe o bastante para as sugestões caberem.
@@ -112,7 +112,15 @@ export function ProfessionalStatusScreen() {
             <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
               {t('profile.status.title')}
             </AppText>
-            <AppText style={styles.description}>{t('profile.status.description')}</AppText>
+            <AppText style={styles.description}>
+              {focus === 'work'
+                ? t('profile.status.descriptionWork')
+                : focus === 'receivables'
+                  ? t('profile.status.descriptionReceivables')
+                  : focus === 'earnings'
+                    ? t('profile.status.descriptionEarnings')
+                    : t('profile.status.description')}
+            </AppText>
           </View>
         )}
 

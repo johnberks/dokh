@@ -101,7 +101,7 @@ export function WorkAmountScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]} testID="first-work-amount">
       <StatusBar style="dark" />
-      <OnboardingHeader step={7} onBack={() => router.back()} testID="work-amount-header" />
+      <OnboardingHeader step={8} onBack={() => router.back()} testID="work-amount-header" />
 
       <KeyboardScreen
         bottomInset={Math.max(insets.bottom, 24) + 20}
