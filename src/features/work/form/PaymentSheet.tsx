@@ -5,6 +5,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
 import { formatDayMonth, type LocalDate } from '@/domain/calendar';
+import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import type { ExpectedEntry } from '../work-draft';
@@ -13,8 +14,10 @@ import {
   dateToLocalDate,
   localDateToDate,
   PAYMENT_TERMS,
+  todayInTimezone,
 } from '../work-schedule';
 import { DarkButton, SheetHeading } from './FormPieces';
+import { ReceivedChoice } from './ReceivedChoice';
 
 type Choice =
   | { kind: 'term'; days: (typeof PAYMENT_TERMS)[number] }
@@ -54,13 +57,22 @@ export function PaymentSheet({
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
   const [choice, setChoice] = useState<Choice>({ kind: 'term', days: 30 });
+  const [received, setReceived] = useState(false);
+  const [today] = useState(() => todayInTimezone(deviceTimezone()));
 
   useEffect(() => {
-    if (open) setChoice(expectedChoice(value, workDate) ?? { kind: 'term', days: 30 });
+    if (!open) return;
+    setChoice(expectedChoice(value, workDate) ?? { kind: 'term', days: 30 });
+    setReceived(value?.kind === 'date' && value.received === true);
   }, [open, value, workDate]);
 
   const picking = choice.kind === 'date';
   const date = choiceDate(choice, workDate);
+  // "Já recebi" (7.7) só existe para data de hoje ou já passada.
+  const past = date !== null && date <= today;
+  const markReceived = past && received;
+  const pastLabel = (day: LocalDate) =>
+    day <= today ? `${formatDayMonth(day)} · ${t('form.paymentSheet.past')}` : formatDayMonth(day);
 
   function option(
     key: string,
@@ -121,7 +133,7 @@ export function PaymentSheet({
                 ? { kind: 'term', days: 30 }
                 : { kind: 'date', date: date ?? addDaysToLocalDate(workDate, 30) },
             ),
-          picking && date ? formatDayMonth(date) : undefined,
+          picking && date ? pastLabel(date) : undefined,
         )}
         {picking && Platform.OS === 'ios' && date ? (
           // Com a data específica aberta, o calendário da Apple ocupa o lugar dos prazos.
@@ -147,7 +159,7 @@ export function PaymentSheet({
                 t('form.paymentSheet.inDays', { days }),
                 choice.kind === 'term' && choice.days === days,
                 () => setChoice({ kind: 'term', days }),
-                formatDayMonth(addDaysToLocalDate(workDate, days)),
+                pastLabel(addDaysToLocalDate(workDate, days)),
               ),
             )}
             {option('unknown', t('form.paymentSheet.unknown'), choice.kind === 'unknown', () =>
@@ -169,13 +181,31 @@ export function PaymentSheet({
       {choice.kind === 'unknown' && (
         <AppText style={styles.note}>{t('form.paymentSheet.unknownNote')}</AppText>
       )}
+      {past && date !== null && (
+        <ReceivedChoice date={date} received={received} onChange={setReceived} />
+      )}
       <DarkButton
         label={
           date === null
             ? t('form.paymentSheet.confirmUnknown')
-            : t('form.paymentSheet.confirmDate', { date: formatDayMonth(date) })
+            : t(
+                markReceived
+                  ? 'form.paymentSheet.confirmReceived'
+                  : 'form.paymentSheet.confirmDate',
+                {
+                  date: formatDayMonth(date),
+                },
+              )
         }
-        onPress={() => onConfirm(date === null ? { kind: 'unknown' } : { kind: 'date', date })}
+        onPress={() =>
+          onConfirm(
+            date === null
+              ? { kind: 'unknown' }
+              : markReceived
+                ? { kind: 'date', date, received: true }
+                : { kind: 'date', date },
+          )
+        }
         testID="work-payment-confirm"
       />
     </BottomSheet>

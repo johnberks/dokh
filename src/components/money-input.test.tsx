@@ -116,3 +116,21 @@ describe('MoneyInput', () => {
     }
   });
 });
+
+describe('alinhamento central (Onboarding v2)', () => {
+  it('centraliza "R$" e valor juntos, e a ajuda abaixo', async () => {
+    await render(
+      <MoneyInput
+        align="center"
+        variant="work"
+        label="Valor"
+        hint="Toque para ajustar"
+        value="1.500"
+        onChangeText={jest.fn()}
+        testID="money"
+      />,
+    );
+    expect(screen.getByTestId('money-input')).toHaveStyle({ flex: 0, minWidth: 48 });
+    expect(screen.getByText('Toque para ajustar')).toHaveStyle({ textAlign: 'center' });
+  });
+});

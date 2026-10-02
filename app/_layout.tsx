@@ -1,6 +1,7 @@
 import '@/i18n';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { getEnv } from '@/config/env';
 import { AppProviders } from '@/features/app-shell/AppProviders';
 import { AuthNavigationGate } from '@/features/auth/AuthNavigationGate';
@@ -14,12 +15,15 @@ export const unstable_settings = { initialRouteName: '(auth)' };
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }} testID="gesture-handler-root">
-      <BrandFontProvider hideSplashWhenReady={false}>
-        <AppProviders>
-          <StatusBar style="dark" />
-          <AuthNavigationGate />
-        </AppProviders>
-      </BrandFontProvider>
+      {/* Teclado tratado no app inteiro: o campo em foco nunca fica escondido (Onboarding v2). */}
+      <KeyboardProvider>
+        <BrandFontProvider hideSplashWhenReady={false}>
+          <AppProviders>
+            <StatusBar style="dark" />
+            <AuthNavigationGate />
+          </AppProviders>
+        </BrandFontProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

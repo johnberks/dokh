@@ -60,12 +60,13 @@ export const onboarding = {
       everyDay: 'todo dia {{day}}',
       withResidencyTitle: 'Sua residência já é sua primeira entrada.',
       withResidencyDescription:
-        'Agora vamos adicionar o que você faz além dela — plantões, procedimentos ou atendimentos.',
+        'Você também faz plantões, atendimentos ou procedimentos? Se não, já dá para começar.',
       withoutResidencyTitle: 'Agora vamos entender como seu trabalho vira renda.',
       withoutResidencyDescription:
         'Registre um plantão, procedimento ou atendimento para a DOKH acompanhar suas entradas.',
-      withResidencyCta: 'Registrar um trabalho',
+      withResidencyCta: 'Adicionar um trabalho',
       withoutResidencyCta: 'Registrar meu primeiro trabalho',
+      notYet: 'Ainda não',
     },
   },
   /** Telas 06, 19, 20 e 22 do primeiro Trabalho em `design/onboarding.html`. */
@@ -91,9 +92,8 @@ export const onboarding = {
       required: 'Informe onde o trabalho acontece.',
     },
     when: {
-      titleShift: 'Quando acontece esse plantão?',
-      titleProcedure: 'Quando acontece esse procedimento?',
-      titleAppointment: 'Quando acontece esse atendimento?',
+      /** 7.7: curto e neutro; vale para trabalho futuro ou que já aconteceu. */
+      title: 'Data do trabalho',
       selected: 'SELECIONADO',
       start: 'INÍCIO',
       duration: 'DURAÇÃO',
@@ -117,6 +117,8 @@ export const onboarding = {
       expectedLabel: 'PREVISTO PARA ENTRAR',
       change: 'ALTERAR',
       inDays: 'Em {{days}} dias',
+      termDays: '{{days}} dias',
+      past: 'já passou',
       otherDate: 'Outra data',
       pickDate: 'Escolher a data prevista',
       dateSheetTitle: 'Quando esse valor entra?',
@@ -132,12 +134,21 @@ export const onboarding = {
   },
   /** TELA 10: conclusão dinâmica, com o que foi de fato gravado. */
   done: {
-    totalLabel: 'PREVISTO PARA ENTRAR',
-    countOne: 'de 1 entrada que você acabou de organizar',
-    countMany: 'de {{count}} entradas que você acabou de organizar',
+    /** 7.7: totais por mês de entrada (caixa); recebido e pendente nunca se somam ao previsto. */
+    totalMonth: 'PREVISTO PARA {{month}}',
+    totalReceived: 'RECEBIDO',
+    totalPending: 'AGUARDANDO CONFIRMAÇÃO',
+    totalUndated: 'SEM PREVISÃO DE ENTRADA',
+    lineMonth: 'Previsto para {{month}}',
+    lineReceived: 'Recebido',
+    linePending: 'Aguardando confirmação',
+    countOne: '1 item organizado',
+    countMany: '{{count}} itens organizados',
     residencyBadge: 'RESIDÊNCIA',
     everyDay: 'todo dia {{day}}',
     expected: 'Previsto para entrar',
+    received: 'Recebido',
+    pending: 'Aguardando confirmação',
     noExpected: 'Sem previsão de entrada',
     title: 'Sua DOKH já começou a te acompanhar.',
     description: 'A cada trabalho que você registra, essa visão fica mais completa.',

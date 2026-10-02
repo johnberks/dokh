@@ -105,6 +105,7 @@ export const agenda = {
     expectedNeedsDate: 'Escolha a data primeiro',
     expectedTerm: 'Em {{days}} dias · {{date}}',
     expectedUnknown: 'Ainda não sei',
+    expectedReceived: 'Recebido · {{date}}',
     save: 'Salvar trabalho',
     saving: 'Salvando…',
     saved: 'Trabalho salvo',
@@ -152,7 +153,7 @@ export const agenda = {
       petrol: 'Petróleo',
     },
     dateSheet: {
-      eyebrow: 'QUANDO SERÁ?',
+      eyebrow: 'DATA DO TRABALHO',
       previousMonth: 'Mês anterior',
       nextMonth: 'Próximo mês',
       dotsHint: 'Os pontos mostram dias em que você já trabalha.',
@@ -187,7 +188,17 @@ export const agenda = {
       unknownNote:
         'Sem data, o valor entra em Finanças como "sem previsão" — você completa quando souber.',
       confirmDate: 'Confirmar · recebe {{date}}',
+      confirmReceived: 'Confirmar · recebido {{date}}',
       confirmUnknown: 'Confirmar · sem previsão',
+      past: 'já passou',
+    },
+    /** 7.7: trabalho de hoje ou do passado com a data prevista já vencida. */
+    received: {
+      question: 'Você já recebeu esse valor?',
+      no: 'Ainda não',
+      yes: 'Já recebi',
+      pendingNote: 'Ele fica aguardando sua confirmação em Finanças.',
+      receivedNote: 'Entra como recebido em {{date}}.',
     },
   },
   empty: {

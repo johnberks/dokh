@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import type { TFunction } from 'i18next';
 import { useContext, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, BackHandler, Pressable, StyleSheet, View } from 'react-native';
@@ -19,7 +20,10 @@ import { useCountUp } from '@/theme/useCountUp';
 import { BrandBackdrop } from '../BrandBackdrop';
 import {
   formatShortDate,
+  monthLabel,
+  type OnboardingSummary,
   type SummaryResidency,
+  type SummaryTotals,
   type SummaryWork,
   summaryTotals,
   workMetaLine,
@@ -76,8 +80,9 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
 
   const data = summary.data;
   const totals = data ? summaryTotals(data) : null;
-  const counted = useCountUp(totals?.totalCents ?? 0n, data ? 1 : 0);
   const referenceYear = new Date().getFullYear();
+  const lines = data && totals ? summaryLines(data, totals, referenceYear, t) : null;
+  const counted = useCountUp(lines?.hero.cents ?? 0n, data ? 1 : 0);
 
   return (
     <View
@@ -97,7 +102,7 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
       <View style={styles.summary}>
         {summary.isPending ? (
           <ActivityIndicator color={palette.cream} testID="onboarding-done-loading" />
-        ) : summary.isError || !data || !totals ? (
+        ) : summary.isError || !data || !totals || !lines ? (
           <View style={styles.inlineError}>
             <AppText style={styles.errorText}>{t('done.loadError')}</AppText>
             <Pressable
@@ -115,9 +120,17 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
             <Reveal delay={step(1)}>
               <View style={styles.total} accessible testID="onboarding-done-total">
                 <AppText variant="technical" style={styles.totalLabel}>
-                  {t('done.totalLabel')}
+                  {lines.hero.label}
                 </AppText>
                 <AppText style={[type.heading1, styles.totalValue]}>{money(counted)}</AppText>
+                {lines.others.map((line) => (
+                  <View key={line.label} style={styles.totalLine} testID="onboarding-done-line">
+                    <AppText style={styles.totalLineLabel}>{line.label}</AppText>
+                    <AppText style={[type.heading1, styles.totalLineValue]}>
+                      {money(line.cents)}
+                    </AppText>
+                  </View>
+                ))}
                 <AppText style={styles.totalCount}>
                   {totals.count === 1
                     ? t('done.countOne')
@@ -178,6 +191,53 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
   );
 }
 
+type MoneyLine = { label: string; cents: bigint };
+
+/**
+ * O destaque é o mês mais próximo com entrada prevista; na falta dele, o recebido, o pendente
+ * ou — só com um trabalho sem previsão — o valor dele, rotulado como "sem previsão". As demais
+ * linhas nunca se somam ao destaque (caixa ≠ competência; recebido ≠ previsto).
+ */
+function summaryLines(
+  summary: OnboardingSummary,
+  totals: SummaryTotals,
+  referenceYear: number,
+  t: TFunction<'onboarding'>,
+): { hero: MoneyLine; others: MoneyLine[] } {
+  const months = totals.months.map(({ month, totalCents }) => ({
+    month: monthLabel(month, referenceYear),
+    cents: totalCents,
+  }));
+  const candidates: MoneyLine[] = [
+    ...(months[0]
+      ? [{ label: t('done.totalMonth', { month: months[0].month }), cents: months[0].cents }]
+      : []),
+    ...(totals.receivedCents > 0n
+      ? [{ label: t('done.totalReceived'), cents: totals.receivedCents }]
+      : []),
+    ...(totals.pendingCents > 0n
+      ? [{ label: t('done.totalPending'), cents: totals.pendingCents }]
+      : []),
+  ];
+  const hero = candidates[0] ?? {
+    label: t('done.totalUndated'),
+    cents: summary.work?.amountCents ?? 0n,
+  };
+  const others: MoneyLine[] = [
+    ...months.slice(1).map(({ month, cents }) => ({
+      label: t('done.lineMonth', { month: month.charAt(0) + month.slice(1).toLowerCase() }),
+      cents,
+    })),
+    ...(months[0] && totals.receivedCents > 0n
+      ? [{ label: t('done.lineReceived'), cents: totals.receivedCents }]
+      : []),
+    ...((months[0] || totals.receivedCents > 0n) && totals.pendingCents > 0n
+      ? [{ label: t('done.linePending'), cents: totals.pendingCents }]
+      : []),
+  ];
+  return { hero, others };
+}
+
 function ResidencyCard({ residency }: { residency: SummaryResidency }) {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
@@ -235,7 +295,13 @@ function WorkSummaryCard({ work, referenceYear }: { work: SummaryWork; reference
         </AppText>
       ) : (
         <View style={styles.expectedRow} testID="onboarding-done-expected">
-          <AppText style={styles.cardMeta}>{t('done.expected')}</AppText>
+          <AppText style={styles.cardMeta}>
+            {work.receipt === 'received'
+              ? t('done.received')
+              : work.receipt === 'pending'
+                ? t('done.pending')
+                : t('done.expected')}
+          </AppText>
           <AppText variant="technical" style={styles.expectedDate}>
             {formatShortDate(work.expectedOn, referenceYear)}
           </AppText>
@@ -255,6 +321,9 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
   totalValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.61, color: palette.cream },
   totalCount: { fontSize: 13, lineHeight: 17, color: palette.secondaryText },
+  totalLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  totalLineLabel: { fontSize: 13, lineHeight: 17, color: palette.secondaryText },
+  totalLineValue: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
   cards: { gap: 10 },
   card: {
     backgroundColor: palette.cream,

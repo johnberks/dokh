@@ -21,8 +21,9 @@ import { BrandBackdrop } from '../BrandBackdrop';
 import { useProfileDraft } from '../profile-draft';
 
 /**
- * Tela 12: perfil construído. Não existe `Pular` — a única saída é registrar o primeiro
- * trabalho, conforme decisão do usuário (2026-09-25). Mostra só o que foi cadastrado:
+ * Tela 12: perfil construído. O residente já tem uma fonte de renda real e pode concluir com
+ * **Ainda não** (Onboarding v2, 7.7); generalista e especialista seguem para o primeiro
+ * trabalho, que é o que gera a primeira visão deles. Mostra só o que foi cadastrado:
  * residente vê "Residente de X" com a bolsa; generalista e especialista veem só a situação
  * ("Generalista", "Especialista em X"), sem card de residência (11.10), e a lista do que a DOKH
  * passa a acompanhar — sem ela o card ficava vazio (pedido do usuário, 2026-09-27; referência
@@ -163,6 +164,20 @@ export function ProfileReadyScreen() {
               {'→'}
             </AppText>
           </Pressable>
+          {resident && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.ready.notYet')}
+              // Sem trabalho: a conclusão mostra só a residência e suas entradas reais.
+              onPress={() => router.push('/first-work-done')}
+              testID="profile-ready-skip"
+              style={({ pressed }) => [styles.skip, pressed && styles.pressed]}
+            >
+              <AppText style={[type.heading1, styles.skipLabel]}>
+                {t('profile.ready.notYet')}
+              </AppText>
+            </Pressable>
+          )}
         </Reveal>
       </View>
     </View>
@@ -171,6 +186,8 @@ export function ProfileReadyScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.base, paddingHorizontal: 32 },
+  skip: { minHeight: 48, marginTop: 8, alignItems: 'center', justifyContent: 'center' },
+  skipLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   wordmarkText: { fontSize: 12, lineHeight: 14, color: palette.cream },
   summary: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 32 },

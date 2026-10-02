@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, moneyInputMetrics } from '@/theme/tokens';
 import { AppText } from './AppText';
@@ -17,6 +17,8 @@ export type MoneyInputProps = {
   disabled?: boolean;
   testID?: string;
   onBlur?: TextInputProps['onBlur'];
+  /** `center`: rótulo, valor e ajuda centralizados (campos de valor do onboarding). */
+  align?: 'start' | 'center';
 };
 
 /** Controlled pt-BR text entry. Parse into bigint cents only on validation/submit. */
@@ -30,10 +32,13 @@ export function MoneyInput({
   disabled = false,
   testID,
   onBlur,
+  align = 'start',
 }: MoneyInputProps) {
   const { t } = useTranslation('components');
   const fonts = useBrandTypography();
+  const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
+  const centered = align === 'center';
   const filled = value.trim().length > 0;
   const detail = error ?? hint;
   const form = variant === 'form';
@@ -47,11 +52,14 @@ export function MoneyInput({
   return (
     <View style={styles.container} testID={testID}>
       {residency ? (
-        <AppText variant="heading1" style={styles.residencyLabel}>
+        <AppText variant="heading1" style={[styles.residencyLabel, centered && styles.centerText]}>
           {label}
         </AppText>
       ) : null}
-      <View
+      <Pressable
+        accessible={false}
+        // A caixa inteira foca o campo, não só os dígitos.
+        onPress={() => inputRef.current?.focus()}
         testID={testID ? `${testID}-field` : undefined}
         style={[
           form ? styles.formField : styles.heroField,
@@ -61,11 +69,11 @@ export function MoneyInput({
         ]}
       >
         {form ? (
-          <AppText variant="technical" style={styles.formLabel}>
+          <AppText variant="technical" style={[styles.formLabel, centered && styles.centerText]}>
             {label}
           </AppText>
         ) : null}
-        <View style={styles.valueRow}>
+        <View style={[styles.valueRow, centered && styles.valueRowCentered]}>
           <AppText
             accessible={false}
             variant={form ? 'body' : 'heading2'}
@@ -82,6 +90,7 @@ export function MoneyInput({
             {t('money.currency')}
           </AppText>
           <TextInput
+            ref={inputRef}
             accessibilityLabel={label}
             accessibilityHint={
               detail ? t('money.currencyHintWithDetail', { detail }) : t('money.currencyHint')
@@ -113,16 +122,24 @@ export function MoneyInput({
               form && styles.formInput,
               !form && { lineHeight: size, letterSpacing: -0.035 * size },
               !filled && styles.emptyInput,
+              // Centralizado: o campo mede o próprio conteúdo para "R$" e valor andarem juntos.
+              centered && styles.inputCentered,
             ]}
           />
         </View>
-      </View>
+      </Pressable>
       {error ? (
-        <AppText accessibilityLiveRegion="polite" tone="error" style={styles.helper}>
+        <AppText
+          accessibilityLiveRegion="polite"
+          tone="error"
+          style={[styles.helper, centered && styles.centerText]}
+        >
           {error}
         </AppText>
       ) : hint ? (
-        <AppText style={[styles.helper, styles.hint]}>{hint}</AppText>
+        <AppText style={[styles.helper, styles.hint, centered && styles.centerText]}>
+          {hint}
+        </AppText>
       ) : null}
     </View>
   );
@@ -148,6 +165,9 @@ const styles = StyleSheet.create({
     color: colors.darkTextSecondary,
   },
   valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  valueRowCentered: { justifyContent: 'center' },
+  centerText: { textAlign: 'center' },
+  inputCentered: { flex: 0, flexShrink: 1, minWidth: 48 },
   currency: { color: colors.darkTextSecondary, fontVariant: ['tabular-nums'] },
   formCurrency: { fontSize: moneyInputMetrics.formValueSize },
   input: {

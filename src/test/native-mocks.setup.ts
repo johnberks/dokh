@@ -25,3 +25,8 @@ jest.mock('expo-apple-authentication', () => ({
   signInAsync: jest.fn(),
   AppleAuthenticationScope: { FULL_NAME: 0, EMAIL: 1 },
 }));
+
+// Teclado (Onboarding v2): mock oficial da biblioteca.
+jest.mock('react-native-keyboard-controller', () =>
+  require('react-native-keyboard-controller/jest'),
+);

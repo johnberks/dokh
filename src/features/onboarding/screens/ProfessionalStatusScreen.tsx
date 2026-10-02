@@ -2,19 +2,11 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { CheckIcon, MagnifyingGlassIcon } from '@/components/icons/heroicons';
+import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { MutationError } from '@/components/TechnicalStates';
 import { searchResidencyPrograms } from '@/domain/medical-specialties';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -28,14 +20,17 @@ import { useSaveProfile } from '../use-save-profile';
 
 /** Poucas sugestões cabem acima do teclado sem esconder a lista. */
 const SUGGESTION_LIMIT = 4;
+/** Altura das sugestões + "Outra" abaixo da busca: o teclado nunca as cobre. */
+const SUGGESTIONS_SPACE = (SUGGESTION_LIMIT + 1) * 44 + 16;
 
 const OPTIONS = [
-  { value: 'resident', label: 'profile.status.resident', hint: 'profile.status.residentHint' },
+  // Ordem pedida pelo usuário (2026-10-01): Generalista, Em residência, Especialista.
   {
     value: 'general_practitioner',
     label: 'profile.status.generalist',
     hint: 'profile.status.generalistHint',
   },
+  { value: 'resident', label: 'profile.status.resident', hint: 'profile.status.residentHint' },
   {
     value: 'specialist',
     label: 'profile.status.specialist',
@@ -46,8 +41,8 @@ const OPTIONS = [
 /**
  * Tela 09: situação profissional (11.10). A escolha é sempre explícita — sem residência não
  * significa generalista. Em residência pede o programa e segue para a bolsa; Especialista pede
- * a especialidade (mesma lista) e conclui; Generalista conclui direto. A tela rola como um todo
- * (sem área interna rolável) e o teclado nunca cobre as sugestões.
+ * a especialidade (mesma lista) e conclui; Generalista conclui direto. Ao digitar na busca, ela
+ * assume a tela e as sugestões ficam inteiras acima do teclado (pedido do usuário, 2026-10-01).
  */
 export function ProfessionalStatusScreen() {
   const { t } = useTranslation('onboarding');
@@ -57,12 +52,16 @@ export function ProfessionalStatusScreen() {
   const { displayName, status, specialty, update } = useProfileDraft();
   const [query, setQuery] = useState(specialty);
   const [touched, setTouched] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const save = useSaveProfile();
 
   const suggestions = useMemo(() => searchResidencyPrograms(query, SUGGESTION_LIMIT), [query]);
   const chosen = specialty.trim();
   const asksSpecialty = status === 'resident' || status === 'specialist';
   const missingSpecialty = asksSpecialty && chosen.length === 0;
+  // Buscando: a busca assume a tela (título, opções e botão saem) para que a lista inteira de
+  // sugestões caiba acima do teclado, sem precisar rolar. Escolher ou tocar fora devolve tudo.
+  const searching = asksSpecialty && searchFocused;
 
   function selectSpecialty(name: string) {
     update({ specialty: name });
@@ -87,36 +86,38 @@ export function ProfessionalStatusScreen() {
   }
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 24) + 20 },
-      ]}
-      testID="onboarding-status"
-    >
+    <View style={[styles.screen, { paddingTop: insets.top }]} testID="onboarding-status">
       <StatusBar style="dark" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+      <OnboardingHeader step={2} onBack={() => router.back()} testID="status-header" />
+      <KeyboardScreen
+        bottomInset={Math.max(insets.bottom, 24) + 20}
+        // Em telas pequenas, a busca ainda sobe o bastante para as sugestões caberem.
+        extraOffset={SUGGESTIONS_SPACE}
+        footer={
+          searching ? undefined : (
+            <View style={styles.footer}>
+              <OnboardingCta
+                disabled={status === null || session.userId === null}
+                loading={save.isPending}
+                onPress={goForward}
+                testID="status-cta"
+              />
+            </View>
+          )
+        }
+        testID="status-scroll"
       >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-          showsVerticalScrollIndicator={false}
-          style={styles.flex}
-          testID="status-scroll"
-        >
-          <OnboardingHeader step={2} onBack={() => router.back()} testID="status-header" />
-
+        {!searching && (
           <View style={styles.heading}>
             <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
               {t('profile.status.title')}
             </AppText>
             <AppText style={styles.description}>{t('profile.status.description')}</AppText>
           </View>
+        )}
 
-          <View style={styles.body}>
+        <View style={[styles.body, searching && styles.bodySearching]}>
+          {!searching && (
             <View accessibilityRole="radiogroup" style={styles.choices}>
               {OPTIONS.map((option) => {
                 const selected = status === option.value;
@@ -153,105 +154,96 @@ export function ProfessionalStatusScreen() {
                 );
               })}
             </View>
+          )}
 
-            {asksSpecialty && (
-              <View style={styles.search} testID="status-search">
-                <AppText variant="technical" style={styles.searchLabel}>
-                  {status === 'resident'
-                    ? t('profile.status.residencyQuestion')
-                    : t('profile.status.specialtyQuestion')}
-                </AppText>
-                <View style={[styles.field, missingSpecialty && touched && styles.fieldError]}>
-                  <MagnifyingGlassIcon color={palette.sage} size={18} />
-                  <TextInput
-                    accessibilityLabel={
-                      status === 'resident'
-                        ? t('profile.status.residencySearchLabel')
-                        : t('profile.status.specialtySearchLabel')
-                    }
-                    autoCapitalize="words"
-                    autoCorrect={false}
-                    onChangeText={(value) => {
-                      setQuery(value);
-                      update({ specialty: '' });
-                    }}
-                    placeholder={t('profile.status.searchPlaceholder')}
-                    placeholderTextColor={palette.sage}
-                    selectionColor={palette.bronze}
-                    style={[type.body, styles.input]}
-                    testID="status-input"
-                    value={query}
-                  />
-                </View>
+          {asksSpecialty && (
+            <View style={styles.search} testID="status-search">
+              <AppText variant="technical" style={styles.searchLabel}>
+                {status === 'resident'
+                  ? t('profile.status.residencyQuestion')
+                  : t('profile.status.specialtyQuestion')}
+              </AppText>
+              <View style={[styles.field, missingSpecialty && touched && styles.fieldError]}>
+                <MagnifyingGlassIcon color={palette.sage} size={18} />
+                <TextInput
+                  accessibilityLabel={
+                    status === 'resident'
+                      ? t('profile.status.residencySearchLabel')
+                      : t('profile.status.specialtySearchLabel')
+                  }
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  onBlur={() => setSearchFocused(false)}
+                  onChangeText={(value) => {
+                    setQuery(value);
+                    update({ specialty: '' });
+                  }}
+                  onFocus={() => setSearchFocused(true)}
+                  placeholder={t('profile.status.searchPlaceholder')}
+                  placeholderTextColor={palette.sage}
+                  selectionColor={palette.bronze}
+                  style={[type.body, styles.input]}
+                  testID="status-input"
+                  value={query}
+                />
+                <View style={styles.iconBalance} />
+              </View>
 
-                {/* Escolhida a especialidade, a lista some: não há mais o que decidir. */}
-                {query.trim().length > 0 && chosen.length === 0 && (
-                  <View testID="status-suggestions">
-                    {suggestions.map((program) => (
-                      <Pressable
-                        key={program.name}
-                        accessibilityRole="button"
-                        accessibilityLabel={program.name}
-                        onPress={() => selectSpecialty(program.name)}
-                        testID={`status-option-${program.name}`}
-                        style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
-                      >
-                        <AppText style={[type.body, styles.suggestionText]}>
-                          {program.name.slice(0, program.start)}
-                          <AppText style={[type.heading1, styles.suggestionMatch]}>
-                            {program.name.slice(program.start, program.end)}
-                          </AppText>
-                          {program.name.slice(program.end)}
-                        </AppText>
-                      </Pressable>
-                    ))}
+              {/* Escolhida a especialidade, a lista some: não há mais o que decidir. */}
+              {query.trim().length > 0 && chosen.length === 0 && (
+                <View testID="status-suggestions">
+                  {suggestions.map((program) => (
                     <Pressable
+                      key={program.name}
                       accessibilityRole="button"
-                      accessibilityLabel={t('profile.status.other')}
-                      accessibilityHint={t('profile.status.otherHint')}
-                      onPress={() => selectSpecialty(query.trim())}
-                      testID="status-option-other"
+                      accessibilityLabel={program.name}
+                      onPress={() => selectSpecialty(program.name)}
+                      testID={`status-option-${program.name}`}
                       style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
                     >
-                      <AppText style={[type.body, styles.suggestionOther]}>
-                        {t('profile.status.other')}
+                      <AppText style={[type.body, styles.suggestionText]}>
+                        {program.name.slice(0, program.start)}
+                        <AppText style={[type.heading1, styles.suggestionMatch]}>
+                          {program.name.slice(program.start, program.end)}
+                        </AppText>
+                        {program.name.slice(program.end)}
                       </AppText>
                     </Pressable>
-                  </View>
-                )}
+                  ))}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.status.other')}
+                    accessibilityHint={t('profile.status.otherHint')}
+                    onPress={() => selectSpecialty(query.trim())}
+                    testID="status-option-other"
+                    style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
+                  >
+                    <AppText style={[type.body, styles.suggestionOther]}>
+                      {t('profile.status.other')}
+                    </AppText>
+                  </Pressable>
+                </View>
+              )}
 
-                {touched && missingSpecialty && (
-                  <AppText style={styles.error}>
-                    {status === 'resident'
-                      ? t('profile.status.residencyRequired')
-                      : t('profile.status.specialtyRequired')}
-                  </AppText>
-                )}
-              </View>
-            )}
+              {touched && missingSpecialty && (
+                <AppText style={styles.error}>
+                  {status === 'resident'
+                    ? t('profile.status.residencyRequired')
+                    : t('profile.status.specialtyRequired')}
+                </AppText>
+              )}
+            </View>
+          )}
 
-            {save.isError && <MutationError onRetry={goForward} retrying={save.isPending} />}
-          </View>
-
-          <View style={styles.footer}>
-            <OnboardingCta
-              disabled={status === null || session.userId === null}
-              loading={save.isPending}
-              onPress={goForward}
-              testID="status-cta"
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          {save.isError && <MutationError onRetry={goForward} retrying={save.isPending} />}
+        </View>
+      </KeyboardScreen>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  flex: { flex: 1 },
-  // A rolagem é da tela inteira e só existe quando o conteúdo não cabe.
-  content: { flexGrow: 1 },
   heading: { marginTop: m.titlePaddingTop, marginHorizontal: 32, gap: 12 },
   title: {
     fontSize: m.titleSize,
@@ -260,7 +252,8 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   description: { fontSize: 15, lineHeight: 23, color: colors.textMuted },
-  body: { flex: 1, marginTop: 28, marginHorizontal: 32, gap: 10 },
+  body: { marginTop: 28, marginHorizontal: 32, paddingBottom: 12, gap: 10 },
+  bodySearching: { marginTop: 12 },
   choices: { gap: 10 },
   choice: {
     minHeight: m.choiceHeight,
@@ -299,7 +292,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16,22,15,0.25)',
   },
   search: { paddingTop: 16, gap: 10 },
-  searchLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
+  searchLabel: {
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 1.4,
+    color: palette.sage,
+    textAlign: 'center',
+  },
   field: {
     height: m.choiceHeight,
     borderRadius: m.choiceRadius,
@@ -311,7 +310,17 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fieldError: { borderColor: colors.errorFill },
-  input: { flex: 1, fontSize: 17, lineHeight: 22, color: colors.textPrimary, padding: 0 },
+  // Texto digitado centralizado, como nos demais campos do onboarding.
+  input: {
+    flex: 1,
+    fontSize: 17,
+    lineHeight: 22,
+    color: colors.textPrimary,
+    padding: 0,
+    textAlign: 'center',
+  },
+  // Contrapeso da lupa: mantém o texto no centro real do campo.
+  iconBalance: { width: 18 },
   suggestion: {
     minHeight: 44,
     paddingVertical: m.suggestionPaddingVertical,
@@ -328,5 +337,5 @@ const styles = StyleSheet.create({
   suggestionOther: { fontSize: 16, lineHeight: 21, color: colors.textMuted },
   error: { fontSize: 13, lineHeight: 18, color: colors.errorFill },
   pressed: { opacity: 0.72 },
-  footer: { paddingHorizontal: 32, paddingTop: 12 },
+  footer: { paddingHorizontal: 32 },
 });

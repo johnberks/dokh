@@ -5,7 +5,13 @@ import type { WorkLocationColorToken } from '@/theme/tokens';
 /** Recorrência Premium (8.5); `custom` aguarda a definição P03. */
 export type RepeatFrequency = 'none' | 'weekly' | 'biweekly' | 'monthly';
 
-export type ExpectedEntry = { kind: 'date'; date: string } | { kind: 'unknown' };
+/**
+ * Previsão de entrada. `received` só vale para data de hoje ou do passado: é a pessoa
+ * dizendo "Já recebi" (7.7), nunca uma presunção do app.
+ */
+export type ExpectedEntry =
+  | { kind: 'date'; date: string; received?: boolean }
+  | { kind: 'unknown' };
 
 export type WorkDraft = {
   type: WorkType | null;

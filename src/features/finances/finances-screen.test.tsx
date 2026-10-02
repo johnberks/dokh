@@ -47,6 +47,10 @@ jest.mock('./finance-data', () => ({
 
 const today = todayInTimezone(deviceTimezone());
 const current = monthOf(today);
+// O melhor mês da fixture é o mês corrente: o nome acompanha o relógio do teste.
+const CURRENT_MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
+  .format(new Date(Number(current.slice(0, 4)), Number(current.slice(5, 7)) - 1, 15))
+  .replace(/^./, (letter) => letter.toUpperCase());
 
 const month = (patch: Partial<FinanceMonth> = {}): FinanceMonth => ({
   hasExpectedEntries: true,
@@ -489,7 +493,7 @@ describe('Finanças — ano', () => {
     await openYear();
     expect(screen.getByTestId('finances-stat-average')).toHaveTextContent(/R\$\s?11\.000/);
     expect(screen.getByTestId('finances-stat-best')).toHaveTextContent(
-      /R\$\s?12\.450.*Setembro|Setembro/,
+      new RegExp(`R\\$\\s?12\\.450.*${CURRENT_MONTH_NAME}`),
     );
     expect(screen.getByTestId('finances-stat-works')).toHaveTextContent(/7/);
     expect(screen.getByTestId('finances-stat-hours')).toHaveTextContent(/84h/);
