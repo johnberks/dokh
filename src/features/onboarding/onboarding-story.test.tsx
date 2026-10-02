@@ -1,6 +1,8 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import { type PanGesture, State } from 'react-native-gesture-handler';
+import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 import { renderWithProviders } from '@/test/render';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { useProfileDraft } from './profile-draft';
@@ -33,34 +35,61 @@ async function press(testID: string) {
   });
 }
 
-describe('abertura narrativa (Onboarding v2)', () => {
-  it('três batidas por toque: fragmentação, dinheiro em outra data, organização', async () => {
+describe('abertura guiada pelo dedo (Onboarding v2)', () => {
+  async function openIntro() {
     await renderWithProviders(<OnboardingIntroScreen />);
-    // A tela inteira é tocável; o cenário só existe depois de medido.
     await act(async () => {
       await fireEvent(screen.getByTestId('intro-stage'), 'layout', {
         nativeEvent: { layout: { width: 320, height: 300 } },
       });
+      await fireEvent(screen.getByTestId('onboarding-intro-organize'), 'layout', {
+        nativeEvent: { layout: { width: 329, height: 56 } },
+      });
     });
-    expect(
-      screen.getByRole('header', { name: 'Seu trabalho acontece em vários lugares.' }),
-    ).toBeTruthy();
+  }
+
+  function drag(translationX: number) {
+    fireGestureHandler<PanGesture>(getByGestureTestId('intro-drag'), [
+      { state: State.BEGAN, translationX: 0 },
+      { state: State.ACTIVE, translationX: translationX / 2 },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX },
+    ]);
+  }
+
+  it('começa com as peças soltas e um trilho para arrastar, sem botão de avançar', async () => {
+    await openIntro();
+    expect(screen.getByText('Seu trabalho acontece em vários lugares.')).toBeTruthy();
+    expect(screen.getByText('Arraste para organizar')).toBeTruthy();
     expect(screen.getByText('Hospital São Lucas')).toBeTruthy();
+    expect(screen.queryByTestId('onboarding-intro-cta')).toBeNull();
+  });
 
-    await press('onboarding-intro-cta');
-    expect(
-      screen.getByRole('header', { name: 'E o dinheiro nem sempre entra quando você trabalha.' }),
-    ).toBeTruthy();
-    expect(screen.getByText('D30')).toBeTruthy();
+  it('arrasto curto devolve as peças; arrasto até o fim organiza e libera o próximo passo', async () => {
+    await openIntro();
+    await act(async () => {
+      drag(80);
+    });
+    expect(screen.queryByTestId('onboarding-intro-cta')).toBeNull();
 
-    await press('onboarding-intro');
-    expect(
-      screen.getByRole('header', { name: 'A DOKH conecta seus trabalhos aos seus recebimentos.' }),
-    ).toBeTruthy();
-    expect(mockedPush).not.toHaveBeenCalled();
-
+    await act(async () => {
+      drag(400);
+    });
+    await act(async () => {});
+    expect(await screen.findByTestId('onboarding-intro-cta')).toBeTruthy();
     await press('onboarding-intro-cta');
     expect(mockedPush).toHaveBeenCalledWith('/name');
+  });
+
+  it('leitor de tela: a ação do trilho organiza sozinha', async () => {
+    await openIntro();
+    await act(async () => {
+      await fireEvent(screen.getByTestId('onboarding-intro-organize'), 'accessibilityAction', {
+        nativeEvent: { actionName: 'activate' },
+      });
+    });
+    // A organização automática dura ~1,5 s (mesmo movimento do arrasto, sem o dedo).
+    expect(await screen.findByTestId('onboarding-intro-cta', {}, { timeout: 4000 })).toBeTruthy();
   });
 
   it('com Reduzir movimento as três frases aparecem juntas e o botão já leva ao nome', async () => {

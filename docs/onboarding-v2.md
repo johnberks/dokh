@@ -313,3 +313,25 @@ Splash, Criar conta/Entrar, login com Apple, opções de situação profissional
 - **Campos de Nome e Local cortados:** o `heading1` trazia `lineHeight: 38`, e o campo de uma linha do iOS corta as letras com `lineHeight`. O `OnboardingField` agora usa só família e peso, como o login; a busca da Situação também perdeu o `lineHeight`.
 - **Foco:** a opção aberta rola até ficar inteira acima do "Continuar" (`KeyboardScreen.reveal`).
 - **Busca de especialidade:** ao tocar no campo aparecem as **mais procuradas** (`suggestResidencyPrograms`), sem tela vazia; "Outra" só aparece com texto digitado.
+
+### Abertura refeita: uma tela guiada pelo dedo (2026-10-02)
+
+O usuário pediu uma abertura "mais interativa e fluida, nada de clicar no botão só para trocar a imagem".
+
+- **Referências Mobbin:**
+  - [Sunlitt](https://mobbin.com/flows/98ad079e-46a1-449e-b525-944ec8bd3b97): arrastar e ver a cena reagir em tempo real;
+  - [Play](https://mobbin.com/flows/93e09aef-254f-449a-b57e-1a882907f19d): avançar deslizando, não com botão;
+  - [Craft](https://mobbin.com/flows/261e0d10-aa8e-4396-af24-3bae256990de): aprender mexendo.
+- **As três batidas viraram uma tela só.** O trilho "Arraste para organizar" controla um progresso contínuo:
+  - os chips D30 · DIA 05 · D60 encaixam um a um;
+  - as peças se endireitam e se alinham;
+  - a linha bronze cresce;
+  - as frases fazem crossfade junto com o dedo.
+- Peças soltas "respiram" devagar até serem organizadas.
+- **Ao soltar:**
+  - depois de 85% completa;
+  - antes disso, tudo volta a se espalhar (mola).
+- **Tocar no trilho** organiza sozinho, com o mesmo movimento do arrasto.
+- **Concluído:** o trilho vira "Configurar minha DOKH".
+- **Leitor de tela:** trilho `adjustable` com ação que organiza. **Reduzir movimento:** estado final direto.
+- **Sem vibração:** `expo-haptics` exigiria outro build nativo; fica para quando houver um.

@@ -9,8 +9,9 @@ export const onboarding = {
       beat3: 'A DOKH conecta seus trabalhos aos seus recebimentos.',
       beat3Description:
         'Você sabe onde vai trabalhar, quanto vai receber e quando o dinheiro deve entrar.',
-      next: 'Continuar',
-      hint: 'Toque para continuar',
+      drag: 'Arraste para organizar',
+      dragLabel: 'Organizar minha rotina',
+      dragHint: 'Arraste para a direita ou toque duas vezes para organizar.',
       cta: 'Configurar minha DOKH',
       card1Title: 'Hospital São Lucas',
       card1Meta: 'PLANTÃO · 12H',
