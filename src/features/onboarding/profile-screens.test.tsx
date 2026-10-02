@@ -86,6 +86,18 @@ describe('situação profissional (tela 09)', () => {
     expect(labels).toEqual(['Generalista', 'Em residência', 'Especialista']);
   });
 
+  it('tocar na busca já mostra as mais procuradas, sem tela vazia', async () => {
+    useProfileDraft.setState({ status: 'specialist', specialty: '' });
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    await act(async () => {
+      await fireEvent(screen.getByTestId('status-input'), 'focus');
+    });
+    expect(screen.getByText('MAIS PROCURADAS')).toBeTruthy();
+    expect(screen.getByTestId('status-option-Clínica médica')).toBeTruthy();
+    // "Outra" só faz sentido com um nome digitado.
+    expect(screen.queryByTestId('status-option-other')).toBeNull();
+  });
+
   it('ao digitar, a busca assume a tela: título, opções e botão saem da frente', async () => {
     useProfileDraft.setState({ status: 'specialist', specialty: '' });
     await renderWithProviders(<ProfessionalStatusScreen />);

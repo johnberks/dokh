@@ -45,8 +45,6 @@ describe('abertura narrativa (Onboarding v2)', () => {
     expect(
       screen.getByRole('header', { name: 'Seu trabalho acontece em vários lugares.' }),
     ).toBeTruthy();
-    // Os cards são exemplo e dizem isso.
-    expect(screen.getByText('EXEMPLO')).toBeTruthy();
     expect(screen.getByText('Hospital São Lucas')).toBeTruthy();
 
     await press('onboarding-intro-cta');
@@ -59,7 +57,6 @@ describe('abertura narrativa (Onboarding v2)', () => {
     expect(
       screen.getByRole('header', { name: 'A DOKH conecta seus trabalhos aos seus recebimentos.' }),
     ).toBeTruthy();
-    expect(screen.queryByText('EXEMPLO')).toBeNull();
     expect(mockedPush).not.toHaveBeenCalled();
 
     await press('onboarding-intro-cta');
@@ -76,6 +73,15 @@ describe('abertura narrativa (Onboarding v2)', () => {
     ).toBeTruthy();
     await press('onboarding-intro-cta');
     expect(mockedPush).toHaveBeenCalledWith('/name');
+  });
+});
+
+describe('campos de uma linha não cortam o texto (iOS)', () => {
+  it('nome usa só família e peso da tipografia, sem lineHeight', async () => {
+    await renderWithProviders(<NameScreen />);
+    const style = Object.assign({}, ...[screen.getByTestId('name-input').props.style].flat(3));
+    expect(style.lineHeight).toBeUndefined();
+    expect(style.textAlign).toBe('center');
   });
 });
 

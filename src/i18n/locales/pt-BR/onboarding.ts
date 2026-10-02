@@ -9,7 +9,6 @@ export const onboarding = {
       beat3: 'A DOKH conecta seus trabalhos aos seus recebimentos.',
       beat3Description:
         'Você sabe onde vai trabalhar, quanto vai receber e quando o dinheiro deve entrar.',
-      example: 'EXEMPLO',
       next: 'Continuar',
       hint: 'Toque para continuar',
       cta: 'Configurar minha DOKH',
@@ -88,6 +87,7 @@ export const onboarding = {
       searchPlaceholder: 'Comece a escrever',
       other: 'Outra',
       otherHint: 'Usaremos o nome que você escrever.',
+      popular: 'MAIS PROCURADAS',
       residencyRequired: 'Escolha a sua residência para continuar.',
       specialtyRequired: 'Escolha a sua especialidade para continuar.',
     },

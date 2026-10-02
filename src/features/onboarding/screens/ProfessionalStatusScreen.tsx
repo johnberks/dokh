@@ -8,7 +8,7 @@ import { AppText } from '@/components/AppText';
 import { CheckIcon, MagnifyingGlassIcon } from '@/components/icons/heroicons';
 import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { MutationError } from '@/components/TechnicalStates';
-import { searchResidencyPrograms } from '@/domain/medical-specialties';
+import { suggestResidencyPrograms } from '@/domain/medical-specialties';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import type { ProfessionalStatus } from '@/features/profile/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
@@ -55,7 +55,7 @@ export function ProfessionalStatusScreen() {
   const [searchFocused, setSearchFocused] = useState(false);
   const save = useSaveProfile();
 
-  const suggestions = useMemo(() => searchResidencyPrograms(query, SUGGESTION_LIMIT), [query]);
+  const suggestions = useMemo(() => suggestResidencyPrograms(query, SUGGESTION_LIMIT), [query]);
   const chosen = specialty.trim();
   const asksSpecialty = status === 'resident' || status === 'specialist';
   const missingSpecialty = asksSpecialty && chosen.length === 0;
@@ -190,16 +190,26 @@ export function ProfessionalStatusScreen() {
                   placeholder={t('profile.status.searchPlaceholder')}
                   placeholderTextColor={palette.sage}
                   selectionColor={palette.bronze}
-                  style={[type.body, styles.input]}
+                  style={[
+                    // Sem `lineHeight`: o campo de uma linha do iOS cortaria as letras.
+                    { fontFamily: type.body.fontFamily, fontWeight: type.body.fontWeight },
+                    styles.input,
+                  ]}
                   testID="status-input"
                   value={query}
                 />
                 <View style={styles.iconBalance} />
               </View>
 
-              {/* Escolhida a especialidade, a lista some: não há mais o que decidir. */}
-              {query.trim().length > 0 && chosen.length === 0 && (
+              {/* Tocar no campo já mostra as mais procuradas; digitando, a busca. Escolhida a
+                  especialidade, a lista some: não há mais o que decidir. */}
+              {chosen.length === 0 && (query.trim().length > 0 || searchFocused) && (
                 <View testID="status-suggestions">
+                  {query.trim().length === 0 && (
+                    <AppText variant="technical" style={styles.popularLabel}>
+                      {t('profile.status.popular')}
+                    </AppText>
+                  )}
                   {suggestions.map((program) => (
                     <Pressable
                       key={program.name}
@@ -218,18 +228,20 @@ export function ProfessionalStatusScreen() {
                       </AppText>
                     </Pressable>
                   ))}
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.status.other')}
-                    accessibilityHint={t('profile.status.otherHint')}
-                    onPress={() => selectSpecialty(query.trim())}
-                    testID="status-option-other"
-                    style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
-                  >
-                    <AppText style={[type.body, styles.suggestionOther]}>
-                      {t('profile.status.other')}
-                    </AppText>
-                  </Pressable>
+                  {query.trim().length > 0 && (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t('profile.status.other')}
+                      accessibilityHint={t('profile.status.otherHint')}
+                      onPress={() => selectSpecialty(query.trim())}
+                      testID="status-option-other"
+                      style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
+                    >
+                      <AppText style={[type.body, styles.suggestionOther]}>
+                        {t('profile.status.other')}
+                      </AppText>
+                    </Pressable>
+                  )}
                 </View>
               )}
 
@@ -322,7 +334,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 17,
-    lineHeight: 22,
     color: colors.textPrimary,
     padding: 0,
     textAlign: 'center',
@@ -342,6 +353,14 @@ const styles = StyleSheet.create({
   },
   suggestionText: { flex: 1, fontSize: 16, lineHeight: 21, color: colors.textPrimary },
   suggestionMatch: { fontSize: 16, lineHeight: 21, letterSpacing: 0, color: colors.textPrimary },
+  popularLabel: {
+    paddingTop: 4,
+    paddingBottom: 2,
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: 1.4,
+    color: palette.sage,
+  },
   suggestionOther: { fontSize: 16, lineHeight: 21, color: colors.textMuted },
   error: { fontSize: 13, lineHeight: 18, color: colors.errorFill },
   pressed: { opacity: 0.72 },

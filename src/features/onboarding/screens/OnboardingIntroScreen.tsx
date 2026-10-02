@@ -38,7 +38,8 @@ const SCATTER = [
  * 1. Peças soltas — "Seu trabalho acontece em vários lugares."
  * 2. Chips de pagamento encaixam — "E o dinheiro nem sempre entra quando você trabalha."
  * 3. As peças se alinham numa linha só — "A DOKH conecta seus trabalhos aos seus recebimentos."
- * Cada batida avança por toque (sem espera artificial). Os cards são exemplo, e dizem isso.
+ * Cada batida avança por toque (sem espera artificial). Cards claros sobre o fundo escuro, como
+ * as janelas da tela 04: precisam ser lidos à primeira vista (pedido do usuário, 2026-10-02).
  * Com Reduzir movimento, as três frases aparecem juntas e as peças já organizadas.
  */
 export function OnboardingIntroScreen() {
@@ -53,6 +54,8 @@ export function OnboardingIntroScreen() {
   const aligned = useSharedValue(0);
   const finalBeat: Beat = reduced ? 2 : beat;
 
+  const measured = stage.width > 0;
+
   useEffect(() => {
     if (reduced) {
       entered.value = 1;
@@ -60,8 +63,9 @@ export function OnboardingIntroScreen() {
       aligned.value = 1;
       return;
     }
-    entered.value = withTiming(1, { duration: motion.storyEnter });
-  }, [aligned, chips, entered, reduced]);
+    // A entrada só começa com o palco medido: antes disso as peças não têm onde aparecer.
+    if (measured) entered.value = withTiming(1, { duration: motion.storyEnter * 1.6 });
+  }, [aligned, chips, entered, measured, reduced]);
 
   function advance() {
     if (finalBeat === 2) return;
@@ -136,12 +140,7 @@ export function OnboardingIntroScreen() {
       </View>
 
       <View style={styles.stage} onLayout={onStageLayout} testID="intro-stage">
-        {finalBeat < 2 && (
-          <AppText variant="technical" style={styles.example}>
-            {t('profile.intro.example')}
-          </AppText>
-        )}
-        {stage.width > 0 && (
+        {measured && (
           <>
             <ConnectionLine aligned={aligned} stage={stage} />
             {cards.map((card, index) => (
@@ -274,15 +273,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 30, lineHeight: 33, letterSpacing: -1.05, color: palette.cream },
   description: { marginTop: 12, fontSize: 15, lineHeight: 23, color: palette.secondaryText },
   stage: { flex: 1, marginVertical: 20 },
-  example: {
-    position: 'absolute',
-    right: 0,
-    top: -4,
-    fontSize: 9,
-    lineHeight: 12,
-    letterSpacing: 1.6,
-    color: palette.sage,
-  },
   card: {
     position: 'absolute',
     height: CARD_HEIGHT,

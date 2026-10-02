@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useContext, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { CheckIcon } from '@/components/icons/heroicons';
-import { KeyboardScreen } from '@/components/KeyboardScreen';
+import { KeyboardScreen, type KeyboardScreenHandle } from '@/components/KeyboardScreen';
 import { Reveal, step } from '@/components/Reveal';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, onboardingProfileMetrics as m, motion, palette } from '@/theme/tokens';
@@ -36,6 +36,9 @@ export function FocusScreen() {
   const reduced = useReducedMotion();
   const { displayName, focus, update } = useProfileDraft();
   const [touched, setTouched] = useState(false);
+  const screenRef = useRef<KeyboardScreenHandle>(null);
+  // Topo da lista de opções dentro do conteúdo rolável.
+  const choicesTop = useRef(0);
   const name = displayName.trim();
 
   function submit() {
@@ -49,6 +52,7 @@ export function FocusScreen() {
       <StatusBar style="dark" />
       <OnboardingHeader step={2} onBack={() => router.back()} testID="focus-header" />
       <KeyboardScreen
+        ref={screenRef}
         bottomInset={Math.max(insets.bottom, 24) + 20}
         footer={
           <View style={styles.footer}>
@@ -63,7 +67,13 @@ export function FocusScreen() {
           <AppText style={styles.description}>{t('profile.focus.description')}</AppText>
         </View>
 
-        <View accessibilityRole="radiogroup" style={styles.choices}>
+        <View
+          accessibilityRole="radiogroup"
+          onLayout={(event) => {
+            choicesTop.current = event.nativeEvent.layout.y;
+          }}
+          style={styles.choices}
+        >
           {ONBOARDING_FOCUSES.map((option) => {
             const selected = focus === option;
             const label = t(`profile.focus.${option}.label`);
@@ -71,6 +81,13 @@ export function FocusScreen() {
               <Animated.View
                 key={option}
                 layout={reduced ? undefined : LinearTransition.duration(motion.enter)}
+                // A opção aberta nunca fica atrás do "Continuar": a tela rola até o fim dela
+                // (pedido do usuário, 2026-10-02 — "Meus ganhos" ficava escondido).
+                onLayout={(event) => {
+                  if (!selected) return;
+                  const { y, height } = event.nativeEvent.layout;
+                  screenRef.current?.reveal(choicesTop.current + y + height);
+                }}
               >
                 <Pressable
                   accessibilityRole="radio"

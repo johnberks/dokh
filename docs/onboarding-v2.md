@@ -303,3 +303,13 @@ Splash, Criar conta/Entrar, login com Apple, opções de situação profissional
   - aplicada só no local.
 - **Consequência imediata:** o subtítulo da Situação muda pelo foco. A ordem da primeira visão e o guia vêm na Entrega 4.
 - **Progresso:** a barra fina do cabeçalho já não tinha texto "Etapa X de Y". Agora conta 12 passos, com o foco.
+
+### Ajustes do segundo teste no iPhone (2026-10-02)
+
+- **Abertura:**
+  - Sai a palavra "EXEMPLO".
+  - Os cards ficam creme sobre o fundo escuro (como as janelas da tela 04), com sombra, para serem lidos à primeira vista.
+  - A entrada só começa depois de medir o palco, para nada "carregar" vazio.
+- **Campos de Nome e Local cortados:** o `heading1` trazia `lineHeight: 38`, e o campo de uma linha do iOS corta as letras com `lineHeight`. O `OnboardingField` agora usa só família e peso, como o login; a busca da Situação também perdeu o `lineHeight`.
+- **Foco:** a opção aberta rola até ficar inteira acima do "Continuar" (`KeyboardScreen.reveal`).
+- **Busca de especialidade:** ao tocar no campo aparecem as **mais procuradas** (`suggestResidencyPrograms`), sem tela vazia; "Outra" só aparece com texto digitado.
