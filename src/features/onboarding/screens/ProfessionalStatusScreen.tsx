@@ -24,12 +24,13 @@ const SUGGESTION_LIMIT = 4;
 const SUGGESTIONS_SPACE = (SUGGESTION_LIMIT + 1) * 44 + 16;
 
 const OPTIONS = [
-  { value: 'resident', label: 'profile.status.resident', hint: 'profile.status.residentHint' },
+  // Ordem pedida pelo usuário (2026-10-01): Generalista, Em residência, Especialista.
   {
     value: 'general_practitioner',
     label: 'profile.status.generalist',
     hint: 'profile.status.generalistHint',
   },
+  { value: 'resident', label: 'profile.status.resident', hint: 'profile.status.residentHint' },
   {
     value: 'specialist',
     label: 'profile.status.specialist',
@@ -40,8 +41,8 @@ const OPTIONS = [
 /**
  * Tela 09: situação profissional (11.10). A escolha é sempre explícita — sem residência não
  * significa generalista. Em residência pede o programa e segue para a bolsa; Especialista pede
- * a especialidade (mesma lista) e conclui; Generalista conclui direto. A tela rola como um todo
- * (sem área interna rolável) e o teclado nunca cobre as sugestões.
+ * a especialidade (mesma lista) e conclui; Generalista conclui direto. Ao digitar na busca, ela
+ * assume a tela e as sugestões ficam inteiras acima do teclado (pedido do usuário, 2026-10-01).
  */
 export function ProfessionalStatusScreen() {
   const { t } = useTranslation('onboarding');
@@ -51,12 +52,16 @@ export function ProfessionalStatusScreen() {
   const { displayName, status, specialty, update } = useProfileDraft();
   const [query, setQuery] = useState(specialty);
   const [touched, setTouched] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const save = useSaveProfile();
 
   const suggestions = useMemo(() => searchResidencyPrograms(query, SUGGESTION_LIMIT), [query]);
   const chosen = specialty.trim();
   const asksSpecialty = status === 'resident' || status === 'specialist';
   const missingSpecialty = asksSpecialty && chosen.length === 0;
+  // Buscando: a busca assume a tela (título, opções e botão saem) para que a lista inteira de
+  // sugestões caiba acima do teclado, sem precisar rolar. Escolher ou tocar fora devolve tudo.
+  const searching = asksSpecialty && searchFocused;
 
   function selectSpecialty(name: string) {
     update({ specialty: name });
@@ -86,62 +91,70 @@ export function ProfessionalStatusScreen() {
       <OnboardingHeader step={2} onBack={() => router.back()} testID="status-header" />
       <KeyboardScreen
         bottomInset={Math.max(insets.bottom, 24) + 20}
-        // Ao digitar, a busca sobe o bastante para as sugestões aparecerem acima do teclado.
+        // Em telas pequenas, a busca ainda sobe o bastante para as sugestões caberem.
         extraOffset={SUGGESTIONS_SPACE}
         footer={
-          <View style={styles.footer}>
-            <OnboardingCta
-              disabled={status === null || session.userId === null}
-              loading={save.isPending}
-              onPress={goForward}
-              testID="status-cta"
-            />
-          </View>
+          searching ? undefined : (
+            <View style={styles.footer}>
+              <OnboardingCta
+                disabled={status === null || session.userId === null}
+                loading={save.isPending}
+                onPress={goForward}
+                testID="status-cta"
+              />
+            </View>
+          )
         }
         testID="status-scroll"
       >
-        <View style={styles.heading}>
-          <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-            {t('profile.status.title')}
-          </AppText>
-          <AppText style={styles.description}>{t('profile.status.description')}</AppText>
-        </View>
-
-        <View style={styles.body}>
-          <View accessibilityRole="radiogroup" style={styles.choices}>
-            {OPTIONS.map((option) => {
-              const selected = status === option.value;
-              const label = t(option.label);
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="radio"
-                  accessibilityLabel={label}
-                  accessibilityHint={t(option.hint)}
-                  accessibilityState={{ checked: selected }}
-                  onPress={() => update({ status: option.value })}
-                  testID={`status-${option.value}`}
-                  style={({ pressed }) => [
-                    styles.choice,
-                    selected ? styles.choiceSelected : styles.choiceIdle,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.choiceText}>
-                    <AppText style={[type.heading2, selected ? styles.choiceOn : styles.choiceOff]}>
-                      {label}
-                    </AppText>
-                    <AppText style={selected ? styles.hintOn : styles.hintOff}>
-                      {t(option.hint)}
-                    </AppText>
-                  </View>
-                  <View style={selected ? styles.radioOn : styles.radioOff}>
-                    {selected && <CheckIcon color={palette.base} size={12} />}
-                  </View>
-                </Pressable>
-              );
-            })}
+        {!searching && (
+          <View style={styles.heading}>
+            <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+              {t('profile.status.title')}
+            </AppText>
+            <AppText style={styles.description}>{t('profile.status.description')}</AppText>
           </View>
+        )}
+
+        <View style={[styles.body, searching && styles.bodySearching]}>
+          {!searching && (
+            <View accessibilityRole="radiogroup" style={styles.choices}>
+              {OPTIONS.map((option) => {
+                const selected = status === option.value;
+                const label = t(option.label);
+                return (
+                  <Pressable
+                    key={option.value}
+                    accessibilityRole="radio"
+                    accessibilityLabel={label}
+                    accessibilityHint={t(option.hint)}
+                    accessibilityState={{ checked: selected }}
+                    onPress={() => update({ status: option.value })}
+                    testID={`status-${option.value}`}
+                    style={({ pressed }) => [
+                      styles.choice,
+                      selected ? styles.choiceSelected : styles.choiceIdle,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <View style={styles.choiceText}>
+                      <AppText
+                        style={[type.heading2, selected ? styles.choiceOn : styles.choiceOff]}
+                      >
+                        {label}
+                      </AppText>
+                      <AppText style={selected ? styles.hintOn : styles.hintOff}>
+                        {t(option.hint)}
+                      </AppText>
+                    </View>
+                    <View style={selected ? styles.radioOn : styles.radioOff}>
+                      {selected && <CheckIcon color={palette.base} size={12} />}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
 
           {asksSpecialty && (
             <View style={styles.search} testID="status-search">
@@ -160,10 +173,12 @@ export function ProfessionalStatusScreen() {
                   }
                   autoCapitalize="words"
                   autoCorrect={false}
+                  onBlur={() => setSearchFocused(false)}
                   onChangeText={(value) => {
                     setQuery(value);
                     update({ specialty: '' });
                   }}
+                  onFocus={() => setSearchFocused(true)}
                   placeholder={t('profile.status.searchPlaceholder')}
                   placeholderTextColor={palette.sage}
                   selectionColor={palette.bronze}
@@ -238,6 +253,7 @@ const styles = StyleSheet.create({
   },
   description: { fontSize: 15, lineHeight: 23, color: colors.textMuted },
   body: { marginTop: 28, marginHorizontal: 32, paddingBottom: 12, gap: 10 },
+  bodySearching: { marginTop: 12 },
   choices: { gap: 10 },
   choice: {
     minHeight: m.choiceHeight,

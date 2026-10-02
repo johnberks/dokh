@@ -80,6 +80,33 @@ describe('nome (tela 07)', () => {
 });
 
 describe('situação profissional (tela 09)', () => {
+  it('ordem: Generalista, Em residência, Especialista', async () => {
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    const labels = screen.getAllByRole('radio').map((radio) => radio.props.accessibilityLabel);
+    expect(labels).toEqual(['Generalista', 'Em residência', 'Especialista']);
+  });
+
+  it('ao digitar, a busca assume a tela: título, opções e botão saem da frente', async () => {
+    useProfileDraft.setState({ status: 'specialist', specialty: '' });
+    await renderWithProviders(<ProfessionalStatusScreen />);
+    await act(async () => {
+      await fireEvent(screen.getByTestId('status-input'), 'focus');
+      await fireEvent.changeText(screen.getByTestId('status-input'), 'card');
+    });
+    expect(
+      screen.queryByRole('header', { name: 'Qual é sua situação profissional hoje?' }),
+    ).toBeNull();
+    expect(screen.queryByTestId('status-general_practitioner')).toBeNull();
+    expect(screen.queryByTestId('status-cta')).toBeNull();
+    expect(screen.getByTestId('status-suggestions')).toBeTruthy();
+
+    await act(async () => {
+      await fireEvent(screen.getByTestId('status-input'), 'blur');
+    });
+    expect(screen.getByTestId('status-cta')).toBeTruthy();
+    expect(screen.getByTestId('status-general_practitioner')).toBeTruthy();
+  });
+
   it('pergunta a situação com três opções e só busca depois de escolher', async () => {
     useProfileDraft.setState({ displayName: 'Anna' });
     await renderWithProviders(<ProfessionalStatusScreen />);
