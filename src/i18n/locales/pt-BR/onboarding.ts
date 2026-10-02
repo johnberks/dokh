@@ -81,6 +81,8 @@ export const onboarding = {
       specialist: 'Especialista',
       specialistHint: 'Já concluí minha especialização.',
       residencyQuestion: 'QUAL É A SUA RESIDÊNCIA?',
+      residencyTitle: 'Qual é a sua residência?',
+      specialtyTitle: 'Qual é a sua especialidade?',
       specialtyQuestion: 'QUAL É SUA ESPECIALIDADE?',
       residencySearchLabel: 'Buscar residência',
       specialtySearchLabel: 'Buscar especialidade',

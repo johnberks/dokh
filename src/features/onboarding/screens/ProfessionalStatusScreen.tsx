@@ -1,12 +1,21 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import {
+  Keyboard,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { useKeyboardState } from 'react-native-keyboard-controller';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { CheckIcon, MagnifyingGlassIcon } from '@/components/icons/heroicons';
-import { KeyboardScreen } from '@/components/KeyboardScreen';
+import { KeyboardScreen, type KeyboardScreenHandle } from '@/components/KeyboardScreen';
 import { MutationError } from '@/components/TechnicalStates';
 import { suggestResidencyPrograms } from '@/domain/medical-specialties';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
@@ -18,10 +27,11 @@ import { OnboardingHeader } from '../OnboardingHeader';
 import { useProfileDraft } from '../profile-draft';
 import { useSaveProfile } from '../use-save-profile';
 
-/** Poucas sugestões cabem acima do teclado sem esconder a lista. */
+/** Fora da busca a lista é curta; buscando, ela rola sozinha entre o campo e o teclado. */
 const SUGGESTION_LIMIT = 4;
-/** Altura das sugestões + "Outra" abaixo da busca: o teclado nunca as cobre. */
-const SUGGESTIONS_SPACE = (SUGGESTION_LIMIT + 1) * 44 + 16;
+const SEARCH_SUGGESTION_LIMIT = 8;
+/** Altura mínima da lista na busca: duas sugestões e meia sempre visíveis. */
+const MIN_LIST_HEIGHT = 110;
 
 const OPTIONS = [
   // Ordem pedida pelo usuário (2026-10-01): Generalista, Em residência, Especialista.
@@ -41,8 +51,9 @@ const OPTIONS = [
 /**
  * Tela 09: situação profissional (11.10). A escolha é sempre explícita — sem residência não
  * significa generalista. Em residência pede o programa e segue para a bolsa; Especialista pede
- * a especialidade (mesma lista) e conclui; Generalista conclui direto. Ao digitar na busca, ela
- * assume a tela e as sugestões ficam inteiras acima do teclado (pedido do usuário, 2026-10-01).
+ * a especialidade (mesma lista) e conclui; Generalista conclui direto. Na busca, título e campo
+ * ficam fixos no topo e só a lista de sugestões rola, no espaço entre o campo e o teclado — nada
+ * some para cima (pedidos do usuário, 2026-10-01 e 2026-10-02).
  */
 export function ProfessionalStatusScreen() {
   const { t } = useTranslation('onboarding');
@@ -53,15 +64,29 @@ export function ProfessionalStatusScreen() {
   const [query, setQuery] = useState(specialty);
   const [touched, setTouched] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [listTop, setListTop] = useState(0);
+  const screenRef = useRef<KeyboardScreenHandle>(null);
+  const listRef = useRef<View>(null);
+  const window = useWindowDimensions();
+  const keyboardHeight = useKeyboardState((state) => state.height);
   const save = useSaveProfile();
-
-  const suggestions = useMemo(() => suggestResidencyPrograms(query, SUGGESTION_LIMIT), [query]);
   const chosen = specialty.trim();
   const asksSpecialty = status === 'resident' || status === 'specialist';
   const missingSpecialty = asksSpecialty && chosen.length === 0;
   // Buscando: a busca assume a tela (título, opções e botão saem) para que a lista inteira de
   // sugestões caiba acima do teclado, sem precisar rolar. Escolher ou tocar fora devolve tudo.
   const searching = asksSpecialty && searchFocused;
+  const suggestions = useMemo(
+    () => suggestResidencyPrograms(query, searching ? SEARCH_SUGGESTION_LIMIT : SUGGESTION_LIMIT),
+    [query, searching],
+  );
+  // A lista ocupa exatamente o que sobra entre o topo dela e o teclado.
+  const listHeight = Math.max(MIN_LIST_HEIGHT, window.height - keyboardHeight - listTop - 12);
+
+  useEffect(() => {
+    // Entrando na busca, a tela volta ao topo e congela: título e campo ficam à vista.
+    if (searching) screenRef.current?.scrollToTop();
+  }, [searching]);
 
   function selectSpecialty(name: string) {
     update({ specialty: name });
@@ -90,9 +115,9 @@ export function ProfessionalStatusScreen() {
       <StatusBar style="dark" />
       <OnboardingHeader step={3} onBack={() => router.back()} testID="status-header" />
       <KeyboardScreen
+        ref={screenRef}
+        autoScroll={!searching}
         bottomInset={Math.max(insets.bottom, 24) + 20}
-        // Em telas pequenas, a busca ainda sobe o bastante para as sugestões caberem.
-        extraOffset={SUGGESTIONS_SPACE}
         footer={
           searching ? undefined : (
             <View style={styles.footer}>
@@ -166,11 +191,23 @@ export function ProfessionalStatusScreen() {
 
           {asksSpecialty && (
             <View style={styles.search} testID="status-search">
-              <AppText variant="technical" style={styles.searchLabel}>
-                {status === 'resident'
-                  ? t('profile.status.residencyQuestion')
-                  : t('profile.status.specialtyQuestion')}
-              </AppText>
+              {searching ? (
+                <AppText
+                  accessibilityRole="header"
+                  style={[type.heading1, styles.searchTitle]}
+                  testID="status-search-title"
+                >
+                  {status === 'resident'
+                    ? t('profile.status.residencyTitle')
+                    : t('profile.status.specialtyTitle')}
+                </AppText>
+              ) : (
+                <AppText variant="technical" style={styles.searchLabel}>
+                  {status === 'resident'
+                    ? t('profile.status.residencyQuestion')
+                    : t('profile.status.specialtyQuestion')}
+                </AppText>
+              )}
               <View style={[styles.field, missingSpecialty && touched && styles.fieldError]}>
                 <MagnifyingGlassIcon color={palette.sage} size={18} />
                 <TextInput
@@ -204,7 +241,12 @@ export function ProfessionalStatusScreen() {
               {/* Tocar no campo já mostra as mais procuradas; digitando, a busca. Escolhida a
                   especialidade, a lista some: não há mais o que decidir. */}
               {chosen.length === 0 && (query.trim().length > 0 || searchFocused) && (
-                <View testID="status-suggestions">
+                <SuggestionList
+                  scrolls={searching}
+                  height={listHeight}
+                  listRef={listRef}
+                  onPlaced={setListTop}
+                >
                   {query.trim().length === 0 && (
                     <AppText variant="technical" style={styles.popularLabel}>
                       {t('profile.status.popular')}
@@ -242,7 +284,7 @@ export function ProfessionalStatusScreen() {
                       </AppText>
                     </Pressable>
                   )}
-                </View>
+                </SuggestionList>
               )}
 
               {touched && missingSpecialty && (
@@ -258,6 +300,43 @@ export function ProfessionalStatusScreen() {
           {save.isError && <MutationError onRetry={goForward} retrying={save.isPending} />}
         </View>
       </KeyboardScreen>
+    </View>
+  );
+}
+
+/**
+ * Lista de sugestões. Na busca ela rola dentro do próprio espaço (altura calculada até o
+ * teclado), para que título e campo fiquem parados no topo.
+ */
+function SuggestionList({
+  scrolls,
+  height,
+  listRef,
+  onPlaced,
+  children,
+}: {
+  scrolls: boolean;
+  height: number;
+  listRef: React.RefObject<View | null>;
+  onPlaced: (top: number) => void;
+  children: React.ReactNode;
+}) {
+  if (!scrolls) return <View testID="status-suggestions">{children}</View>;
+  return (
+    <View
+      ref={listRef}
+      onLayout={() => listRef.current?.measureInWindow((_x, y) => onPlaced(y))}
+      style={{ height }}
+      testID="status-suggestions"
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        testID="status-suggestions-scroll"
+      >
+        {children}
+      </ScrollView>
     </View>
   );
 }
@@ -312,6 +391,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16,22,15,0.25)',
   },
   search: { paddingTop: 16, gap: 10 },
+  searchTitle: {
+    fontSize: 24,
+    lineHeight: 28,
+    letterSpacing: -0.6,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
   searchLabel: {
     fontSize: 10,
     lineHeight: 14,

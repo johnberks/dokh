@@ -111,6 +111,10 @@ describe('situação profissional (tela 09)', () => {
     expect(screen.queryByTestId('status-general_practitioner')).toBeNull();
     expect(screen.queryByTestId('status-cta')).toBeNull();
     expect(screen.getByTestId('status-suggestions')).toBeTruthy();
+    // Título e campo fixos no topo; só a lista rola (pedido do usuário, 2026-10-02).
+    expect(screen.getByRole('header', { name: 'Qual é a sua especialidade?' })).toBeTruthy();
+    expect(screen.getByTestId('status-suggestions-scroll')).toBeTruthy();
+    expect(screen.getByTestId('status-scroll').props.scrollEnabled).toBe(false);
 
     await act(async () => {
       await fireEvent(screen.getByTestId('status-input'), 'blur');

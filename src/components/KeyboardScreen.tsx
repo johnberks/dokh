@@ -30,6 +30,11 @@ type Props = {
    */
   extraOffset?: number;
   contentContainerStyle?: StyleProp<ViewStyle>;
+  /**
+   * `false` congela a tela: nada rola nem sobe com o teclado. Para layouts que cuidam do próprio
+   * espaço (busca com título e campo fixos e só a lista rolando).
+   */
+  autoScroll?: boolean;
   testID?: string;
 };
 
@@ -39,6 +44,8 @@ export type KeyboardScreenHandle = {
    * ex.: uma opção que acabou de se abrir não pode ficar atrás do botão fixo.
    */
   reveal: (bottom: number) => void;
+  /** Volta ao topo: usado quando a tela troca para um layout fixo (ex.: busca). */
+  scrollToTop: () => void;
 };
 
 /**
@@ -47,7 +54,15 @@ export type KeyboardScreenHandle = {
  * Sem rolagem quando tudo cabe; sem barra de rolagem.
  */
 export const KeyboardScreen = forwardRef<KeyboardScreenHandle, Props>(function KeyboardScreen(
-  { children, footer, bottomInset, extraOffset = 0, contentContainerStyle, testID },
+  {
+    children,
+    footer,
+    bottomInset,
+    extraOffset = 0,
+    contentContainerStyle,
+    autoScroll = true,
+    testID,
+  },
   ref,
 ) {
   const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
@@ -58,6 +73,9 @@ export const KeyboardScreen = forwardRef<KeyboardScreenHandle, Props>(function K
       const { height, offset } = viewport.current;
       const target = bottom + KEYBOARD_FOOTER_GAP - height;
       if (height > 0 && target > offset) scrollRef.current?.scrollTo({ y: target, animated: true });
+    },
+    scrollToTop() {
+      scrollRef.current?.scrollTo({ y: 0, animated: false });
     },
   }));
 
@@ -74,6 +92,8 @@ export const KeyboardScreen = forwardRef<KeyboardScreenHandle, Props>(function K
         scrollEventThrottle={16}
         bottomOffset={(footer ? FOOTER_CLEARANCE : KEYBOARD_FOOTER_GAP) + extraOffset}
         bounces={false}
+        enabled={autoScroll}
+        scrollEnabled={autoScroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
