@@ -140,7 +140,7 @@ Um médico no início do uso quase sempre tem trabalhos **já feitos** e ainda n
 
 Mudanças, valendo para o onboarding **e** para o formulário do `+`:
 
-1. **Data:** a pergunta passa a ser "Quando foi ou quando vai ser esse plantão?". Nos seletores de data, dias passados ficam com a cor normal; o esmaecido continua só na navegação da Agenda. "Hoje" mantém o marcador.
+1. **Data:** o título passa a ser só **"Data do trabalho"** (decisão do usuário: pergunta curta; o chip do tipo já diz se é plantão, procedimento ou atendimento). Nos seletores de data, dias passados ficam com a cor normal; o esmaecido continua só na navegação da Agenda. "Hoje" mantém o marcador.
 2. **Previsão adaptada à data:**
    - D30/D60/D90 contam a partir da data do trabalho. Se a data resultante já passou, a opção mostra "11 SET · já passou".
    - Para trabalho de hoje ou do passado aparece a opção **Já recebi**. Ela pede a data do recebimento, sugerindo a data prevista quando houver. Como é uma ação explícita da pessoa, pode gravar `received_at` (pela confirmação da 3.8, logo após criar o trabalho), sem violar a regra de nunca marcar recebido sozinho.
@@ -151,8 +151,7 @@ Mudanças, valendo para o onboarding **e** para o formulário do `+`:
    - "Próximo trabalho" só aparece se existir um trabalho futuro, sem placeholder.
    - Valores recebidos e previstos ficam em linhas separadas e nunca somam no mesmo total.
    - Com foco **Ganhos**, o payoff pode dizer "Você gerou R$ 1.500 em setembro", com o rótulo deixando claro que é o mês do trabalho (competência), separado das entradas (caixa).
-5. **Ponte (7) e foco Trabalhos:** a copy deixa claro que vale registrar um trabalho já feito: "Pode ser um plantão que você já fez ou um que ainda vai fazer."
-6. **Sem limite de data no Free.** Registrar trabalho passado é organizar, e a importação, que é Free, já traz histórico. Um limite inferior só existiria para evitar erro de digitação (ex.: ano 1900).
+5. **Sem limite de data no Free.** Registrar trabalho passado é organizar, e a importação, que é Free, já traz histórico. Um limite inferior só existiria para evitar erro de digitação (ex.: ano 1900).
 
 ## 6. Decisões para o usuário
 
@@ -172,3 +171,82 @@ Mudanças, valendo para o onboarding **e** para o formulário do `+`:
 - Atualizar `docs/screens/onboarding.md` e registrar a divergência do HTML original, aprovada pelo usuário.
 - Trabalho no passado (5b): copy da data, dias passados normais nos seletores, previsão que reconhece "já passou", "Já recebi" chamando `confirm_receivable` depois da criação. Vale também para o `+`.
 - Fatiamento sugerido: (1) correção do total + residente pode concluir + trabalho no passado; (2) abertura narrativa + foco; (3) peça persistente no trabalho + previsão com ligação; (4) payoff novo + guia por foco.
+
+---
+
+## 8. Lista completa de mudanças
+
+As decisões pendentes estão marcadas com (D-n). A lista assume as recomendações; se uma decisão mudar, o item muda junto.
+
+### Entrega 1: correções e trabalho no passado (onboarding atual + `+`)
+
+1. **Total da conclusão por caixa.** `summaryTotals` agrupa por **mês de entrada**, exclui "sem previsão" e separa recebidos de previstos. A tela de conclusão passa a dizer "Previsto em OUTUBRO" em vez de um total único.
+2. **Residente pode concluir sem trabalho.**
+   - A tela 12 ganha **Ainda não** ao lado de **Registrar um trabalho**.
+   - A conclusão deixa de exigir um `workId` e mostra só a residência.
+   - `onboarding_completed_at` é marcado igual.
+3. **"Data do trabalho".** Esse vira o título da etapa de data no onboarding e no `+`, no lugar de "Quando acontece esse plantão?".
+4. **Dias passados selecionáveis com aparência normal.** O `CalendarGrid` ganha uma opção para não esmaecer dias passados, ligada nos seletores de data. Na Agenda o esmaecido continua.
+5. **Previsão que mostra a data resultante.** D30/D60/D90 exibem a data calculada a partir da data do trabalho. Quando ela já passou: "· já passou". Isso vale para `WorkAmountScreen` (onboarding) e `PaymentSheet` (`+`).
+6. **"Já recebi" na criação (D-5).** Aparece só para trabalho de hoje ou do passado.
+   - Sugere como data do recebimento a data prevista, ou hoje quando não houver previsão, e permite trocar.
+   - Grava pela confirmação da 3.8 logo após criar o trabalho.
+   - Exige **migration**: `confirm_receivable_received` ganha `p_received_on date` opcional, porque hoje grava sempre "agora". Um recebimento de setembro marcado em outubro cairia no mês errado.
+7. **"Aguardando confirmação".** É o estado de um trabalho passado com previsão vencida e não recebido, na conclusão e na peça, sem vermelho.
+8. Testes Jest das regras de total, "Já recebi" e "já passou", e teste da migration. Atualizar `docs/work-form.md`, `docs/first-work.md` e `docs/onboarding-done.md`.
+
+### Entrega 2: abertura narrativa e foco
+
+9. **Nova abertura** no lugar de "Vamos deixar a DOKH mais com a sua cara":
+   - três batidas que avançam por toque (D-4): peças soltas, depois chips de pagamento, depois peças alinhadas;
+   - usa a mesma linguagem dos cards da tela 04, com dados de exemplo identificados como exemplo;
+   - CTA **Configurar minha DOKH**;
+   - com Reduzir movimento, as três batidas aparecem empilhadas.
+10. **Nome.** A moldura "DOKH de João" aparece e se atualiza enquanto a pessoa digita.
+11. **Nova tela de Foco** (`/focus`, entre Nome e Situação):
+    - opções Trabalhos, Recebimentos e Ganhos;
+    - a opção escolhida se expande com a mini-sequência;
+    - escolha única e obrigatória.
+12. **Guardar o foco (D-1):**
+    - migration `profiles.onboarding_focus` (enum `work` / `receivables` / `earnings`, opcional para quem já tem conta);
+    - tipos gerados e gravação junto com o perfil;
+    - teste de RLS mostrando que só o dono lê e escreve.
+13. **Situação profissional:** o subtítulo varia pelo foco. Opções e regras da 11.10 não mudam; a especialidade do especialista continua (D-2).
+14. **Progresso:** sai o texto "Etapa X de Y"; fica uma barra fina no cabeçalho. O progresso principal passa a ser a peça.
+
+### Entrega 3: peça persistente e construção
+
+15. **Novo componente da peça/moldura**, montado no layout do grupo `(onboarding)`, acima das telas, para persistir entre etapas. Animações de layout do Reanimated mostram cada encaixe preenchendo.
+16. **Bolsa:** a peça RESIDÊNCIA se monta ao vivo (programa → valor/mês → todo dia X).
+17. **Payoff parcial do residente**, no lugar da tela 12 com residência:
+    - "Sua DOKH está começando a tomar forma.";
+    - a peça e as **próximas 3 entradas reais** da bolsa;
+    - a pergunta "Você também faz plantões, atendimentos ou procedimentos?" com **Adicionar um trabalho** e **Ainda não**.
+18. **Ponte sem residência**, no lugar da tela 12 sem residência:
+    - "Vamos adicionar um trabalho para montar sua primeira visão.";
+    - peça tracejada com os encaixes Tipo · Local · Data · Valor · Entrada;
+    - copy variando pelo foco.
+19. **Primeiro trabalho numa só rota com etapas internas:** Tipo → Local → Data do trabalho (+ horário/duração conforme o tipo) → Valor → Previsão.
+    - As quatro rotas atuais (`first-work`, `work-place`, `work-when`, `work-amount`) viram uma.
+    - Voltar retorna à etapa anterior sem perder nada.
+20. **Valor e previsão viram etapas separadas.** A previsão mostra a ligação `12 OUT → D30 → 11 NOV` abaixo da peça, ou `→ Recebido` / `→ Aguardando confirmação` / `Entrada a definir`.
+
+### Entrega 4: payoff final e guia
+
+21. **Nova conclusão "Sua DOKH está pronta, João."** As peças se reorganizam numa visão por mês de entrada (caixa):
+    - recebidos e previstos em linhas separadas;
+    - "Próximo trabalho" só se houver um futuro; trabalho passado aparece como "Realizado em 12 SET";
+    - ordem dos blocos pelo foco;
+    - CTA **Ver minha DOKH**, sem confete.
+22. **Sem oferta de Premium no fim do onboarding (D-3).**
+23. **Guia de primeiro uso começa pela seção do foco:** Trabalhos → Agenda, Recebimentos → Finanças, Ganhos → valores do mês na Home. As etapas são as mesmas; muda só a ordem.
+
+### Em todas as entregas
+
+24. Toda a copy nova em `src/i18n/locales/pt-BR`. VoiceOver em ordem de leitura; seleção nunca só por cor; Reduzir movimento respeitado.
+25. `docs/screens/onboarding.md` reescrito com o novo fluxo; a divergência do HTML original vai para o `decisions.md` como nova decisão; a tarefa **7.7** entra no `build-plan.md`; HANDOFF a cada entrega.
+26. Cada entrega: typecheck, Biome, Jest, `expo-doctor`, PR próprio e bash para testar no iPhone.
+
+### O que não muda
+
+Splash, Criar conta/Entrar, login com Apple, opções de situação profissional, modelo de residência e recebíveis, tipos de trabalho, regras Free/Premium, e os layouts de Home, Agenda, Finanças e Perfil, salvo o guia de primeiro uso.
