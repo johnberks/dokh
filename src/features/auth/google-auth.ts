@@ -1,12 +1,8 @@
-import {
-  GoogleSignin,
-  isCancelledResponse,
-  isErrorWithCode,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
+import type { SignInResponse } from '@react-native-google-signin/google-signin';
 import { Platform } from 'react-native';
 import { getEnv } from '@/config/env';
 import type { PublicEnv } from '@/config/env.schema';
+import { googleSigninModule } from './google-signin-module';
 import type { AuthClient } from './session';
 
 export type GoogleSignInResult =
@@ -27,14 +23,17 @@ export function googleClientIds(env: PublicEnv = getEnv()): GoogleIds | null {
   return { webClientId, iosClientId };
 }
 
-/** Sem os client IDs do ambiente, o botão do Google continua indisponível. */
+/** Sem os client IDs do ambiente (ou num build sem o módulo nativo), o botão fica indisponível. */
 export function isGoogleSignInAvailable(env: PublicEnv = getEnv()): boolean {
-  return Platform.OS !== 'web' && googleClientIds(env) !== null;
+  return Platform.OS !== 'web' && googleClientIds(env) !== null && googleSigninModule() !== null;
 }
 
 let configuredFor: string | null = null;
 
-function configure(ids: GoogleIds) {
+function configure(
+  GoogleSignin: NonNullable<ReturnType<typeof googleSigninModule>>['GoogleSignin'],
+  ids: GoogleIds,
+) {
   const key = `${ids.webClientId}|${ids.iosClientId ?? ''}`;
   if (configuredFor === key) return;
   GoogleSignin.configure({ webClientId: ids.webClientId, iosClientId: ids.iosClientId });
@@ -51,10 +50,12 @@ export async function signInWithGoogle(
   env: PublicEnv = getEnv(),
 ): Promise<GoogleSignInResult> {
   const ids = googleClientIds(env);
-  if (!ids) throw new Error('google_not_configured');
-  configure(ids);
+  const google = googleSigninModule();
+  if (!ids || !google) throw new Error('google_not_configured');
+  const { GoogleSignin, isCancelledResponse, isErrorWithCode, statusCodes } = google;
+  configure(GoogleSignin, ids);
 
-  let response: Awaited<ReturnType<typeof GoogleSignin.signIn>>;
+  let response: SignInResponse;
   try {
     if (Platform.OS === 'android') {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });

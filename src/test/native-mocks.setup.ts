@@ -44,6 +44,9 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
     PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
   },
 }));
+jest.mock('@/features/auth/google-signin-module', () => ({
+  googleSigninModule: () => jest.requireMock('@react-native-google-signin/google-signin'),
+}));
 jest.mock('expo-apple-authentication', () => ({
   isAvailableAsync: jest.fn(async () => false),
   signInAsync: jest.fn(),
