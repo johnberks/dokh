@@ -182,6 +182,7 @@ export const profile = {
     premium: 'Premium',
     signOutError: 'Não foi possível sair. Tente de novo.',
     methodApple: 'Apple',
+    methodGoogle: 'Google',
     delete: 'Excluir conta',
     deleteTitle: 'Excluir sua conta?',
     deleteText:

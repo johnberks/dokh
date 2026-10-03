@@ -76,7 +76,7 @@ const mutation = (fn: jest.Mock) => ({
   isPending: false,
   isError: false,
 });
-let mockAccount: { email: string | null; provider: 'apple' | 'email' } = {
+let mockAccount: { email: string | null; provider: 'apple' | 'google' | 'email' } = {
   email: 'anna@example.com',
   provider: 'email',
 };
@@ -483,6 +483,17 @@ describe('Preferências, aparência, conta e ajuda (06/15/16/17)', () => {
       await press('account-delete-confirm');
       expect(mockAppleCode).toHaveBeenCalled();
       expect(mockDeleteAccount).toHaveBeenCalledWith(expect.anything(), 'apple-code');
+    });
+
+    it('conta Google: sem troca de senha, método Google e exclusão sem pedir nada à Apple', async () => {
+      mockAccount = { email: 'bia@gmail.com', provider: 'google' };
+      await renderWithProviders(<AccountScreen />);
+      expect(screen.queryByTestId('account-password')).toBeNull();
+      expect(screen.getByText('Google')).toBeTruthy();
+      await press('account-delete');
+      await press('account-delete-confirm');
+      expect(mockAppleCode).not.toHaveBeenCalled();
+      expect(mockDeleteAccount).toHaveBeenCalledWith(expect.anything(), undefined);
     });
 
     it('conta Apple: cancelar a folha da Apple não exclui', async () => {

@@ -27,6 +27,23 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
   AndroidHaptics: { Confirm: 'confirm', Reject: 'reject' },
 }));
+// Entrar com Google (4.4): cada teste define a resposta do `signIn`.
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn(async () => true),
+    signIn: jest.fn(),
+    signOut: jest.fn(async () => null),
+  },
+  isCancelledResponse: (response: { type?: string }) => response?.type === 'cancelled',
+  isErrorWithCode: (error: unknown) =>
+    error != null && typeof error === 'object' && 'code' in error,
+  statusCodes: {
+    SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
+    IN_PROGRESS: 'IN_PROGRESS',
+    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+  },
+}));
 jest.mock('expo-apple-authentication', () => ({
   isAvailableAsync: jest.fn(async () => false),
   signInAsync: jest.fn(),
