@@ -3,12 +3,19 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-03 · Claude Code · **Vibração (grupo 1)** no branch `codex/haptics-confirmations`, empilhado sobre `codex/agenda-day-actions` (#66). Detalhes em [`haptics.md`](haptics.md).
+Última atualização: 2026-10-03 · Claude Code · **#62 (3.1), #66 (Agenda) e #67 (vibração) integrados na `main`.** Com `expo-haptics` na `main`, foi disparado um novo build de desenvolvimento iOS.
+
+- **Pendências:**
+  - instalar o build novo no iPhone e validar a Agenda (`+` no dia, Marcar como recebido, deslizar) e a vibração;
+  - migrations 7.7 (`20261001000000`, `20261001010000`) em preview e produção antes de qualquer build remoto que não seja de desenvolvimento;
+  - validação da 7.7 no iPhone;
+  - conta de demonstração do TestFlight (2.1a).
+
+Anterior (2026-10-03) · Claude Code · **Vibração (grupo 1)** (#67, `codex/haptics-confirmations`). Detalhes em [`haptics.md`](haptics.md).
 
 - **Onde vibra:** sucesso ao salvar trabalho (`+`, edição, primeiro trabalho), ao marcar como recebido (detalhe, deslizar, Home, Finanças, Entradas) e no fim do onboarding. Erro quando a gravação ou a confirmação falha.
 - **Fica de fora, por decisão do usuário:** seleção (calendário, chips) e limites de gesto.
 - **Exige novo build de desenvolvimento** (`expo-haptics` é nativo; D79). Sem ele o app funciona igual, só não vibra.
-- **Mescla:** primeiro o #66; depois este PR passa a apontar para a `main`.
 
 Anterior (2026-10-03) · Claude Code · **Agenda: registrar no dia escolhido e ações rápidas**, no branch `codex/agenda-day-actions`. Detalhes em [`agenda.md`](agenda.md), seção "Registrar no dia escolhido e ações rápidas".
 
@@ -60,8 +67,23 @@ Anterior (2026-10-01) · **Onboarding v2 (7.7), proposta** no branch `codex/7.7-
 - **Problema encontrado:** `summaryTotals` soma a bolsa e o trabalho sem considerar o mês da entrada, inclusive o trabalho "sem previsão". Isso mistura caixa e competência.
 - **Outros pendentes:** #62 (3.1) aguarda merge. TestFlight: a Apple pediu conta de demonstração (Guideline 2.1a), que o usuário cria no `dokh-production`.
 
-Última atualização: 2026-09-30 · Claude Code · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
+Anterior (2026-09-30) · Claude Code · #59 (submit), #60 (4.3 Apple) e #61 (4.6 exclusão de conta) **integrados na `main`**; o usuário validou os dois no iPhone. **3.1 em andamento** no branch `codex/3.1-remote-setup`, com o roteiro em [`remote-environments.md`](remote-environments.md).
 
+- Os dois projetos remotos estavam **pausados** (`INACTIVE`, plano Free); o usuário os reativou.
+- Chaves publishable cadastradas no EAS (preview/production). Cada uma responde 200 no próprio projeto e 401 no outro.
+- **`dokh-preview`:** as 16 migrations estão aplicadas (`migration list --linked` bate local = remoto) e a função `delete-account` foi publicada.
+  - Leitura anônima de `profiles` é negada (42501).
+  - A função recusa chamadas sem login (401).
+- **Auth do preview:** configurado no Dashboard (URL `dokh://`, provedor Apple ativo, conferido por `/auth/v1/settings`).
+- **Prova da 3.1:** build preview `926d4019` instalado no iPhone. **O usuário confirmou em 2026-09-30** o login e o uso contra o `dokh-preview`. A 3.1 foi marcada.
+- **`dokh-production`:** as 16 migrations estão aplicadas e `delete-account` foi publicada.
+  - Leitura anônima é negada e a função sem login responde 401.
+  - O Auth está configurado no Dashboard, com o Apple ativo.
+  - O checkout foi desligado da produção com `supabase unlink`.
+- **Pendente:** build production com envio ao TestFlight, SMTP próprio (Resend) para os e-mails de Auth, chave `.p8` da Apple como segredo nos dois projetos e plano Pro antes de usuários reais.
+- As etapas com senha e chave são executadas pelo usuário: o agente não copia credenciais.
+
+Anterior (2026-09-30) · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
 - **Servidor:** a Edge Function `delete-account` é idempotente. Apaga Storage, revoga a Apple e apaga o usuário; as tabelas saem em cascata. Os logs não têm PII.
 - **Perfil:** a folha de confirmação segue o padrão P05. O usuário dispensou uma estética própria para ela.
 - **Contas Apple:** a Apple pede identificação antes de excluir. A tela não mostra troca de senha e o método aparece como Apple.
