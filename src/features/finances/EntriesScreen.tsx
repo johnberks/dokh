@@ -17,6 +17,7 @@ import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { colors, palette } from '@/theme/tokens';
 import { OriginTile } from './FinanceCards';
 import { FinanceSubHero } from './FinanceSubHero';
@@ -62,7 +63,11 @@ export function EntriesScreen({ initialMonth }: { initialMonth: LocalMonth }) {
     setFailedId(null);
     setConfirmingId(entry.receivableId);
     confirm.mutate(entry.receivableId, {
-      onError: () => setFailedId(entry.receivableId),
+      onSuccess: () => haptic('success'),
+      onError: () => {
+        haptic('error');
+        setFailedId(entry.receivableId);
+      },
       onSettled: () => setConfirmingId(null),
     });
   }

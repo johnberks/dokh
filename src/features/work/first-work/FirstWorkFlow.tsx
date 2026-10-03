@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { OnboardingHeader } from '@/features/onboarding/OnboardingHeader';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
+import { haptic } from '@/theme/haptics';
 import { colors, motion } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { useSaveFirstWork } from '../use-save-first-work';
@@ -60,8 +61,11 @@ export function FirstWorkFlow({ initialStep = 'type' }: { initialStep?: FirstWor
   function submit() {
     save.mutate(undefined, {
       // `replace`: o fluxo sai da pilha, então não há como voltar e gravar de novo.
-      onSuccess: ({ workId }) =>
-        router.replace({ pathname: '/first-work-done', params: { workId } }),
+      onSuccess: ({ workId }) => {
+        haptic('success');
+        router.replace({ pathname: '/first-work-done', params: { workId } });
+      },
+      onError: () => haptic('error'),
     });
   }
 

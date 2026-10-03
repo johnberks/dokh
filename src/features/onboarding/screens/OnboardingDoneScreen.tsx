@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -23,6 +23,7 @@ import { useGuideTour } from '@/features/guide/guide-tour';
 import { useWorkDraft } from '@/features/work/work-draft';
 import { todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 import { useCountUp } from '@/theme/useCountUp';
 import { BrandBackdrop } from '../BrandBackdrop';
@@ -46,7 +47,8 @@ const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true }
  * próximo em destaque, os demais abaixo; recebido, aguardando confirmação e sem previsão em
  * grupos próprios, nunca somados ao previsto. "Próximo trabalho" só existe para trabalho
  * futuro; o passado aparece como realizado. A ordem dos blocos segue o foco. Sem confete: a
- * recompensa é a clareza. Só aparece o que foi gravado no servidor.
+ * recompensa é a clareza — e uma vibração de sucesso quando o número termina de contar. Só
+ * aparece o que foi gravado no servidor.
  * O onboarding é marcado como concluído ao abrir a tela, para que fechar o app aqui não refaça
  * o fluxo (e não duplique o Trabalho); a Home só assume quando a pessoa toca no botão.
  */
@@ -93,6 +95,20 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
 
   const data = summary.data;
   const groups = data ? firstViewGroups(data) : [];
+
+  // Uma vez por tela: no fim da contagem ou, sem entradas, quando o título aparece.
+  const celebrated = useRef(false);
+  const celebrate = useCallback(() => {
+    if (celebrated.current) return;
+    celebrated.current = true;
+    haptic('success');
+  }, []);
+  const hasEntries = groups.length > 0;
+  useEffect(() => {
+    if (!data || hasEntries) return;
+    const timer = setTimeout(celebrate, step(2));
+    return () => clearTimeout(timer);
+  }, [data, hasEntries, celebrate]);
   const count = data ? summaryTotals(data).count : 0;
   const name = displayName.trim();
   const work = data?.work ?? null;
@@ -104,6 +120,7 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
       workLabel={work?.locationName ?? ''}
       referenceYear={referenceYear}
       delay={step(3)}
+      onCounted={celebrate}
     />
   );
   const workBlock = work ? (
@@ -204,16 +221,19 @@ function EntriesBlock({
   workLabel,
   referenceYear,
   delay,
+  onCounted,
 }: {
   groups: FirstViewGroup[];
   workLabel: string;
   referenceYear: number;
   delay: number;
+  /** O valor em destaque terminou de contar. */
+  onCounted: () => void;
 }) {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   const [lead, ...rest] = groups;
-  const counted = useCountUp(lead?.totalCents ?? 0n, lead ? 1 : 0);
+  const counted = useCountUp(lead?.totalCents ?? 0n, lead ? 1 : 0, lead ? onCounted : undefined);
   if (!lead) return null;
 
   return (

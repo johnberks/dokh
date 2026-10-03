@@ -334,7 +334,7 @@ O usuário pediu uma abertura "mais interativa e fluida, nada de clicar no botã
 - **Tocar no trilho** organiza sozinho, com o mesmo movimento do arrasto.
 - **Concluído:** o trilho vira "Configurar minha DOKH".
 - **Leitor de tela:** trilho `adjustable` com ação que organiza. **Reduzir movimento:** estado final direto.
-- **Sem vibração:** `expo-haptics` exigiria outro build nativo; fica para quando houver um.
+- **Sem vibração no arrasto:** a vibração entrou só no grupo 1 (D79, [`haptics.md`](haptics.md)). A conclusão do onboarding vibra; o arrasto da abertura, não.
 
 ## 11. Entrega 3: o que foi feito (2026-10-02)
 

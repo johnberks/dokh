@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { createWorkLocation, listWorkLocations } from '@/features/locations/locations-data';
 import { useProfileDraft } from '@/features/onboarding/profile-draft';
@@ -233,6 +234,7 @@ describe('entrada prevista', () => {
       pathname: '/first-work-done',
       params: { workId: 'w1' },
     });
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
   });
 
   it('sem previsão grava data nula e a peça mostra "Entrada a definir"', async () => {
@@ -290,6 +292,7 @@ describe('entrada prevista', () => {
     await renderWithProviders(<FirstWorkFlow initialStep="expected" />);
     await press('work-expected-cta');
     expect(router.replace).not.toHaveBeenCalled();
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('error');
     expect(useWorkDraft.getState().amount).toBe('1.200');
     await press('work-expected-cta');
     expect(mockedCreateWork).toHaveBeenCalledTimes(2);

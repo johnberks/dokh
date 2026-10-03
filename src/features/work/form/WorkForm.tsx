@@ -16,6 +16,7 @@ import { nextAutomaticColorToken } from '@/features/locations/location-colors';
 import { useWorkLocations } from '@/features/locations/locations-data';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { motionDuration } from '@/theme/motion';
 import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
@@ -171,6 +172,7 @@ export function WorkForm({
         if (hold === 0) onSaved(workDate ?? today);
         else leaveTimer.current = setTimeout(() => onSaved(workDate ?? today), hold);
       },
+      onError: () => haptic('error'),
     });
   }
 

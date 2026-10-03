@@ -20,6 +20,7 @@ import { useTourTarget } from '@/features/guide/useTourTarget';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
+import { haptic } from '@/theme/haptics';
 import { colors, palette } from '@/theme/tokens';
 import { AgendaHeroBackdrop } from './AgendaHeroBackdrop';
 import {
@@ -148,8 +149,14 @@ export function AgendaScreen() {
     setReceiving(work.id);
     confirm.mutate(work.receivableId, {
       // Só o servidor confirma: o card fecha e a leitura nova chega como "Recebido".
-      onSuccess: () => setOpenRow(null),
-      onError: () => setReceiveFailed(work.id),
+      onSuccess: () => {
+        haptic('success');
+        setOpenRow(null);
+      },
+      onError: () => {
+        haptic('error');
+        setReceiveFailed(work.id);
+      },
       onSettled: () => setReceiving(null),
     });
   }
