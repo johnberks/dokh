@@ -1,16 +1,6 @@
 import { type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  type TextInputProps,
-  View,
-} from 'react-native';
+import { Modal, Pressable, StyleSheet, TextInput, type TextInputProps, View } from 'react-native';
 import Animated, {
   Easing,
   runOnJS,
@@ -41,6 +31,7 @@ import {
   SunIcon,
   UserCircleIcon,
 } from '@/components/icons/heroicons';
+import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { NavigationControl } from '@/components/NavigationControl';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { motionDuration } from '@/theme/motion';
@@ -116,24 +107,14 @@ export function SubScreen({
         </View>
         {headerAction}
       </View>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
+      {/* O campo em foco sempre fica acima do teclado e do botão (Onboarding v2). */}
+      <KeyboardScreen
+        bottomInset={Math.max(insets.bottom, 16) + 8}
+        contentContainerStyle={styles.content}
+        footer={footer ? <View style={styles.footer}>{footer}</View> : undefined}
       >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {children}
-        </ScrollView>
-        {footer ? (
-          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-            {footer}
-          </View>
-        ) : null}
-      </KeyboardAvoidingView>
+        {children}
+      </KeyboardScreen>
     </View>
   );
 }
@@ -591,7 +572,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 },
-  footer: { paddingHorizontal: 24, paddingTop: 12, gap: 6 },
+  footer: { paddingHorizontal: 24, gap: 6 },
   fieldLabel: {
     fontSize: 15,
     lineHeight: 20,

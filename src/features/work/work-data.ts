@@ -97,13 +97,18 @@ export async function deleteWorkWithReceivable(
   return { workId: row.work_id, receivableId: row.receivable_id };
 }
 
-/** Confirmação explícita do recebimento (D34). O horário é do servidor. */
+/**
+ * Confirmação explícita do recebimento (D34). Sem data, vale o horário do servidor; com data
+ * (7.7, "Já recebi" ao registrar um trabalho passado), o dia local em que o valor entrou.
+ */
 export async function confirmReceivableReceived(
   receivableId: string,
+  receivedOn: string | null = null,
   client: AuthClient = supabase,
 ): Promise<{ receivableId: string; receivedAt: string }> {
   const { data, error } = await client.rpc('confirm_receivable_received', {
     p_receivable_id: receivableId,
+    ...(receivedOn === null ? {} : { p_received_on: receivedOn }),
   });
   if (error) throw error;
   const row = data?.[0];

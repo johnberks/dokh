@@ -7,7 +7,12 @@ export type SummaryResidency = {
   specialty: string;
   monthlyAmountCents: bigint;
   paymentDay: number;
+  /** Próxima entrada real gerada pela bolsa (hoje ou depois); `null` se ainda não houver. */
+  nextExpectedOn: string | null;
 };
+
+/** Estado da entrada do Trabalho, derivado no servidor (domain-model › Recebível). */
+export type SummaryReceipt = 'received' | 'pending' | 'scheduled' | 'undated';
 
 export type SummaryWork = {
   type: WorkType;
@@ -19,6 +24,7 @@ export type SummaryWork = {
   amountCents: bigint;
   /** `null` é "sem previsão de entrada", nunca uma data fictícia. */
   expectedOn: string | null;
+  receipt: SummaryReceipt;
 };
 
 export type OnboardingSummary = {
@@ -26,19 +32,27 @@ export type OnboardingSummary = {
   work: SummaryWork | null;
 };
 
-export const onboardingSummaryKey = (userId: string, workId: string) =>
-  ['onboarding-summary', userId, workId] as const;
+export const onboardingSummaryKey = (userId: string, workId: string | null) =>
+  ['onboarding-summary', userId, workId ?? 'none'] as const;
+
+function receiptOf(status: string | null, expectedOn: string | null): SummaryReceipt {
+  if (status === 'received') return 'received';
+  if (expectedOn === null) return 'undated';
+  return status === 'confirmation_pending' ? 'pending' : 'scheduled';
+}
 
 /**
- * O que foi de fato gravado no onboarding: a bolsa ativa (só para residentes) e o primeiro
- * Trabalho recém-criado. A conclusão mostra isto, não o rascunho local.
+ * O que foi de fato gravado no onboarding: a bolsa ativa (só para residentes), sua próxima
+ * entrada real e o primeiro Trabalho, quando houver — o residente pode concluir sem ele (7.7).
+ * A conclusão mostra isto, não o rascunho local.
  */
 export async function readOnboardingSummary(
   userId: string,
-  workId: string,
+  workId: string | null,
+  today: string,
   client: AuthClient = supabase,
 ): Promise<OnboardingSummary> {
-  const [residencyResult, workResult] = await Promise.all([
+  const [residencyResult, nextResult, workResult] = await Promise.all([
     client
       .from('residencies')
       .select('specialty, monthly_amount_cents, payment_day')
@@ -46,14 +60,27 @@ export async function readOnboardingSummary(
       .eq('active', true)
       .maybeSingle(),
     client
-      .from('agenda_work_projection')
-      .select(
-        'type, location_name, work_date, start_time, duration_minutes, amount_cents, expected_on',
-      )
-      .eq('work_entry_id', workId)
+      .from('receivable_projection')
+      .select('expected_on')
+      .eq('user_id', userId)
+      .not('residency_id', 'is', null)
+      .is('invalidated_at', null)
+      .gte('expected_on', today)
+      .order('expected_on', { ascending: true })
+      .limit(1)
       .maybeSingle(),
+    workId === null
+      ? Promise.resolve({ data: null, error: null })
+      : client
+          .from('agenda_work_projection')
+          .select(
+            'type, location_name, work_date, start_time, duration_minutes, amount_cents, expected_on, receipt_status',
+          )
+          .eq('work_entry_id', workId)
+          .maybeSingle(),
   ]);
   if (residencyResult.error) throw residencyResult.error;
+  if (nextResult.error) throw nextResult.error;
   if (workResult.error) throw workResult.error;
 
   const residency = residencyResult.data;
@@ -64,6 +91,7 @@ export async function readOnboardingSummary(
           specialty: residency.specialty,
           monthlyAmountCents: BigInt(residency.monthly_amount_cents),
           paymentDay: residency.payment_day,
+          nextExpectedOn: nextResult.data?.expected_on ?? null,
         }
       : null,
     work:
@@ -76,17 +104,161 @@ export async function readOnboardingSummary(
             durationMinutes: work.duration_minutes,
             amountCents: BigInt(work.amount_cents),
             expectedOn: work.expected_on,
+            receipt: receiptOf(work.receipt_status, work.expected_on),
           }
         : null,
   };
 }
 
-/** Total e contagem consideram só os itens efetivamente cadastrados. */
-export function summaryTotals(summary: OnboardingSummary): { totalCents: bigint; count: number } {
-  const amounts = [summary.residency?.monthlyAmountCents, summary.work?.amountCents].filter(
-    (value): value is bigint => value !== undefined,
+export type UpcomingEntry = { expectedOn: string; amountCents: bigint };
+
+/**
+ * Próximas entradas reais da bolsa (7.7, payoff parcial do residente): os Recebíveis que a
+ * residência já gerou, a partir de hoje. Nada é calculado no aparelho.
+ */
+export async function readResidencyNextEntries(
+  userId: string,
+  today: string,
+  limit = 3,
+  client: AuthClient = supabase,
+): Promise<UpcomingEntry[]> {
+  const { data, error } = await client
+    .from('receivable_projection')
+    .select('expected_on, amount_cents')
+    .eq('user_id', userId)
+    .not('residency_id', 'is', null)
+    .is('invalidated_at', null)
+    .gte('expected_on', today)
+    .order('expected_on', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).flatMap((row) =>
+    row.expected_on && row.amount_cents != null
+      ? [{ expectedOn: row.expected_on, amountCents: BigInt(row.amount_cents) }]
+      : [],
   );
-  return { totalCents: amounts.reduce((sum, value) => sum + value, 0n), count: amounts.length };
+}
+
+export type SummaryTotals = {
+  /** Previsto por mês de entrada (caixa), do mais próximo ao mais distante. `YYYY-MM`. */
+  months: { month: string; totalCents: bigint }[];
+  /** Data prevista já passou e ninguém confirmou: pendência, não erro. */
+  pendingCents: bigint;
+  receivedCents: bigint;
+  /** Itens cadastrados (residência, trabalho), inclusive os sem previsão. */
+  count: number;
+};
+
+/**
+ * Totais por **caixa** (7.7): cada valor conta no mês em que deve entrar. Recebido e pendente
+ * ficam separados, e o que não tem previsão fica fora de qualquer total — nunca se soma a bolsa
+ * mensal com um plantão que entra em outro mês.
+ */
+export function summaryTotals(summary: OnboardingSummary): SummaryTotals {
+  const byMonth = new Map<string, bigint>();
+  const addToMonth = (date: string, cents: bigint) => {
+    const month = date.slice(0, 7);
+    byMonth.set(month, (byMonth.get(month) ?? 0n) + cents);
+  };
+  let pendingCents = 0n;
+  let receivedCents = 0n;
+
+  const { residency, work } = summary;
+  if (residency?.nextExpectedOn) addToMonth(residency.nextExpectedOn, residency.monthlyAmountCents);
+  if (work?.receipt === 'received') receivedCents += work.amountCents;
+  else if (work?.receipt === 'pending') pendingCents += work.amountCents;
+  else if (work?.receipt === 'scheduled' && work.expectedOn)
+    addToMonth(work.expectedOn, work.amountCents);
+
+  return {
+    months: [...byMonth.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, totalCents]) => ({ month, totalCents })),
+    pendingCents,
+    receivedCents,
+    count: (residency ? 1 : 0) + (work ? 1 : 0),
+  };
+}
+
+export type FirstViewRow = {
+  source: 'residency' | 'work';
+  /** Data da entrada; `null` só quando o trabalho está "sem previsão". */
+  date: string | null;
+  amountCents: bigint;
+};
+
+export type FirstViewGroup =
+  | { kind: 'month'; month: string; totalCents: bigint; rows: FirstViewRow[] }
+  | { kind: 'received' | 'pending' | 'undated'; totalCents: bigint; rows: FirstViewRow[] };
+
+/**
+ * A primeira visão (7.7): cada entrada vai para o mês em que deve entrar (caixa), do mais
+ * próximo ao mais distante; recebido, aguardando confirmação e sem previsão ficam em grupos
+ * próprios e nunca somam ao previsto. Só aparece o que foi cadastrado.
+ */
+export function firstViewGroups(summary: OnboardingSummary): FirstViewGroup[] {
+  const months = new Map<string, FirstViewRow[]>();
+  const add = (row: FirstViewRow & { date: string }) => {
+    const month = row.date.slice(0, 7);
+    months.set(month, [...(months.get(month) ?? []), row]);
+  };
+  const special: Record<'received' | 'pending' | 'undated', FirstViewRow[]> = {
+    received: [],
+    pending: [],
+    undated: [],
+  };
+
+  const { residency, work } = summary;
+  if (residency?.nextExpectedOn) {
+    add({
+      source: 'residency',
+      date: residency.nextExpectedOn,
+      amountCents: residency.monthlyAmountCents,
+    });
+  }
+  if (work) {
+    const row = { source: 'work' as const, date: work.expectedOn, amountCents: work.amountCents };
+    if (work.receipt === 'scheduled' && work.expectedOn) add({ ...row, date: work.expectedOn });
+    else if (work.receipt === 'received') special.received.push(row);
+    else if (work.receipt === 'pending') special.pending.push(row);
+    else special.undated.push(row);
+  }
+
+  const sum = (rows: FirstViewRow[]) => rows.reduce((total, row) => total + row.amountCents, 0n);
+  const monthGroups: FirstViewGroup[] = [...months.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, rows]) => ({
+      kind: 'month',
+      month,
+      totalCents: sum(rows),
+      rows: [...rows].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? '')),
+    }));
+  const specialGroups = (['pending', 'received', 'undated'] as const)
+    .filter((kind) => special[kind].length > 0)
+    .map((kind) => ({ kind, totalCents: sum(special[kind]), rows: special[kind] }));
+  return [...monthGroups, ...specialGroups];
+}
+
+const MONTH_NAMES = [
+  'JANEIRO',
+  'FEVEREIRO',
+  'MARÇO',
+  'ABRIL',
+  'MAIO',
+  'JUNHO',
+  'JULHO',
+  'AGOSTO',
+  'SETEMBRO',
+  'OUTUBRO',
+  'NOVEMBRO',
+  'DEZEMBRO',
+] as const;
+
+/** `2026-10` → `OUTUBRO`; o ano só aparece quando difere do ano de referência. */
+export function monthLabel(month: string, referenceYear: number): string {
+  const [year, index] = month.split('-').map(Number);
+  const name = MONTH_NAMES[index - 1];
+  return year === referenceYear ? name : `${name} ${year}`;
 }
 
 /** `12 SET` como no design; o ano só aparece quando difere do ano de referência. */

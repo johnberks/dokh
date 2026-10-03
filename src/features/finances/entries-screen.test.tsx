@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { monthOf, shiftMonth } from '@/domain/calendar';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
@@ -121,13 +122,17 @@ describe('Entradas', () => {
     expect(screen.getByText('Confirmação pendente')).toBeTruthy();
 
     // Falha mantém o pendente e avisa.
-    const { onError, onSettled } = mockConfirm.mock.calls[0][1];
+    const { onSuccess, onError, onSettled } = mockConfirm.mock.calls[0][1];
     await act(async () => {
       onError(new Error('offline'));
       onSettled();
     });
     expect(screen.getByTestId('entries-confirm-error')).toBeTruthy();
     expect(screen.getByText('Confirmação pendente')).toBeTruthy();
+    // Vibração de erro na falha; de sucesso quando o servidor confirma.
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('error');
+    await act(async () => onSuccess());
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('success');
   });
 
   it('mês futuro: só previstos, com o total e a quantidade de entradas', async () => {

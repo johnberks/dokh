@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { monthOf } from '@/domain/calendar';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
@@ -33,6 +34,11 @@ const mockRefetch = jest.fn();
 // A contagem do valor do topo tem seu próprio teste; aqui o valor aparece direto.
 jest.mock('@/theme/useReducedMotion', () => ({ useReducedMotion: () => true }));
 jest.mock('@/features/billing/entitlement', () => ({ usePremium: () => mockPremium }));
+const mockConfirm = jest.fn();
+jest.mock('@/features/work/work-data', () => ({
+  ...jest.requireActual('@/features/work/work-data'),
+  useConfirmReceivable: () => ({ mutate: mockConfirm, isPending: false }),
+}));
 jest.mock('./finance-data', () => ({
   ...jest.requireActual('./finance-data'),
   useFinanceMonth: () => ({ ...mockMonth, refetch: mockRefetch, isFetching: false }),
@@ -47,6 +53,10 @@ jest.mock('./finance-data', () => ({
 
 const today = todayInTimezone(deviceTimezone());
 const current = monthOf(today);
+// O melhor mês da fixture é o mês corrente: o nome acompanha o relógio do teste.
+const CURRENT_MONTH_NAME = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
+  .format(new Date(Number(current.slice(0, 4)), Number(current.slice(5, 7)) - 1, 15))
+  .replace(/^./, (letter) => letter.toUpperCase());
 
 const month = (patch: Partial<FinanceMonth> = {}): FinanceMonth => ({
   hasExpectedEntries: true,
@@ -117,6 +127,14 @@ describe('Finanças — mês', () => {
     expect(screen.getByTestId('finances-next-when').props.children).toBe('Hoje');
     expect(screen.getByTestId('finances-next-tag')).toHaveTextContent('Hoje');
     expect(screen.getByTestId('finances-next-confirm')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('finances-next-confirm'));
+    });
+    const confirmed = mockConfirm.mock.calls.at(-1)?.[1];
+    await act(async () => confirmed.onSuccess());
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('success');
+    await act(async () => confirmed.onError(new Error('offline')));
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('error');
     // Sem pendência, nenhum card de revisão.
     expect(screen.queryByTestId('finances-review')).toBeNull();
     // A próxima entrada leva ao extrato do mês.
@@ -489,7 +507,7 @@ describe('Finanças — ano', () => {
     await openYear();
     expect(screen.getByTestId('finances-stat-average')).toHaveTextContent(/R\$\s?11\.000/);
     expect(screen.getByTestId('finances-stat-best')).toHaveTextContent(
-      /R\$\s?12\.450.*Setembro|Setembro/,
+      new RegExp(`R\\$\\s?12\\.450.*${CURRENT_MONTH_NAME}`),
     );
     expect(screen.getByTestId('finances-stat-works')).toHaveTextContent(/7/);
     expect(screen.getByTestId('finances-stat-hours')).toHaveTextContent(/84h/);

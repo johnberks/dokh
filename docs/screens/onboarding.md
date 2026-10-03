@@ -55,6 +55,11 @@ O indicador do carrossel deve refletir a página atual. O conteúdo apresenta ja
 
 ### Perfil inicial
 
+**Onboarding v2 (D77, 7.7):**
+- A introdução virou a abertura narrativa em três batidas.
+- Depois do Nome (com a moldura "DOKH de João") vem a pergunta de **foco** (Meus trabalhos / Meus recebimentos / Meus ganhos), gravada em `profiles.onboarding_focus`.
+- A situação profissional mostra Generalista, Em residência e Especialista, nessa ordem. O subtítulo acompanha o foco.
+
 | Cenário | Informações obrigatórias na tela | Comportamento |
 | --- | --- | --- |
 | Introdução | Explicação curta e CTA `Vamos começar` | CTA abre a coleta do nome. |
@@ -65,19 +70,27 @@ O indicador do carrossel deve refletir a página atual. O conteúdo apresenta ja
 | Perfil concluído com residência | Card da residência com especialidade, valor e dia de entrada | Explica que a residência já é a primeira entrada e convida a registrar outro trabalho. |
 | Perfil concluído sem residência | Mensagem de transição, sem card de residência | Não cria dado de residência. Convida a registrar o primeiro trabalho. |
 
-A tela de conclusão do perfil contém uma ação `Pular`, mas o destino dessa ação não está definido no design.
+**Atualizado (D77, 7.7):**
+- Na conclusão do perfil, o residente tem **Ainda não**: conclui o onboarding sem trabalho e a conclusão mostra só a residência e sua próxima entrada real.
+- Generalista e especialista seguem para o primeiro trabalho.
 
 ### Primeiro trabalho
+
+**Onboarding v2 (D77, 7.7):**
+- O primeiro trabalho é uma rota só: tipo → local → data → valor → entrada.
+- A peça fica fixa no topo e ganha um encaixe a cada resposta.
+- Valor e previsão viraram etapas separadas. A previsão mostra a ligação trabalho → prazo → entrada.
+- A tela 12 é o payoff parcial do residente (próximas entradas reais) ou a ponte de quem não é residente (peça vazia).
 
 | Cenário | Informações obrigatórias na tela | Comportamento |
 | --- | --- | --- |
 | Escolha do tipo | Plantão, Procedimento e Atendimento, cada um com ícone, nome e explicação | Toda a área de cada opção é clicável. O tipo escolhido acompanha as telas seguintes em um chip e define os campos exibidos. |
 | Procedimento | Opção de procedimento e, conforme anotação do design, pergunta `Qual procedimento?` | O detalhamento é condicional ao tipo. A tela específica desse campo não foi desenhada separadamente. |
 | Local | Tipo escolhido e nome do local | Local é obrigatório para avançar. O design solicita somente o nome; outros dados são organizados depois. |
-| Data — Plantão | Calendário, data selecionada, início e duração | Data, horário de início e duração são obrigatórios para Plantão. O término é calculado e exibido, inclusive quando ocorre no dia seguinte. |
+| Data — Plantão | "Data do trabalho": calendário (dias passados com aparência normal, D77), data selecionada, início e duração | Data, horário de início e duração são obrigatórios para Plantão. O término é calculado e exibido, inclusive quando ocorre no dia seguinte. |
 | Data — Procedimento/Atendimento | Calendário e data selecionada | A data é obrigatória. Horário e duração ficam opcionais atrás de `+ Adicionar horário`. |
-| Valor e previsão | Valor do trabalho e estado da previsão | A previsão sempre termina em um estado conhecido: data definida ou `Ainda não sei quando entra`. Atalhos de 30, 60 e 90 dias podem definir a data. |
-| Conclusão | Total previsto e cards somente dos itens cadastrados | `Ir para o início` leva à Home. A tela não exibe campos ou linhas ausentes. |
+| Valor e previsão | Valor do trabalho (centralizado) e estado da previsão | A previsão sempre termina em um estado conhecido: data definida ou `Ainda não sei quando entra`. Atalhos de 30, 60 e 90 dias mostram a data calculada a partir do trabalho. Data de hoje ou passada mostra "já passou" e pergunta **Você já recebeu esse valor?** (Ainda não / Já recebi), que começa em Ainda não (D77). |
+| Conclusão | Primeira visão "Sua DOKH está pronta, {nome}." (7.7): entradas agrupadas por mês de entrada, próximo trabalho ou trabalho realizado, ordem pelo foco, CTA "Ver minha DOKH". Total por mês de entrada e cards somente dos itens cadastrados | O destaque é o mês mais próximo com entrada prevista ("Previsto para outubro"). Outros meses, Recebido e Aguardando confirmação ficam em linhas separadas e nunca somam ao destaque; sem previsão fica fora dos totais (D77). `Ir para o início` leva à Home. A tela não exibe campos ou linhas ausentes. |
 
 ## Informações e regras obrigatórias
 
@@ -130,7 +143,9 @@ Não há autorização no design para:
 
 | Estado dos dados | Resultado esperado |
 | --- | --- |
-| Residência + primeiro trabalho + datas conhecidas | Conclusão mostra os dois itens, total combinado e datas de entrada. |
+| Residência + primeiro trabalho + datas conhecidas | Conclusão mostra os dois itens e soma só o que entra no mesmo mês; outro mês vira linha própria. |
+| Somente residência (residente escolheu Ainda não) | Conclusão mostra só a residência e a próxima entrada real da bolsa. |
+| Trabalho no passado com Já recebi | Item aparece como Recebido; o valor entra no caixa do dia previsto, não do dia da confirmação. |
 | Sem residência + primeiro trabalho | Conclusão mostra somente o trabalho. |
 | Procedimento ou Atendimento sem horário | Data e valor aparecem; a linha de horário/duração não existe. |
 | Trabalho sem previsão de entrada | Item aparece com `Sem previsão de entrada`; não recebe data fictícia. |

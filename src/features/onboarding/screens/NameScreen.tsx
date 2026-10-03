@@ -2,16 +2,22 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
-import { colors, onboardingProfileMetrics as m, palette } from '@/theme/tokens';
+import { colors, onboardingProfileMetrics as m } from '@/theme/tokens';
+import { DokhFrame } from '../DokhFrame';
 import { OnboardingCta } from '../OnboardingCta';
+import { FIELD_HELPER_SPACE, OnboardingField } from '../OnboardingField';
 import { OnboardingHeader } from '../OnboardingHeader';
 import { useProfileDraft } from '../profile-draft';
 
-/** Tela 07: primeiro nome, usado para personalizar as telas seguintes. */
+/**
+ * Tela 07: primeiro nome, usado para personalizar as telas seguintes. A moldura "DOKH de João"
+ * ganha o nome enquanto se digita (Onboarding v2, 7.7).
+ */
 export function NameScreen() {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
@@ -27,84 +33,62 @@ export function NameScreen() {
     setTouched(true);
     if (trimmed.length === 0) return;
     update({ displayName: trimmed });
-    router.push('/professional-status');
+    router.push('/focus');
   }
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 24) + 20 },
-      ]}
-      testID="onboarding-name"
-    >
+    <View style={[styles.screen, { paddingTop: insets.top }]} testID="onboarding-name">
       <StatusBar style="dark" />
       <OnboardingHeader step={1} onBack={() => router.back()} testID="name-header" />
 
-      <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
-        {t('profile.name.title')}
-      </AppText>
-
-      {/* O botão sobe junto com o teclado: assim um toque só já avança. */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.body}
-      >
-        <View style={styles.fieldArea}>
-          <View style={styles.field}>
-            <AppText variant="technical" style={styles.fieldLabel}>
-              {t('profile.name.label')}
-            </AppText>
-            <TextInput
-              accessibilityLabel={t('profile.name.label')}
-              autoCapitalize="words"
-              autoComplete="given-name"
-              autoCorrect={false}
-              autoFocus
-              onChangeText={(value) => update({ displayName: value })}
-              onSubmitEditing={submit}
-              returnKeyType="next"
-              selectionColor={palette.bronze}
-              style={[type.body, styles.input]}
-              submitBehavior="submit"
-              testID="name-input"
-              value={displayName}
-            />
+      <KeyboardScreen
+        bottomInset={Math.max(insets.bottom, 24) + 20}
+        extraOffset={FIELD_HELPER_SPACE}
+        footer={
+          <View style={styles.cta}>
+            <OnboardingCta onPress={submit} testID="name-cta" />
           </View>
-          {showError && <AppText style={styles.error}>{t('profile.name.required')}</AppText>}
+        }
+      >
+        <View style={styles.frame}>
+          <DokhFrame name={displayName} />
         </View>
-
-        <View style={styles.cta}>
-          <OnboardingCta onPress={submit} testID="name-cta" />
+        <AppText accessibilityRole="header" style={[type.heading1, styles.title]}>
+          {t('profile.name.title')}
+        </AppText>
+        <View style={styles.fieldArea}>
+          <OnboardingField
+            autoCapitalize="words"
+            autoComplete="given-name"
+            autoCorrect={false}
+            autoFocus
+            error={showError}
+            helper={showError ? t('profile.name.required') : undefined}
+            label={t('profile.name.label')}
+            onChangeText={(value) => update({ displayName: value })}
+            onSubmitEditing={submit}
+            returnKeyType="next"
+            submitBehavior="submit"
+            testID="name-input"
+            value={displayName}
+          />
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardScreen>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  frame: { marginTop: 24, marginHorizontal: 32 },
   title: {
-    marginTop: m.titlePaddingTop,
+    marginTop: 28,
     marginHorizontal: 32,
     fontSize: m.titleSize,
     lineHeight: m.titleLineHeight,
     letterSpacing: m.titleTracking,
     color: colors.textPrimary,
   },
-  body: { flex: 1, marginTop: 36 },
-  fieldArea: { flex: 1, marginHorizontal: 32, gap: 10 },
-  field: {
-    height: m.fieldHeight,
-    borderRadius: m.fieldRadius,
-    borderWidth: 1,
-    borderColor: colors.foreground,
-    paddingHorizontal: 18,
-    justifyContent: 'center',
-    gap: 3,
-  },
-  fieldLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.4, color: palette.sage },
-  input: { fontSize: 17, lineHeight: 22, color: colors.textPrimary, padding: 0 },
-  error: { paddingTop: 6, fontSize: 13, lineHeight: 18, color: colors.errorFill },
-  cta: { marginHorizontal: 32, paddingTop: 12 },
+  fieldArea: { marginTop: 36, marginHorizontal: 32 },
+  cta: { marginHorizontal: 32 },
 });

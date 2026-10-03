@@ -10,13 +10,21 @@ import {
 } from '@/features/locations/locations-data';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import {
+  confirmReceivableReceived,
   createWorkWithReceivable,
   newIdempotencyKey,
   updateWorkWithReceivable,
   type WorkAggregateInput,
 } from './work-data';
-import type { WorkDraftStore } from './work-draft';
+import type { ExpectedEntry, WorkDraftStore } from './work-draft';
 import { createWorkSeries } from './work-recurrence';
+import { todayInTimezone } from './work-schedule';
+
+/** Dia do recebimento quando a pessoa marcou "Já recebi"; só existe para data de hoje ou passada. */
+export function receivedOn(expected: ExpectedEntry | null): string | null {
+  if (expected?.kind !== 'date' || expected.received !== true) return null;
+  return expected.date <= todayInTimezone(deviceTimezone()) ? expected.date : null;
+}
 
 /**
  * Grava um Trabalho a partir de um rascunho: reaproveita o Local pelo nome quando já existir, cria quando não,
@@ -74,7 +82,13 @@ export function useSaveWork(store: WorkDraftStore, workId?: string) {
       if (workId !== undefined) return updateWorkWithReceivable(workId, input, idempotencyKey);
       // Com recorrência (Premium), a série gera este Trabalho e os próximos 12 meses.
       if (draft.repeat !== 'none') return createWorkSeries(input, draft.repeat, idempotencyKey);
-      return createWorkWithReceivable(input, idempotencyKey);
+      const created = await createWorkWithReceivable(input, idempotencyKey);
+      // "Já recebi" (7.7): confirmação explícita com o dia previsto, que já passou. Criar e
+      // confirmar são idempotentes, então o retry de uma falha no meio termina o que faltou.
+      if (receivedOn(draft.expected) !== null) {
+        await confirmReceivableReceived(created.receivableId, receivedOn(draft.expected));
+      }
+      return created;
     },
     onSuccess: () => {
       if (session.userId === null) return;

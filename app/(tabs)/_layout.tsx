@@ -1,7 +1,8 @@
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { BottomTabs } from '@/components/BottomTabs';
+import { openNewWorkOnAgendaDay } from '@/features/agenda/agenda-day';
 import { GuideTourOverlay } from '@/features/guide/GuideTourOverlay';
 import { useTourTarget } from '@/features/guide/useTourTarget';
 
@@ -10,6 +11,7 @@ export default function TabsLayout() {
   const { t } = useTranslation('navigation');
   const tabBar = useTourTarget('tab-bar');
   // A barra não se mexe: as abas de destino podem ser medidas quase na hora.
+  const homeTab = useTourTarget('tab-index', 60);
   const agendaTab = useTourTarget('tab-agenda', 60);
   const financesTab = useTourTarget('tab-finances', 60);
   return (
@@ -21,7 +23,11 @@ export default function TabsLayout() {
             {...props}
             rowRef={tabBar.ref}
             onRowLayout={tabBar.onLayout}
-            tabTargets={{ agenda: agendaTab, finances: financesTab }}
+            tabTargets={{ index: homeTab, agenda: agendaTab, finances: financesTab }}
+            // Na Agenda, o `+` central também abre no dia escolhido.
+            onCreatePress={(tab) =>
+              tab === 'agenda' ? openNewWorkOnAgendaDay() : router.push('/work/new')
+            }
           />
         )}
       >

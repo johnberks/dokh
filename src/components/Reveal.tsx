@@ -1,6 +1,7 @@
 import { Children, type ReactNode, useEffect } from 'react';
 import { type StyleProp, StyleSheet, type TextStyle, View, type ViewStyle } from 'react-native';
 import Animated, {
+  type AnimatedProps,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -52,6 +53,8 @@ export function Reveal({
   scaleFrom = 1,
   duration,
   style,
+  layout,
+  exiting,
   testID,
 }: {
   children?: ReactNode;
@@ -62,11 +65,15 @@ export function Reveal({
   /** Escala inicial (ex.: 0.94 para cards que "assentam" ao entrar). */
   scaleFrom?: number;
   style?: StyleProp<ViewStyle>;
+  /** Item de lista que muda de lugar (ex.: o de cima foi excluído) desliza até a nova posição. */
+  layout?: AnimatedProps<object>['layout'];
+  /** Saída do item (ex.: o card excluído some com fade). */
+  exiting?: AnimatedProps<object>['exiting'];
   testID?: string;
 }) {
   const animated = useRevealStyle(delay, rise, scaleFrom, duration);
   return (
-    <Animated.View style={[style, animated]} testID={testID}>
+    <Animated.View style={[style, animated]} layout={layout} exiting={exiting} testID={testID}>
       {children}
     </Animated.View>
   );

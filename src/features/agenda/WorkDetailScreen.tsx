@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { type ReactNode, useContext, useRef, useState } from 'react';
+import { type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BottomSheet } from '@/components/BottomSheet';
@@ -12,18 +13,19 @@ import { formatDayMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { usePremium } from '@/features/billing/entitlement';
 import { RepeatIcon } from '@/features/work/form/FormPieces';
-import { newIdempotencyKey, useDeleteWork } from '@/features/work/work-data';
-import {
-  useDeleteWorkSeriesFrom,
-  useNextOccurrence,
-  useStopWorkSeries,
-} from '@/features/work/work-recurrence';
+import { type SavePhase, SaveWorkButton } from '@/features/work/form/SaveWorkButton';
+import { useConfirmReceivable } from '@/features/work/work-data';
+import { useNextOccurrence, useStopWorkSeries } from '@/features/work/work-recurrence';
 import { localDateToDate, workEndDescription } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
+import { motionDuration } from '@/theme/motion';
 import { colors, palette, workLocationColors } from '@/theme/tokens';
+import { useReducedMotion } from '@/theme/useReducedMotion';
 import { AgendaHeroBackdrop } from './AgendaHeroBackdrop';
-import { type AgendaWork, useAgendaWork } from './agenda-data';
+import { type AgendaWork, canMarkReceived, useAgendaWork } from './agenda-data';
 import { durationLabel } from './agenda-format';
+import { DeleteWorkSheet } from './DeleteWorkSheet';
 
 const LONG_DATE = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long',
@@ -47,7 +49,8 @@ const STATUS_DOT = {
 
 /**
  * Agenda 15: data por extenso, local, horário em blocos (início, término, duração), valor,
- * previsão e status (ponto + texto, sem badge), `Editar trabalho` (mesmo formulário, preenchido)
+ * previsão e status (ponto + texto, sem badge), `Marcar como recebido` enquanto o valor não
+ * entrou (pedido do usuário, 2026-10-03), `Editar trabalho` (mesmo formulário, preenchido)
  * e `Excluir` com confirmação. Ocorrência de uma série mostra "Este trabalho se repete"; quem
  * tem Premium vê `Gerenciar` (parar de repetir).
  */
@@ -167,50 +170,15 @@ function DetailContent({ work }: { work: AgendaWork }) {
   const type = useBrandTypography();
   const [confirming, setConfirming] = useState(false);
   const [managing, setManaging] = useState(false);
-  // Trabalho recorrente: excluir só o dia ou deste em diante (pedido do usuário, 2026-09-26).
-  const [deleteScope, setDeleteScope] = useState<'one' | 'forward'>('one');
-  const remove = useDeleteWork();
-  const removeForward = useDeleteWorkSeriesFrom();
-  const deleting = remove.isPending || removeForward.isPending;
-  const deleteFailed = remove.isError || removeForward.isError;
   const stop = useStopWorkSeries();
   const premium = usePremium();
   const repeating = work.seriesId !== null && work.seriesActive && work.seriesFrequency !== null;
   const next = useNextOccurrence(repeating ? work.seriesId : null, work.workDate);
-  // Uma chave por tentativa de exclusão: repetir após erro de rede não apaga duas vezes.
-  const deleteKey = useRef<string | null>(null);
+  const receive = useMarkReceived(work);
   const end = workEndDescription(work.workDate, work.startTime, work.durationMinutes);
   const status = work.receiptStatus === 'invalidated' ? null : (work.receiptStatus ?? 'undated');
   const amount =
     work.amountCents === null ? '—' : formatCentsToBRL(work.amountCents, { omitZeroCents: true });
-
-  function confirmDelete() {
-    if (repeating && deleteScope === 'forward') {
-      removeForward.mutate(work.id, {
-        onSuccess: () => {
-          setConfirming(false);
-          router.back();
-        },
-      });
-      return;
-    }
-    deleteKey.current ??= newIdempotencyKey();
-    remove.mutate(
-      { workEntryId: work.id, idempotencyKey: deleteKey.current },
-      {
-        onSuccess: () => {
-          setConfirming(false);
-          router.back();
-        },
-      },
-    );
-  }
-
-  const deleteLabel = !repeating
-    ? t('detail.confirmDelete')
-    : deleteScope === 'forward'
-      ? t('detail.deleteSeries.confirmForward')
-      : t('detail.deleteSeries.confirmOnlyThis');
 
   function confirmStop() {
     if (work.seriesId === null) return;
@@ -262,24 +230,48 @@ function DetailContent({ work }: { work: AgendaWork }) {
     </View>
   );
 
+  // Enquanto "Marcar como recebido" aparece, ele é a ação principal e Editar fica em contorno.
   const footer = (
     <View style={styles.actions}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('detail.edit')}
-        onPress={() => router.push({ pathname: '/work/edit/[id]', params: { id: work.id } })}
-        testID="work-detail-edit"
-        style={({ pressed }) => [styles.edit, pressed && styles.pressed]}
-      >
-        <AppText style={[type.heading1, styles.editText]}>{t('detail.edit')}</AppText>
-      </Pressable>
+      {receive.visible && (
+        <Animated.View exiting={FadeOut} style={styles.receive}>
+          {receive.failed && (
+            <MutationError onRetry={receive.mark} retrying={receive.phase === 'saving'} />
+          )}
+          <SaveWorkButton
+            label={t('detail.markReceived')}
+            savingLabel={t('detail.markingReceived')}
+            savedLabel={t('detail.markedReceived')}
+            phase={receive.phase}
+            disabled={false}
+            onPress={receive.mark}
+            testID="work-detail-receive"
+          />
+        </Animated.View>
+      )}
+      <Animated.View layout={LinearTransition}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('detail.edit')}
+          onPress={() => router.push({ pathname: '/work/edit/[id]', params: { id: work.id } })}
+          testID="work-detail-edit"
+          style={({ pressed }) => [
+            styles.edit,
+            receive.visible && styles.editSecondary,
+            pressed && styles.pressed,
+          ]}
+        >
+          <AppText
+            style={[type.heading1, styles.editText, receive.visible && styles.editTextSecondary]}
+          >
+            {t('detail.edit')}
+          </AppText>
+        </Pressable>
+      </Animated.View>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={t('detail.delete')}
-        onPress={() => {
-          setDeleteScope('one');
-          setConfirming(true);
-        }}
+        onPress={() => setConfirming(true)}
         testID="work-detail-delete"
         style={({ pressed }) => [styles.delete, pressed && styles.pressed]}
       >
@@ -398,97 +390,62 @@ function DetailContent({ work }: { work: AgendaWork }) {
         </Pressable>
       </BottomSheet>
 
-      <BottomSheet
+      <DeleteWorkSheet
+        work={work}
         open={confirming}
-        onClose={() => {
-          if (!deleting) setConfirming(false);
+        onClose={() => setConfirming(false)}
+        onDeleted={() => {
+          setConfirming(false);
+          router.back();
         }}
-        accessibilityLabel={repeating ? t('detail.deleteSeries.title') : t('detail.confirmTitle')}
-        testID="work-delete-sheet"
-      >
-        <View style={styles.confirmCopy}>
-          <AppText accessibilityRole="header" style={[type.heading1, styles.confirmTitle]}>
-            {repeating ? t('detail.deleteSeries.title') : t('detail.confirmTitle')}
-          </AppText>
-          <AppText style={styles.confirmText}>
-            {repeating
-              ? t('detail.deleteSeries.text', { place: work.locationName })
-              : t('detail.confirmText', {
-                  place: work.locationName,
-                  date: formatDayMonth(work.workDate),
-                  amount,
-                })}
-          </AppText>
-        </View>
-        {repeating && (
-          <View accessibilityRole="radiogroup" style={styles.scopeOptions}>
-            {(['one', 'forward'] as const).map((scope) => {
-              const selected = deleteScope === scope;
-              const label =
-                scope === 'one'
-                  ? t('detail.deleteSeries.onlyThis')
-                  : t('detail.deleteSeries.forward');
-              const hint = t(
-                scope === 'one'
-                  ? 'detail.deleteSeries.onlyThisHint'
-                  : 'detail.deleteSeries.forwardHint',
-                { date: formatDayMonth(work.workDate) },
-              );
-              return (
-                <Pressable
-                  key={scope}
-                  accessibilityRole="radio"
-                  accessibilityLabel={`${label}, ${hint}`}
-                  accessibilityState={{ checked: selected, disabled: deleting }}
-                  disabled={deleting}
-                  onPress={() => setDeleteScope(scope)}
-                  testID={`work-delete-scope-${scope}`}
-                  style={({ pressed }) => [
-                    styles.scopeOption,
-                    selected ? styles.scopeOptionOn : styles.scopeOptionOff,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={[styles.radio, selected ? styles.radioOn : styles.radioOff]}>
-                    {selected && <View style={styles.radioDot} />}
-                  </View>
-                  <View style={styles.scopeText}>
-                    <AppText style={[selected && type.heading1, styles.scopeLabel]}>
-                      {label}
-                    </AppText>
-                    <AppText style={styles.scopeHint}>{hint}</AppText>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-        {deleteFailed && <MutationError onRetry={confirmDelete} retrying={deleting} />}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={deleteLabel}
-          accessibilityState={{ busy: deleting, disabled: deleting }}
-          disabled={deleting}
-          onPress={confirmDelete}
-          testID="work-delete-confirm"
-          style={({ pressed }) => [styles.confirmButton, pressed && styles.pressed]}
-        >
-          {deleting && <ActivityIndicator color={palette.cream} />}
-          <AppText style={[type.heading1, styles.confirmButtonText]}>{deleteLabel}</AppText>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('detail.cancel')}
-          disabled={deleting}
-          onPress={() => setConfirming(false)}
-          testID="work-delete-cancel"
-          style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}
-        >
-          <AppText style={[type.heading1, styles.cancelText]}>{t('detail.cancel')}</AppText>
-        </Pressable>
-      </BottomSheet>
+      />
     </>
   );
+}
+
+/**
+ * "Marcar como recebido" no detalhe: confirma no servidor (sem atualização otimista), mostra o
+ * check no próprio botão e só então o botão sai — a leitura nova já chega como "Recebido".
+ */
+function useMarkReceived(work: AgendaWork) {
+  const confirm = useConfirmReceivable();
+  const reduced = useReducedMotion();
+  const [phase, setPhase] = useState<SavePhase>('idle');
+  const [leaving, setLeaving] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  function mark() {
+    if (work.receivableId === null || phase !== 'idle') return;
+    setPhase('saving');
+    confirm.mutate(work.receivableId, {
+      onSuccess: () => {
+        setPhase('saved');
+        const hold =
+          motionDuration('saveMorph', reduced) +
+          motionDuration('saveCheck', reduced) +
+          motionDuration('saveHold', reduced);
+        timer.current = setTimeout(() => setLeaving(true), hold);
+      },
+      onError: () => {
+        haptic('error');
+        setPhase('idle');
+      },
+    });
+  }
+
+  return {
+    // Depois do sucesso, o botão fica até o check terminar, mesmo com a leitura já atualizada.
+    visible: !leaving && (canMarkReceived(work) || phase !== 'idle'),
+    phase,
+    failed: confirm.isError && phase === 'idle',
+    mark,
+  };
 }
 
 const styles = StyleSheet.create({
@@ -634,49 +591,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  editSecondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: 'rgba(16,22,15,0.28)',
+  },
   editText: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
+  editTextSecondary: { color: colors.textPrimary },
+  receive: { gap: 10, marginBottom: 4 },
   delete: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.negative },
   confirmCopy: { gap: 8, paddingTop: 6 },
   confirmTitle: { fontSize: 22, lineHeight: 26, letterSpacing: -0.44, color: colors.textPrimary },
   confirmText: { fontSize: 15, lineHeight: 22, color: palette.mutedCopy },
-  confirmButton: {
-    minHeight: 56,
-    borderRadius: 16,
-    backgroundColor: palette.negative,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-  },
   confirmButtonText: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: palette.cream },
-  scopeOptions: { gap: 8 },
-  scopeOption: {
-    minHeight: 64,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  scopeOptionOn: { borderColor: colors.foreground, backgroundColor: '#F6F4EC' },
-  scopeOptionOff: { borderColor: 'rgba(16,22,15,0.2)' },
-  scopeText: { flex: 1, gap: 2 },
-  scopeLabel: { fontSize: 16, lineHeight: 20, letterSpacing: 0, color: colors.textPrimary },
-  scopeHint: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
-  radio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioOn: { borderColor: colors.foreground },
-  radioOff: { borderColor: 'rgba(16,22,15,0.3)' },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.foreground },
   cancel: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   cancelText: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: colors.textPrimary },
   loading: { marginTop: 24 },

@@ -8,13 +8,7 @@ import { ArrowDownIcon, ArrowRightIcon } from '@/components/icons/heroicons';
 import { Reveal } from '@/components/Reveal';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { motion, palette, shadow } from '@/theme/tokens';
-import {
-  currentTourStep,
-  TOUR_STEPS,
-  type TourRect,
-  type TourTab,
-  useGuideTour,
-} from './guide-tour';
+import { currentTourStep, type TourRect, type TourTab, useGuideTour } from './guide-tour';
 import { TOUR_MEASURE_DELAY } from './useTourTarget';
 
 const TAB_HREF: Record<TourTab, '/' | '/agenda' | '/finances'> = {
@@ -47,6 +41,7 @@ export function GuideTourOverlay() {
   const insets = useSafeAreaInsets();
   const window = useWindowDimensions();
   const index = useGuideTour((state) => state.step);
+  const steps = useGuideTour((state) => state.steps);
   const rects = useGuideTour((state) => state.rects);
   const next = useGuideTour((state) => state.next);
   const finish = useGuideTour((state) => state.finish);
@@ -56,8 +51,10 @@ export function GuideTourOverlay() {
   const [fallback, setFallback] = useState(false);
   // O primeiro passo espera a Início ser vista; os seguintes seguem direto.
   const [started, setStarted] = useState(false);
-  const step = currentTourStep(index);
+  const step = currentTourStep(index, steps);
   const tab = step?.tab;
+  // O guia começa pela seção do foco escolhido (7.7), não sempre pela Início.
+  const firstTab = steps[0]?.tab ?? 'index';
 
   // Cada passo abre a aba dele; o alvo se mede depois que a aba assenta.
   useEffect(() => {
@@ -72,12 +69,12 @@ export function GuideTourOverlay() {
       return;
     }
     const timer = setTimeout(() => {
-      // Se a pessoa trocou de aba durante a espera, o primeiro passo volta à Início.
-      router.navigate('/');
+      // Se a pessoa trocou de aba durante a espera, o primeiro passo volta à seção dele.
+      router.navigate(TAB_HREF[firstTab]);
       setStarted(true);
     }, motion.guideStartDelay);
     return () => clearTimeout(timer);
-  }, [touring]);
+  }, [touring, firstTab]);
 
   // A aba de destino fica acesa um instante; só então o próximo passo (e a troca de aba).
   useEffect(() => {
@@ -95,18 +92,24 @@ export function GuideTourOverlay() {
 
   if (!step || index === null || !started) return null;
   const goingTarget =
-    going === 'agenda' ? 'tab-agenda' : going === 'finances' ? 'tab-finances' : null;
+    going === 'agenda'
+      ? 'tab-agenda'
+      : going === 'finances'
+        ? 'tab-finances'
+        : going === 'index'
+          ? 'tab-index'
+          : null;
   const rect: TourRect | undefined = goingTarget ? rects[goingTarget] : rects[step.target];
   // Enquanto a aba troca, só o véu: nada de balão apontando para o lugar errado.
   const showBubble = !going && (Boolean(rect) || fallback);
 
-  const last = index === TOUR_STEPS.length - 1;
-  const upcoming = TOUR_STEPS[index + 1];
+  const last = index === steps.length - 1;
+  const upcoming = steps[index + 1];
   // O próximo passo está em outra aba: o botão já diz para onde vai.
   const switchingTo = upcoming && upcoming.tab !== step.tab ? upcoming.tab : null;
   const nextLabel = last
     ? t('guide.done')
-    : switchingTo === 'agenda' || switchingTo === 'finances'
+    : switchingTo
       ? t(`guide.goTo.${switchingTo}`)
       : t('guide.next');
   const hole = rect
@@ -216,7 +219,7 @@ export function GuideTourOverlay() {
                   {t(`guide.sections.${step.tab}`)}
                 </AppText>
                 <AppText variant="technical" style={styles.progress}>
-                  {t('guide.progress', { current: index + 1, total: TOUR_STEPS.length })}
+                  {t('guide.progress', { current: index + 1, total: steps.length })}
                 </AppText>
               </View>
               {!last && (
@@ -238,7 +241,7 @@ export function GuideTourOverlay() {
             <AppText style={styles.body}>{t(`guide.${step.key}.body`)}</AppText>
             <View style={styles.footer}>
               <View style={styles.dots}>
-                {TOUR_STEPS.map((item, dot) => (
+                {steps.map((item, dot) => (
                   <View key={item.key} style={[styles.dot, dot === index && styles.dotOn]} />
                 ))}
               </View>
@@ -268,7 +271,7 @@ export function GuideTourOverlay() {
         >
           <View accessibilityLiveRegion="polite" style={styles.goingPill}>
             <AppText style={[type.heading1, styles.goingText]}>
-              {going === 'agenda' || going === 'finances' ? t(`guide.going.${going}`) : ''}
+              {going ? t(`guide.going.${going}`) : ''}
             </AppText>
             <ArrowDownIcon size={14} color={palette.cream} />
           </View>

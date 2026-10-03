@@ -1,8 +1,11 @@
 import { create } from 'zustand';
 import type { ProfessionalStatus } from '@/features/profile/profile-data';
+import type { OnboardingFocus } from './profile-data';
 
 export type ProfileDraft = {
   displayName: string;
+  /** O que a pessoa mais quer organizar (7.7); muda narrativa, primeira visão e guia. */
+  focus: OnboardingFocus | null;
   /**
    * Situação escolhida explicitamente (11.10); `null` enquanto a pessoa não respondeu.
    * Nunca inferida da residência: sem residência ≠ generalista.
@@ -29,6 +32,7 @@ export const DEFAULT_RESIDENCY_PAYMENT_DAY = 5;
 
 const EMPTY: ProfileDraft = {
   displayName: '',
+  focus: null,
   status: null,
   specialty: '',
   monthlyAmount: DEFAULT_RESIDENCY_AMOUNT,

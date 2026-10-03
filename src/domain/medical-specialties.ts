@@ -189,6 +189,29 @@ export function searchResidencyPrograms(query: string, limit = 6): ResidencyProg
     .map(({ rank: _rank, ...match }) => match);
 }
 
+/** As residências mais procuradas: aparecem ao tocar na busca, antes de digitar. */
+export const POPULAR_RESIDENCY_PROGRAMS = [
+  'Clínica médica',
+  'Pediatria',
+  'Cirurgia geral',
+  'Ginecologia e obstetrícia',
+  'Medicina de família e comunidade',
+] as const satisfies readonly (typeof MEDICAL_SPECIALTIES)[number][];
+
+/**
+ * Sugestões da busca: com texto, a busca incremental; sem texto, as mais procuradas — tocar no
+ * campo já mostra o que dá para escolher, sem tela vazia (pedido do usuário, 2026-10-02).
+ */
+export function suggestResidencyPrograms(query: string, limit = 6): ResidencyProgramMatch[] {
+  if (query.trim().length > 0) return searchResidencyPrograms(query, limit);
+  return POPULAR_RESIDENCY_PROGRAMS.slice(0, limit).map((name) => ({
+    name,
+    kind: 'specialty' as const,
+    start: 0,
+    end: 0,
+  }));
+}
+
 /** `true` quando o texto corresponde exatamente a um programa da lista oficial. */
 export function isKnownResidencyProgram(value: string): boolean {
   const term = normalize(value.trim());

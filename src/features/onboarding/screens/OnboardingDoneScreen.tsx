@@ -1,41 +1,56 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useContext, useEffect, useRef } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, BackHandler, Pressable, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  BackHandler,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
 import { Reveal, step, WordReveal } from '@/components/Reveal';
+import { formatDayMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { onboardingStatusKey } from '@/features/auth/onboarding-status';
 import { useGuideTour } from '@/features/guide/guide-tour';
 import { useWorkDraft } from '@/features/work/work-draft';
+import { todayInTimezone } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { onboardingProfileMetrics as m, palette } from '@/theme/tokens';
 import { useCountUp } from '@/theme/useCountUp';
 import { BrandBackdrop } from '../BrandBackdrop';
 import {
-  formatShortDate,
-  type SummaryResidency,
+  type FirstViewGroup,
+  firstViewGroups,
+  monthLabel,
   type SummaryWork,
   summaryTotals,
   workMetaLine,
 } from '../onboarding-summary';
+import { deviceTimezone } from '../profile-data';
 import { useProfileDraft } from '../profile-draft';
 import { useCompleteOnboarding, useOnboardingSummary } from '../use-onboarding-done';
 
 const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true });
 
 /**
- * TELA 10: conclusão dinâmica. Mostra só o que foi gravado no servidor — sem residência o card
- * não existe, sem horário a linha não aparece, sem previsão aparece "Sem previsão de entrada".
+ * TELA 10 (Onboarding v2, 7.7 · Entrega 4): a primeira visão — "Sua DOKH está pronta, João."
+ * O que foi cadastrado se encaixa no mês em que o dinheiro deve entrar (caixa): o mês mais
+ * próximo em destaque, os demais abaixo; recebido, aguardando confirmação e sem previsão em
+ * grupos próprios, nunca somados ao previsto. "Próximo trabalho" só existe para trabalho
+ * futuro; o passado aparece como realizado. A ordem dos blocos segue o foco. Sem confete: a
+ * recompensa é a clareza — e uma vibração de sucesso quando o número termina de contar. Só
+ * aparece o que foi gravado no servidor.
  * O onboarding é marcado como concluído ao abrir a tela, para que fechar o app aqui não refaça
  * o fluxo (e não duplique o Trabalho); a Home só assume quando a pessoa toca no botão.
- * Entrada em cascata (referência Buddy/Duolingo na Mobbin): o total conta até o valor, os cards
- * sobem um a um e o título entra palavra por palavra.
  */
 export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
   const { t } = useTranslation('onboarding');
@@ -43,9 +58,12 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
   const insets = useContext(SafeAreaInsetsContext) ?? { top: 0, bottom: 0 };
   const queryClient = useQueryClient();
   const { userId } = useAuthSession();
+  const { displayName, focus } = useProfileDraft();
   const summary = useOnboardingSummary(userId, workId);
   const complete = useCompleteOnboarding(userId);
   const started = useRef(false);
+  const [today] = useState(() => todayInTimezone(deviceTimezone()));
+  const referenceYear = Number(today.slice(0, 4));
 
   useEffect(() => {
     if (started.current || userId === null) return;
@@ -61,11 +79,12 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
 
   function goHome() {
     if (userId === null) return;
+    // O foco sai do rascunho antes de limpá-lo: o guia começa pela seção dele.
+    const chosenFocus = useProfileDraft.getState().focus;
     useProfileDraft.getState().reset();
     useWorkDraft.getState().reset();
     queryClient.setQueryData(onboardingStatusKey(userId), true);
-    // Conta nova: o guia de primeiro uso começa na Início.
-    useGuideTour.getState().start();
+    useGuideTour.getState().start(chosenFocus);
     router.replace('/');
   }
 
@@ -75,9 +94,46 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
   }
 
   const data = summary.data;
-  const totals = data ? summaryTotals(data) : null;
-  const counted = useCountUp(totals?.totalCents ?? 0n, data ? 1 : 0);
-  const referenceYear = new Date().getFullYear();
+  const groups = data ? firstViewGroups(data) : [];
+
+  // Uma vez por tela: no fim da contagem ou, sem entradas, quando o título aparece.
+  const celebrated = useRef(false);
+  const celebrate = useCallback(() => {
+    if (celebrated.current) return;
+    celebrated.current = true;
+    haptic('success');
+  }, []);
+  const hasEntries = groups.length > 0;
+  useEffect(() => {
+    if (!data || hasEntries) return;
+    const timer = setTimeout(celebrate, step(2));
+    return () => clearTimeout(timer);
+  }, [data, hasEntries, celebrate]);
+  const count = data ? summaryTotals(data).count : 0;
+  const name = displayName.trim();
+  const work = data?.work ?? null;
+
+  const entries = (
+    <EntriesBlock
+      key="entries"
+      groups={groups}
+      workLabel={work?.locationName ?? ''}
+      referenceYear={referenceYear}
+      delay={step(3)}
+      onCounted={celebrate}
+    />
+  );
+  const workBlock = work ? (
+    <WorkBlock
+      key="work"
+      work={work}
+      upcoming={work.workDate >= today}
+      referenceYear={referenceYear}
+      delay={step(focus === 'work' ? 3 : 6)}
+    />
+  ) : null;
+  // Trabalhos começa pelo trabalho; Recebimentos e Ganhos, pelas entradas do mês.
+  const blocks = focus === 'work' ? [workBlock, entries] : [entries, workBlock];
 
   return (
     <View
@@ -94,80 +150,61 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
         <AppText style={[type.wordmark, styles.wordmarkText]}>{t('welcome.splash.label')}</AppText>
       </Reveal>
 
-      <View style={styles.summary}>
-        {summary.isPending ? (
+      {summary.isPending ? (
+        <View style={styles.center}>
           <ActivityIndicator color={palette.cream} testID="onboarding-done-loading" />
-        ) : summary.isError || !data || !totals ? (
-          <View style={styles.inlineError}>
-            <AppText style={styles.errorText}>{t('done.loadError')}</AppText>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('done.retry')}
-              onPress={() => void summary.refetch()}
-              testID="onboarding-done-retry"
-              style={({ pressed }) => [styles.retry, pressed && styles.pressed]}
-            >
-              <AppText style={[type.heading1, styles.retryLabel]}>{t('done.retry')}</AppText>
-            </Pressable>
-          </View>
-        ) : (
-          <>
-            <Reveal delay={step(1)}>
-              <View style={styles.total} accessible testID="onboarding-done-total">
-                <AppText variant="technical" style={styles.totalLabel}>
-                  {t('done.totalLabel')}
-                </AppText>
-                <AppText style={[type.heading1, styles.totalValue]}>{money(counted)}</AppText>
-                <AppText style={styles.totalCount}>
-                  {totals.count === 1
-                    ? t('done.countOne')
-                    : t('done.countMany', { count: totals.count })}
-                </AppText>
-              </View>
-            </Reveal>
-            <View style={styles.cards}>
-              {data.residency && (
-                <Reveal delay={step(3)} rise={24} scaleFrom={0.96}>
-                  <ResidencyCard residency={data.residency} />
-                </Reveal>
-              )}
-              {data.work && (
-                <Reveal delay={step(data.residency ? 4 : 3)} rise={24} scaleFrom={0.96}>
-                  <WorkSummaryCard work={data.work} referenceYear={referenceYear} />
-                </Reveal>
-              )}
-            </View>
-          </>
-        )}
-      </View>
+        </View>
+      ) : summary.isError || !data ? (
+        <View style={[styles.center, styles.inlineError]}>
+          <AppText style={styles.errorText}>{t('done.loadError')}</AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('done.retry')}
+            onPress={() => void summary.refetch()}
+            testID="onboarding-done-retry"
+            style={({ pressed }) => [styles.retry, pressed && styles.pressed]}
+          >
+            <AppText style={[type.heading1, styles.retryLabel]}>{t('done.retry')}</AppText>
+          </Pressable>
+        </View>
+      ) : (
+        <ScrollView
+          bounces={false}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          style={styles.scroll}
+        >
+          <WordReveal
+            text={name ? t('done.titleNamed', { name }) : t('done.titleAnonymous')}
+            style={[type.heading1, styles.title]}
+            delay={step(1)}
+          />
+          <Reveal delay={step(2)}>
+            <AppText style={styles.count}>
+              {count === 1 ? t('done.countOne') : t('done.countMany', { count })}
+            </AppText>
+          </Reveal>
+          {blocks}
+        </ScrollView>
+      )}
 
       <View style={styles.footer}>
-        <View style={styles.copy}>
-          <WordReveal
-            text={t('done.title')}
-            style={[type.heading1, styles.title]}
-            delay={step(5)}
-          />
-          <Reveal delay={step(9)}>
-            <AppText style={styles.description}>{t('done.description')}</AppText>
-          </Reveal>
-        </View>
         {complete.isError && !complete.isPending && (
           <AppText style={styles.errorText} testID="onboarding-done-complete-error">
             {t('done.completeError')}
           </AppText>
         )}
-        <Reveal delay={step(10)}>
+        <Reveal delay={step(9)}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={t('done.cta')}
+            accessibilityLabel={t('done.viewCta')}
             accessibilityState={{ busy: complete.isPending }}
             disabled={complete.isPending}
             onPress={submit}
             testID="onboarding-done-cta"
             style={({ pressed }) => [styles.cta, pressed && styles.pressed]}
           >
-            <AppText style={[type.heading1, styles.ctaLabel]}>{t('done.cta')}</AppText>
+            <AppText style={[type.heading1, styles.ctaLabel]}>{t('done.viewCta')}</AppText>
             <AppText accessible={false} style={[type.heading1, styles.ctaArrow]}>
               {'→'}
             </AppText>
@@ -178,120 +215,230 @@ export function OnboardingDoneScreen({ workId }: { workId: string | null }) {
   );
 }
 
-function ResidencyCard({ residency }: { residency: SummaryResidency }) {
+/** As entradas por mês: o mês mais próximo em destaque (o número conta), os demais abaixo. */
+function EntriesBlock({
+  groups,
+  workLabel,
+  referenceYear,
+  delay,
+  onCounted,
+}: {
+  groups: FirstViewGroup[];
+  workLabel: string;
+  referenceYear: number;
+  delay: number;
+  /** O valor em destaque terminou de contar. */
+  onCounted: () => void;
+}) {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
+  const [lead, ...rest] = groups;
+  const counted = useCountUp(lead?.totalCents ?? 0n, lead ? 1 : 0, lead ? onCounted : undefined);
+  if (!lead) return null;
+
   return (
-    <View style={styles.card} testID="onboarding-done-residency">
-      <View style={styles.badge}>
-        <View style={[styles.badgeDot, { backgroundColor: palette.workSage }]} />
-        <AppText variant="technical" style={styles.badgeLabel}>
-          {t('done.residencyBadge')}
-        </AppText>
-      </View>
-      <View style={styles.cardRow}>
-        <View style={styles.cardIdentity}>
-          <AppText style={[type.heading1, styles.cardTitle]} numberOfLines={1}>
-            {residency.specialty}
+    <View style={styles.block} testID="onboarding-done-entries">
+      <Reveal delay={delay}>
+        <View accessible testID="onboarding-done-total">
+          <AppText variant="technical" style={styles.leadLabel}>
+            {leadLabel(lead, referenceYear, t)}
           </AppText>
-          <AppText style={styles.cardMeta}>
-            {t('done.everyDay', { day: String(residency.paymentDay).padStart(2, '0') })}
-          </AppText>
+          <AppText style={[type.heading1, styles.leadValue]}>{money(counted)}</AppText>
         </View>
-        <AppText style={[type.heading1, styles.cardAmount]}>
-          {money(residency.monthlyAmountCents)}
-        </AppText>
-      </View>
+      </Reveal>
+      <GroupRows group={lead} workLabel={workLabel} delay={delay + step(1)} />
+      {rest.map((group, index) => (
+        <Reveal
+          key={groupKey(group)}
+          delay={delay + step(3 + index * 2)}
+          style={styles.group}
+          testID={`onboarding-done-group-${groupKey(group)}`}
+        >
+          <View style={styles.groupHeader}>
+            <AppText style={[type.heading1, styles.groupTitle]}>
+              {groupTitle(group, referenceYear, t)}
+            </AppText>
+            <AppText style={[type.heading1, styles.groupTotal]}>{money(group.totalCents)}</AppText>
+          </View>
+          <GroupRows group={group} workLabel={workLabel} delay={delay + step(4 + index * 2)} />
+        </Reveal>
+      ))}
     </View>
   );
 }
 
-function WorkSummaryCard({ work, referenceYear }: { work: SummaryWork; referenceYear: number }) {
+/** Cada linha é uma peça que se encaixa no mês: data, de onde vem e quanto. */
+function GroupRows({
+  group,
+  workLabel,
+  delay,
+}: {
+  group: FirstViewGroup;
+  workLabel: string;
+  delay: number;
+}) {
   const { t } = useTranslation('onboarding');
   const type = useBrandTypography();
   return (
-    <View style={styles.card} testID="onboarding-done-work">
-      <View style={styles.badge}>
-        <View style={[styles.badgeDot, { backgroundColor: palette.structure }]} />
-        <AppText variant="technical" style={styles.badgeLabel}>
-          {t(`firstWork.chip.${work.type}` as 'firstWork.chip.shift')}
-        </AppText>
-      </View>
-      <View style={styles.cardRow}>
-        <View style={styles.cardIdentity}>
-          <AppText style={[type.heading1, styles.cardTitle]} numberOfLines={1}>
-            {work.locationName}
-          </AppText>
-          <AppText style={styles.cardMeta} testID="onboarding-done-work-meta">
-            {workMetaLine(work, referenceYear)}
-          </AppText>
-        </View>
-        <AppText style={[type.heading1, styles.cardAmount]}>{money(work.amountCents)}</AppText>
-      </View>
-      <View style={styles.divider} />
-      {work.expectedOn === null ? (
-        <AppText style={styles.cardMeta} testID="onboarding-done-no-expected">
-          {t('done.noExpected')}
-        </AppText>
-      ) : (
-        <View style={styles.expectedRow} testID="onboarding-done-expected">
-          <AppText style={styles.cardMeta}>{t('done.expected')}</AppText>
-          <AppText variant="technical" style={styles.expectedDate}>
-            {formatShortDate(work.expectedOn, referenceYear)}
-          </AppText>
-        </View>
-      )}
+    <View style={styles.rows}>
+      {group.rows.map((row, index) => (
+        <Reveal
+          key={`${row.source}-${row.date ?? 'none'}`}
+          delay={delay + index * 90}
+          rise={16}
+          scaleFrom={0.94}
+          style={styles.row}
+          testID="onboarding-done-row"
+        >
+          <View style={styles.rowDate}>
+            <AppText variant="technical" style={styles.rowDateText}>
+              {row.date ? formatDayMonth(row.date) : '—'}
+            </AppText>
+          </View>
+          <View style={styles.rowIdentity}>
+            <AppText numberOfLines={1} style={[type.heading1, styles.rowTitle]}>
+              {row.source === 'residency' ? t('done.rowResidency') : workLabel}
+            </AppText>
+            {row.date === null && <AppText style={styles.rowMeta}>{t('done.rowUndated')}</AppText>}
+          </View>
+          <AppText style={[type.heading1, styles.rowAmount]}>{money(row.amountCents)}</AppText>
+        </Reveal>
+      ))}
     </View>
   );
+}
+
+/** O trabalho cadastrado: próximo (futuro) ou realizado (passado). */
+function WorkBlock({
+  work,
+  upcoming,
+  referenceYear,
+  delay,
+}: {
+  work: SummaryWork;
+  upcoming: boolean;
+  referenceYear: number;
+  delay: number;
+}) {
+  const { t } = useTranslation('onboarding');
+  const type = useBrandTypography();
+  return (
+    <Reveal delay={delay} rise={20} scaleFrom={0.96} style={styles.block}>
+      <AppText variant="technical" style={styles.leadLabel}>
+        {upcoming ? t('done.nextWork') : t('done.doneWork')}
+      </AppText>
+      <View
+        style={styles.workCard}
+        testID={upcoming ? 'onboarding-done-next-work' : 'onboarding-done-past-work'}
+      >
+        <View style={styles.workChip}>
+          <AppText variant="technical" style={styles.workChipText}>
+            {t(`firstWork.chip.${work.type}` as 'firstWork.chip.shift')}
+          </AppText>
+        </View>
+        <AppText numberOfLines={1} style={[type.heading1, styles.workPlace]}>
+          {work.locationName}
+        </AppText>
+        <AppText style={styles.workMeta} testID="onboarding-done-work-meta">
+          {workMetaLine(work, referenceYear)}
+        </AppText>
+      </View>
+    </Reveal>
+  );
+}
+
+function groupKey(group: FirstViewGroup): string {
+  return group.kind === 'month' ? group.month : group.kind;
+}
+
+function groupTitle(
+  group: FirstViewGroup,
+  referenceYear: number,
+  t: ReturnType<typeof useTranslation<'onboarding'>>['t'],
+): string {
+  if (group.kind === 'month') {
+    const name = monthLabel(group.month, referenceYear);
+    return name.charAt(0) + name.slice(1).toLowerCase();
+  }
+  if (group.kind === 'received') return t('done.groupReceived');
+  if (group.kind === 'pending') return t('done.groupPending');
+  return t('done.groupUndated');
+}
+
+function leadLabel(
+  group: FirstViewGroup,
+  referenceYear: number,
+  t: ReturnType<typeof useTranslation<'onboarding'>>['t'],
+): string {
+  if (group.kind === 'month') {
+    return t('done.totalMonth', { month: monthLabel(group.month, referenceYear) });
+  }
+  if (group.kind === 'received') return t('done.totalReceived');
+  if (group.kind === 'pending') return t('done.totalPending');
+  return t('done.totalUndated');
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.base, paddingHorizontal: 32 },
   wordmark: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   wordmarkText: { fontSize: 12, lineHeight: 14, color: palette.cream },
-  // Tela estática (sem rolagem): resumo no topo, texto e botão ancorados embaixo.
-  summary: { flex: 1, marginTop: 34, gap: 20 },
-  total: { gap: 6 },
-  totalLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  totalValue: { fontSize: 46, lineHeight: 50, letterSpacing: -1.61, color: palette.cream },
-  totalCount: { fontSize: 13, lineHeight: 17, color: palette.secondaryText },
-  cards: { gap: 10 },
-  card: {
+  center: { flex: 1, justifyContent: 'center' },
+  scroll: { flex: 1 },
+  content: { paddingTop: 28, paddingBottom: 24, gap: 22 },
+  title: { fontSize: 32, lineHeight: 35, letterSpacing: -1.12, color: palette.cream },
+  count: { marginTop: -12, fontSize: 13, lineHeight: 17, color: palette.secondaryText },
+  block: { gap: 12 },
+  leadLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
+  leadValue: { fontSize: 44, lineHeight: 48, letterSpacing: -1.54, color: palette.cream },
+  group: { gap: 8, paddingTop: 6 },
+  groupHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  groupTitle: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
+  groupTotal: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.secondaryText },
+  rows: { gap: 8 },
+  row: {
+    minHeight: 56,
+    borderRadius: 16,
     backgroundColor: palette.cream,
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    gap: 10,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.32,
-    shadowRadius: 20,
-    elevation: 12,
-  },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  badgeDot: { width: 7, height: 7 },
-  badgeLabel: { fontSize: 10, lineHeight: 14, letterSpacing: 1.8, color: palette.sage },
-  cardRow: {
+    paddingHorizontal: 14,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: 12,
   },
-  cardIdentity: { flex: 1, gap: 2 },
-  cardTitle: { fontSize: 17, lineHeight: 21, letterSpacing: -0.17, color: palette.base },
-  cardMeta: { fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
-  cardAmount: { fontSize: 20, lineHeight: 24, letterSpacing: -0.4, color: palette.base },
-  divider: { height: 1, backgroundColor: 'rgba(16,22,15,0.12)' },
-  expectedRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  expectedDate: { fontSize: 11, lineHeight: 15, letterSpacing: 0.88, color: palette.bronzeDeep },
+  rowDate: {
+    borderRadius: 8,
+    backgroundColor: palette.bronze,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  rowDateText: { fontSize: 11, lineHeight: 14, letterSpacing: 0.9, color: palette.base },
+  rowIdentity: { flex: 1, gap: 2 },
+  rowTitle: { fontSize: 15, lineHeight: 19, letterSpacing: -0.15, color: palette.base },
+  rowMeta: { fontSize: 12, lineHeight: 16, color: palette.mutedCopy },
+  rowAmount: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.base },
+  workCard: {
+    borderRadius: 18,
+    backgroundColor: 'rgba(237,234,224,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(237,234,224,0.16)',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 6,
+  },
+  workChip: {
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    backgroundColor: palette.bronze,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
+  workChipText: { fontSize: 10, lineHeight: 13, letterSpacing: 1.2, color: palette.base },
+  workPlace: { fontSize: 17, lineHeight: 21, letterSpacing: -0.17, color: palette.cream },
+  workMeta: { fontSize: 13, lineHeight: 17, color: palette.secondaryText },
   inlineError: { gap: 12, alignItems: 'flex-start' },
   errorText: { fontSize: 14, lineHeight: 20, color: palette.secondaryText },
   retry: { minHeight: 44, justifyContent: 'center' },
   retryLabel: { fontSize: 15, lineHeight: 19, letterSpacing: 0, color: palette.cream },
-  footer: { gap: 26 },
-  copy: { gap: 12 },
-  title: { fontSize: 32, lineHeight: 34, letterSpacing: -1.12, color: palette.cream },
-  description: { fontSize: 15, lineHeight: 24, color: palette.secondaryText, maxWidth: 300 },
+  footer: { gap: 12, paddingTop: 12 },
   cta: {
     minHeight: m.ctaHeight,
     borderRadius: m.ctaRadius,

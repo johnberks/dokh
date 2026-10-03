@@ -3,7 +3,71 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-09-30 · Claude Code · #59 (submit), #60 (4.3 Apple) e #61 (4.6 exclusão de conta) **integrados na `main`**; o usuário validou os dois no iPhone. **3.1 em andamento** no branch `codex/3.1-remote-setup`, com o roteiro em [`remote-environments.md`](remote-environments.md).
+Última atualização: 2026-10-03 · Claude Code · **#62 (3.1), #66 (Agenda) e #67 (vibração) integrados na `main`.** Com `expo-haptics` na `main`, foi disparado um novo build de desenvolvimento iOS.
+
+- **Pendências:**
+  - instalar o build novo no iPhone e validar a Agenda (`+` no dia, Marcar como recebido, deslizar) e a vibração;
+  - migrations 7.7 (`20261001000000`, `20261001010000`) em preview e produção antes de qualquer build remoto que não seja de desenvolvimento;
+  - validação da 7.7 no iPhone;
+  - conta de demonstração do TestFlight (2.1a).
+
+Anterior (2026-10-03) · Claude Code · **Vibração (grupo 1)** (#67, `codex/haptics-confirmations`). Detalhes em [`haptics.md`](haptics.md).
+
+- **Onde vibra:** sucesso ao salvar trabalho (`+`, edição, primeiro trabalho), ao marcar como recebido (detalhe, deslizar, Home, Finanças, Entradas) e no fim do onboarding. Erro quando a gravação ou a confirmação falha.
+- **Fica de fora, por decisão do usuário:** seleção (calendário, chips) e limites de gesto.
+- **Exige novo build de desenvolvimento** (`expo-haptics` é nativo; D79). Sem ele o app funciona igual, só não vibra.
+
+Anterior (2026-10-03) · Claude Code · **Agenda: registrar no dia escolhido e ações rápidas**, no branch `codex/agenda-day-actions`. Detalhes em [`agenda.md`](agenda.md), seção "Registrar no dia escolhido e ações rápidas".
+
+- **`+` no dia escolhido:** o `+` do topo, o do dia livre e o `+` central (com a Agenda na tela) abrem o novo Trabalho com a data do dia selecionado. Template não pergunta a data.
+- **Detalhe:** `Marcar como recebido` acima de `Editar trabalho` enquanto o valor não entrou. Editar passa para contorno.
+- **Deslizar o card:** revela `Recebido` (se ainda não recebido) e `Excluir` (`SwipeableRow`, `DeleteWorkSheet`). Referências Mobbin: pillowtalk, Chick-fil-A, Notion Mail, Cleo, Revolut Business.
+- **Banco:** nenhuma migration. `agenda_work_projection` já expunha `receivable_id`.
+- **Ícone novo:** `TrashIcon`, pelo gerador de Heroicons.
+- **Pendências anteriores continuam:**
+  - migrations 7.7 em preview e produção;
+  - validação da 7.7 no iPhone;
+  - conta de demonstração do TestFlight;
+  - #62.
+
+Anterior (2026-10-02) · Claude Code · **Onboarding v2 (7.7) completo na `main`**: Entregas 1 e 2 (#63, #64) e Entregas 3 e 4 (#65). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9–12.
+
+- **Fluxo:**
+  - abertura guiada pelo dedo, nome com moldura, foco, situação (Generalista/Residência/Especialista, busca com título e campo fixos);
+  - bolsa com peça ao vivo e tela 12 como payoff do residente ou ponte;
+  - primeiro trabalho numa rota só com a peça fixa no topo e "Já recebi";
+  - primeira visão por mês de entrada e guia de primeiro uso pelo foco.
+- **Correção depois do teste no iPhone:** os alvos do guia (`useTourTarget`) liam a ordem fixa; começando pela Agenda, o destaque caía fora do lugar. Agora seguem `state.steps`, e `currentTourStep` exige as etapas.
+- **Teclado** com `react-native-keyboard-controller` (D78). O build de desenvolvimento atual já o inclui; o próximo build de produção precisa ser novo.
+- **Pendências:**
+  - aplicar as migrations `20261001000000` e `20261001010000` em **preview e produção** antes de qualquer build remoto (`supabase link` → `db push` → `unlink`);
+  - validação completa no iPhone para marcar a 7.7 no `build-plan.md`;
+  - conta de demonstração da revisão do TestFlight (Guideline 2.1a);
+  - #62 (docs 3.1) aberto.
+
+Anterior (2026-10-01) · **7.7 Entrega 2** no branch `codex/7.7-entrega-2`, empilhado sobre a Entrega 1 (#63). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §10.
+
+- **Escopo:** abertura narrativa em três toques, moldura "DOKH de João", pergunta de foco com mini-sequência e subtítulo da Situação pelo foco.
+- **Banco:** migration `profiles.onboarding_focus` aplicada só no local.
+- **Ajustes da Entrega 1 (já no #63):** ordem Generalista/Residência/Especialista e busca que assume a tela ao digitar.
+- **Verificação:** Jest 73/522, typecheck, Biome, `check:db-types`, teste de banco 7.7 e expo-doctor passaram.
+- **Próximas:** Entrega 3 (peça persistente) e Entrega 4 (primeira visão + guia por foco).
+
+Anterior (2026-10-01) · **7.7 Onboarding v2, Entrega 1**, no branch `codex/7.7-onboarding-narrativo`. Proposta aprovada pelo usuário; detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9.
+
+- **Escopo:** teclado com `react-native-keyboard-controller` (D78, **exige novo build de desenvolvimento**), campos do onboarding centralizados, totais da conclusão por caixa, residente pode concluir sem trabalho, "Data do trabalho" com dias passados normais, datas nos prazos e "Já recebi".
+- **Banco:** migration `20261001000000_confirm_receivable_received_on` aplicada **só no local**. Preview e produção recebem quando a entrega for aprovada.
+- **Verificação:** typecheck, Biome, Jest (72/515), `check:db-types`, testes de banco 3.8/3.11/7.7 e expo-doctor 21/21 passaram.
+- **Próximas:** Entrega 2 (abertura + foco), Entrega 3 (peça persistente), Entrega 4 (primeira visão + guia por foco).
+
+Anterior (2026-10-01) · **Onboarding v2 (7.7), proposta** no branch `codex/7.7-onboarding-narrativo`, com o roteiro em [`onboarding-v2.md`](onboarding-v2.md).
+
+- **Conteúdo:** referências do Mobbin, problemas do fluxo atual, storyboard, caminhos e matriz pergunta → consequência.
+- **Estado:** nenhuma tela foi alterada. Aguarda aprovação e as decisões D-1 a D-4.
+- **Problema encontrado:** `summaryTotals` soma a bolsa e o trabalho sem considerar o mês da entrada, inclusive o trabalho "sem previsão". Isso mistura caixa e competência.
+- **Outros pendentes:** #62 (3.1) aguarda merge. TestFlight: a Apple pediu conta de demonstração (Guideline 2.1a), que o usuário cria no `dokh-production`.
+
+Anterior (2026-09-30) · Claude Code · #59 (submit), #60 (4.3 Apple) e #61 (4.6 exclusão de conta) **integrados na `main`**; o usuário validou os dois no iPhone. **3.1 em andamento** no branch `codex/3.1-remote-setup`, com o roteiro em [`remote-environments.md`](remote-environments.md).
 
 - Os dois projetos remotos estavam **pausados** (`INACTIVE`, plano Free); o usuário os reativou.
 - Chaves publishable cadastradas no EAS (preview/production). Cada uma responde 200 no próprio projeto e 401 no outro.
@@ -20,7 +84,6 @@
 - As etapas com senha e chave são executadas pelo usuário: o agente não copia credenciais.
 
 Anterior (2026-09-30) · **4.6 Exclusão de conta** no branch `codex/4.6-account-deletion`, empilhado sobre a 4.3 (#60). Detalhes em [`account-deletion.md`](account-deletion.md).
-
 - **Servidor:** a Edge Function `delete-account` é idempotente. Apaga Storage, revoga a Apple e apaga o usuário; as tabelas saem em cascata. Os logs não têm PII.
 - **Perfil:** a folha de confirmação segue o padrão P05. O usuário dispensou uma estética própria para ela.
 - **Contas Apple:** a Apple pede identificação antes de excluir. A tela não mostra troca de senha e o método aparece como Apple.

@@ -23,6 +23,7 @@ import { durationLabel, workKindLabel, workTimeLabel } from '@/features/agenda/a
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { todayInTimezone } from '@/features/work/work-schedule';
+import { haptic } from '@/theme/haptics';
 import { palette } from '@/theme/tokens';
 import { HomeHeroCards } from './HomeHero';
 import { HomeEntryRow, HomeListCard } from './HomeListCard';
@@ -78,7 +79,11 @@ export function HomeScreen() {
     setFailed(false);
     setConfirmingId(entry.receivableId);
     confirm.mutate(entry.receivableId, {
-      onError: () => setFailed(true),
+      onSuccess: () => haptic('success'),
+      onError: () => {
+        haptic('error');
+        setFailed(true);
+      },
       onSettled: () => setConfirmingId(null),
     });
   }

@@ -1,16 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { KeyboardScreen } from '@/components/KeyboardScreen';
 import { MoneyInput } from '@/components/MoneyInput';
 import { NavigationControl } from '@/components/NavigationControl';
 import { PremiumBadge } from '@/components/PremiumBadge';
@@ -21,14 +14,14 @@ import { requiresSchedule } from '@/domain/work-type';
 import { usePremium } from '@/features/billing/entitlement';
 import { nextAutomaticColorToken } from '@/features/locations/location-colors';
 import { useWorkLocations } from '@/features/locations/locations-data';
-import { KEYBOARD_CTA_GAP } from '@/features/onboarding/OnboardingCta';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { motionDuration } from '@/theme/motion';
 import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
-import { useSaveWork } from '../use-save-work';
-import { useNewWorkDraft, type WorkDraftStore } from '../work-draft';
+import { receivedOn, useSaveWork } from '../use-save-work';
+import { useNewWorkDraft, type WorkDraft, type WorkDraftStore } from '../work-draft';
 import { addDaysToLocalDate, todayInTimezone, workEndDescription } from '../work-schedule';
 import { FieldBox, OptionRow, RepeatIcon } from './FormPieces';
 import { findLocationByName, LocationField } from './LocationField';
@@ -56,6 +49,26 @@ export function canSaveWork(draft: {
     return draft.startTime !== null && draft.durationMinutes !== null;
   }
   return true;
+}
+
+type DatedFields = Pick<WorkDraft, 'workDate' | 'expected' | 'plannedTermDays'>;
+
+/**
+ * Nova data do Trabalho. O prazo D30/60/90 acompanha a data (inclusive o trazido de um
+ * template ou das preferências); data específica e "não sei" ficam como estão.
+ */
+export function workDatePatch(draft: DatedFields, workDate: string): DatedFields {
+  const choice = draft.workDate === null ? null : expectedChoice(draft.expected, draft.workDate);
+  const termDays =
+    choice?.kind === 'term' ? choice.days : draft.expected === null ? draft.plannedTermDays : null;
+  return {
+    workDate,
+    expected:
+      termDays !== null
+        ? { kind: 'date', date: addDaysToLocalDate(workDate, termDays) }
+        : draft.expected,
+    plannedTermDays: null,
+  };
 }
 
 /**
@@ -135,6 +148,9 @@ export function WorkForm({
     const { expected, workDate } = draft;
     if (workDate === null || expected === null) return null;
     if (expected.kind === 'unknown') return t('form.expectedUnknown');
+    if (receivedOn(expected) !== null) {
+      return t('form.expectedReceived', { date: formatDayMonth(expected.date) });
+    }
     const choice = expectedChoice(expected, workDate);
     return choice?.kind === 'term'
       ? t('form.expectedTerm', { days: choice.days, date: formatDayMonth(expected.date) })
@@ -156,6 +172,7 @@ export function WorkForm({
         if (hold === 0) onSaved(workDate ?? today);
         else leaveTimer.current = setTimeout(() => onSaved(workDate ?? today), hold);
       },
+      onError: () => haptic('error'),
     });
   }
 
@@ -168,165 +185,157 @@ export function WorkForm({
         </AppText>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={KEYBOARD_CTA_GAP}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <LocationField
-            value={draft.locationName}
-            colorToken={draft.colorToken}
-            onChange={(locationName) => draft.update({ locationName })}
-          />
-
-          <View style={styles.row}>
-            <View style={styles.flex}>
-              <FieldBox
-                label={t('form.date')}
-                value={
-                  draft.workDate === null ? null : formatDayMonth(draft.workDate, { year: true })
-                }
-                placeholder={t('form.choose')}
-                onPress={() => openSheet('date')}
-                testID="work-date-field"
-              />
-            </View>
-            <View style={styles.flex}>
-              <FieldBox
-                label={t('form.start')}
-                value={draft.startTime}
-                placeholder={scheduleRequired ? t('form.choose') : t('form.optional')}
-                onPress={() => openSheet('start')}
-                testID="work-start-field"
-              />
-            </View>
+      {/* O campo em foco (local, valor) sempre fica acima do teclado e do botão. */}
+      <KeyboardScreen
+        bottomInset={Math.max(insets.bottom, 16) + 8}
+        contentContainerStyle={styles.content}
+        footer={
+          <View style={styles.footer}>
+            <SaveWorkButton
+              label={editing ? t('form.saveChanges') : t('form.save')}
+              savingLabel={t('form.saving')}
+              savedLabel={editing ? t('form.savedChanges') : t('form.saved')}
+              phase={saved ? 'saved' : save.isPending ? 'saving' : 'idle'}
+              disabled={!ready}
+              onPress={submit}
+              testID="work-save"
+            />
           </View>
+        }
+      >
+        <LocationField
+          value={draft.locationName}
+          colorToken={draft.colorToken}
+          onChange={(locationName) => draft.update({ locationName })}
+        />
 
-          <View style={styles.durationBlock}>
-            <AppText variant="technical" style={styles.sectionLabel}>
-              {scheduleRequired ? t('form.duration') : t('form.durationOptional')}
-            </AppText>
-            <View accessibilityRole="radiogroup" style={styles.chips}>
-              {QUICK_DURATION_HOURS.map((value) => (
-                <Pressable
-                  key={value}
-                  accessibilityRole="radio"
-                  accessibilityLabel={t('form.hours', { hours: value })}
-                  accessibilityState={{ checked: hours === value }}
-                  onPress={() => {
-                    Keyboard.dismiss();
-                    draft.update({ durationMinutes: hours === value ? null : value * 60 });
-                  }}
-                  testID={`work-duration-${value}`}
-                  style={({ pressed }) => [
-                    styles.chip,
-                    hours === value ? styles.chipOn : styles.chipOff,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <AppText
-                    style={[type.heading1, styles.chipText, hours === value && styles.chipTextOn]}
-                  >
-                    {t('form.hours', { hours: value })}
-                  </AppText>
-                </Pressable>
-              ))}
+        <View style={styles.row}>
+          <View style={styles.flex}>
+            <FieldBox
+              label={t('form.date')}
+              value={
+                draft.workDate === null ? null : formatDayMonth(draft.workDate, { year: true })
+              }
+              placeholder={t('form.choose')}
+              onPress={() => openSheet('date')}
+              testID="work-date-field"
+            />
+          </View>
+          <View style={styles.flex}>
+            <FieldBox
+              label={t('form.start')}
+              value={draft.startTime}
+              placeholder={scheduleRequired ? t('form.choose') : t('form.optional')}
+              onPress={() => openSheet('start')}
+              testID="work-start-field"
+            />
+          </View>
+        </View>
+
+        <View style={styles.durationBlock}>
+          <AppText variant="technical" style={styles.sectionLabel}>
+            {scheduleRequired ? t('form.duration') : t('form.durationOptional')}
+          </AppText>
+          <View accessibilityRole="radiogroup" style={styles.chips}>
+            {QUICK_DURATION_HOURS.map((value) => (
               <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('form.durationOther')}
-                accessibilityState={{ selected: hours !== null && !isQuick }}
-                onPress={() => openSheet('duration')}
-                testID="work-duration-other"
+                key={value}
+                accessibilityRole="radio"
+                accessibilityLabel={t('form.hours', { hours: value })}
+                accessibilityState={{ checked: hours === value }}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  draft.update({ durationMinutes: hours === value ? null : value * 60 });
+                }}
+                testID={`work-duration-${value}`}
                 style={({ pressed }) => [
                   styles.chip,
-                  hours !== null && !isQuick ? styles.chipOn : styles.chipOff,
+                  hours === value ? styles.chipOn : styles.chipOff,
                   pressed && styles.pressed,
                 ]}
               >
                 <AppText
-                  style={[
-                    type.heading1,
-                    styles.chipText,
-                    hours !== null && !isQuick && styles.chipTextOn,
-                  ]}
+                  style={[type.heading1, styles.chipText, hours === value && styles.chipTextOn]}
                 >
-                  {hours !== null && !isQuick
-                    ? t('form.hours', { hours })
-                    : t('form.durationOther')}
+                  {t('form.hours', { hours: value })}
                 </AppText>
               </Pressable>
-            </View>
-            {end && (
-              <AppText style={styles.note} testID="work-form-end">
-                {end.nextDay
-                  ? t('form.endsAtDate', { time: end.time, date: formatDayMonth(end.date) })
-                  : t('form.endsAt', { time: end.time })}
+            ))}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('form.durationOther')}
+              accessibilityState={{ selected: hours !== null && !isQuick }}
+              onPress={() => openSheet('duration')}
+              testID="work-duration-other"
+              style={({ pressed }) => [
+                styles.chip,
+                hours !== null && !isQuick ? styles.chipOn : styles.chipOff,
+                pressed && styles.pressed,
+              ]}
+            >
+              <AppText
+                style={[
+                  type.heading1,
+                  styles.chipText,
+                  hours !== null && !isQuick && styles.chipTextOn,
+                ]}
+              >
+                {hours !== null && !isQuick ? t('form.hours', { hours }) : t('form.durationOther')}
               </AppText>
-            )}
+            </Pressable>
           </View>
-
-          <MoneyInput
-            label={t('form.amount')}
-            value={draft.amount}
-            onChangeText={(amount) => draft.update({ amount })}
-            testID="work-amount-input"
-          />
-
-          <FieldBox
-            label={t('form.expected')}
-            value={expectedLabel()}
-            placeholder={draft.workDate === null ? t('form.expectedNeedsDate') : t('form.define')}
-            disabled={draft.workDate === null}
-            onPress={() => openSheet('payment')}
-            accessory={<AppText style={styles.chevron}>{'›'}</AppText>}
-            testID="work-expected-field"
-          />
-
-          <View style={styles.divider} />
-          {!editing && (
-            <OptionRow
-              icon={<RepeatIcon />}
-              label={t('form.repeat')}
-              value={t(`form.repeatLabel.${draft.repeat}`)}
-              accessory={premiumAccessory}
-              onPress={() => openSheet('repeat')}
-              testID="work-repeat-field"
-            />
+          {end && (
+            <AppText style={styles.note} testID="work-form-end">
+              {end.nextDay
+                ? t('form.endsAtDate', { time: end.time, date: formatDayMonth(end.date) })
+                : t('form.endsAt', { time: end.time })}
+            </AppText>
           )}
-          <OptionRow
-            icon={
-              <View
-                style={[styles.colorDot, { backgroundColor: workLocationColors[locationToken] }]}
-              />
-            }
-            label={t('form.color')}
-            value={colorChosen ? t(`form.colors.${locationToken}`) : t('form.colorAutomatic')}
-            accessory={premiumAccessory}
-            onPress={() => openSheet('color')}
-            testID="work-color-field"
-          />
-
-          {save.isError && <MutationError onRetry={submit} retrying={save.isPending} />}
-        </ScrollView>
-
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
-          <SaveWorkButton
-            label={editing ? t('form.saveChanges') : t('form.save')}
-            savingLabel={t('form.saving')}
-            savedLabel={editing ? t('form.savedChanges') : t('form.saved')}
-            phase={saved ? 'saved' : save.isPending ? 'saving' : 'idle'}
-            disabled={!ready}
-            onPress={submit}
-            testID="work-save"
-          />
         </View>
-      </KeyboardAvoidingView>
+
+        <MoneyInput
+          label={t('form.amount')}
+          value={draft.amount}
+          onChangeText={(amount) => draft.update({ amount })}
+          testID="work-amount-input"
+        />
+
+        <FieldBox
+          label={t('form.expected')}
+          value={expectedLabel()}
+          placeholder={draft.workDate === null ? t('form.expectedNeedsDate') : t('form.define')}
+          disabled={draft.workDate === null}
+          onPress={() => openSheet('payment')}
+          accessory={<AppText style={styles.chevron}>{'›'}</AppText>}
+          testID="work-expected-field"
+        />
+
+        <View style={styles.divider} />
+        {!editing && (
+          <OptionRow
+            icon={<RepeatIcon />}
+            label={t('form.repeat')}
+            value={t(`form.repeatLabel.${draft.repeat}`)}
+            accessory={premiumAccessory}
+            onPress={() => openSheet('repeat')}
+            testID="work-repeat-field"
+          />
+        )}
+        <OptionRow
+          icon={
+            <View
+              style={[styles.colorDot, { backgroundColor: workLocationColors[locationToken] }]}
+            />
+          }
+          label={t('form.color')}
+          value={colorChosen ? t(`form.colors.${locationToken}`) : t('form.colorAutomatic')}
+          accessory={premiumAccessory}
+          onPress={() => openSheet('color')}
+          testID="work-color-field"
+        />
+
+        {save.isError && <MutationError onRetry={submit} retrying={save.isPending} />}
+      </KeyboardScreen>
 
       <WorkDateSheet
         open={sheet === 'date'}
@@ -334,24 +343,7 @@ export function WorkForm({
         today={today}
         onClose={() => setSheet(null)}
         onConfirm={(workDate) => {
-          // Prazo D30/60/90 acompanha a nova data (inclusive o trazido de um template);
-          // data específica e "não sei" ficam como estão.
-          const choice =
-            draft.workDate === null ? null : expectedChoice(draft.expected, draft.workDate);
-          const termDays =
-            choice?.kind === 'term'
-              ? choice.days
-              : draft.expected === null
-                ? draft.plannedTermDays
-                : null;
-          draft.update({
-            workDate,
-            expected:
-              termDays !== null
-                ? { kind: 'date', date: addDaysToLocalDate(workDate, termDays) }
-                : draft.expected,
-            plannedTermDays: null,
-          });
+          draft.update(workDatePatch(draft, workDate));
           setSheet(null);
         }}
       />
@@ -454,6 +446,6 @@ const styles = StyleSheet.create({
   chevron: { fontSize: 18, lineHeight: 22, color: palette.sage },
   divider: { height: 1, backgroundColor: 'rgba(16,22,15,0.1)', marginVertical: 8 },
   colorDot: { width: 18, height: 18, borderRadius: 9 },
-  footer: { paddingHorizontal: 24, paddingTop: 12 },
+  footer: { paddingHorizontal: 24 },
   pressed: { opacity: 0.72 },
 });
