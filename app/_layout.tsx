@@ -5,6 +5,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { getEnv } from '@/config/env';
 import { AppProviders } from '@/features/app-shell/AppProviders';
 import { AuthNavigationGate } from '@/features/auth/AuthNavigationGate';
+import { NotificationSync } from '@/features/notifications/NotificationSync';
 import { BrandFontProvider } from '@/theme/BrandFontProvider';
 
 // Falha cedo, com mensagem explícita, se o ambiente estiver incompleto (1.4).
@@ -21,6 +22,8 @@ export default function RootLayout() {
           <AppProviders>
             <StatusBar style="dark" />
             <AuthNavigationGate />
+            {/* Lembretes locais: reagendados a cada abertura e escrita; sair da conta cancela. */}
+            <NotificationSync />
           </AppProviders>
         </BrandFontProvider>
       </KeyboardProvider>

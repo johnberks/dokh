@@ -27,6 +27,10 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
   AndroidHaptics: { Confirm: 'confirm', Reject: 'reject' },
 }));
+// Lembretes: sem módulo nativo por padrão (como um build antigo); testes injetam um falso.
+jest.mock('@/features/notifications/notifications-module', () => ({
+  notificationsModule: jest.fn(() => null),
+}));
 // Entrar com Google (4.4): cada teste define a resposta do `signIn`.
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: {

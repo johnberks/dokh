@@ -5,6 +5,7 @@ import { components } from './components';
 import { finances } from './finances';
 import { home } from './home';
 import { navigation } from './navigation';
+import { notifications } from './notifications';
 import { onboarding } from './onboarding';
 import { profile } from './profile';
 
@@ -19,4 +20,5 @@ export const ptBR = {
   agenda,
   finances,
   profile,
+  notifications,
 };

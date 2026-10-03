@@ -28,6 +28,11 @@ export const queryKeys = {
   financeNextEntry: (userId: string, month: string) =>
     ['finance-month', userId, month, 'next'] as const,
   financeUndated: (userId: string) => ['finance-month', userId, 'undated'] as const,
+  /** Preferências de notificação (Perfil 14). */
+  notificationPreferences: (userId: string) => ['profile', userId, 'notifications'] as const,
+  /** O que os lembretes locais agendam; prefixo `finance-month`, invalidado a cada escrita. */
+  reminderSources: (userId: string, today: string) =>
+    ['finance-month', userId, 'reminders', today] as const,
 } as const;
 
 /** Prefixos invalidados por qualquer escrita de Trabalho/Recebível. */

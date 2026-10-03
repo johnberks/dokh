@@ -16,6 +16,7 @@ const NAMES = [
   'arrow-right',
   'arrow-right-start-on-rectangle',
   'banknotes',
+  'bell',
   'book-open',
   'briefcase',
   'building-office-2',
