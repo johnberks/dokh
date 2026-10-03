@@ -12,7 +12,7 @@ import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, navigationMetrics, palette } from '@/theme/tokens';
 import { useNewWorkDraft } from '../work-draft';
 import { templateDraft, useWorkTemplates, type WorkTemplate } from '../work-templates';
-import { WorkForm, type WorkFormSheet } from './WorkForm';
+import { WorkForm, type WorkFormSheet, workDatePatch } from './WorkForm';
 import { WorkTemplateCard } from './WorkTemplateCard';
 
 type Step = { kind: 'entry' } | { kind: 'form'; initialSheet: WorkFormSheet };
@@ -21,15 +21,19 @@ type Step = { kind: 'entry' } | { kind: 'form'; initialSheet: WorkFormSheet };
  * Fluxo do `+` (Agenda 06 → 06B → 07). O `+` central e o da Agenda abrem o mesmo fluxo.
  * Sem histórico, não há o que reutilizar: o fluxo abre direto na escolha do tipo. Com
  * histórico, mostra "Usar novamente" (templates) e "Criar novo trabalho" (pedido do usuário,
- * 2026-09-25).
+ * 2026-09-25). Aberto a partir de um dia da Agenda, o formulário já vem nesse dia (pedido do
+ * usuário, 2026-10-03).
  */
 export function NewWorkFlow({
   onClose,
   onSaved = onClose,
+  initialDate = null,
 }: {
   onClose: () => void;
   /** Depois da animação de sucesso, com a data do Trabalho salvo (padrão: fechar). */
   onSaved?: (workDate: string) => void;
+  /** `YYYY-MM-DD` do dia escolhido na Agenda: preenche a data do Trabalho. */
+  initialDate?: string | null;
 }) {
   const { t } = useTranslation('agenda');
   const type = useBrandTypography();
@@ -70,14 +74,24 @@ export function NewWorkFlow({
         : {}),
       plannedTermDays: defaults?.paymentTermDays ?? null,
     });
+    withInitialDate();
     setChoosingType(false);
     setStep({ kind: 'form', initialSheet: null });
+  }
+
+  /** O dia da Agenda vira a data; o prazo padrão ou do template vira a previsão. */
+  function withInitialDate() {
+    if (initialDate === null) return;
+    const draft = useNewWorkDraft.getState();
+    draft.update(workDatePatch(draft, initialDate));
   }
 
   function reuse(template: WorkTemplate) {
     useNewWorkDraft.getState().reset();
     useNewWorkDraft.getState().update(templateDraft(template));
-    setStep({ kind: 'form', initialSheet: 'date' });
+    withInitialDate();
+    // Sem dia escolhido, o template pergunta "quando será?"; com o dia, só falta conferir.
+    setStep({ kind: 'form', initialSheet: initialDate === null ? 'date' : null });
   }
 
   if (step.kind === 'form') {

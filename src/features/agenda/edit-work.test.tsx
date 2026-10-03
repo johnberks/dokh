@@ -68,6 +68,7 @@ const shift: AgendaWork = {
   amountCents: 120000n,
   expectedOn: '2026-10-28',
   receiptStatus: 'scheduled',
+  receivableId: 'r1',
   seriesId: null,
   seriesFrequency: null,
   seriesActive: false,

@@ -47,6 +47,7 @@ const NAMES = [
   'shield-check',
   'star',
   'sun',
+  'trash',
   'user-circle',
   'wallet',
   'x-mark',

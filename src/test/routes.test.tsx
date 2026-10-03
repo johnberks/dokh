@@ -37,7 +37,10 @@ async function openAt(initialUrl: string) {
   const router = renderRouter(APP_DIR, { initialUrl });
   await router;
   // Não devolver `router` diretamente: ele é thenable e seria desembrulhado pelo `await`.
-  return { getPathname: () => router.getPathname() };
+  return {
+    getPathname: () => router.getPathname(),
+    getSearchParams: () => router.getSearchParams(),
+  };
 }
 
 describe('rotas', () => {
@@ -90,6 +93,24 @@ describe('rotas', () => {
     expect(router.getPathname()).toBe('/work/new');
     expect(screen.getByRole('header', { name: 'Adicionar trabalho' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Fechar' })).toBeTruthy();
+  });
+
+  it('na Agenda, a ação central abre o novo trabalho no dia escolhido', async () => {
+    const router = await openAt('/agenda');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('tab-create'));
+    });
+    expect(router.getPathname()).toBe('/work/new');
+    expect(router.getSearchParams().date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('fora da Agenda, a ação central abre o novo trabalho sem data', async () => {
+    const router = await openAt('/');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('tab-create'));
+    });
+    expect(router.getPathname()).toBe('/work/new');
+    expect(router.getSearchParams().date).toBeUndefined();
   });
 
   it('barra inferior mantém as quatro tabs e o alvo central do HTML', async () => {

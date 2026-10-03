@@ -38,7 +38,10 @@ export function BottomTabs({
   rowRef,
   onRowLayout,
   tabTargets,
+  onCreatePress,
 }: TabBarProps & {
+  /** `+` central; recebe a aba ativa (padrão: abrir o novo Trabalho sem data). */
+  onCreatePress?: (activeTab: string) => void;
   rowRef?: RefObject<View | null>;
   onRowLayout?: () => void;
   /** Abas marcadas pelo guia, acesas na passagem entre seções. */
@@ -109,7 +112,11 @@ export function BottomTabs({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t('tabs.create')}
-          onPress={() => router.push('/work/new')}
+          onPress={() => {
+            const active = state.routes[state.index]?.name ?? '';
+            if (onCreatePress) onCreatePress(active);
+            else router.push('/work/new');
+          }}
           style={styles.create}
           testID="tab-create"
         >

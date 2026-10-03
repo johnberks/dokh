@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { type AccessibilityProps, Pressable, StyleSheet, View } from 'react-native';
 import { ArrowRightIcon, CheckIcon } from '@/components/icons/heroicons';
 import {
   colors,
@@ -28,6 +28,9 @@ export type AgendaWorkCardProps = CommonProps & {
     state: 'received' | 'scheduled' | 'due_today' | 'undated' | 'confirmation_pending';
     label: string;
   };
+  /** Ações do deslizar, para quem usa leitor de tela (Agenda). */
+  accessibilityActions?: AccessibilityProps['accessibilityActions'];
+  onAccessibilityAction?: AccessibilityProps['onAccessibilityAction'];
 };
 
 export type FeaturedWorkCardProps = CommonProps & {
@@ -77,6 +80,8 @@ export function WorkCard(props: WorkCardProps) {
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}
         accessibilityState={{ disabled }}
+        accessibilityActions={props.accessibilityActions}
+        onAccessibilityAction={props.onAccessibilityAction}
         disabled={disabled}
         onPress={onPress}
         testID={testID}

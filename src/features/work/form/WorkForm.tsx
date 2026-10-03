@@ -20,7 +20,7 @@ import { motionDuration } from '@/theme/motion';
 import { colors, palette, type WorkLocationColorToken, workLocationColors } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
 import { receivedOn, useSaveWork } from '../use-save-work';
-import { useNewWorkDraft, type WorkDraftStore } from '../work-draft';
+import { useNewWorkDraft, type WorkDraft, type WorkDraftStore } from '../work-draft';
 import { addDaysToLocalDate, todayInTimezone, workEndDescription } from '../work-schedule';
 import { FieldBox, OptionRow, RepeatIcon } from './FormPieces';
 import { findLocationByName, LocationField } from './LocationField';
@@ -48,6 +48,26 @@ export function canSaveWork(draft: {
     return draft.startTime !== null && draft.durationMinutes !== null;
   }
   return true;
+}
+
+type DatedFields = Pick<WorkDraft, 'workDate' | 'expected' | 'plannedTermDays'>;
+
+/**
+ * Nova data do Trabalho. O prazo D30/60/90 acompanha a data (inclusive o trazido de um
+ * template ou das preferências); data específica e "não sei" ficam como estão.
+ */
+export function workDatePatch(draft: DatedFields, workDate: string): DatedFields {
+  const choice = draft.workDate === null ? null : expectedChoice(draft.expected, draft.workDate);
+  const termDays =
+    choice?.kind === 'term' ? choice.days : draft.expected === null ? draft.plannedTermDays : null;
+  return {
+    workDate,
+    expected:
+      termDays !== null
+        ? { kind: 'date', date: addDaysToLocalDate(workDate, termDays) }
+        : draft.expected,
+    plannedTermDays: null,
+  };
 }
 
 /**
@@ -321,24 +341,7 @@ export function WorkForm({
         today={today}
         onClose={() => setSheet(null)}
         onConfirm={(workDate) => {
-          // Prazo D30/60/90 acompanha a nova data (inclusive o trazido de um template);
-          // data específica e "não sei" ficam como estão.
-          const choice =
-            draft.workDate === null ? null : expectedChoice(draft.expected, draft.workDate);
-          const termDays =
-            choice?.kind === 'term'
-              ? choice.days
-              : draft.expected === null
-                ? draft.plannedTermDays
-                : null;
-          draft.update({
-            workDate,
-            expected:
-              termDays !== null
-                ? { kind: 'date', date: addDaysToLocalDate(workDate, termDays) }
-                : draft.expected,
-            plannedTermDays: null,
-          });
+          draft.update(workDatePatch(draft, workDate));
           setSheet(null);
         }}
       />
