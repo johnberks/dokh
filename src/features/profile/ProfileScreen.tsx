@@ -15,6 +15,8 @@ import { legalUrls, subscriptionManagementUrls, supportUrls } from '@/config/leg
 import { useAuthSession } from '@/features/auth/AuthSessionProvider';
 import { usePremium } from '@/features/billing/entitlement';
 import { useWorkLocations } from '@/features/locations/locations-data';
+import { useNotificationPermission } from '@/features/notifications/notification-permission';
+import { useNotificationPreferences } from '@/features/notifications/notification-preferences';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { InsetList, InsetRow, Note, ProfileIcon, SectionTitle } from './ProfilePieces';
@@ -80,6 +82,22 @@ export function ProfileScreen() {
   const profile = useProfile();
   const premium = usePremium();
   const locations = useWorkLocations();
+  const notificationPreferences = useNotificationPreferences();
+  const notificationPermission = useNotificationPermission((store) => store.state);
+  // Desligadas: o iPhone não deixa avisar ou a pessoa desligou todos os lembretes.
+  const anyReminder = notificationPreferences.data
+    ? notificationPreferences.data.receivableDueDay ||
+      notificationPreferences.data.undatedWeeklyReminder ||
+      notificationPreferences.data.upcomingWorkReminder
+    : null;
+  const notificationsSummary =
+    anyReminder === null ||
+    notificationPermission === null ||
+    notificationPermission === 'unavailable'
+      ? null
+      : anyReminder && notificationPermission !== 'denied'
+        ? t('main.notificationsOn')
+        : t('main.notificationsOff');
   const residency = useActiveResidency();
   const [signingOut, setSigningOut] = useState(false);
   // Entrar na aba cascateia o Perfil (como Agenda e Finanças); voltar de uma subtela não.
@@ -338,6 +356,13 @@ export function ProfileScreen() {
         <View style={styles.section}>
           <SectionTitle>{t('main.sectionPreferences')}</SectionTitle>
           <InsetList>
+            <InsetRow
+              icon={<ProfileIcon name="bell" />}
+              label={t('main.notifications')}
+              value={notificationsSummary}
+              onPress={() => go('/profile/notifications')}
+              testID="profile-row-notifications"
+            />
             <InsetRow
               icon={<ProfileIcon name="sun" />}
               label={t('main.appearance')}

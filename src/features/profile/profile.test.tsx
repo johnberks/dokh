@@ -7,6 +7,7 @@ import {
   createWorkLocation,
   updateWorkLocation,
 } from '@/features/locations/locations-data';
+import { useNotificationPermission } from '@/features/notifications/notification-permission';
 import { renderWithProviders } from '@/test/render';
 import { EditProfileScreen, parseGraduationYear } from './EditProfileScreen';
 import { LocationFormScreen, LocationsScreen } from './LocationsScreens';
@@ -89,6 +90,17 @@ jest.mock('@/features/auth/apple-auth', () => ({
   requestAppleAuthorizationCode: () => mockAppleCode(),
 }));
 jest.mock('@/data/supabase-client', () => ({ supabase: {} }));
+const mockNotificationPreferences = {
+  receivableDueDay: true,
+  undatedWeeklyReminder: true,
+  upcomingWorkReminder: true,
+  receivableDueTime: '08:00',
+  workReminderMinutes: 120,
+};
+jest.mock('@/features/notifications/notification-preferences', () => ({
+  ...jest.requireActual('@/features/notifications/notification-preferences'),
+  useNotificationPreferences: () => ({ data: mockNotificationPreferences }),
+}));
 jest.mock('./profile-data', () => ({
   ...jest.requireActual('./profile-data'),
   useProfile: () => ({ ...ok(mockProfile), refetch: jest.fn(), isFetching: false }),
@@ -130,6 +142,21 @@ async function press(testID: string) {
 }
 
 describe('Perfil principal (01/18)', () => {
+  it('Notificações: "Ligadas" com algum lembrete e permissão; "Desligadas" se o iPhone nega', async () => {
+    useNotificationPermission.setState({ state: 'granted' });
+    const view = await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByTestId('profile-row-notifications').props.accessibilityLabel).toBe(
+      'Notificações, Ligadas',
+    );
+    await view.unmount();
+    useNotificationPermission.setState({ state: 'denied' });
+    await renderWithProviders(<ProfileScreen />);
+    expect(screen.getByTestId('profile-row-notifications').props.accessibilityLabel).toBe(
+      'Notificações, Desligadas',
+    );
+    useNotificationPermission.setState({ state: null });
+  });
+
   it('Free: identidade, card Premium sem compra e grupos de configuração', async () => {
     await renderWithProviders(<ProfileScreen />);
     expect(screen.getByRole('header', { name: 'Anna Cunha' })).toBeTruthy();
@@ -150,6 +177,8 @@ describe('Perfil principal (01/18)', () => {
     );
     await press('profile-row-locations');
     expect(router.push).toHaveBeenCalledWith('/profile/locations');
+    await press('profile-row-notifications');
+    expect(router.push).toHaveBeenCalledWith('/profile/notifications');
     await press('profile-edit');
     expect(router.push).toHaveBeenCalledWith('/profile/edit');
     // Sem destino configurado, avaliar, ajuda e termos não aparecem (nada de "em breve").

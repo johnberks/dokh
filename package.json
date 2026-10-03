@@ -25,7 +25,7 @@
     "supabase:lan-proxy": "node --env-file=.env.local scripts/supabase-lan-proxy.mjs",
     "supabase:reset": "SUPABASE_TELEMETRY_DISABLED=1 supabase db reset --local",
     "test:functions": "node scripts/test-account-deletion-4.6.mjs",
-    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-6.1.sh && node scripts/test-location-rpcs-6.1.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.10.sh && bash scripts/test-migration-11.10.sh && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh && node scripts/test-auth-session-4.1.mjs && node scripts/test-email-auth-4.2.mjs && bash scripts/test-migration-7.7.sh",
+    "test:db": "bash scripts/test-migration-3.2.sh && bash scripts/test-migration-3.3.sh && bash scripts/test-migration-3.4.sh && bash scripts/test-migration-3.5.sh && node scripts/test-storage-3.6.mjs && bash scripts/test-migration-3.7.sh && node scripts/test-work-rpcs-3.7.mjs && bash scripts/test-migration-6.1.sh && node scripts/test-location-rpcs-6.1.mjs && bash scripts/test-migration-3.8.sh && node scripts/test-confirm-receivable-3.8.mjs && bash scripts/test-migration-3.9.sh && node scripts/test-residency-rpcs-3.9.mjs && bash scripts/test-migration-3.10.sh && bash scripts/test-migration-11.10.sh && bash scripts/test-migration-3.11.sh && node scripts/test-projections-3.11.mjs && bash scripts/test-seed-3.12.sh && node scripts/test-auth-session-4.1.mjs && node scripts/test-email-auth-4.2.mjs && bash scripts/test-migration-7.7.sh && bash scripts/test-migration-12.sh",
     "check:db-types": "SUPABASE_TELEMETRY_DISABLED=1 supabase gen types typescript --local --schema public | biome format --stdin-file-path src/data/database.types.ts | diff -u src/data/database.types.ts -"
   },
   "dependencies": {
@@ -50,6 +50,7 @@
     "expo-image-picker": "~57.0.20",
     "expo-linking": "~57.0.11",
     "expo-localization": "~57.0.2",
+    "expo-notifications": "~57.0.21",
     "expo-router": "~57.0.24",
     "expo-secure-store": "~57.0.4",
     "expo-splash-screen": "~57.0.9",

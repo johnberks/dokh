@@ -5,10 +5,14 @@ import { BottomTabs } from '@/components/BottomTabs';
 import { openNewWorkOnAgendaDay } from '@/features/agenda/agenda-day';
 import { GuideTourOverlay } from '@/features/guide/GuideTourOverlay';
 import { useTourTarget } from '@/features/guide/useTourTarget';
+import { NotificationPrompt } from '@/features/notifications/NotificationPrompt';
+import { useNotificationTaps } from '@/features/notifications/useNotificationTaps';
 
 /** D16: the central action is a button, never a selected tab. */
 export default function TabsLayout() {
   const { t } = useTranslation('navigation');
+  // Tocar num lembrete abre o destino dele, já com a pessoa dentro do app.
+  useNotificationTaps();
   const tabBar = useTourTarget('tab-bar');
   // A barra não se mexe: as abas de destino podem ser medidas quase na hora.
   const homeTab = useTourTarget('tab-index', 60);
@@ -65,6 +69,8 @@ export default function TabsLayout() {
       </Tabs>
       {/* Guia de primeiro uso: por cima das abas e da barra, só logo depois do onboarding. */}
       <GuideTourOverlay />
+      {/* Convite único para os lembretes, depois do guia. */}
+      <NotificationPrompt />
     </View>
   );
 }

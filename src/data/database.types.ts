@@ -146,26 +146,32 @@ export type Database = {
         Row: {
           important_work_changes: boolean;
           receivable_due_day: boolean;
+          receivable_due_time: string;
           undated_weekly_reminder: boolean;
           upcoming_work_reminder: boolean;
           updated_at: string;
           user_id: string;
+          work_reminder_minutes: number;
         };
         Insert: {
           important_work_changes?: boolean;
           receivable_due_day?: boolean;
+          receivable_due_time?: string;
           undated_weekly_reminder?: boolean;
           upcoming_work_reminder?: boolean;
           updated_at?: string;
           user_id: string;
+          work_reminder_minutes?: number;
         };
         Update: {
           important_work_changes?: boolean;
           receivable_due_day?: boolean;
+          receivable_due_time?: string;
           undated_weekly_reminder?: boolean;
           upcoming_work_reminder?: boolean;
           updated_at?: string;
           user_id?: string;
+          work_reminder_minutes?: number;
         };
         Relationships: [];
       };

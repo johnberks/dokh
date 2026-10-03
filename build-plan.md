@@ -606,23 +606,24 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Dependências: 3.2, 11.1.
   - Separar toggle do usuário do status do sistema.
   - **DoD:** negar permissão não altera preferência silenciosamente; UI reflete ambos os estados.
-  - **Em andamento (2026-10-03):** requisito do grupo de testes, junto com 12.3 e 12.4.
+  - **Em andamento (2026-10-03):** código pronto, com preferência separada da permissão, convite único e tela Perfil 14 ([`docs/notifications.md`](docs/notifications.md), D80). **Falta:** novo build e validação no iPhone; migration `20261003000000` no preview e na produção.
 
 - [ ] **12.2 — Registrar tokens e enviar push de teste**
   - Dependências: 3.4, 12.1.
   - **DoD:** APNs e FCM entregam em devices reais; token inválido é revogado.
+  - Adiada por D80: os lembretes do MVP são locais.
 
 - [ ] **12.3 — Implementar lembretes de Trabalho**
   - Dependências: 6.2, 12.1.
   - Agendar/reagendar/cancelar duas horas antes conforme preferência.
   - **DoD:** edição/exclusão não deixa lembrete órfão; timezone testado.
-  - **Em andamento (2026-10-03).**
+  - **Em andamento (2026-10-03):** lembrete pela antecedência escolhida (2 h por padrão), no fuso do Trabalho; o plano é refeito a cada escrita, então não fica lembrete órfão. **Falta:** validação no iPhone.
 
 - [ ] **12.4 — Implementar lembretes financeiros**
   - Dependências: 3.11, 12.1, 12.2.
   - Dia previsto e lembrete semanal de sem data.
   - **DoD:** recebido não notifica; preferência off impede envio; residência Free participa como Recebível.
-  - **Em andamento (2026-10-03).**
+  - **Em andamento (2026-10-03):** aviso no dia previsto (8h por padrão; um por dia, somado; inclui a residência) e lembrete semanal de trabalhos sem data. Recebido e pendência passada ficam de fora. **Falta:** validação no iPhone.
 
 - [ ] **12.5 — Implementar integração unidirecional com calendário**
   - Dependências: 6.2, UX/design Perfil.

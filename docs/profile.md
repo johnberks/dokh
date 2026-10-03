@@ -138,3 +138,7 @@ Pedido do usuário: as letras estavam finas e sumiam no fundo claro.
 ## Entrada da aba (2026-09-28)
 
 Ao abrir a aba, o card do topo, o bloco Premium e as seções entram em cascata (`RevealGroup`), como na Agenda e em Finanças. Voltar de uma subtela não reanima (`openedChild`). Com "Reduzir movimento", tudo aparece montado.
+
+## Notificações (Perfil 14, 2026-10-03)
+
+A linha `Notificações` (grupo Preferências, acima de Aparência) mostra "Ligadas" ou "Desligadas" e abre Perfil 14. As regras, a tela e o convite estão em [`notifications.md`](notifications.md).

@@ -1,0 +1,65 @@
+/** Lembretes (12.1, 12.3, 12.4) e Perfil 14. */
+export const notifications = {
+  screen: {
+    title: 'Notificações',
+    receivablesGroup: 'Entradas',
+    agendaGroup: 'Agenda',
+    dueDay: 'Lembrar no dia previsto',
+    dueDaySub: 'Aviso na manhã da entrada',
+    dueTime: 'Horário do aviso',
+    undated: 'Trabalhos sem data de entrada',
+    undatedSub: 'Lembrete semanal para completar · segunda, 9h',
+    upcomingWork: 'Lembrete de próximo trabalho',
+    upcomingWorkSub: 'Antes do início do trabalho',
+    lead: 'Antecedência',
+    leads: {
+      min30: '30 min',
+      min60: '1 hora',
+      min120: '2 horas',
+      min1440: '1 dia',
+    },
+    leadNote:
+      'Trabalho sem horário é lembrado às 8h do dia (ou às 20h da véspera, com 1 dia de antecedência).',
+    localNote:
+      'Os avisos são agendados neste aparelho quando você abre a DOKH. Quem fica muitas semanas sem abrir deixa de receber os mais distantes.',
+    saveError: 'Não foi possível salvar. Tente de novo.',
+    system: {
+      deniedTitle: 'Notificações desligadas no iPhone',
+      deniedText: 'Suas escolhas abaixo ficam guardadas, mas o aparelho não deixa a DOKH avisar.',
+      openSettings: 'Abrir Ajustes',
+      undeterminedTitle: 'Permita os avisos da DOKH',
+      undeterminedText: 'O iPhone pede sua permissão uma vez.',
+      allow: 'Permitir notificações',
+    },
+  },
+  prompt: {
+    eyebrow: 'LEMBRETES',
+    title: 'A DOKH avisa na hora certa',
+    text: 'No dia em que um valor deve entrar, para você confirmar se recebeu, e 2 horas antes de cada trabalho.',
+    allow: 'Ativar lembretes',
+    later: 'Agora não',
+    note: 'Você muda isso quando quiser em Perfil › Notificações.',
+  },
+  reminder: {
+    residency: 'Residência',
+    receivableTitleOne: 'Hoje entra {{amount}}',
+    receivableTitleMany: 'Hoje entram {{amount}}',
+    receivableBody: 'De {{origins}}. Você recebeu? Toque para confirmar.',
+    and: ' e ',
+    andMore: '{{first}} e mais {{count}}',
+    workIn: '{{type}} em {{lead}}',
+    workTomorrow: '{{type}} amanhã',
+    workToday: '{{type}} hoje',
+    leadText: {
+      min30: '30 minutos',
+      min60: '1 hora',
+      min120: '2 horas',
+    },
+    workBodyAt: '{{place}}, às {{time}}.',
+    workBody: '{{place}}.',
+    undatedTitle: 'Trabalhos sem data de entrada',
+    undatedBodyOne: '1 trabalho ainda sem previsão de pagamento. Defina quando o dinheiro entra.',
+    undatedBodyMany:
+      '{{count}} trabalhos ainda sem previsão de pagamento. Defina quando o dinheiro entra.',
+  },
+};

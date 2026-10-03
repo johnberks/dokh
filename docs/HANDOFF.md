@@ -3,7 +3,29 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-03 · Claude Code · **#62 (3.1), #66 (Agenda) e #67 (vibração) integrados na `main`.** Com `expo-haptics` na `main`, foi disparado um novo build de desenvolvimento iOS.
+Última atualização: 2026-10-03 · Claude Code · **Grupo de testes com amigos: Google (4.4) e lembretes (12.1/12.3/12.4)**, em três PRs empilhados:
+- #68 `codex/build-plan-sync` (build-plan reconciliado);
+- #69 `codex/4.4-google-sign-in`;
+- PR dos lembretes `codex/12-notifications`.
+
+Mesclar nessa ordem, retargetando cada um para a `main`.
+
+- **Google:** login nativo por ID token, como o da Apple ([`google-auth.md`](google-auth.md)). Funciona contra o Supabase local pela LAN. **Do lado do usuário:** clients OAuth Web e iOS no Google Cloud, provedor no Supabase (preview e produção, com "Skip nonce checks"), `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` e `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` no EAS (os três ambientes) e no `.env.local`. Depois, os IDs vão para o `supabase/config.toml` (local).
+- **Lembretes:** avisos locais ligados por padrão (D80, [`notifications.md`](notifications.md)):
+  - entrada no dia previsto às 8h;
+  - trabalho 2 h antes;
+  - semanal de trabalhos sem data;
+  - Perfil › Notificações para desligar e personalizar (horário e antecedência);
+  - convite único antes da permissão do iPhone.
+- **Banco:** migration `20261003000000_notification_reminders` aplicada **só no local**. Preview e produção precisam dela e das duas da 7.7 antes de qualquer build remoto.
+- **Build:** `expo-notifications` e a biblioteca do Google são nativos e exigem **novo build**. As duas carregam só com o nativo presente, então o build atual segue funcionando, só sem lembretes e sem Google.
+- **Pendências para o TestFlight do grupo:**
+  - configuração do Google;
+  - migrations remotas;
+  - novo build de desenvolvimento para validar e, depois, o de produção;
+  - conta de demonstração da Apple (2.1a).
+
+Anterior (2026-10-03) · Claude Code · **#62 (3.1), #66 (Agenda) e #67 (vibração) integrados na `main`.** Com `expo-haptics` na `main`, foi disparado um novo build de desenvolvimento iOS.
 
 - **Pendências:**
   - instalar o build novo no iPhone e validar a Agenda (`+` no dia, Marcar como recebido, deslizar) e a vibração;
