@@ -1,25 +1,35 @@
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { FadeOut, LinearTransition } from 'react-native-reanimated';
 import { AppText } from '@/components/AppText';
 import { CalendarCard } from '@/components/CalendarCard';
 import { EmptyState } from '@/components/EmptyState';
-import { PlusIcon } from '@/components/icons/heroicons';
+import { CheckIcon, PlusIcon, TrashIcon } from '@/components/icons/heroicons';
 import { TOP_GREEN_HEIGHT, TwoToneScrollScreen } from '@/components/Layout';
 import { PeriodSwitcher } from '@/components/PeriodSwitcher';
 import { Reveal, step } from '@/components/Reveal';
+import { type SwipeAction, SwipeableRow } from '@/components/SwipeableRow';
 import { LoadError, Skeleton } from '@/components/TechnicalStates';
 import { WorkCard } from '@/components/WorkCard';
 import { type LocalDate, type LocalMonth, monthOf, shiftMonth } from '@/domain/calendar';
 import { formatCentsToBRL } from '@/domain/money';
 import { useTourTarget } from '@/features/guide/useTourTarget';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
+import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate, todayInTimezone } from '@/features/work/work-schedule';
 import { colors, palette } from '@/theme/tokens';
 import { AgendaHeroBackdrop } from './AgendaHeroBackdrop';
-import { dotsByDay, useAgendaMonth, worksByDay } from './agenda-data';
+import {
+  type AgendaWork,
+  canMarkReceived,
+  dotsByDay,
+  useAgendaMonth,
+  worksByDay,
+} from './agenda-data';
+import { openNewWorkOnAgendaDay, useAgendaDay } from './agenda-day';
 import {
   dayCountLabel,
   dayLabel,
@@ -27,6 +37,7 @@ import {
   workPayment,
   workTimeLabel,
 } from './agenda-format';
+import { DeleteWorkSheet } from './DeleteWorkSheet';
 
 /** Janela em que a lista do dia ainda faz parte da cascata de entrada da aba. */
 const ENTRY_WINDOW = 900;
@@ -41,6 +52,8 @@ function monthName(month: LocalMonth): string {
 /**
  * Agenda 01–05: mês com pontos por Local, hoje em bronze, dia selecionado em verde e a lista
  * do dia em ordem de horário. A Agenda não soma valores — consolidação é de Finanças.
+ * O `+` abre o novo Trabalho no dia selecionado; deslizar um card revela `Recebido` (enquanto
+ * o valor não entrou) e `Excluir` (pedido do usuário, 2026-10-03).
  */
 export function AgendaScreen() {
   const { t } = useTranslation('agenda');
@@ -54,14 +67,30 @@ export function AgendaScreen() {
   const [enterKey, setEnterKey] = useState(0);
   const enteredAt = useRef(0);
 
+  // Card deslizado (só um por vez) e o Trabalho na folha de exclusão.
+  const [openRow, setOpenRow] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AgendaWork | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [removedId, setRemovedId] = useState<string | null>(null);
+  const confirm = useConfirmReceivable();
+  const [receiving, setReceiving] = useState<string | null>(null);
+  const [receiveFailed, setReceiveFailed] = useState<string | null>(null);
+
   // Depois de salvar um Trabalho novo, a Agenda abre no dia dele (`?date=`).
   const { date: savedDate } = useLocalSearchParams<{ date?: string }>();
+
+  // O `+` central lê daqui o dia escolhido.
+  useEffect(() => {
+    useAgendaDay.setState({ date: selected });
+  }, [selected]);
 
   // A Agenda sempre abre no mês atual (pedido do usuário, 2026-09-25).
   useFocusEffect(
     useCallback(() => {
+      setOpenRow(null);
       if (savedDate && /^\d{4}-\d{2}-\d{2}$/.test(savedDate)) {
         openedChild.current = false;
+        useAgendaDay.setState({ keepOnReturn: false });
         enteredAt.current = Date.now();
         setEnterKey((key) => key + 1);
         setToday(todayInTimezone(deviceTimezone()));
@@ -70,8 +99,9 @@ export function AgendaScreen() {
         router.setParams({ date: undefined });
         return;
       }
-      if (openedChild.current) {
+      if (openedChild.current || useAgendaDay.getState().keepOnReturn) {
         openedChild.current = false;
+        useAgendaDay.setState({ keepOnReturn: false });
         return;
       }
       enteredAt.current = Date.now();
@@ -93,21 +123,66 @@ export function AgendaScreen() {
   const listStart = Date.now() - enteredAt.current < ENTRY_WINDOW ? 5 : 0;
 
   function goToMonth(next: LocalMonth) {
+    setOpenRow(null);
     setMonth(next);
     // No mês atual a seleção volta para hoje; nos outros, para o dia 1.
     setSelected(next === monthOf(today) ? today : `${next}-01`);
   }
 
   function selectDate(date: LocalDate) {
+    setOpenRow(null);
     // Dia vizinho (fora do mês) leva ao mês dele.
     if (monthOf(date) !== month) setMonth(monthOf(date));
     setSelected(date);
   }
 
+  // O novo Trabalho já vem no dia selecionado, para seguir registrando nele.
   const addWork = () => {
-    openedChild.current = true;
-    router.push('/work/new');
+    setOpenRow(null);
+    openNewWorkOnAgendaDay();
   };
+
+  function markReceived(work: AgendaWork) {
+    if (work.receivableId === null || confirm.isPending) return;
+    setReceiveFailed(null);
+    setReceiving(work.id);
+    confirm.mutate(work.receivableId, {
+      // Só o servidor confirma: o card fecha e a leitura nova chega como "Recebido".
+      onSuccess: () => setOpenRow(null),
+      onError: () => setReceiveFailed(work.id),
+      onSettled: () => setReceiving(null),
+    });
+  }
+
+  function askDelete(work: AgendaWork) {
+    setOpenRow(null);
+    setDeleteTarget(work);
+    setDeleteOpen(true);
+  }
+
+  function rowActions(work: AgendaWork): SwipeAction[] {
+    const actions: SwipeAction[] = [];
+    if (canMarkReceived(work)) {
+      actions.push({
+        key: 'received',
+        label: t('card.actions.received'),
+        accessibilityLabel: t('card.actions.markReceived'),
+        icon: (color) => <CheckIcon color={color} size={20} />,
+        tone: 'positive',
+        busy: receiving === work.id,
+        onPress: () => markReceived(work),
+      });
+    }
+    actions.push({
+      key: 'delete',
+      label: t('card.actions.delete'),
+      accessibilityLabel: t('card.actions.deleteWork'),
+      icon: (color) => <TrashIcon color={color} size={20} />,
+      tone: 'negative',
+      onPress: () => askDelete(work),
+    });
+    return actions;
+  }
 
   const hero = (
     <View style={styles.hero}>
@@ -196,30 +271,84 @@ export function AgendaScreen() {
       ) : (
         <View key={`list-${enterKey}`} style={styles.list}>
           {/* Cards do dia em cascata: na entrada da aba e ao trocar de dia. */}
-          {dayWorks.map((work, index) => (
-            <Reveal key={`${selected}-${work.id}`} delay={step(listStart + index)} rise={20}>
-              <WorkCard
-                variant="agenda"
-                place={work.locationName}
-                locationColor={work.colorToken}
-                time={workTimeLabel(work)}
-                kind={workKindLabel(work, t)}
-                value={
-                  work.amountCents === null
-                    ? '—'
-                    : formatCentsToBRL(work.amountCents, { omitZeroCents: true })
-                }
-                payment={workPayment(work, t)}
-                onPress={() => {
-                  openedChild.current = true;
-                  router.push({ pathname: '/work/[id]', params: { id: work.id } });
-                }}
-                accessibilityHint={t('card.hint')}
-                testID={`agenda-work-${work.id}`}
-              />
-            </Reveal>
-          ))}
+          {dayWorks.map((work, index) => {
+            const actions = rowActions(work);
+            return (
+              <Reveal
+                key={`${selected}-${work.id}`}
+                delay={step(listStart + index)}
+                rise={20}
+                // O card excluído sai com fade e os de baixo sobem para o lugar dele.
+                layout={LinearTransition}
+                exiting={work.id === removedId ? FadeOut : undefined}
+              >
+                <SwipeableRow
+                  actions={actions}
+                  open={openRow === work.id}
+                  onOpenChange={(open) => {
+                    if (open) setReceiveFailed(null);
+                    setOpenRow(open ? work.id : null);
+                  }}
+                  testID={`agenda-row-${work.id}`}
+                >
+                  <WorkCard
+                    variant="agenda"
+                    place={work.locationName}
+                    locationColor={work.colorToken}
+                    time={workTimeLabel(work)}
+                    kind={workKindLabel(work, t)}
+                    value={
+                      work.amountCents === null
+                        ? '—'
+                        : formatCentsToBRL(work.amountCents, { omitZeroCents: true })
+                    }
+                    payment={workPayment(work, t)}
+                    onPress={() => {
+                      // Com um card aberto, o toque só fecha (como no iOS).
+                      if (openRow !== null) {
+                        setOpenRow(null);
+                        return;
+                      }
+                      openedChild.current = true;
+                      router.push({ pathname: '/work/[id]', params: { id: work.id } });
+                    }}
+                    accessibilityHint={t('card.hint')}
+                    accessibilityActions={actions.map((action) => ({
+                      name: action.key,
+                      label: action.accessibilityLabel ?? action.label,
+                    }))}
+                    onAccessibilityAction={(event) =>
+                      actions
+                        .find((action) => action.key === event.nativeEvent.actionName)
+                        ?.onPress()
+                    }
+                    testID={`agenda-work-${work.id}`}
+                  />
+                </SwipeableRow>
+                {receiveFailed === work.id && (
+                  <AppText
+                    accessibilityLiveRegion="polite"
+                    style={styles.rowError}
+                    testID={`agenda-receive-error-${work.id}`}
+                  >
+                    {t('card.actions.receiveFailed')}
+                  </AppText>
+                )}
+              </Reveal>
+            );
+          })}
         </View>
+      )}
+      {deleteTarget && (
+        <DeleteWorkSheet
+          work={deleteTarget}
+          open={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+          onDeleted={() => {
+            setRemovedId(deleteTarget.id);
+            setDeleteOpen(false);
+          }}
+        />
       )}
     </TwoToneScrollScreen>
   );
@@ -267,5 +396,12 @@ const styles = StyleSheet.create({
   },
   dayCount: { fontSize: 13, lineHeight: 17, color: palette.mutedCopy },
   list: { gap: 12 },
+  rowError: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: palette.negative,
+    paddingTop: 8,
+    paddingHorizontal: 4,
+  },
   pressed: { opacity: 0.72 },
 });

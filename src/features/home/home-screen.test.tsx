@@ -79,6 +79,7 @@ const work = (patch: Partial<AgendaWork> = {}): AgendaWork => ({
   amountCents: 120000n,
   expectedOn: plus(16),
   receiptStatus: 'scheduled',
+  receivableId: 'r1',
   seriesId: null,
   seriesFrequency: null,
   seriesActive: false,

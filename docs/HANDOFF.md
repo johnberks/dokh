@@ -3,7 +3,20 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-02 · Claude Code · **Onboarding v2 (7.7) completo na `main`**: Entregas 1 e 2 (#63, #64) e Entregas 3 e 4 (#65). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9–12.
+Última atualização: 2026-10-03 · Claude Code · **Agenda: registrar no dia escolhido e ações rápidas**, no branch `codex/agenda-day-actions`. Detalhes em [`agenda.md`](agenda.md), seção "Registrar no dia escolhido e ações rápidas".
+
+- **`+` no dia escolhido:** o `+` do topo, o do dia livre e o `+` central (com a Agenda na tela) abrem o novo Trabalho com a data do dia selecionado. Template não pergunta a data.
+- **Detalhe:** `Marcar como recebido` acima de `Editar trabalho` enquanto o valor não entrou. Editar passa para contorno.
+- **Deslizar o card:** revela `Recebido` (se ainda não recebido) e `Excluir` (`SwipeableRow`, `DeleteWorkSheet`). Referências Mobbin: pillowtalk, Chick-fil-A, Notion Mail, Cleo, Revolut Business.
+- **Banco:** nenhuma migration. `agenda_work_projection` já expunha `receivable_id`.
+- **Ícone novo:** `TrashIcon`, pelo gerador de Heroicons.
+- **Pendências anteriores continuam:**
+  - migrations 7.7 em preview e produção;
+  - validação da 7.7 no iPhone;
+  - conta de demonstração do TestFlight;
+  - #62.
+
+Anterior (2026-10-02) · Claude Code · **Onboarding v2 (7.7) completo na `main`**: Entregas 1 e 2 (#63, #64) e Entregas 3 e 4 (#65). Detalhes em [`onboarding-v2.md`](onboarding-v2.md) §9–12.
 
 - **Fluxo:**
   - abertura guiada pelo dedo, nome com moldura, foco, situação (Generalista/Residência/Especialista, busca com título e campo fixos);

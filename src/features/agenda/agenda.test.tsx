@@ -1,6 +1,9 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { router } from 'expo-router';
+import type { PanGesture } from 'react-native-gesture-handler';
+import { State } from 'react-native-gesture-handler';
+import { fireGestureHandler, getByGestureTestId } from 'react-native-gesture-handler/jest-utils';
 import { formatDayMonth, monthOf, shiftMonth, weekdayShort } from '@/domain/calendar';
 import { deviceTimezone } from '@/features/onboarding/profile-data';
 import { todayInTimezone } from '@/features/work/work-schedule';
@@ -9,6 +12,7 @@ import { renderWithProviders } from '@/test/render';
 import { AgendaScreen } from './AgendaScreen';
 import type { AgendaWork } from './agenda-data';
 import { dotsByDay, worksByDay } from './agenda-data';
+import { useAgendaDay } from './agenda-day';
 import {
   dayCountLabel,
   dayLabel,
@@ -38,6 +42,11 @@ const mockDelete = jest.fn(async (_workId: string, _key: string) => ({
   workId: 'w1',
   receivableId: 'r1',
 }));
+let mockConfirmFails = false;
+const mockConfirm = jest.fn(async (receivableId: string) => {
+  if (mockConfirmFails) throw new Error('offline');
+  return { receivableId, receivedAt: '2026-10-03T12:00:00Z' };
+});
 jest.mock('@/features/work/work-data', () => {
   const { useMutation } = jest.requireActual('@tanstack/react-query');
   return {
@@ -53,6 +62,8 @@ jest.mock('@/features/work/work-data', () => {
           idempotencyKey: string;
         }) => mockDelete(workEntryId, idempotencyKey),
       }),
+    useConfirmReceivable: () =>
+      useMutation({ mutationFn: (receivableId: string) => mockConfirm(receivableId) }),
     newIdempotencyKey: () => 'delete-key',
   };
 });
@@ -97,6 +108,7 @@ const work = (patch: Partial<AgendaWork>): AgendaWork => ({
   amountCents: 120000n,
   expectedOn: '2026-10-12',
   receiptStatus: 'scheduled',
+  receivableId: 'r1',
   seriesId: null,
   seriesFrequency: null,
   seriesActive: false,
@@ -106,6 +118,8 @@ const work = (patch: Partial<AgendaWork>): AgendaWork => ({
 beforeEach(() => {
   jest.clearAllMocks();
   mockMonth = { isPending: false, isError: false, isSuccess: true, data: [] };
+  mockConfirmFails = false;
+  useAgendaDay.setState({ date: null, keepOnReturn: false });
 });
 
 describe('regras de apresentação da Agenda', () => {
@@ -199,7 +213,7 @@ describe('Agenda (01–05)', () => {
     expect(router.push).toHaveBeenCalledWith({ pathname: '/work/[id]', params: { id: 'w1' } });
   });
 
-  it('dia livre oferece adicionar trabalho, e o + do topo abre o mesmo fluxo', async () => {
+  it('dia livre oferece adicionar trabalho, e o + do topo abre o mesmo fluxo no dia', async () => {
     await renderWithProviders(<AgendaScreen />);
     expect(screen.getByText('Dia livre')).toBeTruthy();
     await act(async () => {
@@ -208,8 +222,39 @@ describe('Agenda (01–05)', () => {
     await act(async () => {
       await fireEvent.press(screen.getByTestId('agenda-add'));
     });
-    expect(router.push).toHaveBeenNthCalledWith(1, '/work/new');
-    expect(router.push).toHaveBeenNthCalledWith(2, '/work/new');
+    const onToday = { pathname: '/work/new', params: { date: today } };
+    expect(router.push).toHaveBeenNthCalledWith(1, onToday);
+    expect(router.push).toHaveBeenNthCalledWith(2, onToday);
+  });
+
+  it('o + abre o novo trabalho no dia escolhido, passado ou futuro', async () => {
+    await renderWithProviders(<AgendaScreen />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-month-next'));
+    });
+    const first = `${shiftMonth(month, 1)}-01`;
+    // O `+` central lê o mesmo dia enquanto a Agenda está na tela.
+    expect(useAgendaDay.getState().date).toBe(first);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-add'));
+    });
+    expect(router.push).toHaveBeenLastCalledWith({
+      pathname: '/work/new',
+      params: { date: first },
+    });
+    // Voltar do `+` sem salvar mantém o dia que a Agenda mostrava.
+    expect(useAgendaDay.getState().keepOnReturn).toBe(true);
+
+    for (let back = 0; back < 2; back++) {
+      await act(async () => {
+        await fireEvent.press(screen.getByTestId('agenda-month-previous'));
+      });
+    }
+    const past = `${shiftMonth(month, -1)}-01`;
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-add'));
+    });
+    expect(router.push).toHaveBeenLastCalledWith({ pathname: '/work/new', params: { date: past } });
   });
 
   it('outro mês seleciona o dia 1; voltar ao mês atual seleciona hoje', async () => {
@@ -262,6 +307,138 @@ describe('Agenda (01–05)', () => {
     expect(screen.getByTestId('agenda-error')).toBeTruthy();
     expect(screen.queryByText('Dia livre')).toBeNull();
     expect(screen.queryByTestId('agenda-free-day')).toBeNull();
+  });
+});
+
+describe('deslizar o card do dia (Agenda)', () => {
+  function swipe(workId: string, translationX: number, velocityX = 0) {
+    fireGestureHandler<PanGesture>(getByGestureTestId(`agenda-row-${workId}-swipe`), [
+      { state: State.BEGAN, translationX: 0 },
+      { state: State.ACTIVE, translationX: translationX / 2 },
+      { state: State.ACTIVE, translationX },
+      { state: State.END, translationX, velocityX },
+    ]);
+  }
+
+  async function swipeOpen(workId = 'w1') {
+    await act(async () => {
+      swipe(workId, -180);
+    });
+  }
+
+  function actionsHidden(workId = 'w1') {
+    return screen.getByTestId(`agenda-row-${workId}-actions`, { includeHiddenElements: true }).props
+      .accessibilityElementsHidden;
+  }
+
+  it('arrasto curto volta; arrasto longo revela Recebido e Excluir', async () => {
+    mockMonth = { isPending: false, isError: false, isSuccess: true, data: [work({})] };
+    await renderWithProviders(<AgendaScreen />);
+    await act(async () => {
+      swipe('w1', -40);
+    });
+    expect(screen.queryByRole('button', { name: 'Marcar como recebido' })).toBeNull();
+
+    await swipeOpen();
+    expect(screen.getByRole('button', { name: 'Marcar como recebido' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Excluir trabalho' })).toBeTruthy();
+    expect(screen.getByText('Recebido')).toBeTruthy();
+    expect(screen.getByText('Excluir')).toBeTruthy();
+  });
+
+  it('Recebido confirma no servidor e fecha o card', async () => {
+    mockMonth = { isPending: false, isError: false, isSuccess: true, data: [work({})] };
+    await renderWithProviders(<AgendaScreen />);
+    await swipeOpen();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-row-w1-action-received'));
+    });
+    expect(mockConfirm).toHaveBeenCalledWith('r1');
+    expect(screen.queryByRole('button', { name: 'Marcar como recebido' })).toBeNull();
+  });
+
+  it('falha ao marcar mantém o card aberto e avisa', async () => {
+    mockConfirmFails = true;
+    mockMonth = { isPending: false, isError: false, isSuccess: true, data: [work({})] };
+    await renderWithProviders(<AgendaScreen />);
+    await swipeOpen();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-row-w1-action-received'));
+    });
+    expect(screen.getByTestId('agenda-receive-error-w1')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Marcar como recebido' })).toBeTruthy();
+  });
+
+  it('trabalho já recebido só oferece Excluir', async () => {
+    mockMonth = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      data: [work({ receiptStatus: 'received' })],
+    };
+    await renderWithProviders(<AgendaScreen />);
+    await swipeOpen();
+    expect(screen.queryByTestId('agenda-row-w1-action-received')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Excluir trabalho' })).toBeTruthy();
+  });
+
+  it('Excluir abre a confirmação de sempre e só então apaga', async () => {
+    mockMonth = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      data: [work({ locationName: 'Ubs Xpto' })],
+    };
+    await renderWithProviders(<AgendaScreen />);
+    await swipeOpen();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-row-w1-action-delete'));
+    });
+    expect(screen.getByText('Excluir este trabalho?')).toBeTruthy();
+    expect(mockDelete).not.toHaveBeenCalled();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-delete-confirm'));
+    });
+    expect(mockDelete).toHaveBeenCalledWith('w1', 'delete-key');
+  });
+
+  it('com um card aberto, tocar fecha em vez de abrir o detalhe; só um aberto por vez', async () => {
+    mockMonth = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      data: [work({}), work({ id: 'w2', startTime: '07:00', receivableId: 'r2' })],
+    };
+    await renderWithProviders(<AgendaScreen />);
+    await swipeOpen('w1');
+    expect(actionsHidden('w1')).toBe(false);
+    await swipeOpen('w2');
+    expect(actionsHidden('w1')).toBe(true);
+    expect(actionsHidden('w2')).toBe(false);
+
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-work-w1'));
+    });
+    expect(router.push).not.toHaveBeenCalled();
+    expect(actionsHidden('w2')).toBe(true);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('agenda-work-w1'));
+    });
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/work/[id]', params: { id: 'w1' } });
+  });
+
+  it('leitor de tela tem as mesmas ações no card', async () => {
+    mockMonth = { isPending: false, isError: false, isSuccess: true, data: [work({})] };
+    await renderWithProviders(<AgendaScreen />);
+    const card = screen.getByTestId('agenda-work-w1');
+    expect(card.props.accessibilityActions).toEqual([
+      { name: 'received', label: 'Marcar como recebido' },
+      { name: 'delete', label: 'Excluir trabalho' },
+    ]);
+    await act(async () => {
+      await fireEvent(card, 'accessibilityAction', { nativeEvent: { actionName: 'received' } });
+    });
+    expect(mockConfirm).toHaveBeenCalledWith('r1');
   });
 });
 
@@ -333,6 +510,51 @@ describe('detalhes do trabalho (Agenda 15, leitura)', () => {
     });
     expect(mockDelete).toHaveBeenCalledWith('w1', 'delete-key');
     expect(router.back).toHaveBeenCalled();
+  });
+
+  it('Marcar como recebido fica acima de Editar, confirma no servidor e mostra o check', async () => {
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: work({}) };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.getByTestId('work-detail-receive')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Marcar como recebido' })).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-receive'));
+    });
+    expect(mockConfirm).toHaveBeenCalledWith('r1');
+    expect(screen.getByRole('button', { name: 'Recebido' })).toBeTruthy();
+  });
+
+  it('recebido (ou sem Recebível) não oferece marcar', async () => {
+    mockDetail = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      data: work({ receiptStatus: 'received' }),
+    };
+    const view = await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.queryByTestId('work-detail-receive')).toBeNull();
+    expect(screen.getByTestId('work-detail-edit')).toBeTruthy();
+    await view.unmount();
+
+    mockDetail = {
+      isPending: false,
+      isError: false,
+      isSuccess: true,
+      data: work({ receivableId: null, receiptStatus: null }),
+    };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    expect(screen.queryByTestId('work-detail-receive')).toBeNull();
+  });
+
+  it('falha ao marcar mostra erro com nova tentativa', async () => {
+    mockConfirmFails = true;
+    mockDetail = { isPending: false, isError: false, isSuccess: true, data: work({}) };
+    await renderWithProviders(<WorkDetailScreen workId="w1" />);
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('work-detail-receive'));
+    });
+    expect(screen.getByTestId('mutation-error-retry')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Marcar como recebido' })).toBeTruthy();
   });
 
   it('Editar trabalho abre o formulário de edição', async () => {

@@ -22,7 +22,17 @@ export const agenda = {
     pending: 'Previsto {{date}} · a confirmar',
     undated: 'Sem previsão',
   },
-  card: { hint: 'Abre os detalhes do trabalho.' },
+  card: {
+    hint: 'Abre os detalhes do trabalho.',
+    /** Ações ao deslizar o card (pedido do usuário, 2026-10-03). */
+    actions: {
+      received: 'Recebido',
+      markReceived: 'Marcar como recebido',
+      delete: 'Excluir',
+      deleteWork: 'Excluir trabalho',
+      receiveFailed: 'Não foi possível marcar como recebido. Tente de novo.',
+    },
+  },
   /** Agenda 15 (leitura). */
   detail: {
     eyebrow: 'DETALHES DO TRABALHO',
@@ -32,6 +42,9 @@ export const agenda = {
     endNextDay: '+1 dia · {{date}}',
     duration: 'DURAÇÃO',
     edit: 'Editar trabalho',
+    markReceived: 'Marcar como recebido',
+    markingReceived: 'Confirmando…',
+    markedReceived: 'Recebido',
     delete: 'Excluir',
     confirmTitle: 'Excluir este trabalho?',
     confirmText:

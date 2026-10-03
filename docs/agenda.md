@@ -15,7 +15,7 @@ Agenda 01–05 e 15 de `design/agenda.html`; regras de `docs/screens/agenda.md`.
 - Cards `WorkCard` (variante `agenda`) em ordem de horário: horário (Plantão mostra o início; Procedimento/Atendimento com duração mostram o intervalo; sem horário, nada), tipo com duração ou descrição, local, valor e estado do Recebível.
 - Estados do Recebível: `Recebe 12 OUT`, `Recebe hoje`, `Previsto 12 OUT · a confirmar` (passado sem confirmação é pendência, nunca recebido automático), `Recebido` e `Sem previsão`.
 - **A Agenda não soma valores** — consolidação é de Finanças.
-- Dia sem Trabalho: `EmptyState agendaDay` com `Adicionar trabalho`, o mesmo fluxo do `+`. Falha de leitura mostra `LoadError` com nova tentativa, nunca "dia livre".
+- Dia sem Trabalho: `EmptyState agendaDay` com `Adicionar trabalho`, o mesmo fluxo do `+` (já no dia escolhido). Falha de leitura mostra `LoadError` com nova tentativa, nunca "dia livre".
 - Tocar num card abre o detalhe.
 
 ## Detalhe e exclusão (parte da 6.7/8.4) — `WorkDetailScreen.tsx`, rota `/work/[id]`
@@ -33,6 +33,32 @@ Agenda 01–05 e 15 de `design/agenda.html`; regras de `docs/screens/agenda.md`.
 - O teste real confirma a edição pela mesma RPC e que outra conta não edita.
 
 **Ainda não entra**: o menu `···`. A edição é sempre de uma ocorrência; `Repetir` não aparece nela (a série se gerencia no detalhe).
+
+## Registrar no dia escolhido e ações rápidas (pedido do usuário, 2026-10-03)
+
+- **`+` no dia escolhido.** Na Agenda, o `+` do topo, o `Adicionar trabalho` do dia livre e o `+` central da barra abrem o novo Trabalho já com a data do dia selecionado (passado ou futuro). A Agenda guarda o dia em `useAgendaDay` (`src/features/agenda/agenda-day.ts`); a rota `/work/new?date=YYYY-MM-DD` passa `initialDate` ao `NewWorkFlow`.
+  - Trabalho novo: a data entra no rascunho e o prazo padrão das preferências vira previsão calculada dela.
+  - "Usar novamente": o template já vem no dia e **não pergunta a data**; o prazo D30/60/90 dele é reaplicado.
+  - A data continua editável e o prazo acompanha (`workDatePatch`, a mesma regra da folha de data).
+  - Fechar sem salvar volta para a Agenda no mesmo dia; salvar abre no dia do Trabalho salvo.
+  - Fora da Agenda, o `+` central segue sem data.
+- **Detalhe: `Marcar como recebido`** acima de `Editar trabalho`, enquanto o Recebível não entrou: `A receber`, `Entra hoje`, `A confirmar` ou `Sem previsão`, inclusive antes da data (pagamento adiantado). Não aparece em Recebido, em Recebível invalidado ou em Trabalho sem Recebível (`canMarkReceived`).
+  - Hierarquia (referências Mobbin: Cleo, Revolut Business): marcar é a ação principal, escura; `Editar` passa para contorno enquanto marcar existir.
+  - Confirma pela RPC `confirm_receivable_received` (relógio do servidor, sem otimismo). O botão mostra `Confirmando…` e depois o check verde `Recebido`, e só então sai. Em erro, `MutationError` com nova tentativa.
+  - Não há como desfazer: o servidor não deixa limpar `received_at` (3.8).
+- **Deslizar o card do dia** para a esquerda revela blocos arredondados, separados do card, com ícone e rótulo (referências Mobbin: pillowtalk, Chick-fil-A, Notion Mail). O componente é `SwipeableRow`, em `src/components/SwipeableRow.tsx`.
+  - Blocos:
+    - `Recebido` (verde DOKH), só quando ainda dá para marcar;
+    - `Excluir` (terracota).
+  - Arraste:
+    - soltar além da metade (ou com impulso) abre;
+    - arrasto curto volta;
+    - o card resiste como elástico além das ações.
+  - Fica só um card aberto por vez. Trocar de dia ou de mês fecha. Com um card aberto, tocar num card só fecha, como no iOS.
+  - `Recebido` confirma na hora pela mesma RPC. Em erro, o card fica aberto e uma linha avisa.
+  - `Excluir` abre a mesma confirmação do detalhe, com "só este dia / este e os próximos" para recorrentes. Ela agora é o componente `DeleteWorkSheet`. Ao excluir, o card sai com fade e os de baixo sobem (`LinearTransition`).
+  - Leitor de tela: as mesmas ações ficam no card como `accessibilityActions`. Os blocos ficam ocultos enquanto o card está fechado.
+  - Os rótulos seguem o vocabulário do app: `Recebido` (status de Recebível) e `Excluir` (como no detalhe).
 
 ## Dia livre
 

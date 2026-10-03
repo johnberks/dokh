@@ -494,3 +494,55 @@ describe('Preferências de trabalho no + (11.5)', () => {
     });
   });
 });
+
+describe('+ aberto de um dia da Agenda', () => {
+  it('Trabalho novo já vem na data escolhida, com o prazo padrão calculado dela', async () => {
+    mockPreferences = { durationMinutes: 720, startTime: '19:00', paymentTermDays: 30 };
+    await renderWithProviders(<NewWorkFlow onClose={jest.fn()} initialDate={workDate} />);
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Plantão' }));
+    });
+    expect(useNewWorkDraft.getState()).toMatchObject({ workDate, plannedTermDays: null });
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(workDate, 30),
+    });
+    expect(screen.getByTestId('work-date-field')).toHaveTextContent(
+      new RegExp(formatDayMonth(workDate, { year: true })),
+    );
+    // A data continua editável: outro dia recalcula o prazo.
+    const other = `${today.slice(0, 7)}-15`;
+    await press('work-date-field');
+    await press(`work-date-calendar-${other}`);
+    await press('work-date-confirm');
+    expect(useNewWorkDraft.getState().expected).toEqual({
+      kind: 'date',
+      date: addDaysToLocalDate(other, 30),
+    });
+  });
+
+  it('template com o dia escolhido não pergunta a data e reaplica o prazo dele', async () => {
+    mockLocations = [hospital];
+    mockTemplates = [
+      {
+        key: 'k1',
+        type: 'shift',
+        locationId: 'loc-hsl',
+        locationName: 'Hospital São Lucas',
+        colorToken: 'bronze',
+        startTime: '19:00',
+        durationMinutes: 720,
+        amountCents: 120000n,
+        payment: { kind: 'term', days: 60 },
+      },
+    ];
+    await renderWithProviders(<NewWorkFlow onClose={jest.fn()} initialDate={workDate} />);
+    await press('work-template-loc-hsl');
+    expect(screen.queryByTestId('work-date-sheet-panel')).toBeNull();
+    expect(useNewWorkDraft.getState()).toMatchObject({
+      workDate,
+      locationName: 'Hospital São Lucas',
+      expected: { kind: 'date', date: addDaysToLocalDate(workDate, 60) },
+    });
+  });
+});

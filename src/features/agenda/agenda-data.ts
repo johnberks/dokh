@@ -30,6 +30,8 @@ export type AgendaWork = {
   amountCents: bigint | null;
   expectedOn: LocalDate | null;
   receiptStatus: ReceiptStatus | null;
+  /** Recebível do Trabalho: é por ele que a pessoa confirma o recebimento. */
+  receivableId: string | null;
   /** Série da recorrência Premium, quando o Trabalho é uma ocorrência. */
   seriesId: string | null;
   seriesFrequency: SeriesFrequency | null;
@@ -48,6 +50,8 @@ type Row = {
   amount_cents: number | null;
   expected_on: string | null;
   receipt_status: string | null;
+  /** Ausente em leituras antigas que não pedem o Recebível. */
+  receivable_id?: string | null;
   /** Ausentes em leituras que não pedem a série (ex.: Início). */
   series_id?: string | null;
   series_frequency?: string | null;
@@ -55,7 +59,7 @@ type Row = {
 };
 
 const COLUMNS =
-  'work_entry_id, work_date, start_time, duration_minutes, type, description, location_name, color_token, amount_cents, expected_on, receipt_status, series_id, series_frequency, series_active';
+  'work_entry_id, work_date, start_time, duration_minutes, type, description, location_name, color_token, amount_cents, expected_on, receipt_status, receivable_id, series_id, series_frequency, series_active';
 
 export function toAgendaWork(row: Row): AgendaWork | null {
   if (!row.work_entry_id || !row.work_date || !row.type || !row.location_name) return null;
@@ -73,6 +77,7 @@ export function toAgendaWork(row: Row): AgendaWork | null {
     amountCents: row.amount_cents === null ? null : BigInt(row.amount_cents),
     expectedOn: row.expected_on,
     receiptStatus: row.receipt_status as ReceiptStatus | null,
+    receivableId: row.receivable_id ?? null,
     seriesId: row.series_id ?? null,
     seriesFrequency:
       row.series_frequency === 'weekly' ||
@@ -115,6 +120,19 @@ export async function readAgendaWork(
     .maybeSingle();
   if (error) throw error;
   return data ? toAgendaWork(data) : null;
+}
+
+/**
+ * Dá para marcar como recebido? Só um Recebível vivo que ainda não entrou — inclusive antes da
+ * data prevista (pagamento adiantado). A confirmação é sempre um gesto da pessoa (D34).
+ */
+export function canMarkReceived(work: AgendaWork): boolean {
+  return (
+    work.receivableId !== null &&
+    work.receiptStatus !== null &&
+    work.receiptStatus !== 'received' &&
+    work.receiptStatus !== 'invalidated'
+  );
 }
 
 /** Agrupa por dia preservando a ordem da consulta. */
