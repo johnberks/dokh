@@ -24,6 +24,21 @@
 
 ---
 
+## Situação em 2026-10-03
+
+- **Feito e validado no iPhone:** fundação (Fases 1 e 2), Supabase (Fase 3), núcleo de Trabalho (Fase 6), Agenda (8.1–8.6), Finanças (9.1–9.3, 9.5), Home (10.1–10.5) e Perfil (11.1–11.5, 11.10). A Fase 3 está aplicada também no preview e na produção (3.1).
+- **Android:** adiado pelo usuário. Quando a DoD pede iOS e Android, a tarefa é marcada com o iOS validado e a nota "Android adiado". O Android volta antes da submissão à Play Store (14.9).
+- **Sem E2E Maestro ainda:** 7.6, 8.7, 9.7, 10.6 e 11.9.
+- **Extras já na `main` fora da numeração:**
+  - guia de primeiro uso ([`docs/guide-tour.md`](docs/guide-tour.md));
+  - teclado (D78);
+  - ações rápidas da Agenda (#66);
+  - vibração nas confirmações (D79, #67).
+- **Próximo (2026-10-03):** grupo de testes com amigos. Antes de fechar a versão do TestFlight, entram **Entrar com Google (4.4)** e **lembretes (12.1, 12.3, 12.4)**. Depois: migrations da 7.7 nos remotos, conta de demonstração da Apple (2.1a) e build de produção.
+- **Bloqueios de produto:** preços e produtos (D51/P01) para a Fase 5; textos e URLs legais (D74/P04) para 7.2, 11.8 e 14.1; layouts do Plantãozinho (D60) para 11.6.
+
+---
+
 ## Fase 0 — Base documental e repositório
 
 - [x] **0.1 — Normalizar fontes do produto**
@@ -35,27 +50,30 @@
   - **DoD:** todos os caminhos citados no README existem; hashes dos arquivos de origem e destino confirmam cópia íntegra.
   - Evidência: hashes em docs/SOURCES.md (PR #1).
 
-- [ ] **0.2 — Tornar instruções compatíveis com Codex**
+- [x] **0.2 — Tornar instruções compatíveis com Codex**
   - Dependências: 0.1.
   - Criar `AGENTS.md` apontando para `CLAUDE.md` ou com conteúdo idêntico.
   - Definir `CLAUDE.md` como canônico para humanos e manter regra de sincronização explícita.
   - **DoD:** uma sessão Codex iniciada na raiz identifica as instruções; não há regras conflitantes entre os dois arquivos.
+  - Evidência: `AGENTS.md` idêntico ao `CLAUDE.md` (sessões Codex alternadas desde a 7.x).
 
 - [ ] **0.3 — Configurar Git e proteção de branch**
   - Dependências: nenhuma.
   - Inicializar/conectar repositório, `.gitignore`, branch `main` protegida e template de PR com seção de DoD.
   - **DoD:** PR é obrigatório para `main`; checks poderão ser exigidos após 1.8.
+  - Situação: repositório no GitHub, `.gitignore` e template de PR existem; PR é o caminho usado. **Falta:** proteger a `main` (a API do GitHub responde "Branch not protected").
 
 ---
 
 ## Fase 1 — Fundação Expo
 
-- [ ] **1.1 — Criar aplicação Expo TypeScript**
+- [x] **1.1 — Criar aplicação Expo TypeScript**
   - Dependências: 0.3.
   - Bootstrap sem template demonstrativo desnecessário.
   - Usar npm e versionar `package-lock.json`.
   - Habilitar `strict: true`.
   - **DoD:** development build abre uma tela mínima em simulador iOS e emulador Android.
+  - Evidência: app Expo SDK 57 em TypeScript strict, npm com lockfile; development build no iPhone. Android adiado pelo usuário.
 
 - [x] **1.2 — Criar estrutura de pastas e aliases**
   - Dependências: 1.1.
@@ -64,11 +82,12 @@
   - **DoD:** import com alias funciona em app, Jest e TypeScript; não há cálculo de domínio dentro de `app/`.
   - Evidência: alias em TS, Jest e Metro; regras de camada no Biome (PR #1).
 
-- [ ] **1.3 — Configurar Expo Router e shells de rota**
+- [x] **1.3 — Configurar Expo Router e shells de rota**
   - Dependências: 1.1.
   - Criar grupos `(auth)`, `(onboarding)` e `(tabs)`.
   - Criar placeholders para Home, Agenda, Finanças e Perfil e ação central sem rota-tab.
   - **DoD:** navegação, back do Android e deep link de teste funcionam em iOS/Android.
+  - Evidência: grupos `(auth)`, `(onboarding)` e `(tabs)`, ação central sem tab e deep links cobertos em `src/test/routes.test.tsx`; validado no iPhone. Android adiado pelo usuário.
 
 - [x] **1.4 — Configurar ambientes e validação de env**
   - Dependências: 1.1.
@@ -105,11 +124,13 @@
   - GitHub Actions para install com lockfile, typecheck, Biome e Jest.
   - Cache seguro de dependências.
   - **DoD:** PR de teste executa checks; falha intencional bloqueia merge.
+  - Situação: `.github/workflows/ci.yml` roda typecheck · Biome · Jest e migration · RLS · tipos gerados em todo PR. **Falta:** exigir os checks na proteção da `main` (0.3) para que uma falha bloqueie o merge.
 
 - [ ] **1.9 — Configurar EAS**
   - Dependências: 1.1, 1.4.
   - `eas.json`, development/preview/production, runtime version e canais OTA.
   - **DoD:** development build de iOS e Android é gerado; update compatível chega ao canal preview.
+  - Situação: builds iOS de development, preview e production gerados no EAS (o development mais recente, 84afd08c, inclui `expo-haptics`). **Falta:** update OTA comprovado no canal preview. Android adiado pelo usuário.
 
 ---
 
@@ -126,26 +147,31 @@
   - Archivo, IBM Plex Mono, Unbounded e símbolo vetorial aprovado.
   - Splash nativo consistente com design.
   - **DoD:** fontes carregam sem layout quebrado; fallback testado; símbolo renderiza nos tamanhos mínimos.
+  - Situação: Archivo, IBM Plex Mono e Unbounded carregam com fallback; splash nativo configurado. **Falta:** vetor final do símbolo D1.
 
-- [ ] **2.3 — Criar primitives acessíveis**
+- [x] **2.3 — Criar primitives acessíveis**
   - Dependências: 2.1.
   - Text, Button, IconButton, Input, SegmentedControl, Toggle, Chip, Divider, Card, Screen e ScrollScreen.
   - **DoD:** catálogo interno demonstra estados normal/desabilitado/loading/erro e labels de acessibilidade.
+  - Evidência: primitives em `src/components` com catálogo `/dev/primitives` ([`docs/primitives.md`](docs/primitives.md)); usadas em todas as telas validadas no iPhone. Android adiado pelo usuário.
 
-- [ ] **2.4 — Criar navegação visual compartilhada**
+- [x] **2.4 — Criar navegação visual compartilhada**
   - Dependências: 1.3, 2.3.
   - Status bar, safe areas, headers, back button, bottom tabs e botão central.
   - **DoD:** 390×844 e devices com notch/Dynamic Island/Android não cortam conteúdo; alvo mínimo 44×44.
+  - Evidência: `BottomTabs`, `NavigationControl`, `TwoToneScrollScreen` e áreas seguras ([`docs/navigation.md`](docs/navigation.md)); validado no iPhone com Dynamic Island. Android adiado pelo usuário.
 
-- [ ] **2.5 — Criar componentes de domínio visual**
+- [x] **2.5 — Criar componentes de domínio visual**
   - Dependências: 2.3.
   - ReviewCard, WorkCard, ReceivableRow, EmptyState, ProgressCard, MoneyInput, WorkTypeSelector, CalendarGrid, BottomSheet e PremiumGate.
   - **DoD:** variações previstas nos HTMLs são reproduzidas em catálogo e testadas; Review Card respeita limite de previews/atenção.
+  - Evidência: os dez componentes com catálogo e testes (um doc por componente em `docs/`).
 
-- [ ] **2.6 — Criar estados técnicos compartilhados**
+- [x] **2.6 — Criar estados técnicos compartilhados**
   - Dependências: 2.3.
   - Skeleton, LoadError, MutationError e OfflineBanner.
   - **DoD:** erro nunca renderiza EmptyState; retry é acessível; skeleton não mostra valores falsos.
+  - Evidência: Skeleton, LoadError, MutationError e OfflineBanner ([`docs/technical-states.md`](docs/technical-states.md)); erro nunca vira vazio (D65).
 
 - [x] **2.7 — Configurar motion e reduce motion**
   - Dependências: 2.3.
@@ -225,15 +251,17 @@
 
 ## Fase 4 — Autenticação e conta
 
-- [ ] **4.1 — Integrar Supabase client e sessão segura**
+- [x] **4.1 — Integrar Supabase client e sessão segura**
   - Dependências: 1.4, 3.1.
   - SecureStore adapter, refresh e limpeza no logout.
   - **DoD:** sessão sobrevive reinício; token não aparece em AsyncStorage/log; logout limpa e redireciona.
+  - Evidência: SecureStore, renovação em foreground e logout ([`docs/auth-session.md`](docs/auth-session.md)); sessão sobrevive a reinícios no iPhone. Android adiado pelo usuário.
 
 - [ ] **4.2 — Implementar e-mail/senha e recuperação**
   - Dependências: 4.1.
   - Sign up, sign in, deep link de reset e mensagens técnicas compartilhadas.
   - **DoD:** conta de teste completa cadastro, login, logout e reset em iOS/Android.
+  - Situação: cadastro, login, logout e pedido de reset funcionam no iPhone ([`docs/email-auth.md`](docs/email-auth.md)). **Falta:** reset ponta a ponta com e-mail real (precisa de SMTP próprio no remoto) e Android.
 
 - [x] **4.3 — Implementar Apple Sign In**
   - Dependências: 4.1, configuração Apple humana.
@@ -242,17 +270,20 @@
 - [ ] **4.4 — Implementar Google Sign In**
   - Dependências: 4.1, configuração Google humana.
   - **DoD:** login real em iOS/Android retorna a mesma conta esperada e sessão válida.
+  - **Em andamento (2026-10-03):** requisito do grupo de testes com amigos, antes da próxima versão no TestFlight.
 
-- [ ] **4.5 — Implementar guards de sessão/onboarding**
+- [x] **4.5 — Implementar guards de sessão/onboarding**
   - Dependências: 4.1, 3.2.
   - Redirect sem flicker: auth → onboarding incompleto → tabs.
   - **DoD:** matriz de três estados navega corretamente ao abrir app e ao sair/entrar.
+  - Evidência: guards dos três estados ([`docs/auth-guards.md`](docs/auth-guards.md)); entrar, sair e primeiro acesso exercitados no iPhone durante a 4.3, a 4.6 e a 7.7. Android adiado pelo usuário.
 
-- [ ] **4.6 — Implementar exclusão de conta**
+- [x] **4.6 — Implementar exclusão de conta**
   - Dependências: 3.6, 4.1.
   - Edge Function idempotente para dados, Storage e Auth.
   - UI final depende de P05.
   - **DoD técnica:** função testada em ambiente preview remove tudo e revoga sessão; logs não contêm PII.
+  - Evidência: `delete-account` publicada no preview e na produção, teste real local (`scripts/test-account-deletion-4.6.mjs`) e validação do usuário no iPhone (#61). **Pendente fora da DoD:** chave `.p8` da Apple como segredo, para revogar o token do Apple.
 
 ---
 
@@ -292,40 +323,47 @@
 
 ## Fase 6 — Núcleo de Trabalho e Locais
 
-- [ ] **6.1 — Criar camada de dados de Locais**
+- [x] **6.1 — Criar camada de dados de Locais**
   - Dependências: 3.12, 1.6.
   - Queries, mutations, schemas e cache keys.
   - **DoD:** criar/editar/arquivar respeita RLS; histórico preserva local arquivado.
+  - Evidência: [`docs/work-data-layer.md`](docs/work-data-layer.md); RPCs com RLS e arquivamento preservando histórico.
 
-- [ ] **6.2 — Criar camada de dados de Trabalho/Recebível**
+- [x] **6.2 — Criar camada de dados de Trabalho/Recebível**
   - Dependências: 3.7, 3.8, 3.12.
   - Hooks tipados para create/update/delete/detail/confirm.
   - **DoD:** mutations usam RPCs, invalidam Agenda/Home/Finanças e preservam formulário em erro.
+  - Evidência: [`docs/work-data-layer.md`](docs/work-data-layer.md); mutations por RPC invalidam Agenda, Home e Finanças.
 
-- [ ] **6.3 — Implementar seletor de tipo**
+- [x] **6.3 — Implementar seletor de tipo**
   - Dependências: 2.5, UX/design Agenda e Onboarding.
   - Plantão, Procedimento e Atendimento; área inteira clicável.
   - **DoD:** seleção acessível, não depende de cor e retorna tipo tipado.
+  - Evidência: `WorkTypeSelector` ([`docs/work-form.md`](docs/work-form.md)).
 
-- [ ] **6.4 — Implementar formulário compartilhado de Trabalho**
+- [x] **6.4 — Implementar formulário compartilhado de Trabalho**
   - Dependências: 6.1, 6.2, 6.3.
   - Local, data, horário/duração condicionais, valor e previsão.
   - **DoD:** Plantão exige horário/duração; demais aceitam ausência; dinheiro vira centavos; sem previsão gera `expected_on = null`.
+  - Evidência: `WorkForm` ([`docs/work-form.md`](docs/work-form.md)).
 
-- [ ] **6.5 — Implementar sheets de data, duração e pagamento**
+- [x] **6.5 — Implementar sheets de data, duração e pagamento**
   - Dependências: 6.4, 2.5.
   - Calendário com pontos, stepper e cálculo D30/D60/D90.
   - **DoD:** virada de mês/ano, término no dia seguinte e datas ocupadas cobertos por testes.
+  - Evidência: folhas de data, duração e pagamento com testes de virada de mês e término no dia seguinte ([`docs/work-form.md`](docs/work-form.md)).
 
-- [ ] **6.6 — Implementar reutilização de Trabalho conhecido**
+- [x] **6.6 — Implementar reutilização de Trabalho conhecido**
   - Dependências: 6.4.
   - Derivar templates do histórico, sem tabela duplicada.
   - **DoD:** seleção preenche formulário, exige nova data e permite revisão antes de salvar.
+  - Evidência: templates derivados do histórico ("Usar novamente").
 
-- [ ] **6.7 — Implementar detalhe, edição e exclusão técnica**
+- [x] **6.7 — Implementar detalhe, edição e exclusão técnica**
   - Dependências: 6.2, 6.4.
   - Detalhe e edição completos; exclusão visual final depende de P05.
   - **DoD:** editar reflete em Agenda e Finanças; exclusão remove projeções; confirmação não é inventada se P05 seguir aberta.
+  - Evidência: detalhe, edição e exclusão ([`docs/agenda.md`](docs/agenda.md)); confirmação de exclusão definida pelo usuário (P05 para Trabalho, 2026-09-25).
 
 ---
 
@@ -333,28 +371,33 @@
 
 Pré-requisito documental: UX e design de Onboarding presentes.
 
-- [ ] **7.1 — Splash e carrossel**
+- [x] **7.1 — Splash e carrossel**
   - Dependências: 2.2, 2.7, 1.5.
   - Motion do símbolo, três slides, swipe, pular/continuar.
   - **DoD:** fluxo e indicadores correspondem ao design; reduce motion funciona.
+  - Evidência: [`docs/onboarding-intro.md`](docs/onboarding-intro.md); abertura substituída pela narrativa da 7.7.
 
 - [ ] **7.2 — Tela de criação/login no fluxo**
   - Dependências: 4.2, 4.3, 4.4, 7.1.
   - **DoD:** cada método abre/realiza o fluxo correto; termos e privacidade usam URLs configuradas quando disponíveis.
+  - Situação: e-mail e Apple funcionam no fluxo. **Falta:** Google (4.4) e URLs legais (P04).
 
-- [ ] **7.3 — Coleta de perfil e bifurcação de Residência**
+- [x] **7.3 — Coleta de perfil e bifurcação de Residência**
   - Dependências: 3.2, 3.9, 4.5.
   - Nome, faz residência, especialidade, valor e dia.
   - **DoD:** Não pula dados de residência; Sim cria Residência e Recebíveis mensais Free sem `work_series`.
+  - Evidência: [`docs/onboarding-profile.md`](docs/onboarding-profile.md) e situação profissional (11.10).
 
-- [ ] **7.4 — Primeiro Trabalho**
+- [x] **7.4 — Primeiro Trabalho**
   - Dependências: 6.4, 6.5, 7.3.
   - **DoD:** campos condicionais por tipo, previsão opcional e gravação atômica funcionam.
+  - Evidência: [`docs/first-work.md`](docs/first-work.md); rota única com a peça persistente na 7.7.
 
-- [ ] **7.5 — Conclusão dinâmica e finalização**
+- [x] **7.5 — Conclusão dinâmica e finalização**
   - Dependências: 7.4.
   - Mostrar somente dados cadastrados; marcar onboarding completo.
   - **DoD:** com/sem residência, com/sem duração opcional e com/sem data prevista cobertos.
+  - Evidência: [`docs/onboarding-done.md`](docs/onboarding-done.md); primeira visão por mês de entrada na 7.7.
 
 - [ ] **7.6 — E2E de onboarding**
   - Dependências: 7.5.
@@ -365,6 +408,7 @@ Pré-requisito documental: UX e design de Onboarding presentes.
   - Entrega 1: totais por caixa, residente sem trabalho, trabalho no passado ("Data do trabalho", datas nos prazos, "Já recebi"), teclado e campos centralizados (D78).
   - Entrega 2: abertura narrativa, foco (`profiles.onboarding_focus`). Entrega 3: peça persistente. Entrega 4: primeira visão e guia por foco.
   - **DoD:** as quatro entregas validadas no iPhone; caixa e competência nunca misturados; Reduzir movimento respeitado.
+  - Situação: as quatro entregas estão na `main` (#63–#65), com ajustes depois do teste no iPhone. **Falta:** validação completa no iPhone; migrations `20261001000000` e `20261001010000` no preview e na produção.
 
 ---
 
@@ -372,33 +416,39 @@ Pré-requisito documental: UX e design de Onboarding presentes.
 
 Pré-requisito documental: UX e design de Agenda presentes.
 
-- [ ] **8.1 — Implementar query e calendário mensal**
+- [x] **8.1 — Implementar query e calendário mensal**
   - Dependências: 3.11, 6.2, 2.5.
   - Hoje, seleção, dias passados e pontos por local. Início de semana configurável fora do escopo por ora (decisão do usuário, 2026-09-26): a Agenda começa na segunda.
   - **DoD:** mês padrão, um/múltiplos trabalhos, dia livre e recebido correspondem aos estados desenhados.
+  - Evidência: [`docs/agenda.md`](docs/agenda.md); calendário em card começando na segunda.
 
-- [ ] **8.2 — Implementar lista diária e navegação de mês**
+- [x] **8.2 — Implementar lista diária e navegação de mês**
   - Dependências: 8.1.
   - Ordenação e cards com status.
   - **DoD:** tocar dia troca lista; tocar card abre detalhe; Agenda não soma valores.
+  - Evidência: [`docs/agenda.md`](docs/agenda.md).
 
-- [ ] **8.3 — Integrar adicionar/reutilizar/criar**
+- [x] **8.3 — Integrar adicionar/reutilizar/criar**
   - Dependências: 6.3, 6.4, 6.6, 8.2.
   - Botão central e CTA da Agenda usam o mesmo fluxo.
   - **DoD:** ambos criam o mesmo agregado sem duplicação.
+  - Evidência: o `+` central e o da Agenda abrem o mesmo fluxo, já no dia escolhido na Agenda (#66).
 
-- [ ] **8.4 — Integrar detalhe e edição**
+- [x] **8.4 — Integrar detalhe e edição**
   - Dependências: 6.7, 8.2.
   - **DoD:** dados, status, recorrência e cor aparecem conforme plano; alterações refletem ao voltar.
+  - Evidência: detalhe com status, recorrência e cor, `Marcar como recebido` e deslizar o card (#66).
 
-- [ ] **8.5 — Implementar recorrência de Trabalho Premium**
+- [x] **8.5 — Implementar recorrência de Trabalho Premium**
   - Dependências: 3.10, 5.6, 8.3, P03 para custom/edição avançada.
   - Weekly, biweekly e monthly; Free vê preview/saída.
   - **DoD:** Premium gera próximas datas; Free continua sem recorrência; Residência não aparece neste fluxo.
+  - Evidência: séries Premium (3.10) e folhas 11/12 ([`docs/agenda.md`](docs/agenda.md)); Premium validado por espelho local de entitlement até a Fase 5.
 
-- [ ] **8.6 — Implementar cor Premium/automática**
+- [x] **8.6 — Implementar cor Premium/automática**
   - Dependências: 5.6, 6.1.
   - **DoD:** Free salva cor automática/básica; Premium salva paleta ampliada; calendário e cards atualizam.
+  - Evidência: paleta ampliada e folhas 13/14 ([`docs/agenda.md`](docs/agenda.md)).
 
 - [ ] **8.7 — E2E Agenda**
   - Dependências: 8.6.
@@ -410,35 +460,41 @@ Pré-requisito documental: UX e design de Agenda presentes.
 
 Pré-requisito documental: UX e design de Finanças presentes.
 
-- [ ] **9.1 — Criar camada de queries financeiras**
+- [x] **9.1 — Criar camada de queries financeiras**
   - Dependências: 3.11, 3.12.
   - Mês, ano, timeline, sem data, origem, competência e valor/hora.
   - **DoD:** contratos tipados e testes com fixtures batem com cálculos do domínio.
+  - Evidência: [`docs/finances.md`](docs/finances.md) e projeções da 3.11.
 
-- [ ] **9.2 — Implementar visão mensal base Free**
+- [x] **9.2 — Implementar visão mensal base Free**
   - Dependências: 9.1, 2.5.
   - Hero, recebido × a receber, próxima entrada, Review Card e navegação.
   - **DoD:** mês completo, sem pendências, tudo recebido, mês anterior, sem trabalhos e somente sem data cobertos; topo verde e corpo bege rolam juntos, sem salto ao trocar período.
+  - Evidência: [`docs/finances.md`](docs/finances.md).
 
-- [ ] **9.3 — Implementar extrato de Entradas**
+- [x] **9.3 — Implementar extrato de Entradas**
   - Dependências: 9.1, 3.8.
   - Atual/passado/futuro/vazio e confirmação inline.
   - **DoD:** recebido, previsto e pendente são distintos; confirmar atualiza resumos sem automático.
+  - Evidência: `EntriesScreen` com confirmação inline, só pelo servidor (3.8).
 
 - [ ] **9.4 — Implementar folhas explicativas**
   - Dependências: 9.2.
   - Previsto, recebido, a receber, trabalho gerado e valor/hora.
   - **DoD:** textos e exemplos correspondem ao UX; folha Premium encaminha ao fluxo de benefícios.
+  - Situação: folhas implementadas ([`docs/finances.md`](docs/finances.md)). **Falta:** a folha Premium encaminhar ao fluxo de benefícios (5.5).
 
-- [ ] **9.5 — Implementar visão anual Free**
+- [x] **9.5 — Implementar visão anual Free**
   - Dependências: 9.1.
   - Barras, média quando válida e estruturas Premium bloqueadas.
   - **DoD:** primeiro mês não cria média/tendência; meses sem dado não viram zero.
+  - Evidência: [`docs/finances.md`](docs/finances.md).
 
 - [ ] **9.6 — Implementar análises Premium**
   - Dependências: 5.6, 9.1, 9.5.
   - Origem detalhada, valor/hora, evolução, insight e projeção.
   - **DoD:** servidor/cliente negam Free; Premium vê valores reais; base insuficiente não inventa insight.
+  - Situação: valor/hora, evolução e projeção Premium no ar. **Falta:** origem detalhada e insight ([`docs/finances.md`](docs/finances.md), "Ainda não entram").
 
 - [ ] **9.7 — E2E Finanças**
   - Dependências: 9.6.
@@ -450,28 +506,33 @@ Pré-requisito documental: UX e design de Finanças presentes.
 
 Pré-requisito documental: UX e design de Home presentes.
 
-- [ ] **10.1 — Criar query agregada da Home**
+- [x] **10.1 — Criar query agregada da Home**
   - Dependências: 3.11, 9.1.
   - Um contrato para hero, histórico, próximos itens, pendências e setup.
   - **DoD:** evita waterfall; teste cobre cada estado do UX.
+  - Evidência: [`docs/home.md`](docs/home.md).
 
-- [ ] **10.2 — Implementar hero e carrossel**
+- [x] **10.2 — Implementar hero e carrossel**
   - Dependências: 10.1, 2.7.
   - **DoD:** histórico aparece só quando válido; altura fixa e motion correspondem ao design; sem histórico usa uma página; topo verde e corpo bege formam uma rolagem vertical única.
+  - Evidência: [`docs/home.md`](docs/home.md).
 
-- [ ] **10.3 — Implementar cards e listas**
+- [x] **10.3 — Implementar cards e listas**
   - Dependências: 10.1, 2.5.
   - Próximo Trabalho, próximas Entradas, próximos Trabalhos e destinos.
   - **DoD:** estados com/sem próximo Trabalho e mês sem Entradas correspondem ao UX.
+  - Evidência: [`docs/home.md`](docs/home.md).
 
-- [ ] **10.4 — Implementar pendências e confirmação**
+- [x] **10.4 — Implementar pendências e confirmação**
   - Dependências: 3.8, 10.1, 2.5.
   - Entrada hoje, vencida e sem data.
   - **DoD:** no máximo dois Review Cards/um attention; item não duplica em lista; resolvido sai e atualiza Finanças.
+  - Evidência: [`docs/home.md`](docs/home.md); "Você recebeu?" confirma só pelo servidor.
 
-- [ ] **10.5 — Implementar progresso inicial**
+- [x] **10.5 — Implementar progresso inicial**
   - Dependências: 10.1.
   - **DoD:** aparece apenas incompleto, próxima ação navega certo e objeto some ao concluir.
+  - Evidência: [`docs/home.md`](docs/home.md).
 
 - [ ] **10.6 — E2E Home**
   - Dependências: 10.5.
@@ -483,28 +544,33 @@ Pré-requisito documental: UX e design de Home presentes.
 
 Pré-requisito documental: UX e design de Perfil presentes.
 
-- [ ] **11.1 — Implementar Perfil principal Free/Premium**
+- [x] **11.1 — Implementar Perfil principal Free/Premium**
   - Dependências: 3.12, 5.3, 2.5.
   - Identidade, grupos, card Premium/linha ativa e privacidade.
   - **DoD:** assinante não recebe venda; Free mantém configurações/importação acessíveis.
+  - Evidência: [`docs/profile.md`](docs/profile.md); Premium lido do espelho `subscription_entitlements` até a Fase 5.
 
-- [ ] **11.2 — Implementar edição de perfil/avatar**
+- [x] **11.2 — Implementar edição de perfil/avatar**
   - Dependências: 3.2, 3.6, 11.1.
   - **DoD:** campos condicionais, upload privado, troca e remoção de avatar testados.
+  - Evidência: [`docs/profile.md`](docs/profile.md); avatar em bucket privado (3.6).
 
-- [ ] **11.3 — Implementar telas de Locais**
+- [x] **11.3 — Implementar telas de Locais**
   - Dependências: 6.1, 5.6.
   - Lista, vazio, novo e edição.
   - **DoD:** nome obrigatório, contagem correta, paleta por plano e arquivamento preservam histórico.
+  - Evidência: [`docs/profile.md`](docs/profile.md).
 
-- [ ] **11.4 — Implementar tela de Residência**
+- [x] **11.4 — Implementar tela de Residência**
   - Dependências: 3.9, 11.1.
   - Dados/vazio/edição.
   - **DoD:** usuário Free cria recorrência mensal automática; desativar mantém recebidos e invalida futuros.
+  - Evidência: [`docs/profile.md`](docs/profile.md) e [`docs/residency-recurrence.md`](docs/residency-recurrence.md).
 
-- [ ] **11.5 — Implementar preferências de Trabalho**
+- [x] **11.5 — Implementar preferências de Trabalho**
   - Dependências: 3.2, 6.4.
   - **DoD:** defaults preenchem novo Trabalho e podem ser alterados por ocorrência.
+  - Evidência: [`docs/profile.md`](docs/profile.md); preferências preenchem o novo Trabalho.
 
 - [ ] **11.6 — Implementar infraestrutura de importação**
   - Dependências: 3.4, 3.6, 3.7, P02 para parser Plantãozinho final.
@@ -521,6 +587,7 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Aparência, conta/segurança, ajuda, feedback, termos e privacidade.
   - Exclusões finais dependem de P05/P04.
   - **DoD:** tema escuro aparece indisponível; links configurados; logout funciona; nenhuma ação destrutiva é inventada.
+  - Situação: aparência ("Em breve"), conta e segurança, logout e exclusão de conta (4.6). **Falta:** URLs de termos e privacidade (P04).
 
 - [x] **11.10 — Situação profissional explícita**
   - Dependências: 3.2, 3.9, 7.3, 11.2.
@@ -539,6 +606,7 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Dependências: 3.2, 11.1.
   - Separar toggle do usuário do status do sistema.
   - **DoD:** negar permissão não altera preferência silenciosamente; UI reflete ambos os estados.
+  - **Em andamento (2026-10-03):** requisito do grupo de testes, junto com 12.3 e 12.4.
 
 - [ ] **12.2 — Registrar tokens e enviar push de teste**
   - Dependências: 3.4, 12.1.
@@ -548,11 +616,13 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Dependências: 6.2, 12.1.
   - Agendar/reagendar/cancelar duas horas antes conforme preferência.
   - **DoD:** edição/exclusão não deixa lembrete órfão; timezone testado.
+  - **Em andamento (2026-10-03).**
 
 - [ ] **12.4 — Implementar lembretes financeiros**
   - Dependências: 3.11, 12.1, 12.2.
   - Dia previsto e lembrete semanal de sem data.
   - **DoD:** recebido não notifica; preferência off impede envio; residência Free participa como Recebível.
+  - **Em andamento (2026-10-03).**
 
 - [ ] **12.5 — Implementar integração unidirecional com calendário**
   - Dependências: 6.2, UX/design Perfil.
