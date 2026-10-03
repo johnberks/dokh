@@ -18,9 +18,6 @@ const NOW = new Date('2026-10-03T13:00:00.000Z');
 
 const receivable = (patch: Partial<ReminderReceivable>): ReminderReceivable => ({
   receivableId: 'r1',
-  workId: 'w1',
-  originName: 'Hospital São Lucas',
-  amountCents: 120000n,
   expectedOn: '2026-10-12',
   ...patch,
 });
@@ -49,38 +46,43 @@ function plan(
 }
 
 describe('plano de lembretes', () => {
-  it('entrada: aviso às 8h do dia previsto, com valor, origem e destino no detalhe', () => {
+  it('recebimento: aviso genérico às 8h do dia previsto, que abre Entradas do mês', () => {
     const [reminder] = plan({ receivables: [receivable({})] });
     expect(reminder).toMatchObject({
       id: 'receivable-2026-10-12',
       kind: 'receivable',
-      title: expect.stringMatching(/^Hoje entra R\$\s?1\.200$/),
-      body: 'De Hospital São Lucas. Você recebeu? Toque para confirmar.',
-      url: '/work/w1',
+      title: 'Recebimento previsto para hoje',
+      body: 'Confira em Finanças se já entrou.',
+      url: '/finances/entries?month=2026-10',
     });
     expect(reminder.trigger).toEqual({ type: 'date', date: new Date('2026-10-12T11:00:00.000Z') });
   });
 
-  it('várias entradas no mesmo dia viram um aviso só, somado; residência participa', () => {
+  it('vários recebimentos no mesmo dia viram um aviso só, ainda genérico', () => {
     const reminders = plan({
       receivables: [
         receivable({}),
-        receivable({ receivableId: 'r2', workId: null, originName: null, amountCents: 365442n }),
-        receivable({
-          receivableId: 'r3',
-          workId: 'w9',
-          originName: 'UPA Norte',
-          amountCents: 50000n,
-        }),
+        receivable({ receivableId: 'r2' }),
+        receivable({ receivableId: 'r3', expectedOn: '2026-11-05' }),
       ],
     });
-    expect(reminders).toHaveLength(1);
-    expect(reminders[0].title).toMatch(/^Hoje entram R\$\s?5\.354,42$/);
-    expect(reminders[0].body).toBe(
-      'De Hospital São Lucas e mais 2. Você recebeu? Toque para confirmar.',
-    );
-    // Mais de uma entrada abre Entradas do mês.
-    expect(reminders[0].url).toBe('/finances/entries?month=2026-10');
+    expect(reminders.map((reminder) => [reminder.title, reminder.url])).toEqual([
+      ['Recebimentos previstos para hoje', '/finances/entries?month=2026-10'],
+      ['Recebimento previsto para hoje', '/finances/entries?month=2026-11'],
+    ]);
+  });
+
+  it('nenhum aviso traz valor em dinheiro, em hipótese alguma (D81)', () => {
+    const reminders = plan({
+      receivables: [receivable({}), receivable({ receivableId: 'r2', expectedOn: '2026-10-20' })],
+      works: [work({}), work({ id: 'w2', type: 'procedure', startTime: null })],
+      undatedCount: 4,
+    });
+    expect(reminders.length).toBeGreaterThan(0);
+    for (const reminder of reminders) {
+      const text = `${reminder.title} ${reminder.body}`;
+      expect(text).not.toMatch(/R\$|\d+,\d{2}|\d{1,3}(\.\d{3})+/);
+    }
   });
 
   it('o horário escolhido vale; entrada de hoje com horário já passado não é agendada', () => {

@@ -35,18 +35,16 @@ export const notifications = {
   prompt: {
     eyebrow: 'LEMBRETES',
     title: 'A DOKH avisa na hora certa',
-    text: 'No dia em que um valor deve entrar, para você confirmar se recebeu, e 2 horas antes de cada trabalho.',
+    text: 'No dia em que um recebimento está previsto, para você conferir se entrou, e 2 horas antes de cada trabalho.',
     allow: 'Ativar lembretes',
     later: 'Agora não',
     note: 'Você muda isso quando quiser em Perfil › Notificações.',
   },
+  /** Avisos de recebimento nunca trazem valor nem origem (D81): só o convite para conferir. */
   reminder: {
-    residency: 'Residência',
-    receivableTitleOne: 'Hoje entra {{amount}}',
-    receivableTitleMany: 'Hoje entram {{amount}}',
-    receivableBody: 'De {{origins}}. Você recebeu? Toque para confirmar.',
-    and: ' e ',
-    andMore: '{{first}} e mais {{count}}',
+    receivableTitleOne: 'Recebimento previsto para hoje',
+    receivableTitleMany: 'Recebimentos previstos para hoje',
+    receivableBody: 'Confira em Finanças se já entrou.',
     workIn: '{{type}} em {{lead}}',
     workTomorrow: '{{type}} amanhã',
     workToday: '{{type}} hoje',

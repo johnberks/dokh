@@ -623,7 +623,7 @@ Pré-requisito documental: UX e design de Perfil presentes.
   - Dependências: 3.11, 12.1, 12.2.
   - Dia previsto e lembrete semanal de sem data.
   - **DoD:** recebido não notifica; preferência off impede envio; residência Free participa como Recebível.
-  - **Em andamento (2026-10-03):** aviso no dia previsto (8h por padrão; um por dia, somado; inclui a residência) e lembrete semanal de trabalhos sem data. Recebido e pendência passada ficam de fora. **Falta:** validação no iPhone.
+  - **Em andamento (2026-10-03):** aviso genérico no dia previsto (8h por padrão; um por dia; inclui a residência; **nunca com valores**, D81; abre Entradas) e lembrete semanal de trabalhos sem data. Recebido e pendência passada ficam de fora. **Falta:** validação no iPhone.
 
 - [ ] **12.5 — Implementar integração unidirecional com calendário**
   - Dependências: 6.2, UX/design Perfil.

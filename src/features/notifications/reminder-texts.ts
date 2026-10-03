@@ -6,17 +6,9 @@ export function reminderTexts(): ReminderTexts {
   const t = i18n.getFixedT(null, 'notifications');
   const agenda = i18n.getFixedT(null, 'agenda');
   return {
-    residency: t('reminder.residency'),
-    receivableTitle: (amount, count) =>
-      count === 1
-        ? t('reminder.receivableTitleOne', { amount })
-        : t('reminder.receivableTitleMany', { amount }),
-    receivableBody: (origins) => t('reminder.receivableBody', { origins }),
-    joinOrigins: (names) => {
-      if (names.length <= 1) return names[0] ?? '';
-      if (names.length === 2) return names.join(t('reminder.and'));
-      return t('reminder.andMore', { first: names[0], count: names.length - 1 });
-    },
+    receivableTitle: (count) =>
+      count === 1 ? t('reminder.receivableTitleOne') : t('reminder.receivableTitleMany'),
+    receivableBody: t('reminder.receivableBody'),
     workTitle: (type, lead) => {
       const label = agenda(`workType.${type}` as 'workType.shift');
       if (lead === 'today') return t('reminder.workToday', { type: label });

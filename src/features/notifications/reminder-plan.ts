@@ -1,5 +1,4 @@
 import type { LocalDate } from '@/domain/calendar';
-import { formatCentsToBRL } from '@/domain/money';
 import type { WorkType } from '@/domain/work-type';
 import { addDaysToLocalDate, todayInTimezone } from '@/features/work/work-schedule';
 import type { NotificationPreferences } from './notification-preferences';
@@ -16,12 +15,12 @@ export const UNDATED_WEEKLY = { weekday: 2, hour: 9, minute: 0 } as const;
 const UNTIMED_WORK_TIME = '08:00';
 const EVE_TIME = '20:00';
 
+/**
+ * Só o que o aviso precisa: nunca valor nem origem. O aviso aparece na tela bloqueada e na
+ * Central de Notificações, à vista de quem estiver perto (D81).
+ */
 export type ReminderReceivable = {
   receivableId: string;
-  workId: string | null;
-  /** Nome do Local, ou `null` para a bolsa da residência. */
-  originName: string | null;
-  amountCents: bigint;
   expectedOn: LocalDate;
 };
 
@@ -57,10 +56,9 @@ export type PlannedReminder = {
 };
 
 export type ReminderTexts = {
-  residency: string;
-  receivableTitle: (amount: string, count: number) => string;
-  receivableBody: (origins: string) => string;
-  joinOrigins: (names: string[]) => string;
+  /** Genérico: sem valor nem origem (D81). */
+  receivableTitle: (count: number) => string;
+  receivableBody: string;
   workTitle: (
     type: WorkType,
     lead: NotificationPreferences['workReminderMinutes'] | 'today',
@@ -71,13 +69,11 @@ export type ReminderTexts = {
   undatedBody: (count: number) => string;
 };
 
-const money = (cents: bigint) => formatCentsToBRL(cents, { omitZeroCents: true });
-
 /**
- * Plano de avisos locais (D53, D80): entrada no dia previsto (manhã, um aviso por dia somando as
- * entradas), lembrete antes de cada Trabalho e, se houver Trabalhos sem data de entrada, um
- * lembrete semanal. Recebido, pendência passada e residência seguem as regras do Recebível: só
- * entra o que ainda vai entrar. Nada no passado é agendado.
+ * Plano de avisos locais (D53, D80): recebimento no dia previsto (manhã, um aviso genérico por
+ * dia, **nunca com valores** — D81), lembrete antes de cada Trabalho e, se houver Trabalhos sem
+ * data de entrada, um lembrete semanal. Recebido, pendência passada e residência seguem as regras
+ * do Recebível: só entra o que ainda vai entrar. Nada no passado é agendado.
  */
 export function planReminders({
   now,
@@ -108,19 +104,14 @@ export function planReminders({
     for (const [day, entries] of byDay) {
       const date = zonedDateTime(day, preferences.receivableDueTime, timezone);
       if (date <= now) continue;
-      const total = entries.reduce((sum, entry) => sum + entry.amountCents, 0n);
-      const names = [...new Set(entries.map((entry) => entry.originName ?? texts.residency))];
-      const single = entries.length === 1 ? entries[0] : null;
       dated.push({
         id: `receivable-${day}`,
         kind: 'receivable',
-        title: texts.receivableTitle(money(total), entries.length),
-        body: texts.receivableBody(texts.joinOrigins(names)),
+        title: texts.receivableTitle(entries.length),
+        body: texts.receivableBody,
         trigger: { type: 'date', date },
-        // Uma entrada de Trabalho abre o detalhe, onde está "Marcar como recebido".
-        url: single?.workId
-          ? `/work/${single.workId}`
-          : `/finances/entries?month=${day.slice(0, 7)}`,
+        // Sempre Entradas do mês, em Finanças: lá a pessoa vê os valores e confirma.
+        url: `/finances/entries?month=${day.slice(0, 7)}`,
       });
     }
   }

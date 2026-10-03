@@ -19,11 +19,13 @@ Pedido do usuário em 2026-10-03, para o grupo de testes com amigos: lembretes *
 
 | Lembrete | Quando | Texto | Ao tocar |
 | --- | --- | --- | --- |
-| **Entrada no dia previsto** | no dia previsto, no horário escolhido (padrão 8h, no fuso da pessoa). Várias entradas no mesmo dia viram um aviso só, somado. A bolsa da residência participa. Só `scheduled`/`due_today`: recebido, pendência passada e invalidado ficam de fora | "Hoje entra R$ 1.200 / De Hospital São Lucas. Você recebeu? Toque para confirmar." | uma entrada de Trabalho abre o detalhe (com "Marcar como recebido"); várias, ou a residência, abrem Entradas do mês |
+| **Recebimento no dia previsto** | no dia previsto, no horário escolhido (padrão 8h, no fuso da pessoa). Vários no mesmo dia viram um aviso só. A bolsa da residência participa. Só `scheduled`/`due_today`: recebido, pendência passada e invalidado ficam de fora | **genérico, sem valor nem origem (D81):** "Recebimento previsto para hoje / Confira em Finanças se já entrou." (no plural, "Recebimentos previstos para hoje") | sempre **Entradas** do mês do aviso, em Finanças (`/finances/entries?month=`), onde estão os valores e o "Você recebeu?" |
 | **Próximo trabalho** | com horário: início menos a antecedência (30 min, 1 h, **2 h**, 1 dia), no fuso do Trabalho. Sem horário: 8h do dia, ou 20h da véspera com 1 dia | "Plantão em 2 horas / Hospital São Lucas, às 19:00." | o Trabalho |
 | **Trabalhos sem data de entrada** | toda segunda às 9h, só se existir algum | "3 trabalhos ainda sem previsão de pagamento…" | Início |
 
 Nada no passado é agendado (por exemplo, o aviso das 8h de hoje se o app abriu às 10h).
+
+**Valores nunca aparecem em aviso (D81, pedido do usuário em 2026-10-03).** O aviso fica à vista na tela bloqueada e na Central de Notificações. A leitura dos lembretes nem busca valor ou origem (`readReminderSources` lê só os dias), e um teste garante que nenhum aviso contém `R$` ou número em formato de dinheiro.
 
 ## Preferências (`notification_preferences`)
 
@@ -59,7 +61,8 @@ A personalização logo abaixo do toggle segue Craft e Tiimo (Mobbin).
 ## Testes
 
 - `reminder-plan.test.ts`:
-  - horário e fuso, soma por dia e residência;
+  - horário e fuso, um aviso genérico por dia e destino em Entradas;
+  - nenhum aviso com valor em dinheiro (D81);
   - antecedências, trabalho sem horário e semanal;
   - preferências desligadas, passado e limite de 60.
 - `zoned-time.test.ts`: São Paulo, virada de mês, horário de verão e fuso inválido.

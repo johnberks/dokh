@@ -14,8 +14,6 @@ import {
   WORK_HORIZON_DAYS,
 } from './reminder-plan';
 
-const cents = (value: number | null) => BigInt(value ?? 0);
-
 /**
  * O que os lembretes precisam, numa leitura só: entradas que ainda vão entrar (inclusive a
  * bolsa da residência), Trabalhos da janela e quantos Trabalhos estão sem data de entrada.
@@ -26,9 +24,10 @@ export async function readReminderSources(
   client: AuthClient = supabase,
 ): Promise<ReminderSources> {
   const [receivables, works, undated] = await Promise.all([
+    // Só os dias: o aviso de recebimento é genérico, sem valor nem origem (D81).
     client
       .from('receivable_projection')
-      .select('receivable_id, work_entry_id, amount_cents, expected_on, receipt_status')
+      .select('receivable_id, expected_on')
       .gte('expected_on', today)
       .lte('expected_on', addDaysToLocalDate(today, RECEIVABLE_HORIZON_DAYS))
       .in('receipt_status', ['scheduled', 'due_today'])
@@ -48,36 +47,15 @@ export async function readReminderSources(
     if (result.error) throw result.error;
   }
 
-  const receivableRows = (receivables.data ?? []).filter(
-    (row) => row.receivable_id && row.expected_on,
-  );
-  const workIds = [
-    ...new Set(receivableRows.map((row) => row.work_entry_id).filter((id): id is string => !!id)),
-  ];
-  const names = new Map<string, string>();
-  if (workIds.length > 0) {
-    const places = await client
-      .from('agenda_work_projection')
-      .select('work_entry_id, location_name')
-      .in('work_entry_id', workIds);
-    if (places.error) throw places.error;
-    for (const place of places.data ?? []) {
-      if (place.work_entry_id && place.location_name) {
-        names.set(place.work_entry_id, place.location_name);
-      }
-    }
-  }
-
   return {
-    receivables: receivableRows.map(
-      (row): ReminderReceivable => ({
-        receivableId: row.receivable_id as string,
-        workId: row.work_entry_id,
-        originName: row.work_entry_id ? (names.get(row.work_entry_id) ?? null) : null,
-        amountCents: cents(row.amount_cents),
-        expectedOn: row.expected_on as LocalDate,
-      }),
-    ),
+    receivables: (receivables.data ?? [])
+      .filter((row) => row.receivable_id && row.expected_on)
+      .map(
+        (row): ReminderReceivable => ({
+          receivableId: row.receivable_id as string,
+          expectedOn: row.expected_on as LocalDate,
+        }),
+      ),
     works: (works.data ?? [])
       .filter((row) => row.work_entry_id && row.work_date && row.type && row.location_name)
       .map(

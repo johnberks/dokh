@@ -12,7 +12,7 @@ Mesclar nessa ordem, retargetando cada um para a `main`.
 
 - **Google:** login nativo por ID token, como o da Apple ([`google-auth.md`](google-auth.md)). Funciona contra o Supabase local pela LAN. **Do lado do usuário:** clients OAuth Web e iOS no Google Cloud, provedor no Supabase (preview e produção, com "Skip nonce checks"), `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` e `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` no EAS (os três ambientes) e no `.env.local`. Depois, os IDs vão para o `supabase/config.toml` (local).
 - **Lembretes:** avisos locais ligados por padrão (D80, [`notifications.md`](notifications.md)):
-  - entrada no dia previsto às 8h;
+  - recebimento previsto às 8h: aviso **genérico, sem valores** (D81), que abre Entradas em Finanças;
   - trabalho 2 h antes;
   - semanal de trabalhos sem data;
   - Perfil › Notificações para desligar e personalizar (horário e antecedência);
