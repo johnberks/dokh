@@ -248,7 +248,8 @@ export function AccountScreen() {
   const account = useAccount();
   const premium = usePremium();
   const isPremium = premium.data === true;
-  const apple = account.data?.provider === 'apple';
+  const provider = account.data?.provider ?? 'email';
+  const apple = provider === 'apple';
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteFailed, setDeleteFailed] = useState(false);
@@ -283,7 +284,8 @@ export function AccountScreen() {
           subtitle={account.data?.email ?? '—'}
           testID="account-email"
         />
-        {!apple && (
+        {/* Senha só existe para quem entrou com e-mail. */}
+        {provider === 'email' && (
           <InsetRow
             label={t('account.changePassword')}
             onPress={() => router.push('/recover-password')}
@@ -292,7 +294,13 @@ export function AccountScreen() {
         )}
         <InsetRow
           label={t('account.method')}
-          value={apple ? t('account.methodApple') : t('account.methodEmail')}
+          value={
+            provider === 'apple'
+              ? t('account.methodApple')
+              : provider === 'google'
+                ? t('account.methodGoogle')
+                : t('account.methodEmail')
+          }
           accessory={<View />}
           last
           testID="account-method"

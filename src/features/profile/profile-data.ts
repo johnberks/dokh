@@ -289,13 +289,14 @@ export async function readLocationWorkCounts(
   return counts;
 }
 
-export type AccountIdentity = { email: string | null; provider: 'apple' | 'email' };
+export type AccountIdentity = { email: string | null; provider: 'apple' | 'google' | 'email' };
 
 /** E-mail e método de acesso; contas Apple podem ter e-mail privado de retransmissão. */
 export async function readAccount(client: AuthClient = supabase): Promise<AccountIdentity> {
   const { data, error } = await client.auth.getUser();
   if (error) throw error;
-  const provider = data.user?.app_metadata.provider === 'apple' ? 'apple' : 'email';
+  const raw = data.user?.app_metadata.provider;
+  const provider = raw === 'apple' || raw === 'google' ? raw : 'email';
   return { email: data.user?.email ?? null, provider };
 }
 

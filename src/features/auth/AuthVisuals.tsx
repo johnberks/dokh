@@ -21,6 +21,7 @@ import { useBrandTypography } from '@/theme/BrandFontProvider';
 import { colors, palette } from '@/theme/tokens';
 import { isAppleSignInAvailable, signInWithApple } from './apple-auth';
 import { authErrorMessage } from './email-auth';
+import { isGoogleSignInAvailable, signInWithGoogle } from './google-auth';
 
 export function AuthWordmark({
   light = false,
@@ -111,12 +112,16 @@ function GoogleIcon() {
   );
 }
 
+type SocialProvider = 'apple' | 'google';
+
 export function SocialChoices() {
   const { t } = useTranslation('auth');
   const type = useBrandTypography();
   const [appleAvailable, setAppleAvailable] = useState(false);
-  const [appleBusy, setAppleBusy] = useState(false);
-  const [appleError, setAppleError] = useState<string | null>(null);
+  const [googleAvailable] = useState(() => isGoogleSignInAvailable());
+  // Um login social por vez: o outro botão espera.
+  const [busy, setBusy] = useState<SocialProvider | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -128,66 +133,70 @@ export function SocialChoices() {
     };
   }, []);
 
-  async function continueWithApple() {
-    if (appleBusy) return;
-    setAppleError(null);
-    setAppleBusy(true);
+  async function continueWith(provider: SocialProvider) {
+    if (busy) return;
+    setError(null);
+    setBusy(provider);
     try {
-      const result = await signInWithApple(supabase);
+      const result =
+        provider === 'apple' ? await signInWithApple(supabase) : await signInWithGoogle(supabase);
       if (result.status === 'cancelled') return;
-      // A Apple só entrega o nome no primeiro login: ele já preenche a tela de nome.
+      // O primeiro nome vindo da Apple ou do Google já preenche a tela de nome.
       if (result.givenName && !useProfileDraft.getState().displayName.trim())
         useProfileDraft.getState().update({ displayName: result.givenName });
       router.replace('/');
-    } catch (error) {
-      setAppleError(authErrorMessage(error, 'apple'));
+    } catch (failure) {
+      setError(authErrorMessage(failure, provider));
     } finally {
-      setAppleBusy(false);
+      setBusy(null);
     }
   }
 
-  return (
-    <View style={styles.socialChoices}>
-      {appleAvailable ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ busy: appleBusy }}
-          accessibilityLabel={t('signIn.apple')}
-          onPress={() => void continueWithApple()}
-          style={({ pressed }) => [styles.socialButton, pressed && styles.socialPressed]}
-          testID="social-apple"
-        >
-          {appleBusy ? <ActivityIndicator color={palette.base} /> : <AppleIcon />}
-          <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.apple')}</AppText>
-        </Pressable>
-      ) : (
+  function socialButton(provider: SocialProvider, available: boolean) {
+    const label = provider === 'apple' ? t('signIn.apple') : t('signIn.google');
+    const icon = provider === 'apple' ? <AppleIcon /> : <GoogleIcon />;
+    if (!available) {
+      return (
         <View
           accessible
           accessibilityRole="button"
           accessibilityState={{ disabled: true }}
-          accessibilityLabel={t('signIn.apple')}
+          accessibilityLabel={label}
           accessibilityHint={t('signIn.socialUnavailable')}
           style={styles.socialButton}
-          testID="social-apple"
+          testID={`social-${provider}`}
         >
-          <AppleIcon />
-          <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.apple')}</AppText>
+          {icon}
+          <AppText style={[type.heading2, styles.socialLabel]}>{label}</AppText>
         </View>
-      )}
-      <View
-        accessible
+      );
+    }
+    return (
+      <Pressable
         accessibilityRole="button"
-        accessibilityState={{ disabled: true }}
-        accessibilityLabel={t('signIn.google')}
-        accessibilityHint={t('signIn.socialUnavailable')}
-        style={styles.socialButton}
+        accessibilityState={{
+          busy: busy === provider,
+          disabled: busy !== null && busy !== provider,
+        }}
+        accessibilityLabel={label}
+        disabled={busy !== null && busy !== provider}
+        onPress={() => void continueWith(provider)}
+        style={({ pressed }) => [styles.socialButton, pressed && styles.socialPressed]}
+        testID={`social-${provider}`}
       >
-        <GoogleIcon />
-        <AppText style={[type.heading2, styles.socialLabel]}>{t('signIn.google')}</AppText>
-      </View>
-      {appleError ? (
+        {busy === provider ? <ActivityIndicator color={palette.base} /> : icon}
+        <AppText style={[type.heading2, styles.socialLabel]}>{label}</AppText>
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={styles.socialChoices}>
+      {socialButton('apple', appleAvailable)}
+      {socialButton('google', googleAvailable)}
+      {error ? (
         <AppText accessibilityLiveRegion="polite" style={styles.socialError}>
-          {appleError}
+          {error}
         </AppText>
       ) : null}
       <View style={styles.orRow}>

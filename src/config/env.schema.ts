@@ -36,6 +36,9 @@ export const publicEnvSchema = z
     EXPO_PUBLIC_SENTRY_DSN: optionalText,
     EXPO_PUBLIC_REVENUECAT_IOS_API_KEY: optionalText,
     EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY: optionalText,
+    // 4.4: client IDs OAuth do Google (públicos). Sem eles, o botão do Google fica indisponível.
+    EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: optionalText,
+    EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: optionalText,
   })
   .superRefine((env, ctx) => {
     // Sem `new URL()`: a implementação de URL do React Native não expõe `hostname` de forma confiável.

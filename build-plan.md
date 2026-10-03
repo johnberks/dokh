@@ -270,7 +270,7 @@
 - [ ] **4.4 — Implementar Google Sign In**
   - Dependências: 4.1, configuração Google humana.
   - **DoD:** login real em iOS/Android retorna a mesma conta esperada e sessão válida.
-  - **Em andamento (2026-10-03):** requisito do grupo de testes com amigos, antes da próxima versão no TestFlight.
+  - **Em andamento (2026-10-03):** requisito do grupo de testes com amigos. Código pronto ([`docs/google-auth.md`](docs/google-auth.md)). **Falta:** client IDs do Google Cloud, provedor no Supabase, variáveis no EAS, novo build e login real no iPhone.
 
 - [x] **4.5 — Implementar guards de sessão/onboarding**
   - Dependências: 4.1, 3.2.

@@ -338,6 +338,20 @@ skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 
+[auth.external.google]
+# 4.4: login nativo (ID token, @react-native-google-signin). `client_id` lista os client IDs
+# OAuth públicos aceitos como audiência: o web client e o do iOS (docs/google-auth.md). Fica
+# desligado até os IDs existirem — habilitado sem `client_id`, o `supabase start` recusa.
+enabled = false
+client_id = ""
+# Só o fluxo web/OAuth usa o segredo, que a DOKH não usa.
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = ""
+url = ""
+# O SDK do Google no iOS não repassa nonce: sem pular a checagem, o Supabase recusa o token.
+skip_nonce_check = true
+email_optional = false
+
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
 [auth.web3.solana]
