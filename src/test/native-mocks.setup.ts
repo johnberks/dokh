@@ -20,6 +20,13 @@ require('react-native-reanimated').setUpTests();
 require('react-native-gesture-handler/jestSetup');
 
 // Login com Apple (4.3): indisponível por padrão; testes específicos sobrescrevem.
+// Vibração (grupo 1): os testes conferem quando ela dispara.
+jest.mock('expo-haptics', () => ({
+  notificationAsync: jest.fn(async () => {}),
+  performAndroidHapticsAsync: jest.fn(async () => {}),
+  NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
+  AndroidHaptics: { Confirm: 'confirm', Reject: 'reject' },
+}));
 jest.mock('expo-apple-authentication', () => ({
   isAvailableAsync: jest.fn(async () => false),
   signInAsync: jest.fn(),

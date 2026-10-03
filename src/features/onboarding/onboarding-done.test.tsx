@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { onboardingStatusKey } from '@/features/auth/onboarding-status';
 import { useWorkDraft } from '@/features/work/work-draft';
@@ -73,6 +74,9 @@ describe('primeira visão (TELA 10, Onboarding v2 · Entrega 4)', () => {
     expect(screen.getByLabelText('Sua DOKH está pronta, João.')).toBeTruthy();
     expect(screen.getByText('2 itens organizados')).toBeTruthy();
     expect(screen.getByText('Ver minha DOKH')).toBeTruthy();
+    // Uma vibração de sucesso quando o valor em destaque termina de contar.
+    expect(Haptics.notificationAsync).toHaveBeenCalledTimes(1);
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
   });
 
   it('bolsa e plantão do mesmo mês: o mês em destaque soma os dois e lista as peças', async () => {

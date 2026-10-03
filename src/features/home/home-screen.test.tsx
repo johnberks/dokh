@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { monthOf, shiftMonth } from '@/domain/calendar';
 import type { AgendaWork } from '@/features/agenda/agenda-data';
@@ -222,13 +223,16 @@ describe('Início', () => {
       await fireEvent.press(screen.getByTestId('home-review-today'));
     });
     expect(mockConfirm).toHaveBeenCalledWith('r5', expect.any(Object));
-    const { onError, onSettled } = mockConfirm.mock.calls[0][1];
+    const { onSuccess, onError, onSettled } = mockConfirm.mock.calls[0][1];
     await act(async () => {
       onError(new Error('offline'));
       onSettled();
     });
     expect(screen.getByTestId('home-confirm-error')).toBeTruthy();
     expect(screen.getByText('ENTRADA PREVISTA PARA HOJE')).toBeTruthy();
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('error');
+    await act(async () => onSuccess());
+    expect(Haptics.notificationAsync).toHaveBeenLastCalledWith('success');
   });
 
   it('entrada vencida: pendência neutra "Confirmar entrada", nunca recebida sozinha', async () => {

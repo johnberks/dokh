@@ -9,6 +9,7 @@ import { formatCentsToBRL } from '@/domain/money';
 import { useConfirmReceivable } from '@/features/work/work-data';
 import { localDateToDate } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { colors, palette } from '@/theme/tokens';
 import { OriginTile } from './FinanceCards';
 import type { NextEntry, UpcomingEntry } from './finance-data';
@@ -121,7 +122,13 @@ export function NextEntryCard({
             disabled={confirm.isPending}
             onPress={() => {
               setFailed(false);
-              confirm.mutate(entry.receivableId, { onError: () => setFailed(true) });
+              confirm.mutate(entry.receivableId, {
+                onSuccess: () => haptic('success'),
+                onError: () => {
+                  haptic('error');
+                  setFailed(true);
+                },
+              });
             }}
             testID="finances-next-confirm"
             style={({ pressed }) => [styles.confirm, pressed && styles.pressed]}

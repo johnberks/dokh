@@ -3,7 +3,14 @@
 > Leia este arquivo **antes** de começar qualquer tarefa, seja no Claude Code ou no Codex.
 > Atualize-o ao terminar uma sessão: o que foi feito, o que ficou pendente e por quê.
 
-Última atualização: 2026-10-03 · Claude Code · **Agenda: registrar no dia escolhido e ações rápidas**, no branch `codex/agenda-day-actions`. Detalhes em [`agenda.md`](agenda.md), seção "Registrar no dia escolhido e ações rápidas".
+Última atualização: 2026-10-03 · Claude Code · **Vibração (grupo 1)** no branch `codex/haptics-confirmations`, empilhado sobre `codex/agenda-day-actions` (#66). Detalhes em [`haptics.md`](haptics.md).
+
+- **Onde vibra:** sucesso ao salvar trabalho (`+`, edição, primeiro trabalho), ao marcar como recebido (detalhe, deslizar, Home, Finanças, Entradas) e no fim do onboarding. Erro quando a gravação ou a confirmação falha.
+- **Fica de fora, por decisão do usuário:** seleção (calendário, chips) e limites de gesto.
+- **Exige novo build de desenvolvimento** (`expo-haptics` é nativo; D79). Sem ele o app funciona igual, só não vibra.
+- **Mescla:** primeiro o #66; depois este PR passa a apontar para a `main`.
+
+Anterior (2026-10-03) · Claude Code · **Agenda: registrar no dia escolhido e ações rápidas**, no branch `codex/agenda-day-actions`. Detalhes em [`agenda.md`](agenda.md), seção "Registrar no dia escolhido e ações rápidas".
 
 - **`+` no dia escolhido:** o `+` do topo, o do dia livre e o `+` central (com a Agenda na tela) abrem o novo Trabalho com a data do dia selecionado. Template não pergunta a data.
 - **Detalhe:** `Marcar como recebido` acima de `Editar trabalho` enquanto o valor não entrou. Editar passa para contorno.

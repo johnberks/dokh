@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -13,6 +13,7 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 import { AppText } from '@/components/AppText';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { motionDuration } from '@/theme/motion';
 import { colors, palette } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
@@ -30,6 +31,7 @@ const DISABLED_BACKGROUND = 'rgba(16,22,15,0.18)';
  * "Salvar trabalho" com a troca de estado dentro do próprio botão (referência Shazam, Mobbin):
  * toque afunda com mola, "Salvando…" entra com spinner e, ao gravar, o botão fica verde DOKH,
  * desenha o check e mostra "Trabalho salvo". Nada para tocar depois: a tela segue sozinha.
+ * A vibração de sucesso sai no instante em que o botão fica verde.
  */
 export function SaveWorkButton({
   label,
@@ -63,6 +65,13 @@ export function SaveWorkButton({
   useEffect(() => {
     enabled.value = withTiming(disabled ? 0 : 1, { duration: morph, easing });
   }, [disabled, enabled, morph, easing]);
+
+  // Só na passagem para "salvo": remontar já salvo não vibra de novo.
+  const previous = useRef(phase);
+  useEffect(() => {
+    if (phase === 'saved' && previous.current !== 'saved') haptic('success');
+    previous.current = phase;
+  }, [phase]);
 
   useEffect(() => {
     idle.value = withTiming(phase === 'idle' ? 1 : 0, { duration: morph, easing });

@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import type { PanGesture } from 'react-native-gesture-handler';
 import { State } from 'react-native-gesture-handler';
@@ -355,6 +356,7 @@ describe('deslizar o card do dia (Agenda)', () => {
     });
     expect(mockConfirm).toHaveBeenCalledWith('r1');
     expect(screen.queryByRole('button', { name: 'Marcar como recebido' })).toBeNull();
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
   });
 
   it('falha ao marcar mantém o card aberto e avisa', async () => {
@@ -367,6 +369,7 @@ describe('deslizar o card do dia (Agenda)', () => {
     });
     expect(screen.getByTestId('agenda-receive-error-w1')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Marcar como recebido' })).toBeTruthy();
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('error');
   });
 
   it('trabalho já recebido só oferece Excluir', async () => {
@@ -522,6 +525,9 @@ describe('detalhes do trabalho (Agenda 15, leitura)', () => {
     });
     expect(mockConfirm).toHaveBeenCalledWith('r1');
     expect(screen.getByRole('button', { name: 'Recebido' })).toBeTruthy();
+    // A vibração sai do botão ao ficar verde, uma vez só.
+    expect(Haptics.notificationAsync).toHaveBeenCalledTimes(1);
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
   });
 
   it('recebido (ou sem Recebível) não oferece marcar', async () => {
@@ -555,6 +561,7 @@ describe('detalhes do trabalho (Agenda 15, leitura)', () => {
     });
     expect(screen.getByTestId('mutation-error-retry')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Marcar como recebido' })).toBeTruthy();
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('error');
   });
 
   it('Editar trabalho abre o formulário de edição', async () => {

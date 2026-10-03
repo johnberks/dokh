@@ -1,5 +1,6 @@
 import '@/i18n';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { formatDayMonth } from '@/domain/calendar';
 import {
   createWorkLocation,
@@ -461,6 +462,9 @@ describe('Salvar trabalho (animação de sucesso)', () => {
     await press('work-save');
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith(workDate), { timeout: 3000 });
     expect(screen.getByTestId('work-save').props.accessibilityLabel).toBe('Trabalho salvo');
+    // Uma vibração de sucesso, no instante em que o botão fica verde.
+    expect(Haptics.notificationAsync).toHaveBeenCalledTimes(1);
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
     // Nenhum toque extra: salvar não fecha pelo "fechar".
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByTestId('work-save').props.accessibilityState).toMatchObject({
@@ -492,6 +496,29 @@ describe('Preferências de trabalho no + (11.5)', () => {
       kind: 'date',
       date: addDaysToLocalDate(workDate, 60),
     });
+  });
+});
+
+describe('Salvar trabalho com falha', () => {
+  it('erro do servidor vibra como erro e mantém o formulário', async () => {
+    mockedCreateWork.mockRejectedValueOnce(new Error('network'));
+    const onSaved = jest.fn();
+    await renderWithProviders(<NewWorkFlow onClose={jest.fn()} onSaved={onSaved} />);
+    await act(async () => {
+      await fireEvent.press(screen.getByRole('button', { name: 'Procedimento' }));
+    });
+    await act(async () => {
+      await fireEvent.changeText(screen.getByTestId('work-location-input'), 'Clínica Nova');
+    });
+    await pickDate();
+    await act(async () => {
+      await fireEvent.changeText(screen.getByLabelText('QUANTO VOCÊ VAI RECEBER?'), '500');
+    });
+    await press('work-save');
+    await waitFor(() => expect(Haptics.notificationAsync).toHaveBeenCalledWith('error'));
+    expect(Haptics.notificationAsync).not.toHaveBeenCalledWith('success');
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(screen.getByTestId('work-save').props.accessibilityLabel).toBe('Salvar trabalho');
   });
 });
 

@@ -18,6 +18,7 @@ import { useConfirmReceivable } from '@/features/work/work-data';
 import { useNextOccurrence, useStopWorkSeries } from '@/features/work/work-recurrence';
 import { localDateToDate, workEndDescription } from '@/features/work/work-schedule';
 import { useBrandTypography } from '@/theme/BrandFontProvider';
+import { haptic } from '@/theme/haptics';
 import { motionDuration } from '@/theme/motion';
 import { colors, palette, workLocationColors } from '@/theme/tokens';
 import { useReducedMotion } from '@/theme/useReducedMotion';
@@ -431,7 +432,10 @@ function useMarkReceived(work: AgendaWork) {
           motionDuration('saveHold', reduced);
         timer.current = setTimeout(() => setLeaving(true), hold);
       },
-      onError: () => setPhase('idle'),
+      onError: () => {
+        haptic('error');
+        setPhase('idle');
+      },
     });
   }
 
